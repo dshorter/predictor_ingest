@@ -376,6 +376,23 @@ Keep dependencies minimal.
 
 ---
 
+## Sources (V1)
+
+Initial RSS feeds for technical AI content. Runtime configuration lives in `config/feeds.yaml`.
+
+| Source | URL | Why |
+|--------|-----|-----|
+| arXiv CS.AI | `https://rss.arxiv.org/rss/cs.AI` | Academic papers; structured metadata (authors, affiliations); cites models/datasets/benchmarks |
+| Hugging Face Blog | `https://huggingface.co/blog/feed.xml` | Model releases, dataset announcements, open-source ecosystem |
+| OpenAI Blog | `https://openai.com/blog/rss.xml` | Major industry announcements, model launches, clear entity relationships |
+
+These three provide coverage across:
+- **Academic research** (arXiv)
+- **Open-source ecosystem** (Hugging Face)
+- **Industry announcements** (OpenAI)
+
+---
+
 ## Backlog (post-V1 ideas)
 - Persist node positions (`preset` layout) for stability across days
 - Add “follow-up query” generation for hypothesis edges (2-hop research discipline)
