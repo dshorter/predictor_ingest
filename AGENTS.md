@@ -22,6 +22,7 @@ The end product is a growing knowledge graph that can reveal **emerging trends e
 ---
 
 ## Core Principles
+
 ### Archive-first
 Always store:
 - raw HTML (or feed XML item data)
@@ -79,7 +80,8 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
 
 ### 1) Document record (SQLite)
 **Table:** `documents`
-- `doc_id` TEXT PRIMARY KEY  
+
+- `doc_id` TEXT PRIMARY KEY
 - `url` TEXT
 - `source` TEXT (publisher or feed name)
 - `title` TEXT
@@ -93,6 +95,7 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
 
 ### 2) DocPack (daily bundle) — JSONL
 One JSON object per line. Minimal fields:
+
 ```json
 {
   "docId": "2025-12-01_nextgov_409826",
@@ -103,3 +106,279 @@ One JSON object per line. Minimal fields:
   "fetched": "2026-01-21T07:12:00Z",
   "text": "cleaned article text…"
 }
+```
+
+Also generate `daily_bundle_YYYY-MM-DD.md` for “paste into ChatGPT” workflows.
+
+### 3) Extraction Output — per document JSON
+Write to `data/extractions/{docId}.json`.
+
+Top-level:
+- `docId` (string)
+- `extractorVersion` (string; bump when prompts/schema changes)
+- `entities` (list)
+- `relations` (list)
+- `techTerms` (list)
+- `dates` (list)
+- `notes` (list; optional warnings, ambiguity flags)
+
+Entity object:
+- `name` (string; surface form)
+- `type` (enum; see Node Types)
+- `aliases` (list[string], optional)
+- `externalIds` (object, optional) e.g. `{"wikidata":"Q123"}`
+- `idHint` (string, optional; if model suggests canonical id)
+
+Relation object:
+- `source` (string; entity name or idHint)
+- `rel` (enum; canonical relation taxonomy below)
+- `target` (string)
+- `kind` (enum: `asserted` | `inferred` | `hypothesis`)
+- `confidence` (float 0..1)
+- `verbRaw` (string; as in text, optional)
+- `polarity` (`pos` | `neg` | `unclear`, optional)
+- `modality` (`observed` | `planned` | `speculative`, optional)
+- `time` (object, optional; see Date model)
+- `evidence` (list[Evidence]; MUST be non-empty for asserted edges)
+
+Evidence object:
+- `docId` (string)
+- `url` (string)
+- `published` (string ISO date/datetime or null)
+- `snippet` (string; short quote/paraphrase)
+- `charSpan` (object optional) `{ "start": 1234, "end": 1302 }`
+
+Date model:
+- Always keep raw: `text` (e.g., `"this fall"`)
+- Normalize when possible:
+  - `start` / `end` (ISO date)
+  - `resolution` (e.g., `exact`, `range`, `anchored_to_published`, `unknown`)
+  - `anchor` (e.g., published date used for “this fall”)
+
+### 4) Cytoscape.js Export — `elements`
+Write to `data/graphs/{date}/{view}.json`.
+
+Views:
+- `mentions.json` — Document ↔ Entity mentions
+- `claims.json` — Semantic entity-to-entity relations
+- `dependencies.json` — Dependency-only relations (`USES_*`, `DEPENDS_ON`, `REQUIRES`, etc.)
+- `trending.json` — Filtered to high-velocity/high-novelty edges/nodes
+
+Cytoscape format:
+
+```json
+{
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "org:cdc",
+          "label": "CDC",
+          "type": "Org",
+          "aliases": ["Centers for Disease Control and Prevention"],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-21"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:doc:2025-12-01_nextgov_409826->org:cdc",
+          "source": "doc:2025-12-01_nextgov_409826",
+          "target": "org:cdc",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Canonical IDs
+We use stable IDs for graph nodes:
+- `doc:{docId}`
+- `org:{slug}`
+- `person:{slug}`
+- `tool:{slug}`
+- `model:{slug}`
+- `dataset:{slug}`
+- `paper:{slug}` (or DOI-based)
+- `repo:{slug}` (or URL-hash)
+- `tech:{slug}`
+- `topic:{slug}`
+- `benchmark:{slug}`
+
+Slug rules:
+- lowercase
+- alphanumerics + `_`
+- strip punctuation
+- keep short
+
+Entity resolution can update canonical IDs; preserve backrefs via `aliases` and a mapping table:
+- `entity_aliases(alias TEXT PRIMARY KEY, canonical_id TEXT NOT NULL)`
+
+---
+
+## Node Types (V1 enum)
+- `Org`
+- `Person`
+- `Program`
+- `Tool`
+- `Model`
+- `Dataset`
+- `Benchmark`
+- `Paper`
+- `Repo`
+- `Document`
+- `Tech`
+- `Topic`
+- `Event`
+- `Location`
+- `Other`
+
+---
+
+## Relation Taxonomy (V1)
+Keep canonical relations limited and stable.
+
+Document relations:
+- `MENTIONS`
+- `CITES`
+- `ANNOUNCES` (doc announces a thing)
+- `REPORTED_BY` (optional)
+
+Org/Person/Program:
+- `LAUNCHED`
+- `PUBLISHED`
+- `UPDATED`
+- `FUNDED`
+- `PARTNERED_WITH`
+- `ACQUIRED`
+- `HIRED`
+- `CREATED`
+- `OPERATES`
+- `GOVERNED_BY` (or `GOVERNS`)
+- `REGULATES`
+- `COMPLIES_WITH`
+
+Tech/Model/Tool/Dataset:
+- `USES_TECH`
+- `USES_MODEL`
+- `USES_DATASET`
+- `TRAINED_ON`
+- `EVALUATED_ON`
+- `INTEGRATES_WITH`
+- `DEPENDS_ON`
+- `REQUIRES` (e.g., compute/hardware)
+- `PRODUCES`
+- `MEASURES` (benchmarks measure models)
+- `AFFECTS` (optional; prefer inference/hypothesis)
+
+Forecasting & detection:
+- `PREDICTS`
+- `DETECTS`
+- `MONITORS`
+
+Notes:
+- Prefer `MENTIONS` as a base layer; only emit semantic edges when evidence supports them.
+- Keep “COMPETES_WITH” and “REPLACES” as inferred/hypothesis unless explicitly stated.
+
+---
+
+## LLM Extraction Rules (critical)
+1) Asserted relations MUST include evidence (snippet + docId).
+2) Do not fabricate entities, dates, or relations.
+3) If ambiguous, add `notes[]` and mark relation as `hypothesis` or omit it.
+4) Convert verbs to canonical `rel`; preserve original as `verbRaw`.
+5) Extract technology nouns as `Tech` nodes (or `techTerms[]`) and connect via `USES_TECH` when supported.
+6) Keep evidence snippets short (≤ ~200 chars).
+7) For dates: keep raw `text` always; normalize `start/end` when safe.
+
+---
+
+## Modes of Operation
+
+### Mode A — LLM API available
+- `make extract` calls an LLM with strict JSON output.
+- Validate output with JSON Schema.
+
+### Mode B — No API key (manual)
+1) `make docpack` produces JSONL + MD bundle.
+2) Paste/upload into ChatGPT web and request extraction in schema.
+3) Save returned JSON under `data/extractions/`.
+4) `make import_manual` validates and stores.
+
+Downstream steps (`resolve`, `export`) must not care whether extractions came from API or manual.
+
+---
+
+## Trend Scoring (V1)
+Compute lightweight signals daily:
+- `mention_count_7d`, `mention_count_30d`
+- `velocity` (ratio or delta)
+- `novelty` (days since firstSeen + rarity proxy)
+- `bridge_delta` (optional)
+
+Use these to build `trending.json` view.
+
+---
+
+## Thin Cytoscape Client (web/)
+Requirements:
+- static site (no backend required in V1)
+- loads selected `graphs/{date}/{view}.json`
+- force-directed layout on load is acceptable for V1
+- UI:
+  - dataset selector (date/view)
+  - search box (by label)
+  - toggles: asserted / inferred / hypothesis
+  - buttons: zoom in/out, fit, re-run layout
+- on edge click: show provenance/evidence list
+
+Keep dependencies minimal.
+
+---
+
+## Quality Bar
+- Add JSON Schemas and validate every extraction/export.
+- Add unit tests for:
+  - slugging + ID rules
+  - date parsing basics
+  - schema validation
+  - export correctness (Cytoscape required fields)
+- Log errors; never silently drop docs.
+
+---
+
+## Safety / Legal / Scraping Policy
+- Be polite: set a clear User-Agent, rate-limit, and cache.
+- Respect robots.txt where practical.
+- Avoid paywalled or restricted content.
+- Avoid collecting/storing PII/PHI beyond what appears in public pages; never attempt deanonymization.
+- Store only what is needed for analysis and provenance.
+
+---
+
+## Developer Workflow (suggested)
+- `make setup` (venv, deps)
+- `make ingest`
+- `make docpack`
+- `make extract` (API) OR `make import_manual`
+- `make resolve`
+- `make export`
+- `make web`
+- `make test`
+
+---
+
+## Backlog (post-V1 ideas)
+- Persist node positions (`preset` layout) for stability across days
+- Add “follow-up query” generation for hypothesis edges (2-hop research discipline)
+- Better entity resolution (Wikidata IDs for high-degree nodes)
+- Community detection + clustering views
+- Source-type enrichment (paper/repo/hiring/product changelog) for earlier weak signals
