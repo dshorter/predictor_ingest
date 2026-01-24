@@ -1,68 +1,26 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
-import re
 import sqlite3
 import sys
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Optional
 
 import feedparser
 import requests
-from bs4 import BeautifulSoup
+
+from util import (
+    clean_html,
+    parse_entry_date,
+    sha256_text,
+    short_hash,
+    slugify,
+    utc_now_iso,
+)
 
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
-
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-
-
-def slugify(value: str) -> str:
-    value = value.lower()
-    value = re.sub(r"[^a-z0-9]+", "_", value)
-    value = value.strip("_")
-    return value or "source"
-
-
-def short_hash(value: str) -> str:
-    return hashlib.sha1(value.encode("utf-8")).hexdigest()[:8]
-
-
-def sha256_text(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-def parse_entry_date(entry: dict) -> Optional[str]:
-    for key in ("published_parsed", "updated_parsed"):
-        value = entry.get(key)
-        if value:
-            dt = datetime(*value[:6], tzinfo=timezone.utc)
-            return dt.date().isoformat()
-    for key in ("published", "updated"):
-        value = entry.get(key)
-        if value:
-            try:
-                dt = parsedate_to_datetime(value)
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                return dt.date().isoformat()
-            except (TypeError, ValueError):
-                return None
-    return None
-
-
-def clean_html(html: str) -> str:
-    soup = BeautifulSoup(html, "html.parser")
-    for tag in soup(["script", "style", "noscript"]):
-        tag.decompose()
-    text = soup.get_text(separator=" ", strip=True)
-    return re.sub(r"\s+", " ", text).strip()
 
 
 def rel_path(path: Path, root: Path) -> str:
