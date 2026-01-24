@@ -353,6 +353,36 @@ Keep dependencies minimal.
 
 ---
 
+## Web Client Design Principles *[TODO]*
+
+*Research and document UX guidelines before implementation. Topics to cover:*
+
+### Graph Visualization
+- Information density / visual clutter thresholds
+- Node sizing strategy (by degree? trend score? type?)
+- Edge styling (thickness for confidence? bundling?)
+- Color scheme for entity types
+- Label visibility rules
+
+### Interaction Patterns
+- Pan/zoom behavior
+- Click vs hover actions
+- Search and filter UX
+- Progressive disclosure (overview → detail)
+
+### Knowledge Graph Specifics
+- Provenance/evidence display on edges
+- Temporal views (timeline? animation?)
+- Confidence visualization
+- Path highlighting between entities
+
+### Accessibility
+- Color blindness considerations
+- Keyboard navigation
+- Screen reader support
+
+---
+
 ## Quality Bar
 - Add JSON Schemas and validate every extraction/export.
 - Add unit tests for:
