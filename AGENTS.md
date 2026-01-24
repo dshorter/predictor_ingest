@@ -60,7 +60,7 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
   - `ingest/` (RSS + web fetching CLI)
   - `extract/` (LLM prompts + parsing + validation)
   - `util/` (hashing, slugify, date parsing, HTML cleaning)
-  - `clean/` (readability extraction, boilerplate removal) *[planned]*
+  - `clean/` (readability extraction, boilerplate removal, metadata extraction)
   - `resolve/` (entity resolution + alias merging) *[planned]*
   - `graph/` (Cytoscape export: mentions, claims, dependencies views)
   - `trend/` (basic scoring: velocity/novelty/bridge) *[planned]*
