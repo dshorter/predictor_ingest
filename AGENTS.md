@@ -63,7 +63,7 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
   - `clean/` (readability extraction, boilerplate removal, metadata extraction)
   - `resolve/` (entity resolution, similarity matching, alias merging)
   - `graph/` (Cytoscape export: mentions, claims, dependencies views)
-  - `trend/` (basic scoring: velocity/novelty/bridge) *[planned]*
+  - `trend/` (velocity, novelty, bridge scoring; trending export)
 - `config/` (runtime YAML configs)
   - `feeds.yaml` (RSS feed definitions)
 - `data/` (gitignored)
