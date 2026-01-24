@@ -574,3 +574,239 @@ class TestNetworkIntegration:
         assert count == 1
 
         conn.close()
+
+
+class TestFullPipeline:
+    """Test the complete pipeline with all modules.
+
+    Covers: ingest → clean → extract → resolve → graph → trend
+    """
+
+    # Sample raw HTML simulating fetched webpage
+    SAMPLE_HTML = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>AI Breakthrough - Tech News</title>
+        <meta name="author" content="Jane Smith">
+        <meta property="article:published_time" content="2026-01-20T10:00:00Z">
+    </head>
+    <body>
+        <nav><a href="/">Home</a></nav>
+        <article>
+            <h1>OpenAI Releases GPT-5 with Major Improvements</h1>
+            <p>OpenAI announced GPT-5, their latest language model built on
+            transformer architecture. The model was trained on diverse datasets
+            and evaluated on MMLU benchmark.</p>
+            <p>Google DeepMind also released updates to their Gemini model,
+            showing the competitive AI landscape.</p>
+        </article>
+        <footer>Copyright 2026</footer>
+    </body>
+    </html>
+    """
+
+    def test_complete_pipeline(self, tmp_path: Path):
+        """Test the entire pipeline from raw HTML to trending export."""
+        from clean import clean_document, extract_content
+        from resolve import EntityResolver
+        from graph import GraphExporter
+        from trend import TrendScorer
+
+        # === Step 1: Initialize database ===
+        db_path = tmp_path / "pipeline.db"
+        conn = init_db(db_path)
+
+        # === Step 2: Clean HTML (simulating post-ingest) ===
+        cleaned = clean_document(self.SAMPLE_HTML)
+
+        assert cleaned["title"] == "OpenAI Releases GPT-5 with Major Improvements"
+        assert cleaned["metadata"].get("author") == "Jane Smith"
+        assert "OpenAI announced GPT-5" in cleaned["content"]
+        assert "Copyright 2026" not in cleaned["content"]  # Boilerplate removed
+
+        # === Step 3: Store document ===
+        doc_id = "2026-01-20_technews_abc123"
+        conn.execute(
+            """
+            INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (doc_id, "https://example.com/ai-news", "Tech News",
+             cleaned["title"], "2026-01-20", utc_now_iso(), "cleaned"),
+        )
+        conn.commit()
+
+        # === Step 4: Build extraction prompt ===
+        doc = {
+            "docId": doc_id,
+            "url": "https://example.com/ai-news",
+            "source": "Tech News",
+            "title": cleaned["title"],
+            "published": "2026-01-20",
+            "text": cleaned["content"],
+        }
+        prompt = build_extraction_prompt(doc)
+        assert "OpenAI" in prompt
+        assert "GPT-5" in prompt
+
+        # === Step 5: Simulate LLM extraction response ===
+        extraction_json = """
+        {
+          "docId": "2026-01-20_technews_abc123",
+          "extractorVersion": "1.0.0",
+          "entities": [
+            {"name": "OpenAI", "type": "Org"},
+            {"name": "GPT-5", "type": "Model"},
+            {"name": "Google DeepMind", "type": "Org"},
+            {"name": "Gemini", "type": "Model"},
+            {"name": "MMLU", "type": "Benchmark"},
+            {"name": "Transformer", "type": "Tech"}
+          ],
+          "relations": [
+            {"source": "OpenAI", "rel": "CREATED", "target": "GPT-5",
+             "kind": "asserted", "confidence": 0.95,
+             "evidence": [{"docId": "2026-01-20_technews_abc123",
+                          "url": "https://example.com/ai-news",
+                          "published": "2026-01-20",
+                          "snippet": "OpenAI announced GPT-5"}]},
+            {"source": "GPT-5", "rel": "USES_TECH", "target": "Transformer",
+             "kind": "asserted", "confidence": 0.9,
+             "evidence": [{"docId": "2026-01-20_technews_abc123",
+                          "url": "https://example.com/ai-news",
+                          "published": "2026-01-20",
+                          "snippet": "built on transformer architecture"}]},
+            {"source": "GPT-5", "rel": "EVALUATED_ON", "target": "MMLU",
+             "kind": "asserted", "confidence": 0.85,
+             "evidence": [{"docId": "2026-01-20_technews_abc123",
+                          "url": "https://example.com/ai-news",
+                          "published": "2026-01-20",
+                          "snippet": "evaluated on MMLU benchmark"}]},
+            {"source": "Google DeepMind", "rel": "CREATED", "target": "Gemini",
+             "kind": "inferred", "confidence": 0.7}
+          ],
+          "techTerms": ["transformer", "language model"],
+          "dates": [],
+          "notes": []
+        }
+        """
+
+        extraction = parse_extraction_response(extraction_json, doc_id)
+        validate_extraction(extraction)
+
+        # === Step 6: Resolve entities ===
+        resolver = EntityResolver(conn, threshold=0.85)
+        resolved_ids = resolver.resolve_extraction(extraction)
+
+        assert len(resolved_ids) == 6
+        assert resolved_ids["OpenAI"].startswith("org:")
+        assert resolved_ids["GPT-5"].startswith("model:")
+
+        # === Step 7: Store relations with resolved IDs ===
+        for rel in extraction["relations"]:
+            source_id = resolved_ids[rel["source"]]
+            target_id = resolved_ids[rel["target"]]
+
+            insert_relation(
+                conn,
+                source_id=source_id,
+                rel=rel["rel"],
+                target_id=target_id,
+                kind=rel["kind"],
+                confidence=rel["confidence"],
+                doc_id=doc_id,
+                extractor_version="1.0.0",
+            )
+
+            # Store evidence if present
+            for ev in rel.get("evidence", []):
+                # Get relation_id
+                cursor = conn.execute(
+                    "SELECT MAX(relation_id) FROM relations"
+                )
+                rel_id = cursor.fetchone()[0]
+                insert_evidence(conn, rel_id, ev["docId"], ev["url"],
+                              ev.get("published"), ev["snippet"])
+
+        # Add MENTIONS edges (doc → entity)
+        for name, entity_id in resolved_ids.items():
+            insert_relation(
+                conn,
+                source_id=f"doc:{doc_id}",
+                rel="MENTIONS",
+                target_id=entity_id,
+                kind="asserted",
+                confidence=1.0,
+                doc_id=doc_id,
+                extractor_version="1.0.0",
+            )
+
+        # === Step 8: Export graph ===
+        exporter = GraphExporter(conn)
+
+        # Claims view
+        claims = exporter.export_claims()
+        assert len(claims["elements"]["nodes"]) >= 4
+        assert len(claims["elements"]["edges"]) >= 3
+
+        # Mentions view
+        mentions = exporter.export_mentions()
+        assert any(e["data"]["rel"] == "MENTIONS"
+                  for e in mentions["elements"]["edges"])
+
+        # Dependencies view
+        deps = exporter.export_dependencies()
+        dep_rels = {e["data"]["rel"] for e in deps["elements"]["edges"]}
+        assert "USES_TECH" in dep_rels or "EVALUATED_ON" in dep_rels
+
+        # Export to files
+        output_dir = tmp_path / "graphs" / "2026-01-20"
+        exporter.export_all_views(output_dir)
+        assert (output_dir / "claims.json").exists()
+        assert (output_dir / "mentions.json").exists()
+        assert (output_dir / "dependencies.json").exists()
+
+        # === Step 9: Compute trends ===
+        scorer = TrendScorer(conn)
+
+        # Score individual entity
+        gpt5_id = resolved_ids["GPT-5"]
+        scores = scorer.score_entity(gpt5_id)
+        assert scores["mention_count_7d"] >= 0
+        assert "velocity" in scores
+        assert "novelty" in scores
+
+        # Get trending
+        trending = scorer.get_trending(limit=10)
+        assert len(trending) >= 1
+
+        # Export trending
+        scorer.export_trending(output_dir, limit=10)
+        assert (output_dir / "trending.json").exists()
+
+        # === Step 10: Verify final state ===
+        entity_count = conn.execute("SELECT COUNT(*) FROM entities").fetchone()[0]
+        relation_count = conn.execute("SELECT COUNT(*) FROM relations").fetchone()[0]
+        evidence_count = conn.execute("SELECT COUNT(*) FROM evidence").fetchone()[0]
+
+        assert entity_count == 6
+        assert relation_count >= 10  # 4 semantic + 6 MENTIONS
+        assert evidence_count >= 3
+
+        conn.close()
+
+        # === Verify output files ===
+        with open(output_dir / "claims.json") as f:
+            claims_data = json.load(f)
+        assert "elements" in claims_data
+
+        with open(output_dir / "trending.json") as f:
+            trending_data = json.load(f)
+        assert "entities" in trending_data
+
+        print(f"\n✓ Full pipeline test passed!")
+        print(f"  - Entities: {entity_count}")
+        print(f"  - Relations: {relation_count}")
+        print(f"  - Evidence: {evidence_count}")
+        print(f"  - Graph files: claims.json, mentions.json, dependencies.json")
+        print(f"  - Trending: {len(trending_data['entities'])} entities")
