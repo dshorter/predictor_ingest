@@ -54,13 +54,18 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
 
 ## Repository Layout (recommended)
 - `src/`
-  - `ingest/` (RSS + web fetching)
-  - `clean/` (readability extraction, boilerplate removal)
+  - `config/` (feed config loader, FeedConfig dataclass)
+  - `db/` (database operations: entities, relations, evidence)
+  - `schema/` (JSON Schema validation for extractions)
+  - `ingest/` (RSS + web fetching CLI)
   - `extract/` (LLM prompts + parsing + validation)
-  - `resolve/` (entity resolution + alias merging)
-  - `graph/` (Cytoscape export + views)
-  - `trend/` (basic scoring: velocity/novelty/bridge)
-  - `util/` (hashing, time parsing, logging)
+  - `util/` (hashing, slugify, date parsing, HTML cleaning)
+  - `clean/` (readability extraction, boilerplate removal) *[planned]*
+  - `resolve/` (entity resolution + alias merging) *[planned]*
+  - `graph/` (Cytoscape export + views) *[planned]*
+  - `trend/` (basic scoring: velocity/novelty/bridge) *[planned]*
+- `config/` (runtime YAML configs)
+  - `feeds.yaml` (RSS feed definitions)
 - `data/` (gitignored)
   - `raw/` (raw HTML, raw feed snapshots)
   - `text/` (cleaned plain text)
@@ -68,10 +73,14 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
   - `extractions/` (per-doc extracted JSON)
   - `graphs/` (exports for Cytoscape client)
   - `db/` (SQLite)
-- `web/` (thin Cytoscape.js client; static site)
-- `schemas/` (JSON Schemas for DocPack + Extraction + Graph)
-- `tests/`
-- `Makefile`
+- `schemas/` (JSON Schema + SQLite schema)
+  - `extraction.json` (JSON Schema for extraction output)
+  - `sqlite.sql` (database schema)
+- `scripts/` (helper scripts)
+  - `run_network_tests.py` (local network test runner)
+- `tests/` (pytest tests, network tests marked with `@pytest.mark.network`)
+- `web/` (thin Cytoscape.js client; static site) *[planned]*
+- `Makefile` *[planned]*
 - `README.md`
 
 ---
@@ -365,6 +374,24 @@ Keep dependencies minimal.
 ---
 
 ## Developer Workflow (suggested)
+
+### Current CLI commands
+```bash
+# Setup
+pip install -e .
+
+# Run RSS ingestion (with config or individual feeds)
+python -m ingest.rss --config config/feeds.yaml
+python -m ingest.rss --feed https://example.com/feed.xml
+
+# Run tests (non-network tests run in any environment)
+pytest tests/ -m "not network"
+
+# Run network tests locally (requires internet access)
+python scripts/run_network_tests.py
+```
+
+### Planned Makefile targets
 - `make setup` (venv, deps)
 - `make ingest`
 - `make docpack`
