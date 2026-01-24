@@ -62,7 +62,7 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
   - `util/` (hashing, slugify, date parsing, HTML cleaning)
   - `clean/` (readability extraction, boilerplate removal) *[planned]*
   - `resolve/` (entity resolution + alias merging) *[planned]*
-  - `graph/` (Cytoscape export + views) *[planned]*
+  - `graph/` (Cytoscape export: mentions, claims, dependencies views)
   - `trend/` (basic scoring: velocity/novelty/bridge) *[planned]*
 - `config/` (runtime YAML configs)
   - `feeds.yaml` (RSS feed definitions)
