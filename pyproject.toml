@@ -7,6 +7,13 @@ dependencies = [
   "feedparser>=6.0.11",
   "requests>=2.31.0",
   "beautifulsoup4>=4.12.3",
+  "pyyaml>=6.0.1",
+  "jsonschema>=4.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
 ]
 
 [project.scripts]
@@ -21,3 +28,8 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+    "network: marks tests as requiring network access (deselect with '-m \"not network\"')",
+]

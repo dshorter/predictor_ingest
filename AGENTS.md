@@ -54,13 +54,18 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
 
 ## Repository Layout (recommended)
 - `src/`
-  - `ingest/` (RSS + web fetching)
-  - `clean/` (readability extraction, boilerplate removal)
+  - `config/` (feed config loader, FeedConfig dataclass)
+  - `db/` (database operations: entities, relations, evidence)
+  - `schema/` (JSON Schema validation for extractions)
+  - `ingest/` (RSS + web fetching CLI)
   - `extract/` (LLM prompts + parsing + validation)
-  - `resolve/` (entity resolution + alias merging)
-  - `graph/` (Cytoscape export + views)
-  - `trend/` (basic scoring: velocity/novelty/bridge)
-  - `util/` (hashing, time parsing, logging)
+  - `util/` (hashing, slugify, date parsing, HTML cleaning)
+  - `clean/` (readability extraction, boilerplate removal, metadata extraction)
+  - `resolve/` (entity resolution, similarity matching, alias merging)
+  - `graph/` (Cytoscape export: mentions, claims, dependencies views)
+  - `trend/` (velocity, novelty, bridge scoring; trending export)
+- `config/` (runtime YAML configs)
+  - `feeds.yaml` (RSS feed definitions)
 - `data/` (gitignored)
   - `raw/` (raw HTML, raw feed snapshots)
   - `text/` (cleaned plain text)
@@ -68,10 +73,14 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
   - `extractions/` (per-doc extracted JSON)
   - `graphs/` (exports for Cytoscape client)
   - `db/` (SQLite)
-- `web/` (thin Cytoscape.js client; static site)
-- `schemas/` (JSON Schemas for DocPack + Extraction + Graph)
-- `tests/`
-- `Makefile`
+- `schemas/` (JSON Schema + SQLite schema)
+  - `extraction.json` (JSON Schema for extraction output)
+  - `sqlite.sql` (database schema)
+- `scripts/` (helper scripts)
+  - `run_network_tests.py` (local network test runner)
+- `tests/` (pytest tests, network tests marked with `@pytest.mark.network`)
+- `web/` (thin Cytoscape.js client; static site) *[planned]*
+- `Makefile` *[planned]*
 - `README.md`
 
 ---
@@ -344,6 +353,36 @@ Keep dependencies minimal.
 
 ---
 
+## Web Client Design Principles *[TODO]*
+
+*Research and document UX guidelines before implementation. Topics to cover:*
+
+### Graph Visualization
+- Information density / visual clutter thresholds
+- Node sizing strategy (by degree? trend score? type?)
+- Edge styling (thickness for confidence? bundling?)
+- Color scheme for entity types
+- Label visibility rules
+
+### Interaction Patterns
+- Pan/zoom behavior
+- Click vs hover actions
+- Search and filter UX
+- Progressive disclosure (overview → detail)
+
+### Knowledge Graph Specifics
+- Provenance/evidence display on edges
+- Temporal views (timeline? animation?)
+- Confidence visualization
+- Path highlighting between entities
+
+### Accessibility
+- Color blindness considerations
+- Keyboard navigation
+- Screen reader support
+
+---
+
 ## Quality Bar
 - Add JSON Schemas and validate every extraction/export.
 - Add unit tests for:
@@ -365,6 +404,24 @@ Keep dependencies minimal.
 ---
 
 ## Developer Workflow (suggested)
+
+### Current CLI commands
+```bash
+# Setup
+pip install -e .
+
+# Run RSS ingestion (with config or individual feeds)
+python -m ingest.rss --config config/feeds.yaml
+python -m ingest.rss --feed https://example.com/feed.xml
+
+# Run tests (non-network tests run in any environment)
+pytest tests/ -m "not network"
+
+# Run network tests locally (requires internet access)
+python scripts/run_network_tests.py
+```
+
+### Planned Makefile targets
 - `make setup` (venv, deps)
 - `make ingest`
 - `make docpack`
@@ -373,6 +430,23 @@ Keep dependencies minimal.
 - `make export`
 - `make web`
 - `make test`
+
+---
+
+## Sources (V1)
+
+Initial RSS feeds for technical AI content. Runtime configuration lives in `config/feeds.yaml`.
+
+| Source | URL | Why |
+|--------|-----|-----|
+| arXiv CS.AI | `https://rss.arxiv.org/rss/cs.AI` | Academic papers; structured metadata (authors, affiliations); cites models/datasets/benchmarks |
+| Hugging Face Blog | `https://huggingface.co/blog/feed.xml` | Model releases, dataset announcements, open-source ecosystem |
+| OpenAI Blog | `https://openai.com/blog/rss.xml` | Major industry announcements, model launches, clear entity relationships |
+
+These three provide coverage across:
+- **Academic research** (arXiv)
+- **Open-source ecosystem** (Hugging Face)
+- **Industry announcements** (OpenAI)
 
 ---
 

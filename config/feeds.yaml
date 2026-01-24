@@ -1,0 +1,28 @@
+# RSS feeds for AI trend graph ingestion
+# Runtime configuration - parsed by src/ingest/rss.py
+
+feeds:
+  - name: "arXiv CS.AI"
+    url: "https://rss.arxiv.org/rss/cs.AI"
+    type: rss
+    enabled: true
+    # Academic papers; structured metadata (authors, affiliations)
+    # High volume - consider filtering or sampling
+
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    type: rss
+    enabled: true
+    # Model releases, dataset announcements, open-source ecosystem
+
+  - name: "OpenAI Blog"
+    url: "https://openai.com/blog/rss.xml"
+    type: rss
+    enabled: true
+    # Major industry announcements, model launches
+
+# Future sources to consider:
+# - Anthropic Blog: https://www.anthropic.com/news/rss.xml
+# - Google AI Blog: https://blog.google/technology/ai/rss/
+# - MIT Technology Review AI: https://www.technologyreview.com/feed/
+# - The Gradient: https://thegradient.pub/rss/
