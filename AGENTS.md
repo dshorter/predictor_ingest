@@ -61,7 +61,7 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
   - `extract/` (LLM prompts + parsing + validation)
   - `util/` (hashing, slugify, date parsing, HTML cleaning)
   - `clean/` (readability extraction, boilerplate removal, metadata extraction)
-  - `resolve/` (entity resolution + alias merging) *[planned]*
+  - `resolve/` (entity resolution, similarity matching, alias merging)
   - `graph/` (Cytoscape export: mentions, claims, dependencies views)
   - `trend/` (basic scoring: velocity/novelty/bridge) *[planned]*
 - `config/` (runtime YAML configs)
