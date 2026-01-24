@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://predictor-ingest/schemas/extraction.json",
+  "title": "Extraction Output",
+  "description": "Schema for LLM extraction output per AGENTS.md specification",
+  "type": "object",
+  "required": ["docId", "extractorVersion", "entities", "relations", "techTerms", "dates"],
+  "properties": {
+    "docId": {
+      "type": "string",
+      "description": "Document identifier"
+    },
+    "extractorVersion": {
+      "type": "string",
+      "description": "Version of the extractor (bump when prompts/schema changes)"
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "relations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relation" }
+    },
+    "techTerms": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "dates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dateModel" }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional warnings, ambiguity flags"
+    }
+  },
+  "$defs": {
+    "entityType": {
+      "type": "string",
+      "enum": [
+        "Org", "Person", "Program", "Tool", "Model", "Dataset",
+        "Benchmark", "Paper", "Repo", "Document", "Tech", "Topic",
+        "Event", "Location", "Other"
+      ]
+    },
+    "entity": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Surface form of entity name"
+        },
+        "type": {
+          "$ref": "#/$defs/entityType"
+        },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "externalIds": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "e.g. {\"wikidata\": \"Q123\"}"
+        },
+        "idHint": {
+          "type": "string",
+          "description": "Suggested canonical ID"
+        }
+      }
+    },
+    "relationType": {
+      "type": "string",
+      "enum": [
+        "MENTIONS", "CITES", "ANNOUNCES", "REPORTED_BY",
+        "LAUNCHED", "PUBLISHED", "UPDATED", "FUNDED", "PARTNERED_WITH",
+        "ACQUIRED", "HIRED", "CREATED", "OPERATES", "GOVERNED_BY",
+        "GOVERNS", "REGULATES", "COMPLIES_WITH",
+        "USES_TECH", "USES_MODEL", "USES_DATASET", "TRAINED_ON",
+        "EVALUATED_ON", "INTEGRATES_WITH", "DEPENDS_ON", "REQUIRES",
+        "PRODUCES", "MEASURES", "AFFECTS",
+        "PREDICTS", "DETECTS", "MONITORS"
+      ]
+    },
+    "relationKind": {
+      "type": "string",
+      "enum": ["asserted", "inferred", "hypothesis"]
+    },
+    "polarity": {
+      "type": "string",
+      "enum": ["pos", "neg", "unclear"]
+    },
+    "modality": {
+      "type": "string",
+      "enum": ["observed", "planned", "speculative"]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["docId", "url", "snippet"],
+      "properties": {
+        "docId": { "type": "string" },
+        "url": { "type": "string" },
+        "published": {
+          "type": ["string", "null"],
+          "description": "ISO date/datetime or null"
+        },
+        "snippet": {
+          "type": "string",
+          "description": "Short quote/paraphrase (≤200 chars preferred)"
+        },
+        "charSpan": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "integer" },
+            "end": { "type": "integer" }
+          },
+          "required": ["start", "end"]
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "required": ["source", "rel", "target", "kind", "confidence", "evidence"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Entity name or idHint"
+        },
+        "rel": {
+          "$ref": "#/$defs/relationType"
+        },
+        "target": {
+          "type": "string",
+          "description": "Entity name or idHint"
+        },
+        "kind": {
+          "$ref": "#/$defs/relationKind"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "verbRaw": {
+          "type": "string",
+          "description": "Original verb as in text"
+        },
+        "polarity": {
+          "$ref": "#/$defs/polarity"
+        },
+        "modality": {
+          "$ref": "#/$defs/modality"
+        },
+        "time": {
+          "$ref": "#/$defs/dateModel"
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" }
+        }
+      }
+    },
+    "dateModel": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Raw date text (e.g. 'this fall')"
+        },
+        "start": {
+          "type": "string",
+          "description": "ISO date for start of range"
+        },
+        "end": {
+          "type": "string",
+          "description": "ISO date for end of range"
+        },
+        "resolution": {
+          "type": "string",
+          "enum": ["exact", "range", "anchored_to_published", "unknown"]
+        },
+        "anchor": {
+          "type": "string",
+          "description": "Reference date used for anchoring"
+        }
+      }
+    }
+  }
+}
