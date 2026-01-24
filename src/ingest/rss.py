@@ -9,6 +9,7 @@ from typing import Optional
 import feedparser
 import requests
 
+from config import load_feeds
 from util import (
     clean_html,
     parse_entry_date,
@@ -21,6 +22,11 @@ from util import (
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
+
+
+def get_default_config_path() -> Path:
+    """Return default path to feeds.yaml config."""
+    return repo_root() / "config" / "feeds.yaml"
 
 
 def rel_path(path: Path, root: Path) -> str:
@@ -172,12 +178,38 @@ def ingest_feed(
     return fetched, skipped, errors
 
 
-def main(argv: Optional[list[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="Ingest RSS feeds into raw and text archives.")
-    parser.add_argument("--feed", action="append", required=True, help="RSS/Atom feed URL.")
-    parser.add_argument("--limit", type=int, default=0, help="Max items per feed (0 = all).")
-    parser.add_argument("--raw-dir", default=None, help="Override raw output directory.")
-    parser.add_argument("--text-dir", default=None, help="Override text output directory.")
+def build_arg_parser() -> argparse.ArgumentParser:
+    """Build argument parser for RSS ingestion CLI."""
+    parser = argparse.ArgumentParser(
+        description="Ingest RSS feeds into raw and text archives."
+    )
+    parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to feeds.yaml config file (default: config/feeds.yaml if exists).",
+    )
+    parser.add_argument(
+        "--feed",
+        action="append",
+        default=None,
+        help="RSS/Atom feed URL (can be repeated). Adds to config feeds if both specified.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Max items per feed (0 = all).",
+    )
+    parser.add_argument(
+        "--raw-dir",
+        default=None,
+        help="Override raw output directory.",
+    )
+    parser.add_argument(
+        "--text-dir",
+        default=None,
+        help="Override text output directory.",
+    )
     parser.add_argument(
         "--db",
         default=None,
@@ -188,11 +220,79 @@ def main(argv: Optional[list[str]] = None) -> int:
         default=None,
         help="Path to schema SQL (default schemas/sqlite.sql).",
     )
-    parser.add_argument("--timeout", type=int, default=20, help="HTTP timeout seconds.")
-    parser.add_argument("--user-agent", default="predictor-ingest/0.1", help="HTTP User-Agent.")
-    parser.add_argument("--skip-existing", action="store_true", help="Skip if raw/text already exists.")
-    parser.add_argument("--source", default=None, help="Override source name for all feeds.")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=20,
+        help="HTTP timeout seconds.",
+    )
+    parser.add_argument(
+        "--user-agent",
+        default="predictor-ingest/0.1",
+        help="HTTP User-Agent.",
+    )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip if raw/text already exists.",
+    )
+    parser.add_argument(
+        "--source",
+        default=None,
+        help="Override source name for all feeds.",
+    )
+    return parser
+
+
+def validate_args(args: argparse.Namespace) -> None:
+    """Validate parsed arguments.
+
+    Raises:
+        SystemExit: If validation fails
+    """
+    if not args.config and not args.feed:
+        # Check if default config exists
+        default_config = get_default_config_path()
+        if default_config.exists():
+            args.config = str(default_config)
+        else:
+            print(
+                "Error: Must specify --config or --feed (or create config/feeds.yaml)",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
+
+
+def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str]]]:
+    """Get list of (feed_url, source_name) from args.
+
+    Args:
+        args: Parsed arguments
+
+    Returns:
+        List of (url, source_name) tuples. source_name is None for CLI feeds.
+    """
+    feeds: list[tuple[str, Optional[str]]] = []
+
+    # Load from config file
+    if args.config:
+        config_path = Path(args.config)
+        config_feeds = load_feeds(config_path)
+        for feed in config_feeds:
+            feeds.append((feed.url, feed.name))
+
+    # Add CLI feeds
+    if args.feed:
+        for url in args.feed:
+            feeds.append((url, None))
+
+    return feeds
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    parser = build_arg_parser()
     args = parser.parse_args(argv)
+    validate_args(args)
 
     repo = repo_root()
     raw_dir = Path(args.raw_dir) if args.raw_dir else repo / "data" / "raw"
@@ -217,11 +317,22 @@ def main(argv: Optional[list[str]] = None) -> int:
     session = requests.Session()
     session.headers.update({"User-Agent": args.user_agent})
 
+    feeds = get_feeds_from_args(args)
+    if not feeds:
+        print("No feeds to ingest.", file=sys.stderr)
+        return 1
+
+    print(f"Ingesting {len(feeds)} feed(s)...")
+
     total_fetched = 0
     total_skipped = 0
     total_errors = 0
 
-    for feed_url in args.feed:
+    for feed_url, feed_name in feeds:
+        # Use feed name from config, or CLI --source override, or let ingest_feed detect
+        source = args.source or feed_name
+        print(f"  Processing: {feed_name or feed_url}")
+
         fetched, skipped, errors = ingest_feed(
             feed_url=feed_url,
             session=session,
@@ -229,7 +340,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             text_dir=text_dir,
             conn=conn,
             repo=repo,
-            source_override=args.source,
+            source_override=source,
             limit=args.limit,
             timeout=args.timeout,
             skip_existing=args.skip_existing,
