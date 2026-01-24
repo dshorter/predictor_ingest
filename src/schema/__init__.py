@@ -106,7 +106,7 @@ def validate_relation(data: dict[str, Any]) -> None:
     Raises:
         ValidationError: If validation fails
     """
-    required = ["source", "rel", "target", "kind", "confidence", "evidence"]
+    required = ["source", "rel", "target", "kind", "confidence"]
     for field in required:
         if field not in data:
             raise ValidationError(f"Validation failed for {field}: '{field}' is a required property")
