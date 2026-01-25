@@ -337,49 +337,98 @@ Use these to build `trending.json` view.
 
 ---
 
-## Thin Cytoscape Client (web/)
-Requirements:
-- static site (no backend required in V1)
-- loads selected `graphs/{date}/{view}.json`
-- force-directed layout on load is acceptable for V1
-- UI:
-  - dataset selector (date/view)
-  - search box (by label)
-  - toggles: asserted / inferred / hypothesis
-  - buttons: zoom in/out, fit, re-run layout
-- on edge click: show provenance/evidence list
+## Cytoscape Client (web/)
 
-Keep dependencies minimal.
+A thin static Cytoscape.js client for interactive graph exploration. The graph serves as a **living map with geographic memory**—nodes maintain stable positions over time so that emerging clusters, declining topics, and cross-domain bridges become visually apparent.
 
----
+### Quick Reference
 
-## Web Client Design Principles *[TODO]*
+- Static site (no backend required in V1)
+- Loads `graphs/{date}/{view}.json`
+- Default view: `trending.json` (not full graph)
+- Four views: `trending`, `claims`, `mentions`, `dependencies`
 
-*Research and document UX guidelines before implementation. Topics to cover:*
+### Core Features (V1)
 
-### Graph Visualization
-- Information density / visual clutter thresholds
-- Node sizing strategy (by degree? trend score? type?)
-- Edge styling (thickness for confidence? bundling?)
-- Color scheme for entity types
-- Label visibility rules
+| Feature | Description |
+|---------|-------------|
+| Search | Filter nodes by label/alias; highlight matches |
+| Filter panel | Date range, entity types, relationship kinds, confidence threshold |
+| Kind toggles | Show/hide asserted, inferred, hypothesis edges |
+| Node detail panel | Full metadata, relationships, source documents |
+| Evidence panel | Click edge → view provenance with snippets and links |
+| Zoom/pan/fit | Standard navigation; re-run layout button |
 
-### Interaction Patterns
-- Pan/zoom behavior
-- Click vs hover actions
-- Search and filter UX
-- Progressive disclosure (overview → detail)
+### Visual Encoding Summary
 
-### Knowledge Graph Specifics
-- Provenance/evidence display on edges
-- Temporal views (timeline? animation?)
-- Confidence visualization
-- Path highlighting between entities
+| Element | Encoding |
+|---------|----------|
+| Node size | Velocity (acceleration) + recency boost |
+| Node color | Entity type (Org=blue, Model=violet, etc.) |
+| Node opacity | Recency (fades as lastSeen ages) |
+| Edge style | Kind: solid=asserted, dashed=inferred, dotted=hypothesis |
+| Edge thickness | Confidence score (0.5px to 4px) |
+| Edge color | Gray default; green for new edges (<7 days) |
 
-### Accessibility
-- Color blindness considerations
-- Keyboard navigation
-- Screen reader support
+### Layout Strategy
+
+| Version | Approach |
+|---------|----------|
+| V1 | Force-directed on each load (fcose algorithm) |
+| V2 | Preset layout from stored positions; force-directed optional |
+
+V2 position storage enables:
+- Instant, stable rendering
+- Geographic memory (conceptual drift is spatially visible)
+- Time-lapse animation
+
+### Detailed Specification
+
+See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation guidelines including:
+
+- Node and edge visual encoding (formulas, full color palette with hex codes)
+- Label visibility rules and collision detection
+- Interaction patterns (click, hover, drag, context menu)
+- Tooltip content and styling
+- Search and filter implementation (`GraphFilter` class)
+- Progressive disclosure (overview → explore → detail → evidence)
+- Layout algorithms and position storage format
+- Temporal features (V1 filtering, V2 time-lapse animation)
+- Toolbar and global controls
+- Performance thresholds and optimizations
+- Accessibility (keyboard navigation, screen reader, colorblind mode)
+- Complete V1 vs V2 feature matrix
+- Recommended file structure and dependencies
+
+The UI guidelines document is implementation-ready for code generation.
+
+### Scale Considerations
+
+| Node Count | Client Behavior |
+|------------|-----------------|
+| < 500 | Render all |
+| 500–2,000 | Warn; suggest filtering |
+| 2,000–5,000 | Auto-filter to trending; offer "load all" |
+| > 5,000 | Require server-side filtering (V2) |
+
+### Export Requirement
+
+All view JSON files must include a `meta` object:
+
+```json
+{
+  "meta": {
+    "view": "trending",
+    "nodeCount": 847,
+    "edgeCount": 1392,
+    "exportedAt": "2026-01-24T12:00:00Z",
+    "dateRange": { "start": "2025-10-24", "end": "2026-01-24" }
+  },
+  "elements": { ... }
+}
+```
+
+This enables client-side decisions about auto-filtering and user warnings.
 
 ---
 
