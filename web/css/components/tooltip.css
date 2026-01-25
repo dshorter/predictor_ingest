@@ -1,0 +1,150 @@
+/**
+ * Tooltip Component
+ *
+ * Appears on hover over graph elements.
+ * Positioned dynamically via JavaScript.
+ */
+
+#tooltip {
+  position: absolute;
+  z-index: var(--z-tooltip);
+  min-width: 200px;
+  max-width: 300px;
+  padding: var(--space-3);
+  background-color: white;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--easing-default);
+}
+
+#tooltip.visible {
+  opacity: 1;
+}
+
+/* Tooltip header */
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border-width) solid var(--gray-100);
+}
+
+.tooltip-type {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: white;
+}
+
+/* Type colors */
+.tooltip-type.type-org { background-color: var(--color-org); }
+.tooltip-type.type-person { background-color: var(--color-person); }
+.tooltip-type.type-program { background-color: var(--color-program); }
+.tooltip-type.type-tool { background-color: var(--color-tool); }
+.tooltip-type.type-model { background-color: var(--color-model); }
+.tooltip-type.type-dataset { background-color: var(--color-dataset); }
+.tooltip-type.type-benchmark { background-color: var(--color-benchmark); }
+.tooltip-type.type-paper { background-color: var(--color-paper); }
+.tooltip-type.type-repo { background-color: var(--color-repo); }
+.tooltip-type.type-tech { background-color: var(--color-tech); color: var(--gray-900); }
+.tooltip-type.type-topic { background-color: var(--color-topic); }
+.tooltip-type.type-document { background-color: var(--color-document); color: var(--gray-800); }
+.tooltip-type.type-event { background-color: var(--color-event); }
+.tooltip-type.type-location { background-color: var(--color-location); }
+.tooltip-type.type-other { background-color: var(--color-other); color: var(--gray-800); }
+
+.tooltip-label {
+  font-weight: var(--weight-semibold);
+  color: var(--gray-900);
+}
+
+.tooltip-relation {
+  font-weight: var(--weight-semibold);
+  color: var(--gray-700);
+}
+
+/* Tooltip body */
+.tooltip-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tooltip-row.relationship {
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.tooltip-key {
+  color: var(--gray-500);
+}
+
+.tooltip-value {
+  font-weight: var(--weight-medium);
+  color: var(--gray-800);
+}
+
+.tooltip-entity {
+  font-weight: var(--weight-medium);
+  color: var(--gray-800);
+}
+
+.tooltip-arrow {
+  color: var(--gray-400);
+}
+
+/* Kind badges in tooltips */
+.tooltip-value.kind-asserted {
+  color: var(--gray-700);
+}
+
+.tooltip-value.kind-inferred {
+  color: var(--color-warning);
+}
+
+.tooltip-value.kind-hypothesis {
+  color: var(--color-info);
+}
+
+/* Tooltip badges */
+.tooltip-badge {
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.tooltip-badge.trending {
+  background-color: #FEF3C7;
+  color: var(--color-warning);
+}
+
+.tooltip-badge.new {
+  background-color: #D1FAE5;
+  color: var(--color-success);
+}
+
+/* Tooltip footer */
+.tooltip-footer {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: var(--border-width) solid var(--gray-100);
+  font-size: var(--text-xs);
+  color: var(--gray-400);
+}

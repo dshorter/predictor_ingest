@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Trend Graph</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <!-- Screen reader announcements -->
+  <div
+    id="sr-announcer"
+    aria-live="polite"
+    aria-atomic="true"
+    class="sr-only"
+  ></div>
+
+  <!-- Main application container -->
+  <div id="app">
+    <!-- Toolbar -->
+    <header id="toolbar">
+      <div class="toolbar-left">
+        <h1 class="app-title">AI Trend Graph</h1>
+
+        <div class="toolbar-group">
+          <label for="view-selector">View:</label>
+          <select id="view-selector">
+            <option value="trending" selected>Trending</option>
+            <option value="claims">Claims</option>
+            <option value="mentions">Mentions</option>
+            <option value="dependencies">Dependencies</option>
+          </select>
+        </div>
+
+        <div class="toolbar-group">
+          <label for="date-selector">Date:</label>
+          <select id="date-selector">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+      </div>
+
+      <div class="toolbar-center">
+        <div id="search-container">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search nodes..."
+            autocomplete="off"
+          />
+          <span id="search-results-count"></span>
+          <button id="search-clear" class="btn-icon" title="Clear search" hidden>
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <button id="btn-zoom-in" class="btn-icon" title="Zoom in">+</button>
+        <button id="btn-zoom-out" class="btn-icon" title="Zoom out">&minus;</button>
+        <button id="btn-fit" class="btn-icon" title="Fit to view">&#x2B1C;</button>
+        <button id="btn-layout" class="btn-icon" title="Re-run layout">&#x21BB;</button>
+        <button id="btn-filter" class="btn-icon" title="Toggle filters">&#x2699;</button>
+      </div>
+    </header>
+
+    <!-- Main content area -->
+    <main id="main-content">
+      <!-- Cytoscape container -->
+      <div id="cy" tabindex="0" role="application" aria-label="AI Trend Graph visualization"></div>
+
+      <!-- Filter panel (right sidebar) -->
+      <aside id="filter-panel" class="panel panel-right collapsed">
+        <div class="panel-content">
+          <!-- Date Range -->
+          <section class="filter-section">
+            <h3>Date Range</h3>
+            <div class="date-presets">
+              <button class="btn-sm" data-days="7">7d</button>
+              <button class="btn-sm" data-days="30">30d</button>
+              <button class="btn-sm" data-days="90">90d</button>
+              <button class="btn-sm active" data-days="all">All</button>
+            </div>
+          </section>
+
+          <!-- Entity Types -->
+          <section class="filter-section">
+            <h3>Entity Types</h3>
+            <div class="checkbox-grid" id="type-filters">
+              <!-- Populated dynamically -->
+            </div>
+            <div class="filter-actions-small">
+              <button id="select-all-types" class="btn-link">All</button>
+              <button id="select-no-types" class="btn-link">None</button>
+            </div>
+          </section>
+
+          <!-- Relationship Kind -->
+          <section class="filter-section">
+            <h3>Relationship Kind</h3>
+            <label class="checkbox-label">
+              <input type="checkbox" data-kind="asserted" checked /> Asserted
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" data-kind="inferred" checked /> Inferred
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" data-kind="hypothesis" /> Hypothesis
+            </label>
+          </section>
+
+          <!-- Confidence Threshold -->
+          <section class="filter-section">
+            <h3>Min Confidence</h3>
+            <div class="range-container">
+              <input
+                type="range"
+                id="filter-confidence"
+                min="0"
+                max="100"
+                value="30"
+              />
+              <span id="confidence-value">30%</span>
+            </div>
+          </section>
+
+          <!-- Actions -->
+          <section class="filter-actions">
+            <button id="apply-filters" class="btn btn-primary">Apply</button>
+            <button id="reset-filters" class="btn">Reset</button>
+          </section>
+        </div>
+      </aside>
+
+      <!-- Detail panel (left sidebar) -->
+      <aside id="detail-panel" class="panel panel-left hidden">
+        <button class="panel-close" aria-label="Close panel">&times;</button>
+        <div id="detail-content">
+          <!-- Populated dynamically on node select -->
+        </div>
+      </aside>
+
+      <!-- Evidence panel (bottom or modal) -->
+      <aside id="evidence-panel" class="panel panel-bottom hidden">
+        <button class="panel-close" aria-label="Close panel">&times;</button>
+        <div id="evidence-content">
+          <!-- Populated dynamically on edge select -->
+        </div>
+      </aside>
+    </main>
+
+    <!-- Tooltip (positioned absolutely) -->
+    <div id="tooltip" role="tooltip"></div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="overlay hidden">
+      <div class="loading-spinner"></div>
+      <p>Loading graph...</p>
+    </div>
+
+    <!-- Error overlay -->
+    <div id="error-overlay" class="overlay hidden">
+      <div class="error-content">
+        <h2>Error</h2>
+        <p id="error-message"></p>
+        <button id="error-dismiss" class="btn">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries (loaded from CDN for now; can switch to local) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.2.0/cytoscape-fcose.min.js"></script>
+
+  <!-- Application scripts -->
+  <script src="js/utils.js"></script>
+  <script src="js/styles.js"></script>
+  <script src="js/filter.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/panels.js"></script>
+  <script src="js/tooltips.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

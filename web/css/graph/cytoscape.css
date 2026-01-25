@@ -1,0 +1,35 @@
+/**
+ * Cytoscape Container Styles
+ *
+ * Styles for the graph visualization container.
+ * Note: Cytoscape.js node/edge styles are defined in js/styles.js
+ */
+
+#cy {
+  position: absolute;
+  top: var(--toolbar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--gray-50);
+}
+
+/* When detail panel is open, shrink graph area */
+#cy.panel-left-open {
+  left: var(--panel-width);
+}
+
+/* When filter panel is open, shrink graph area */
+#cy.panel-right-open {
+  right: var(--panel-width);
+}
+
+/* Focus styles for accessibility */
+#cy:focus {
+  outline: none;
+}
+
+#cy:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: -2px;
+}

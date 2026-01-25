@@ -1,0 +1,134 @@
+/**
+ * Badge Component
+ *
+ * Usage:
+ *   <span class="badge">Default</span>
+ *   <span class="badge badge-success">Success</span>
+ *   <span class="badge badge-type-org">Org</span>
+ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--gray-600);
+  background-color: var(--gray-100);
+  border-radius: var(--radius-sm);
+}
+
+/* Semantic variants */
+.badge-success {
+  color: var(--color-success);
+  background-color: #D1FAE5;
+}
+
+.badge-warning {
+  color: var(--color-warning);
+  background-color: #FEF3C7;
+}
+
+.badge-error {
+  color: var(--color-error);
+  background-color: #FEE2E2;
+}
+
+.badge-info {
+  color: var(--color-info);
+  background-color: #DBEAFE;
+}
+
+/* Entity type badges */
+.badge-type-org {
+  color: white;
+  background-color: var(--color-org);
+}
+
+.badge-type-person {
+  color: white;
+  background-color: var(--color-person);
+}
+
+.badge-type-program {
+  color: white;
+  background-color: var(--color-program);
+}
+
+.badge-type-tool {
+  color: white;
+  background-color: var(--color-tool);
+}
+
+.badge-type-model {
+  color: white;
+  background-color: var(--color-model);
+}
+
+.badge-type-dataset {
+  color: white;
+  background-color: var(--color-dataset);
+}
+
+.badge-type-benchmark {
+  color: white;
+  background-color: var(--color-benchmark);
+}
+
+.badge-type-paper {
+  color: white;
+  background-color: var(--color-paper);
+}
+
+.badge-type-repo {
+  color: white;
+  background-color: var(--color-repo);
+}
+
+.badge-type-tech {
+  color: var(--gray-900);
+  background-color: var(--color-tech);
+}
+
+.badge-type-topic {
+  color: white;
+  background-color: var(--color-topic);
+}
+
+.badge-type-document {
+  color: var(--gray-800);
+  background-color: var(--color-document);
+}
+
+.badge-type-event {
+  color: white;
+  background-color: var(--color-event);
+}
+
+.badge-type-location {
+  color: white;
+  background-color: var(--color-location);
+}
+
+.badge-type-other {
+  color: var(--gray-800);
+  background-color: var(--color-other);
+}
+
+/* Relationship kind badges */
+.badge-kind-asserted {
+  color: var(--gray-700);
+  background-color: var(--gray-200);
+}
+
+.badge-kind-inferred {
+  color: var(--color-warning);
+  background-color: #FEF3C7;
+}
+
+.badge-kind-hypothesis {
+  color: var(--color-info);
+  background-color: #DBEAFE;
+}
