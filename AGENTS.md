@@ -384,7 +384,7 @@ V2 position storage enables:
 
 ### Detailed Specification
 
-See **[docs/UI_GUIDELINES.md](docs/UI_GUIDELINES.md)** for comprehensive implementation guidelines including:
+See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation guidelines including:
 
 - Node and edge visual encoding (formulas, full color palette with hex codes)
 - Label visibility rules and collision detection
@@ -429,35 +429,6 @@ All view JSON files must include a `meta` object:
 ```
 
 This enables client-side decisions about auto-filtering and user warnings.
-
-
-## Web Client Design Principles *[TODO]*
-
-*Research and document UX guidelines before implementation. Topics to cover:*
-
-### Graph Visualization
-- Information density / visual clutter thresholds
-- Node sizing strategy (by degree? trend score? type?)
-- Edge styling (thickness for confidence? bundling?)
-- Color scheme for entity types
-- Label visibility rules
-
-### Interaction Patterns
-- Pan/zoom behavior
-- Click vs hover actions
-- Search and filter UX
-- Progressive disclosure (overview → detail)
-
-### Knowledge Graph Specifics
-- Provenance/evidence display on edges
-- Temporal views (timeline? animation?)
-- Confidence visualization
-- Path highlighting between entities
-
-### Accessibility
-- Color blindness considerations
-- Keyboard navigation
-- Screen reader support
 
 ---
 

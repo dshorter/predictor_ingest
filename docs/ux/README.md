@@ -1,0 +1,104 @@
+# Cytoscape Client UI Guidelines
+
+Comprehensive specifications for the Cytoscape.js visualization client. These guidelines are implementation-ready for code generation.
+
+## Document Structure
+
+This documentation is organized into focused modules:
+
+| Document | Description |
+|----------|-------------|
+| [visual-encoding.md](visual-encoding.md) | Node sizing, colors, edge styles, label visibility |
+| [interaction.md](interaction.md) | Pan/zoom, click/hover, context menus, tooltips |
+| [search-filter.md](search-filter.md) | Search box, filter panel, GraphFilter class |
+| [progressive-disclosure.md](progressive-disclosure.md) | Overview → explore → detail → evidence flow |
+| [layout-temporal.md](layout-temporal.md) | Layout algorithms, position storage, time-lapse |
+| [controls.md](controls.md) | Toolbar layout and global controls |
+| [performance.md](performance.md) | Rendering thresholds, optimizations |
+| [accessibility.md](accessibility.md) | Keyboard nav, screen reader, colorblind mode |
+| [implementation.md](implementation.md) | V1/V2 matrix, file structure, dependencies |
+
+---
+
+## Design Philosophy
+
+The graph is a **living map with geographic memory**. Nodes maintain stable positions over time so that:
+
+1. Emerging clusters appear in new regions of the map
+2. Declining topics fade in place (visible through color/size changes, not disappearance)
+3. Bridges between previously separate domains create visible long-distance edges
+4. Users build spatial intuition ("AI safety discussions are always in the upper-right")
+
+This spatial continuity is what makes trend detection visually intuitive. A user watching the graph over weeks should be able to see conceptual drift—new topics emerging in empty space, old topics fading but remaining in place, and unexpected connections spanning previously separate clusters.
+
+---
+
+## Information Density and Scale Management
+
+### Target Thresholds
+
+| Node Count | Experience Level | Required Strategy |
+|------------|------------------|-------------------|
+| < 100 | Optimal comprehension | No intervention needed |
+| 100–500 | Acceptable with good filtering | Provide filter controls |
+| 500–2,000 | Requires active filtering | Warn user; suggest filtered view |
+| 2,000–5,000 | Sluggish without optimization | Auto-filter to trending; offer "load all" with warning |
+| > 5,000 | Unusable without server-side help | Refuse full client render; require pre-filtering |
+
+### Default View Strategy
+
+Always default to `trending.json`, not the full graph. The trending view is pre-filtered to high-signal nodes and provides the best entry point for exploration.
+
+### Meta Object Requirement
+
+Every exported JSON file MUST include a `meta` object at the top level for client-side decision making:
+
+```json
+{
+  "meta": {
+    "view": "trending",
+    "nodeCount": 847,
+    "edgeCount": 1392,
+    "exportedAt": "2026-01-24T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-24",
+      "end": "2026-01-24"
+    },
+    "filters": {
+      "minVelocity": 0.1,
+      "minConfidence": 0.3
+    }
+  },
+  "elements": {
+    "nodes": [...],
+    "edges": [...]
+  }
+}
+```
+
+### Client Behavior Based on Meta
+
+```javascript
+// Pseudocode for client-side scale handling
+function handleGraphLoad(data) {
+  const { nodeCount } = data.meta;
+
+  if (nodeCount > 5000) {
+    showError("Graph too large for client rendering. Please apply filters.");
+    return;
+  }
+
+  if (nodeCount > 2000) {
+    showWarning(`Large graph (${nodeCount} nodes). Showing trending subset.`);
+    applyFilter({ showOnly: 'trending', limit: 500 });
+    offerOption("Load all nodes anyway");
+    return;
+  }
+
+  if (nodeCount > 500) {
+    showInfo(`${nodeCount} nodes loaded. Use filters to focus exploration.`);
+  }
+
+  renderGraph(data);
+}
+```
