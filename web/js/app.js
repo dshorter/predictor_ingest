@@ -33,7 +33,10 @@ async function initializeApp() {
     const data = await loadGraphData(dataUrl);
 
     // Initialize Cytoscape
-    AppState.cy = initializeGraph(container, data, graphStyles);
+    AppState.cy = initializeGraph(container, data, getCytoscapeStyles());
+
+    // Expose cy globally for panel functions
+    window.cy = AppState.cy;
 
     // Initialize all components
     initializeEventHandlers(AppState.cy);
@@ -294,6 +297,55 @@ function toggleFilterPanel() {
     panel.classList.toggle('collapsed');
     updateCyContainer();
   }
+}
+
+/**
+ * Update Cytoscape container size when panels toggle
+ */
+function updateCyContainer() {
+  const cy = AppState.cy;
+  if (!cy) return;
+
+  const container = document.getElementById('cy');
+  if (!container) return;
+
+  // Check panel states
+  const detailPanel = document.getElementById('detail-panel');
+  const filterPanel = document.getElementById('filter-panel');
+
+  // Update container classes
+  if (detailPanel && !detailPanel.classList.contains('hidden')) {
+    container.classList.add('panel-left-open');
+  } else {
+    container.classList.remove('panel-left-open');
+  }
+
+  if (filterPanel && !filterPanel.classList.contains('collapsed')) {
+    container.classList.add('panel-right-open');
+  } else {
+    container.classList.remove('panel-right-open');
+  }
+
+  // Trigger Cytoscape resize
+  cy.resize();
+}
+
+/**
+ * Close all panels
+ */
+function closeAllPanels() {
+  const detailPanel = document.getElementById('detail-panel');
+  const evidencePanel = document.getElementById('evidence-panel');
+  
+  if (detailPanel) {
+    detailPanel.classList.add('hidden');
+  }
+  
+  if (evidencePanel) {
+    evidencePanel.classList.add('hidden');
+  }
+
+  updateCyContainer();
 }
 
 // Initialize on DOM ready

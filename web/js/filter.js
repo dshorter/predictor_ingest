@@ -13,7 +13,7 @@ class GraphFilter {
       dateEnd: null,
       types: new Set([
         'Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
-        'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Location', 'Other'
+        'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'
       ]),
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
@@ -173,7 +173,7 @@ class GraphFilter {
       dateEnd: null,
       types: new Set([
         'Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
-        'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Location', 'Other'
+        'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'
       ]),
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
@@ -188,7 +188,7 @@ class GraphFilter {
   getActiveFilterCount() {
     let count = 0;
     if (this.filters.dateStart || this.filters.dateEnd) count++;
-    if (this.filters.types.size < 13) count++;  // Less than all types
+    if (this.filters.types.size < 15) count++;  // Less than all 15 types
     if (this.filters.kinds.size < 3) count++;
     if (this.filters.minConfidence > 0) count++;
     if (this.filters.viewPreset !== 'all') count++;
@@ -204,9 +204,51 @@ class GraphFilter {
 }
 
 /**
+ * Populate type filter checkboxes dynamically
+ * @param {Object} cy - Cytoscape instance
+ */
+function populateTypeFilters(cy) {
+  const typeFiltersContainer = document.getElementById('type-filters');
+  if (!typeFiltersContainer) return;
+
+  // All 15 entity types from the specification
+  const allTypes = [
+    'Org', 'Person', 'Model', 'Tool', 'Dataset', 
+    'Benchmark', 'Paper', 'Repo', 'Tech', 'Topic', 
+    'Event', 'Program', 'Location', 'Document', 'Other'
+  ];
+
+  // Get types that actually exist in the current graph
+  const existingTypes = new Set();
+  cy.nodes().forEach(node => {
+    existingTypes.add(node.data('type'));
+  });
+
+  // Generate checkboxes for all types
+  typeFiltersContainer.innerHTML = allTypes.map(type => {
+    const disabled = !existingTypes.has(type);
+    const count = disabled ? 0 : cy.nodes(`[type="${type}"]`).length;
+    
+    return `
+      <label class="checkbox-label ${disabled ? 'text-gray-400' : ''}">
+        <input 
+          type="checkbox" 
+          data-type="${type}" 
+          ${disabled ? 'disabled' : 'checked'}
+        />
+        ${type} ${count > 0 ? `(${count})` : ''}
+      </label>
+    `;
+  }).join('');
+}
+
+/**
  * Initialize filter panel UI
  */
 function initializeFilterPanel(filter) {
+  // Populate type filters dynamically
+  populateTypeFilters(filter.cy);
+
   // Date presets
   const datePresets = document.querySelectorAll('.date-presets button');
   datePresets.forEach(btn => {
@@ -236,14 +278,16 @@ function initializeFilterPanel(filter) {
 
   // Select all/none types
   document.getElementById('select-all-types')?.addEventListener('click', () => {
-    typeCheckboxes.forEach(cb => {
+    const checkboxes = document.querySelectorAll('[data-type]:not([disabled])');
+    checkboxes.forEach(cb => {
       cb.checked = true;
       filter.toggleType(cb.dataset.type, true);
     });
   });
 
   document.getElementById('select-no-types')?.addEventListener('click', () => {
-    typeCheckboxes.forEach(cb => {
+    const checkboxes = document.querySelectorAll('[data-type]:not([disabled])');
+    checkboxes.forEach(cb => {
       cb.checked = false;
       filter.toggleType(cb.dataset.type, false);
     });
@@ -276,6 +320,8 @@ function initializeFilterPanel(filter) {
   // Reset button
   document.getElementById('reset-filters')?.addEventListener('click', () => {
     filter.reset();
+    // Repopulate type filters after reset
+    populateTypeFilters(filter.cy);
     syncFilterUI(filter);
   });
 
@@ -312,4 +358,15 @@ function syncFilterUI(filter) {
     slider.value = Math.round(state.minConfidence * 100);
     value.textContent = `${slider.value}%`;
   }
+}
+
+/**
+ * Initialize filters (wrapper function called by app.js)
+ * @param {Object} cy - Cytoscape instance
+ * @returns {GraphFilter} The filter instance
+ */
+function initializeFilters(cy) {
+  const filter = new GraphFilter(cy);
+  initializeFilterPanel(filter);
+  return filter;
 }

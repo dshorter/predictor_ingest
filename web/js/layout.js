@@ -5,6 +5,18 @@
  * See docs/ux/layout-temporal.md for specification.
  */
 
+// Register fcose extension with Cytoscape
+// The unpkg version should auto-register, but we'll ensure it's registered
+if (typeof cytoscape !== 'undefined') {
+  // Try different possible global variable names
+  if (typeof cytoscapeFcose !== 'undefined') {
+    cytoscape.use(cytoscapeFcose);
+  } else if (typeof fcose !== 'undefined') {
+    cytoscape.use(fcose);
+  }
+  // If neither exists, the CDN version should have auto-registered
+}
+
 /**
  * Default layout options for fcose
  */
@@ -54,7 +66,29 @@ const LAYOUT_OPTIONS = {
  * Run layout on the graph
  */
 function runLayout(cy, options = {}) {
-  const layoutOptions = { ...LAYOUT_OPTIONS, ...options };
+  let layoutOptions = { ...LAYOUT_OPTIONS, ...options };
+
+  // Fallback to 'cose' if fcose isn't available
+  try {
+    // Test if fcose is available
+    cy.layout({ name: 'fcose' });
+  } catch (e) {
+    console.warn('fcose layout not available, falling back to cose');
+    // Use built-in cose layout instead
+    layoutOptions = {
+      name: 'cose',
+      animate: true,
+      animationDuration: 500,
+      fit: true,
+      padding: 50,
+      nodeRepulsion: 4500,
+      idealEdgeLength: 100,
+      edgeElasticity: 0.45,
+      gravity: 0.25,
+      numIter: 1000,
+      randomize: true,
+    };
+  }
 
   // Show loading state for large graphs
   const nodeCount = cy.nodes().length;

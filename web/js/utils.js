@@ -181,3 +181,65 @@ function hideError() {
   const overlay = document.getElementById('error-overlay');
   if (overlay) overlay.classList.add('hidden');
 }
+
+/**
+ * Show warning banner with optional action button
+ * @param {string} message - Warning message
+ * @param {string} buttonText - Optional button text
+ * @param {Function} buttonCallback - Optional button callback
+ */
+function showWarning(message, buttonText, buttonCallback) {
+  // Remove any existing warning
+  const existing = document.querySelector('.warning-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.className = 'warning-banner';
+  
+  const messageEl = document.createElement('p');
+  messageEl.textContent = message;
+  banner.appendChild(messageEl);
+
+  if (buttonText && buttonCallback) {
+    const button = document.createElement('button');
+    button.className = 'btn btn-sm';
+    button.textContent = buttonText;
+    button.addEventListener('click', () => {
+      buttonCallback();
+      banner.remove();
+    });
+    banner.appendChild(button);
+  }
+
+  document.body.appendChild(banner);
+
+  // Auto-dismiss after 10 seconds if no button
+  if (!buttonText) {
+    setTimeout(() => banner.remove(), 10000);
+  }
+}
+
+/**
+ * Show info banner (auto-dismiss)
+ * @param {string} message - Info message
+ */
+function showInfo(message) {
+  // Remove any existing info banner
+  const existing = document.querySelector('.info-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.className = 'info-banner';
+  banner.textContent = message;
+  
+  document.body.appendChild(banner);
+
+  // Show with animation
+  setTimeout(() => banner.classList.add('visible'), 100);
+
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    banner.classList.remove('visible');
+    setTimeout(() => banner.remove(), 300);
+  }, 5000);
+}
