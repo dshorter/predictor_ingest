@@ -6,16 +6,78 @@
  */
 
 // Register fcose extension with Cytoscape
-// The unpkg version should auto-register, but we'll ensure it's registered
-if (typeof cytoscape !== 'undefined') {
-  // Try different possible global variable names
-  if (typeof cytoscapeFcose !== 'undefined') {
-    cytoscape.use(cytoscapeFcose);
-  } else if (typeof fcose !== 'undefined') {
-    cytoscape.use(fcose);
+// Need to ensure registration happens after libraries load
+function registerFcose() {
+  if (typeof cytoscape === 'undefined') {
+    console.error('Cytoscape not loaded');
+    return false;
   }
-  // If neither exists, the CDN version should have auto-registered
+
+  // Check if already registered
+  try {
+    const testLayout = cytoscape({ elements: [] }).layout({ name: 'fcose' });
+    console.log('fcose already registered');
+    return true;
+  } catch (e) {
+    // Not registered yet, try to register
+  }
+
+  // Try different possible global variable names from the CDN
+  if (typeof cytoscapeFcose !== 'undefined') {
+    console.log('Registering fcose via cytoscapeFcose');
+    cytoscape.use(cytoscapeFcose);
+    return true;
+  } else if (typeof window.cytoscapeFcose !== 'undefined') {
+    console.log('Registering fcose via window.cytoscapeFcose');
+    cytoscape.use(window.cytoscapeFcose);
+    return true;
+  } else if (typeof fcose !== 'undefined') {
+    console.log('Registering fcose via fcose');
+    cytoscape.use(fcose);
+    return true;
+  } else {
+    console.warn('fcose extension not found in global scope');
+    return false;
+  }
 }
+
+// Try to register when script loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', registerFcose);
+} else {
+  registerFcose();
+}
+
+// Debug helper function - can be called from browser console
+window.debugFcose = function() {
+  console.log('=== FCOSE DEBUG INFO ===');
+  console.log('cytoscape available:', typeof cytoscape !== 'undefined');
+  console.log('cytoscapeFcose available:', typeof cytoscapeFcose !== 'undefined');
+  console.log('window.cytoscapeFcose available:', typeof window.cytoscapeFcose !== 'undefined');
+  console.log('fcose available:', typeof fcose !== 'undefined');
+  
+  if (typeof cytoscape !== 'undefined') {
+    try {
+      const testCy = cytoscape({ elements: [] });
+      const testLayout = testCy.layout({ name: 'fcose' });
+      console.log('✓ fcose layout is registered and working');
+      return true;
+    } catch (e) {
+      console.error('✗ fcose layout test failed:', e.message);
+      return false;
+    }
+  } else {
+    console.error('✗ Cytoscape not available');
+    return false;
+  }
+};
+
+// Auto-run debug check after a short delay to let everything load
+setTimeout(() => {
+  console.log('Running automatic fcose check...');
+  window.debugFcose();
+}, 1000);
+
 
 /**
  * Default layout options for fcose
@@ -66,14 +128,19 @@ const LAYOUT_OPTIONS = {
  * Run layout on the graph
  */
 function runLayout(cy, options = {}) {
+  // Ensure fcose is registered before trying to use it
+  registerFcose();
+  
   let layoutOptions = { ...LAYOUT_OPTIONS, ...options };
 
   // Fallback to 'cose' if fcose isn't available
+  let useFcose = true;
   try {
-    // Test if fcose is available
-    cy.layout({ name: 'fcose' });
+    // Test if fcose is available by creating a test layout
+    const testLayout = cy.layout({ name: 'fcose' });
   } catch (e) {
-    console.warn('fcose layout not available, falling back to cose');
+    console.warn('fcose layout not available, falling back to cose:', e.message);
+    useFcose = false;
     // Use built-in cose layout instead
     layoutOptions = {
       name: 'cose',
@@ -88,6 +155,10 @@ function runLayout(cy, options = {}) {
       numIter: 1000,
       randomize: true,
     };
+  }
+  
+  if (useFcose) {
+    console.log('Using fcose layout');
   }
 
   // Show loading state for large graphs

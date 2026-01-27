@@ -384,7 +384,9 @@ V2 position storage enables:
 
 ### Detailed Specification
 
-See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation guidelines including:
+See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation guidelines. For common issues and fixes, see **[docs/ux/troubleshooting.md](docs/ux/troubleshooting.md)**.
+
+Implementation guidelines include:
 
 - Node and edge visual encoding (formulas, full color palette with hex codes)
 - Label visibility rules and collision detection

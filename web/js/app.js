@@ -19,6 +19,14 @@ async function initializeApp() {
   console.log('Initializing AI Trend Graph...');
 
   try {
+    // Ensure fcose layout is registered before initializing
+    if (typeof registerFcose === 'function') {
+      const registered = registerFcose();
+      if (!registered) {
+        console.warn('fcose registration failed, will fall back to built-in layouts');
+      }
+    }
+    
     // Show loading state
     showLoading('Initializing...');
 

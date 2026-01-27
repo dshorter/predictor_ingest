@@ -18,6 +18,7 @@ This documentation is organized into focused modules:
 |<performance.md>           |Rendering thresholds, optimizations                                                       |
 |<accessibility.md>         |Keyboard nav, screen reader, colorblind mode                                              |
 |<implementation.md>        |V1/V2 matrix, file structure, dependencies                                                |
+|<troubleshooting.md>       |**Common issues and fixes.** fcose registration, CDN fallbacks, debug tools               |
 
 
 > **Important:** All CSS must use the design tokens from `design-tokens.md`. Never use hardcoded pixel values, colors, or arbitrary spacing. This ensures visual consistency across the entire UI.
