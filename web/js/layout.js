@@ -16,59 +16,21 @@
 /**
  * Default layout options for cose (built-in force-directed)
  *
- * These parameters were tuned during development and produce
- * good results for our heterogeneous knowledge graph structure.
+ * IMPORTANT: This exact configuration produced excellent results
+ * in the original fallback. Do not add extra parameters without testing.
  */
 const LAYOUT_OPTIONS = {
   name: 'cose',
-
-  // Animation
   animate: true,
   animationDuration: 500,
-  animationEasing: 'ease-out',
-
-  // Fit to viewport
   fit: true,
   padding: 50,
-
-  // Randomize initial positions
-  randomize: true,
-
-  // Node repulsion (higher = more spread)
-  nodeRepulsion: function(node) {
-    return 4500;
-  },
-
-  // Ideal edge length
-  idealEdgeLength: function(edge) {
-    return 100;
-  },
-
-  // Edge elasticity (higher = edges more tightly follow idealEdgeLength)
-  edgeElasticity: function(edge) {
-    return 0.45;
-  },
-
-  // Nesting factor for compound nodes (if we add them later)
-  nestingFactor: 0.1,
-
-  // Gravity - pulls nodes toward center (prevents drift)
+  nodeRepulsion: 4500,
+  idealEdgeLength: 100,
+  edgeElasticity: 0.45,
   gravity: 0.25,
-
-  // Number of iterations
   numIter: 1000,
-
-  // Whether to use WebWorker (better performance for large graphs)
-  useMultitasking: true,
-
-  // Initial temperature (max movement per iteration)
-  initialTemp: 200,
-
-  // Cooling factor (how fast temperature decreases)
-  coolingFactor: 0.95,
-
-  // Lower temperature bound
-  minTemp: 1.0,
+  randomize: true,
 };
 
 /**
