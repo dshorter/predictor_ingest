@@ -1,34 +1,107 @@
 /**
  * Layout Management
  *
- * Force-directed layout using built-in cose algorithm.
+ * Force-directed layout using fcose algorithm.
+ * fcose = fast compound spring embedder - optimized for larger graphs.
  *
- * Decision: Using cose instead of fcose for V1.
- * - cose "worked the first time" with excellent visual results
- * - Simpler algorithm, fewer parameters to tune
- * - No external dependencies (built into Cytoscape)
- * - fcose can be revisited in V2 for larger graphs (500+ nodes)
+ * Parameter Hunt Status: IN PROGRESS
+ * Key insight: nodeSeparation controls spectral phase spacing
  *
  * See docs/ux/layout-temporal.md for specification.
- * See docs/fix-details/FCOSE_LAYOUT_ANALYSIS.md for fcose research.
+ * See docs/fix-details/FCOSE_LAYOUT_ANALYSIS.md for research.
  */
 
 /**
- * Default layout options for cose (built-in force-directed)
+ * Register fcose extension with Cytoscape
+ */
+function registerFcose() {
+  if (typeof cytoscape === 'undefined') {
+    console.error('Cytoscape not loaded');
+    return false;
+  }
+
+  if (typeof cytoscapeFcose !== 'undefined') {
+    cytoscape.use(cytoscapeFcose);
+    console.log('fcose registered successfully');
+    return true;
+  }
+
+  console.warn('fcose extension not found - will fall back to cose');
+  return false;
+}
+
+/**
+ * Default layout options for fcose
  *
- * IMPORTANT: This exact configuration produced excellent results
- * in the original fallback. Do not add extra parameters without testing.
+ * PARAMETER HUNT - adjust these values to find optimal spread:
+ * - nodeSeparation: spacing in spectral phase (THE KEY PARAM)
+ * - nodeRepulsion: force pushing nodes apart
+ * - idealEdgeLength: target edge length
+ * - gravity: pull toward center (lower = more spread)
  */
 const LAYOUT_OPTIONS = {
+  name: 'fcose',
+
+  // Quality vs speed: 'draft', 'default', or 'proof'
+  quality: 'default',
+
+  // Animation
+  animate: true,
+  animationDuration: 500,
+  animationEasing: 'ease-out',
+
+  // Fit to viewport
+  fit: true,
+  padding: 50,
+
+  // Randomize starting positions
+  randomize: true,
+
+  // === KEY SPECTRAL PHASE PARAMETERS ===
+  // nodeSeparation: THE FIX - controls spacing in spectral layout phase
+  nodeSeparation: 75,
+
+  // === FORCE-DIRECTED PHASE PARAMETERS ===
+  // Node repulsion force
+  nodeRepulsion: 4500,
+
+  // Ideal edge length
+  idealEdgeLength: 50,
+
+  // Edge elasticity
+  edgeElasticity: 0.45,
+
+  // Gravity - pulls nodes toward center
+  gravity: 0.25,
+
+  // Gravity range - affects gravity falloff
+  gravityRange: 3.8,
+
+  // === ITERATION SETTINGS ===
+  numIter: 2500,
+
+  // === TILING (for disconnected components) ===
+  tile: true,
+  tilingPaddingVertical: 10,
+  tilingPaddingHorizontal: 10,
+
+  // === NESTING (for compound nodes) ===
+  nestingFactor: 0.1,
+};
+
+/**
+ * Fallback cose options if fcose fails
+ */
+const COSE_FALLBACK = {
   name: 'cose',
   animate: true,
   animationDuration: 500,
   fit: true,
   padding: 50,
-  nodeRepulsion: 8000,      // Was 4500 - increased for more spread
-  idealEdgeLength: 150,     // Was 100 - longer edges = more space
+  nodeRepulsion: 4500,
+  idealEdgeLength: 100,
   edgeElasticity: 0.45,
-  gravity: 0.1,             // Was 0.25 - less pull to center
+  gravity: 0.25,
   numIter: 1000,
   randomize: true,
 };
@@ -37,15 +110,29 @@ const LAYOUT_OPTIONS = {
  * Run layout on the graph
  */
 function runLayout(cy, options = {}) {
-  const layoutOptions = { ...LAYOUT_OPTIONS, ...options };
+  // Try to register fcose
+  const fcoseAvailable = registerFcose();
+
+  let layoutOptions;
+  let layoutName;
+
+  if (fcoseAvailable) {
+    layoutOptions = { ...LAYOUT_OPTIONS, ...options };
+    layoutName = 'fcose';
+  } else {
+    layoutOptions = { ...COSE_FALLBACK, ...options };
+    layoutName = 'cose (fallback)';
+  }
+
+  const nodeCount = cy.nodes().length;
 
   // Show loading state for large graphs
-  const nodeCount = cy.nodes().length;
   if (nodeCount > 200) {
     showLoading('Running layout...');
   }
 
-  console.log(`Running cose layout on ${nodeCount} nodes...`);
+  console.log(`Running ${layoutName} layout on ${nodeCount} nodes...`);
+  console.log('Layout params:', layoutOptions);
 
   const layout = cy.layout(layoutOptions);
 
@@ -68,13 +155,12 @@ function runPartialLayout(cy, nodes, options = {}) {
   const layoutOptions = {
     ...LAYOUT_OPTIONS,
     ...options,
-    fit: false, // Don't fit the entire graph
-    randomize: false, // Keep existing positions as starting point
+    fit: false,
+    randomize: false,
     animate: true,
     animationDuration: 300,
   };
 
-  // Only layout the specified nodes
   const layout = nodes.layout(layoutOptions);
   layout.run();
 
@@ -83,7 +169,6 @@ function runPartialLayout(cy, nodes, options = {}) {
 
 /**
  * Update label visibility based on zoom level
- * Labels shown when zoomed in, hidden when zoomed out
  */
 function updateLabelVisibility(cy) {
   const zoom = cy.zoom();
@@ -93,7 +178,6 @@ function updateLabelVisibility(cy) {
     if (zoom >= threshold) {
       node.style('label', node.data('label'));
     } else {
-      // Show labels only for high-degree or high-velocity nodes when zoomed out
       const degree = node.degree();
       const velocity = node.data('velocity') || 0;
 
@@ -176,11 +260,11 @@ function exportPositions(cy, viewName) {
 }
 
 /**
- * Debug helper - can be called from browser console
+ * Debug helper - call from browser console: debugLayout()
  */
 window.debugLayout = function() {
   console.log('=== LAYOUT DEBUG INFO ===');
-  console.log('Layout algorithm: cose (built-in)');
+  console.log('fcose available:', typeof cytoscapeFcose !== 'undefined');
   console.log('cytoscape available:', typeof cytoscape !== 'undefined');
 
   if (typeof cy !== 'undefined') {
@@ -191,5 +275,19 @@ window.debugLayout = function() {
     console.log('Graph not initialized yet');
   }
 
-  console.log('Layout options:', LAYOUT_OPTIONS);
+  console.log('LAYOUT_OPTIONS:', LAYOUT_OPTIONS);
+};
+
+/**
+ * Quick param adjuster - call from console to test values
+ * Example: adjustLayout({ nodeSeparation: 100, gravity: 0.1 })
+ */
+window.adjustLayout = function(params) {
+  if (typeof cy === 'undefined') {
+    console.error('Graph not initialized');
+    return;
+  }
+
+  console.log('Re-running layout with params:', params);
+  runLayout(cy, params);
 };
