@@ -305,16 +305,34 @@ const LAYOUT_OPTIONS = {
 
 ---
 
-## 🎬 NEXT STEPS
+## 🎬 DECISION MADE
 
 1. ✅ Research complete - document created
-2. ⏳ Review findings with Dan
-3. ⏳ Get approval to implement fix
-4. ⏳ Implement Option 1 (add missing parameters)
-5. ⏳ Test with actual data
-6. ⏳ Document results
-7. ⏳ Update troubleshooting docs
+2. ✅ Review findings with Dan
+3. ✅ Decision: **Use cose for V1** (Option 4)
+
+### Rationale
+
+After reviewing the screenshots and analysis:
+
+- **before_fcode_fix.png** showed excellent layout using the `cose` fallback
+- Built-in `cose` "worked the first time" with no parameter tuning needed
+- V1 philosophy: ship what works, optimize later
+- `cose` is simpler (pure force-directed, no spectral phase)
+- No external CDN dependency
+
+### Implementation (2026-01-28)
+
+- `web/js/layout.js` - Refactored to use `cose` as primary layout
+- `web/js/app.js` - Removed fcose registration code
+- `web/index.html` - Commented out fcose CDN script
+
+### V2 Consideration
+
+If we need fcose for larger graphs (500+ nodes), the fix is documented:
+- Add `nodeSeparation: 75` (and other spectral parameters)
+- The research in this document remains valid
 
 ---
 
-**DO NOT IMPLEMENT YET - AWAITING DAN'S APPROVAL**
+**IMPLEMENTED - Using cose for V1**

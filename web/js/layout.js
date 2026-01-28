@@ -1,172 +1,81 @@
 /**
  * Layout Management
  *
- * Force-directed layout using fcose algorithm.
+ * Force-directed layout using built-in cose algorithm.
+ *
+ * Decision: Using cose instead of fcose for V1.
+ * - cose "worked the first time" with excellent visual results
+ * - Simpler algorithm, fewer parameters to tune
+ * - No external dependencies (built into Cytoscape)
+ * - fcose can be revisited in V2 for larger graphs (500+ nodes)
+ *
  * See docs/ux/layout-temporal.md for specification.
+ * See docs/fix-details/FCOSE_LAYOUT_ANALYSIS.md for fcose research.
  */
-
-// Register fcose extension with Cytoscape
-// Need to ensure registration happens after libraries load
-function registerFcose() {
-  if (typeof cytoscape === 'undefined') {
-    console.error('Cytoscape not loaded');
-    return false;
-  }
-
-  // Check if already registered
-  try {
-    const testLayout = cytoscape({ elements: [] }).layout({ name: 'fcose' });
-    console.log('fcose already registered');
-    return true;
-  } catch (e) {
-    // Not registered yet, try to register
-  }
-
-  // Try different possible global variable names from the CDN
-  if (typeof cytoscapeFcose !== 'undefined') {
-    console.log('Registering fcose via cytoscapeFcose');
-    cytoscape.use(cytoscapeFcose);
-    return true;
-  } else if (typeof window.cytoscapeFcose !== 'undefined') {
-    console.log('Registering fcose via window.cytoscapeFcose');
-    cytoscape.use(window.cytoscapeFcose);
-    return true;
-  } else if (typeof fcose !== 'undefined') {
-    console.log('Registering fcose via fcose');
-    cytoscape.use(fcose);
-    return true;
-  } else {
-    console.warn('fcose extension not found in global scope');
-    return false;
-  }
-}
-
-// Try to register when script loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', registerFcose);
-} else {
-  registerFcose();
-}
-
-// Debug helper function - can be called from browser console
-window.debugFcose = function() {
-  console.log('=== FCOSE DEBUG INFO ===');
-  console.log('cytoscape available:', typeof cytoscape !== 'undefined');
-  console.log('cytoscapeFcose available:', typeof cytoscapeFcose !== 'undefined');
-  console.log('window.cytoscapeFcose available:', typeof window.cytoscapeFcose !== 'undefined');
-  console.log('fcose available:', typeof fcose !== 'undefined');
-  
-  if (typeof cytoscape !== 'undefined') {
-    try {
-      const testCy = cytoscape({ elements: [] });
-      const testLayout = testCy.layout({ name: 'fcose' });
-      console.log('✓ fcose layout is registered and working');
-      return true;
-    } catch (e) {
-      console.error('✗ fcose layout test failed:', e.message);
-      return false;
-    }
-  } else {
-    console.error('✗ Cytoscape not available');
-    return false;
-  }
-};
-
-// Auto-run debug check after a short delay to let everything load
-setTimeout(() => {
-  console.log('Running automatic fcose check...');
-  window.debugFcose();
-}, 1000);
-
 
 /**
- * Default layout options for fcose
+ * Default layout options for cose (built-in force-directed)
+ *
+ * These parameters were tuned during development and produce
+ * good results for our heterogeneous knowledge graph structure.
  */
 const LAYOUT_OPTIONS = {
-  name: 'fcose',
+  name: 'cose',
 
   // Animation
   animate: true,
   animationDuration: 500,
   animationEasing: 'ease-out',
 
-  // Fit
+  // Fit to viewport
   fit: true,
   padding: 50,
-
-  // Node repulsion
-  nodeRepulsion: 4500,
-
-  // Ideal edge length
-  idealEdgeLength: 50,
-
-  // Edge elasticity
-  edgeElasticity: 0.45,
-
-  // Nesting factor for compound nodes
-  nestingFactor: 0.1,
-
-  // Gravity
-  gravity: 0.05,
-
-  // Number of iterations
-  numIter: 2500,
-
-  // Cooling factor  
-  nodeSeparation: 150,
-
-  // Spectral layout sampling (for better initial positions)
-  samplingType: true,
-  sampleSize: 25,
-
-  // Tile disconnected components
-  tile: true,
-  tilingPaddingVertical: 40,
-  tilingPaddingHorizontal: 40,
 
   // Randomize initial positions
   randomize: true,
 
-  // Quality vs speed
-  quality: 'default', // 'draft', 'default', or 'proof'
+  // Node repulsion (higher = more spread)
+  nodeRepulsion: function(node) {
+    return 4500;
+  },
+
+  // Ideal edge length
+  idealEdgeLength: function(edge) {
+    return 100;
+  },
+
+  // Edge elasticity (higher = edges more tightly follow idealEdgeLength)
+  edgeElasticity: function(edge) {
+    return 0.45;
+  },
+
+  // Nesting factor for compound nodes (if we add them later)
+  nestingFactor: 0.1,
+
+  // Gravity - pulls nodes toward center (prevents drift)
+  gravity: 0.25,
+
+  // Number of iterations
+  numIter: 1000,
+
+  // Whether to use WebWorker (better performance for large graphs)
+  useMultitasking: true,
+
+  // Initial temperature (max movement per iteration)
+  initialTemp: 200,
+
+  // Cooling factor (how fast temperature decreases)
+  coolingFactor: 0.95,
+
+  // Lower temperature bound
+  minTemp: 1.0,
 };
 
 /**
  * Run layout on the graph
  */
 function runLayout(cy, options = {}) {
-  // Ensure fcose is registered before trying to use it
-  registerFcose();
-  
-  let layoutOptions = { ...LAYOUT_OPTIONS, ...options };
-
-  // Fallback to 'cose' if fcose isn't available
-  let useFcose = true;
-  try {
-    // Test if fcose is available by creating a test layout
-    const testLayout = cy.layout({ name: 'fcose' });
-  } catch (e) {
-    console.warn('fcose layout not available, falling back to cose:', e.message);
-    useFcose = false;
-    // Use built-in cose layout instead
-    layoutOptions = {
-      name: 'cose',
-      animate: true,
-      animationDuration: 500,
-      fit: true,
-      padding: 50,
-      nodeRepulsion: 4500,
-      idealEdgeLength: 100,
-      edgeElasticity: 0.45,
-      gravity: 0.25,
-      numIter: 1000,
-      randomize: true,
-    };
-  }
-  
-  if (useFcose) {
-    console.log('Using fcose layout');
-  }
+  const layoutOptions = { ...LAYOUT_OPTIONS, ...options };
 
   // Show loading state for large graphs
   const nodeCount = cy.nodes().length;
@@ -174,12 +83,15 @@ function runLayout(cy, options = {}) {
     showLoading('Running layout...');
   }
 
+  console.log(`Running cose layout on ${nodeCount} nodes...`);
+
   const layout = cy.layout(layoutOptions);
 
   layout.on('layoutstop', () => {
     hideLoading();
     updateLabelVisibility(cy);
     announceToScreenReader(`Layout complete. ${nodeCount} nodes arranged.`);
+    console.log('Layout complete');
   });
 
   layout.run();
@@ -195,7 +107,9 @@ function runPartialLayout(cy, nodes, options = {}) {
     ...LAYOUT_OPTIONS,
     ...options,
     fit: false, // Don't fit the entire graph
-    randomize: false,
+    randomize: false, // Keep existing positions as starting point
+    animate: true,
+    animationDuration: 300,
   };
 
   // Only layout the specified nodes
@@ -298,3 +212,22 @@ function exportPositions(cy, viewName) {
     positions: getNodePositions(cy)
   };
 }
+
+/**
+ * Debug helper - can be called from browser console
+ */
+window.debugLayout = function() {
+  console.log('=== LAYOUT DEBUG INFO ===');
+  console.log('Layout algorithm: cose (built-in)');
+  console.log('cytoscape available:', typeof cytoscape !== 'undefined');
+
+  if (typeof cy !== 'undefined') {
+    console.log('Node count:', cy.nodes().length);
+    console.log('Edge count:', cy.edges().length);
+    console.log('Current zoom:', cy.zoom().toFixed(2));
+  } else {
+    console.log('Graph not initialized yet');
+  }
+
+  console.log('Layout options:', LAYOUT_OPTIONS);
+};
