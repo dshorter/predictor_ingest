@@ -1,31 +1,73 @@
-# Fix Details
+# Fix Details - Documentation Index
 
-This directory contains detailed troubleshooting and fix documentation.
+This folder contains detailed documentation of issues encountered and resolved during development.
 
-## Purpose
+---
 
-When issues are complex enough to warrant detailed documentation beyond a quick summary, they get their own `{ISSUE_NAME}_FIX.md` file here.
+## fcose Layout Issue (January 2026)
 
-## What Goes Here
+**Problem:** After fixing fcose registration error, layout quality degraded significantly (tight clustering vs nice spread).
 
-- Step-by-step fix procedures
-- Extensive code examples
-- Complete testing workflows
-- Long explanations with context
-- Screenshots or diagrams (if needed)
+**Resolution:** Reverted to cose layout after determining fcose algorithm mismatch with graph topology.
 
-## Quick Reference
+### Documents
 
-For concise issue summaries and an index of all fixes, see: [../ux/troubleshooting.md](../ux/troubleshooting.md)
+1. **[FCOSE_FIX_SESSION_SUMMARY.md](FCOSE_FIX_SESSION_SUMMARY.md)** - Quick summary ⭐ START HERE
+   - Testing results
+   - Final recommendation
+   - Code changes needed
 
-## Current Fix Documents
+2. **[FCOSE_LAYOUT_ANALYSIS.md](FCOSE_LAYOUT_ANALYSIS.md)** - Comprehensive analysis
+   - Root cause investigation
+   - Parameter comparison
+   - Algorithm differences
+   - Community evidence
+   - Full testing journey
 
-- **[FCOSE_FIX.md](FCOSE_FIX.md)** - fcose layout extension registration fix (2026-01-27)
+3. **[FCOSE_REGISTRATION_FIX.md](FCOSE_REGISTRATION_FIX.md)** - Registration error fix
+   - Original error resolution
+   - How fcose CDN loading works
+   - registerFcose() function
 
-## Adding New Fix Documents
+### Screenshots
 
-1. Get timestamp: `date -u +"%Y-%m-%d %H:%M:%S UTC"`
-2. Create `{ISSUE_NAME}_FIX.md` in this directory
-3. Add timestamp at the top of the file
-4. Add entry to troubleshooting.md with link to this file
-5. Add to the "Current Fix Documents" list above
+- `before_fcode_fix.png` - Original layout with cose fallback (PERFECT) ✅
+- `after_fcode_fix.png` - Layout with fcose (CLUSTERED) ❌
+- Test iterations documenting parameter experiments
+
+---
+
+## Key Takeaways
+
+**The Problem:**
+- fcose registration error fixed ✅
+- But fcose layout quality worse than cose fallback ❌
+
+**The Cause:**
+- fcose optimized for dense, clustered graphs
+- Our graph is sparse (24 edges, 18 nodes) with hierarchical layers
+- Algorithm mismatch, not missing parameters
+
+**The Solution:**
+- Revert to `name: 'cose'`
+- Keep all existing parameters (they're already perfect)
+- fcose "upgrade" was actually a downgrade for our topology
+
+**The Lesson:**
+- Algorithm selection matters more than parameter tuning
+- Newer/faster ≠ better for your specific use case
+- Know your graph topology before choosing layout algorithm
+
+---
+
+## Timeline
+
+- **2026-01-27 Early:** Discovered layout degradation after fcose fix
+- **2026-01-27 Mid:** Root cause analysis + parameter research
+- **2026-01-27 Late:** Comprehensive testing (5 iterations)
+- **2026-01-27 End:** Graph topology analysis → Algorithm mismatch identified
+- **Recommendation:** Revert to cose layout
+
+---
+
+**Status:** ✅ RESOLVED - Recommendation documented, awaiting implementation

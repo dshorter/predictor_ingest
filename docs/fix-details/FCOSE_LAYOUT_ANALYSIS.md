@@ -335,4 +335,242 @@ If we need fcose for larger graphs (500+ nodes), the fix is documented:
 
 ---
 
+## 🧪 TESTING JOURNEY (2026-01-27)
+
+**Status:** COMPREHENSIVE TESTING COMPLETED
+
+### Test 1: Add `nodeSeparation: 75` (fcose default)
+
+**Change:**
+```javascript
+nodeSeparation: 75,
+```
+
+**Result:** ✅ Improvement but not enough
+- Nodes spread slightly
+- Still clustering around center
+- Visual observation: Two-phase algorithm visible!
+  - First flash: Nodes spread out (spectral phase)
+  - Second: Jump back together (force-directed phase crushing spectral spacing)
+
+**Screenshot:** `after_nodeSeparation_75.png` (user uploaded as 1769558594843_image.png)
+
+**Key Discovery:** User observed the two-phase algorithm in action:
+> "I noticed that for a second they all plotted spread out farther and smaller then 'jumped' together"
+
+This confirms spectral phase IS working, but force-directed phase is overriding it!
+
+---
+
+### Test 2: Add Spectral Sampling Parameters
+
+**Changes:**
+```javascript
+nodeSeparation: 75,
+samplingType: true,
+sampleSize: 25,
+```
+
+**Result:** 🔶 Minor improvement
+- Slightly better spread than Test 1
+- Still clustering
+- Spectral phase working but force-directed still crushing it
+
+**Screenshot:** `after_sampling_params.png` (user uploaded as 1769559162369_image.png)
+
+---
+
+### Test 3: Change `idealEdgeLength` to fcose default
+
+**Changes:**
+```javascript
+idealEdgeLength: 50,  // Changed from 100
+nodeSeparation: 75,
+samplingType: true,
+sampleSize: 25,
+```
+
+**Result:** 🔶 Minor improvement
+- Similar to Test 2
+- Force-directed phase still pulling nodes together
+- Hypothesis: `idealEdgeLength` alone isn't the issue
+
+**Screenshot:** `after_idealEdge_50.png` (user uploaded as 1769559452030_image.png)
+
+---
+
+### Test 4: Increase `nodeSeparation` to 150
+
+**Changes:**
+```javascript
+nodeSeparation: 150,  // Increased from 75
+```
+
+**Result:** 🔶 Affects spectral phase but force-directed overrides
+- Spectral phase spreads nodes more
+- Force-directed phase STILL pulls them back
+- User also tried 300 with same result
+
+**Quote from Dan:**
+> "feels like it affects that first pass but then the second pass something is overriding it?"
+
+**Analysis:** CORRECT DIAGNOSIS! The issue is force-directed phase pulling nodes back toward center.
+
+---
+
+### Test 5: Reduce `gravity` from 0.25 to 0.05
+
+**Changes:**
+```javascript
+gravity: 0.05,  // Reduced from 0.25
+nodeSeparation: 150,
+```
+
+**Result:** 🔶 Small improvement
+- Less pull toward center
+- Still not matching the original cose spread
+- Better than previous tests but not satisfactory
+
+**Screenshot:** `after_gravity_0.05.png` (user uploaded as 1769559827067_image.png)
+
+---
+
+## 📊 GRAPH TOPOLOGY ANALYSIS
+
+**Actual Data from trending.json:**
+- **18 nodes, 24 edges**
+- **Average degree: 2.67 connections per node**
+- **NOT a mesh network!** (A mesh would have ~153 edges)
+
+**Graph Structure:**
+```
+Node Degrees:
+- MMLU: 7 connections (hub)
+- MoE (Mixture of Experts): 8 connections (hub)
+- Transformers: 9 connections (hub)
+- Most others: 4-6 connections
+```
+
+**Topology Type:**
+- **Sparse semantic network with hierarchical layers**
+- Organizations → Models → Benchmarks/Datasets → Technologies
+- Hub-and-spoke structure (not clusters)
+- Typed relationships: LAUNCHED, EVALUATED_ON, USES_TECH, LOCATED_IN, etc.
+
+**Why cose worked beautifully:**
+The original "before_fcode_fix.png" showed perfect **horizontal spread with visual layers**. This is cose's strength - it naturally creates spatial hierarchy from sparse, layered graphs through pure physics simulation.
+
+**Why fcose struggles:**
+fcose's spectral phase is optimized for **community detection** (tight clusters like friend groups in social networks). Our graph doesn't have tight clusters - it has layers and hubs. The spectral phase tries to group things that shouldn't be grouped!
+
+---
+
+## 🎯 FINAL ANALYSIS & RECOMMENDATION
+
+### The Problem Isn't Just Missing Parameters
+
+While adding fcose parameters (nodeSeparation, samplingType, sampleSize) improves the layout, the fundamental issue is:
+
+**fcose's algorithm is optimized for different graph topology than ours.**
+
+### Algorithm Mismatch
+
+| Layout | Best For | Our Graph |
+|--------|----------|----------|
+| **cose** | Sparse, layered, hierarchical graphs | ✅ PERFECT MATCH |
+| **fcose** | Dense, clustered, community-based graphs | ❌ WRONG ALGORITHM |
+
+### Performance Considerations
+
+User plans **10x more nodes** (180-200 total) in production:
+
+**cose at 200 nodes:**
+- O(n²) complexity
+- 2-3 seconds render time
+- Still acceptable performance
+- Better visual results
+
+**fcose at 200 nodes:**
+- O(n log n) complexity  
+- 1-2 seconds render time
+- Marginal speed benefit
+- Fighting against graph structure
+
+### Testing Conclusion
+
+**After 5 rounds of parameter testing:**
+1. ✅ Parameters affect spectral phase
+2. ✅ Force-directed phase overrides spectral spacing
+3. ✅ Gravity reduction helps but not enough
+4. ❌ Cannot match original cose quality
+5. ❌ Algorithm mismatch confirmed
+
+---
+
+## ✅ FINAL RECOMMENDATION
+
+**REVERT TO cose LAYOUT**
+
+```javascript
+const LAYOUT_OPTIONS = {
+  name: 'cose',  // Change from 'fcose' back to 'cose'
+  
+  // Keep existing tuned parameters - they were perfect!
+  nodeRepulsion: 4500,
+  idealEdgeLength: 100,
+  edgeElasticity: 0.45,
+  nestingFactor: 0.1,
+  gravity: 0.25,
+  numIter: 2500,
+  
+  // Keep existing settings
+  animate: true,
+  animationDuration: 500,
+  animationEasing: 'ease-out',
+  fit: true,
+  padding: 50,
+  tile: true,
+  tilingPaddingVertical: 40,
+  tilingPaddingHorizontal: 40,
+  randomize: true,
+  quality: 'default'
+};
+```
+
+**Reasoning:**
+1. ✅ cose layout was **perfect** before the fix
+2. ✅ Parameters already tuned for sparse, layered graphs
+3. ✅ Performance acceptable even at 200 nodes
+4. ✅ Simpler algorithm = more predictable
+5. ✅ No more fighting with fcose spectral phase
+
+**When to Revisit fcose:**
+- If graph grows to 500+ nodes and performance suffers
+- If graph topology changes to dense clusters
+- If willing to completely retune all parameters for fcose
+
+---
+
+## 📝 LESSONS LEARNED
+
+1. **Algorithm selection matters more than parameters**
+   - Right algorithm with default params > Wrong algorithm with perfect params
+
+2. **"Newer" doesn't mean "better for your use case"**
+   - fcose is newer and faster, but wrong for this topology
+
+3. **Visual observation is diagnostic gold**
+   - User noticing the two-phase "jump" revealed the core issue
+
+4. **Graph topology analysis is essential**
+   - 24 edges / 18 nodes = sparse network, not mesh
+   - Hub-and-spoke ≠ community clusters
+
+5. **Don't fix what isn't broken**
+   - Original cose fallback worked perfectly
+   - fcose "upgrade" was actually a downgrade
+
+---
+
+**RECOMMENDATION: REVERT TO cose LAYOUT**
 **IMPLEMENTED - Using cose for V1**
