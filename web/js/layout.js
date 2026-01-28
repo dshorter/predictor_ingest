@@ -98,7 +98,7 @@ const LAYOUT_OPTIONS = {
   nodeRepulsion: 4500,
 
   // Ideal edge length
-  idealEdgeLength: 100,
+  idealEdgeLength: 50,
 
   // Edge elasticity
   edgeElasticity: 0.45,
@@ -107,10 +107,17 @@ const LAYOUT_OPTIONS = {
   nestingFactor: 0.1,
 
   // Gravity
-  gravity: 0.25,
+  gravity: 0.05,
 
   // Number of iterations
   numIter: 2500,
+
+  // Cooling factor  
+  nodeSeparation: 150,
+
+  // Spectral layout sampling (for better initial positions)
+  samplingType: true,
+  sampleSize: 25,
 
   // Tile disconnected components
   tile: true,
