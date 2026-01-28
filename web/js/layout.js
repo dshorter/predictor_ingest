@@ -25,10 +25,10 @@ const LAYOUT_OPTIONS = {
   animationDuration: 500,
   fit: true,
   padding: 50,
-  nodeRepulsion: 4500,
-  idealEdgeLength: 100,
+  nodeRepulsion: 8000,      // Was 4500 - increased for more spread
+  idealEdgeLength: 150,     // Was 100 - longer edges = more space
   edgeElasticity: 0.45,
-  gravity: 0.25,
+  gravity: 0.1,             // Was 0.25 - less pull to center
   numIter: 1000,
   randomize: true,
 };
