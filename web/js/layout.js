@@ -12,22 +12,21 @@
  */
 
 /**
- * Register fcose extension with Cytoscape
+ * Check if fcose layout is available.
+ * The CDN script auto-registers with cytoscape when both are loaded,
+ * so we just need to test if the layout works.
  */
-function registerFcose() {
-  if (typeof cytoscape === 'undefined') {
-    console.error('Cytoscape not loaded');
+function isFcoseAvailable() {
+  try {
+    const testCy = cytoscape({ headless: true, elements: [] });
+    testCy.layout({ name: 'fcose' });
+    testCy.destroy();
+    console.log('fcose layout is available');
+    return true;
+  } catch (e) {
+    console.warn('fcose layout not available - will fall back to cose');
     return false;
   }
-
-  if (typeof cytoscapeFcose !== 'undefined') {
-    cytoscape.use(cytoscapeFcose);
-    console.log('fcose registered successfully');
-    return true;
-  }
-
-  console.warn('fcose extension not found - will fall back to cose');
-  return false;
 }
 
 /**
@@ -110,8 +109,8 @@ const COSE_FALLBACK = {
  * Run layout on the graph
  */
 function runLayout(cy, options = {}) {
-  // Try to register fcose
-  const fcoseAvailable = registerFcose();
+  // Check if fcose is available
+  const fcoseAvailable = isFcoseAvailable();
 
   let layoutOptions;
   let layoutName;
@@ -264,7 +263,7 @@ function exportPositions(cy, viewName) {
  */
 window.debugLayout = function() {
   console.log('=== LAYOUT DEBUG INFO ===');
-  console.log('fcose available:', typeof cytoscapeFcose !== 'undefined');
+  console.log('fcose available:', isFcoseAvailable());
   console.log('cytoscape available:', typeof cytoscape !== 'undefined');
 
   if (typeof cy !== 'undefined') {
