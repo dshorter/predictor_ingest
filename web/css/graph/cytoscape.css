@@ -12,6 +12,7 @@
   right: 0;
   bottom: 0;
   background-color: var(--gray-50);
+  transition: left 0.3s ease, right 0.3s ease, bottom 0.3s ease;
 }
 
 /* When detail panel is open, shrink graph area */

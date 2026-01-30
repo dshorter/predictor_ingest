@@ -247,9 +247,13 @@ function updateCyContainer() {
   const filterOpen = !document.getElementById('filter-panel')?.classList.contains('collapsed');
   const evidenceOpen = !document.getElementById('evidence-panel')?.classList.contains('hidden');
 
+  console.log('updateCyContainer:', { detailOpen, filterOpen, evidenceOpen });
+
   cyEl.classList.toggle('panel-left-open', detailOpen);
   cyEl.classList.toggle('panel-right-open', filterOpen);
   cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
+
+  console.log('cy classes:', cyEl.className);
 
   // Tell Cytoscape to recalculate after container resize
   if (window.cy) {
