@@ -127,7 +127,7 @@ function addElements(cy, elements) {
  */
 function removeElements(cy, elementIds) {
   elementIds.forEach(id => {
-    const ele = cy.$(`#${id}`);
+    const ele = cy.getElementById(id);
     if (ele.length > 0) {
       ele.remove();
     }
