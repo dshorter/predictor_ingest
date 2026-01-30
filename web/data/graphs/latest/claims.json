@@ -1,0 +1,385 @@
+{
+  "meta": {
+    "view": "claims",
+    "nodeCount": 12,
+    "edgeCount": 15,
+    "exportedAt": "2026-01-26T20:00:00Z",
+    "dateRange": {
+      "start": "2025-12-01",
+      "end": "2026-01-26"
+    },
+    "filters": {
+      "excludeDocumentNodes": true,
+      "excludeMentions": true
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "firstSeen": "2025-06-15",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 23,
+          "mentionCount30d": 87,
+          "velocity": 1.4,
+          "novelty": 0.2,
+          "degree": 5
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt5",
+          "label": "GPT-5",
+          "type": "Model",
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 45,
+          "mentionCount30d": 45,
+          "velocity": 2.8,
+          "novelty": 0.95,
+          "degree": 4
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic",
+          "label": "Anthropic",
+          "type": "Org",
+          "firstSeen": "2025-06-01",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 18,
+          "mentionCount30d": 72,
+          "velocity": 1.1,
+          "novelty": 0.15,
+          "degree": 4
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude4",
+          "label": "Claude 4",
+          "type": "Model",
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-26",
+          "mentionCount7d": 28,
+          "mentionCount30d": 95,
+          "velocity": 1.8,
+          "novelty": 0.6,
+          "degree": 4
+        }
+      },
+      {
+        "data": {
+          "id": "tech:moe",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "firstSeen": "2025-09-15",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 15,
+          "mentionCount30d": 58,
+          "velocity": 1.2,
+          "novelty": 0.4,
+          "degree": 3
+        }
+      },
+      {
+        "data": {
+          "id": "org:google_deepmind",
+          "label": "Google DeepMind",
+          "type": "Org",
+          "firstSeen": "2025-06-01",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 16,
+          "mentionCount30d": 68,
+          "velocity": 0.95,
+          "novelty": 0.12,
+          "degree": 3
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemini2",
+          "label": "Gemini 2.0",
+          "type": "Model",
+          "firstSeen": "2025-12-15",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 22,
+          "mentionCount30d": 78,
+          "velocity": 1.5,
+          "novelty": 0.55,
+          "degree": 3
+        }
+      },
+      {
+        "data": {
+          "id": "topic:multimodal",
+          "label": "Multimodal AI",
+          "type": "Topic",
+          "firstSeen": "2025-08-01",
+          "lastSeen": "2026-01-26",
+          "mentionCount7d": 19,
+          "mentionCount30d": 76,
+          "velocity": 1.3,
+          "novelty": 0.35,
+          "degree": 4
+        }
+      },
+      {
+        "data": {
+          "id": "tech:rlhf",
+          "label": "RLHF",
+          "type": "Tech",
+          "firstSeen": "2025-07-10",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 11,
+          "mentionCount30d": 45,
+          "velocity": 0.7,
+          "novelty": 0.22,
+          "degree": 3
+        }
+      },
+      {
+        "data": {
+          "id": "program:safe_ai",
+          "label": "AI Safety Research",
+          "type": "Program",
+          "firstSeen": "2025-09-01",
+          "lastSeen": "2026-01-26",
+          "mentionCount7d": 13,
+          "mentionCount30d": 52,
+          "velocity": 1.0,
+          "novelty": 0.38,
+          "degree": 3
+        }
+      },
+      {
+        "data": {
+          "id": "location:sf",
+          "label": "San Francisco",
+          "type": "Location",
+          "firstSeen": "2025-06-01",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 7,
+          "mentionCount30d": 29,
+          "velocity": 0.4,
+          "novelty": 0.08,
+          "degree": 3
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:mmlu",
+          "label": "MMLU",
+          "type": "Dataset",
+          "firstSeen": "2025-08-10",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 8,
+          "mentionCount30d": 34,
+          "velocity": 0.6,
+          "novelty": 0.3,
+          "degree": 3
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:org:openai->model:gpt5:LAUNCHED",
+          "source": "org:openai",
+          "target": "model:gpt5",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidenceCount": 3,
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "e:org:anthropic->model:claude4:LAUNCHED",
+          "source": "org:anthropic",
+          "target": "model:claude4",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.98,
+          "evidenceCount": 4,
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:claude4->tech:moe:USES_TECH",
+          "source": "model:claude4",
+          "target": "tech:moe",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.72,
+          "evidenceCount": 1,
+          "firstSeen": "2025-12-15",
+          "lastSeen": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:gpt5->tech:moe:USES_TECH",
+          "source": "model:gpt5",
+          "target": "tech:moe",
+          "rel": "USES_TECH",
+          "kind": "hypothesis",
+          "confidence": 0.45,
+          "evidenceCount": 1,
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "e:org:google_deepmind->model:gemini2:LAUNCHED",
+          "source": "org:google_deepmind",
+          "target": "model:gemini2",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.97,
+          "evidenceCount": 4,
+          "firstSeen": "2025-12-15",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:gemini2->topic:multimodal:USES_TECH",
+          "source": "model:gemini2",
+          "target": "topic:multimodal",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.93,
+          "evidenceCount": 3,
+          "firstSeen": "2025-12-16",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:gpt5->topic:multimodal:USES_TECH",
+          "source": "model:gpt5",
+          "target": "topic:multimodal",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidenceCount": 2,
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:claude4->tech:rlhf:USES_TECH",
+          "source": "model:claude4",
+          "target": "tech:rlhf",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.91,
+          "evidenceCount": 2,
+          "firstSeen": "2025-12-02",
+          "lastSeen": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:gpt5->tech:rlhf:USES_TECH",
+          "source": "model:gpt5",
+          "target": "tech:rlhf",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.75,
+          "evidenceCount": 1,
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "e:org:anthropic->program:safe_ai:OPERATES",
+          "source": "org:anthropic",
+          "target": "program:safe_ai",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidenceCount": 3,
+          "firstSeen": "2025-09-15",
+          "lastSeen": "2026-01-26"
+        }
+      },
+      {
+        "data": {
+          "id": "e:org:openai->program:safe_ai:PARTNERED_WITH",
+          "source": "org:openai",
+          "target": "program:safe_ai",
+          "rel": "PARTNERED_WITH",
+          "kind": "inferred",
+          "confidence": 0.62,
+          "evidenceCount": 1,
+          "firstSeen": "2025-10-01",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "e:org:openai->location:sf:LOCATED_IN",
+          "source": "org:openai",
+          "target": "location:sf",
+          "rel": "LOCATED_IN",
+          "kind": "asserted",
+          "confidence": 1.0,
+          "evidenceCount": 5,
+          "firstSeen": "2025-06-01",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "e:org:anthropic->location:sf:LOCATED_IN",
+          "source": "org:anthropic",
+          "target": "location:sf",
+          "rel": "LOCATED_IN",
+          "kind": "asserted",
+          "confidence": 1.0,
+          "evidenceCount": 4,
+          "firstSeen": "2025-06-01",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:claude4->dataset:mmlu:EVALUATED_ON",
+          "source": "model:claude4",
+          "target": "dataset:mmlu",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.94,
+          "evidenceCount": 3,
+          "firstSeen": "2025-12-03",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "e:model:gemini2->dataset:mmlu:EVALUATED_ON",
+          "source": "model:gemini2",
+          "target": "dataset:mmlu",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.89,
+          "evidenceCount": 2,
+          "firstSeen": "2025-12-18",
+          "lastSeen": "2026-01-21"
+        }
+      }
+    ]
+  }
+}
