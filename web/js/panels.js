@@ -251,24 +251,28 @@ function closeAllPanels() {
  * Update cy container classes based on panel state
  */
 function updateCyContainer() {
-  const cyEl = document.getElementById('cy');
-  if (!cyEl) return;
+  try {
+    const cyEl = document.getElementById('cy');
+    if (!cyEl) { console.warn('updateCyContainer: #cy not found'); return; }
 
-  const detailOpen = !document.getElementById('detail-panel')?.classList.contains('hidden');
-  const filterOpen = !document.getElementById('filter-panel')?.classList.contains('collapsed');
-  const evidenceOpen = !document.getElementById('evidence-panel')?.classList.contains('hidden');
+    const detailOpen = !document.getElementById('detail-panel')?.classList.contains('hidden');
+    const filterOpen = !document.getElementById('filter-panel')?.classList.contains('collapsed');
+    const evidenceOpen = !document.getElementById('evidence-panel')?.classList.contains('hidden');
 
-  console.log('updateCyContainer:', { detailOpen, filterOpen, evidenceOpen });
+    console.log('updateCyContainer:', { detailOpen, filterOpen, evidenceOpen });
 
-  cyEl.classList.toggle('panel-left-open', detailOpen);
-  cyEl.classList.toggle('panel-right-open', filterOpen);
-  cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
+    cyEl.classList.toggle('panel-left-open', detailOpen);
+    cyEl.classList.toggle('panel-right-open', filterOpen);
+    cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
 
-  console.log('cy classes:', cyEl.className);
+    console.log('cy classes after toggle:', cyEl.className);
 
-  // Tell Cytoscape to recalculate after container resize
-  if (window.cy) {
-    setTimeout(() => window.cy.resize(), 50);
+    // Tell Cytoscape to recalculate after container resize
+    if (window.cy) {
+      setTimeout(() => window.cy.resize(), 50);
+    }
+  } catch (err) {
+    console.error('updateCyContainer error:', err);
   }
 }
 
