@@ -266,6 +266,7 @@ function selectNode(nodeId) {
   if (node.length > 0) {
     window.cy.elements().unselect();
     node.select();
+    window.cy.animate({ center: { eles: node }, duration: 300 });
     openNodeDetailPanel(node);
   }
 }
