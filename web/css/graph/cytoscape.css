@@ -24,6 +24,11 @@
   right: var(--panel-width);
 }
 
+/* When evidence panel is open, shrink graph area from bottom */
+#cy.panel-bottom-open {
+  bottom: 40vh;
+}
+
 /* Focus styles for accessibility */
 #cy:focus {
   outline: none;

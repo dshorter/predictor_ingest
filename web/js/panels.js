@@ -224,6 +224,7 @@ function openEvidencePanel(edge) {
   `;
 
   panel.classList.remove('hidden');
+  updateCyContainer();
 }
 
 /**
@@ -239,14 +240,21 @@ function closeAllPanels() {
  * Update cy container classes based on panel state
  */
 function updateCyContainer() {
-  const cy = document.getElementById('cy');
-  if (!cy) return;
+  const cyEl = document.getElementById('cy');
+  if (!cyEl) return;
 
   const detailOpen = !document.getElementById('detail-panel')?.classList.contains('hidden');
   const filterOpen = !document.getElementById('filter-panel')?.classList.contains('collapsed');
+  const evidenceOpen = !document.getElementById('evidence-panel')?.classList.contains('hidden');
 
-  cy.classList.toggle('panel-left-open', detailOpen);
-  cy.classList.toggle('panel-right-open', filterOpen);
+  cyEl.classList.toggle('panel-left-open', detailOpen);
+  cyEl.classList.toggle('panel-right-open', filterOpen);
+  cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
+
+  // Tell Cytoscape to recalculate after container resize
+  if (window.cy) {
+    setTimeout(() => window.cy.resize(), 50);
+  }
 }
 
 /**
