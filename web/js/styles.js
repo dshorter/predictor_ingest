@@ -46,14 +46,15 @@ function calculateNodeSize(ele) {
   const novelty = ele.data('novelty') || 0;
   const degree = ele.data('degree') || ele.degree() || 1;
 
-  // Velocity is primary driver (0-3 maps to 1x-2.5x)
+  // Velocity contributes (0-3 maps to 1x-2.5x)
   const velocityMultiplier = 1 + (Math.min(velocity, 3) * 0.5);
 
   // Recency boost for new nodes
   const recencyBoost = calculateRecencyBoost(ele.data('firstSeen'));
 
-  // Degree provides subtle secondary scaling (logarithmic)
-  const degreeMultiplier = 1 + (Math.log10(degree + 1) * 0.15);
+  // Degree is a strong size driver — hub nodes should be visibly larger
+  // degree 1 → 1.0x, degree 3 → 1.55x, degree 6 → 1.90x, degree 10 → 2.15x
+  const degreeMultiplier = 1 + (Math.log2(degree) * 0.5);
 
   let size = BASE_SIZE * velocityMultiplier * recencyBoost * degreeMultiplier;
 
