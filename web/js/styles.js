@@ -142,9 +142,9 @@ function getCytoscapeStyles() {
       }
     },
 
-    // Node hover state
+    // Node hover state (applied via events, not CSS pseudo-selector)
     {
-      selector: 'node:hover',
+      selector: 'node.hover',
       style: {
         'border-width': 3,
         'border-color': '#3B82F6',
@@ -252,9 +252,9 @@ function getCytoscapeStyles() {
       }
     },
 
-    // Edge hover state
+    // Edge hover state (applied via events, not CSS pseudo-selector)
     {
-      selector: 'edge:hover',
+      selector: 'edge.hover',
       style: {
         'line-color': edgeColors.hover,
         'target-arrow-color': edgeColors.hover,

@@ -18,10 +18,11 @@ function initializeTooltips(cy) {
   const tooltip = document.getElementById('tooltip');
   if (!tooltip) return;
 
-  // Node hover
+  // Node hover - add .hover class for styling + show tooltip
   cy.on('mouseover', 'node', (e) => {
     clearTooltipTimeout();
     currentTooltipTarget = e.target;
+    e.target.addClass('hover');
 
     tooltipTimeout = setTimeout(() => {
       if (currentTooltipTarget === e.target) {
@@ -30,15 +31,17 @@ function initializeTooltips(cy) {
     }, TOOLTIP_DELAY);
   });
 
-  cy.on('mouseout', 'node', () => {
+  cy.on('mouseout', 'node', (e) => {
+    e.target.removeClass('hover');
     clearTooltipTimeout();
     hideTooltip(tooltip);
   });
 
-  // Edge hover
+  // Edge hover - add .hover class for styling + show tooltip
   cy.on('mouseover', 'edge', (e) => {
     clearTooltipTimeout();
     currentTooltipTarget = e.target;
+    e.target.addClass('hover');
 
     tooltipTimeout = setTimeout(() => {
       if (currentTooltipTarget === e.target) {
@@ -47,7 +50,8 @@ function initializeTooltips(cy) {
     }, TOOLTIP_DELAY);
   });
 
-  cy.on('mouseout', 'edge', () => {
+  cy.on('mouseout', 'edge', (e) => {
+    e.target.removeClass('hover');
     clearTooltipTimeout();
     hideTooltip(tooltip);
   });
@@ -146,7 +150,7 @@ function showEdgeTooltip(edge, position, tooltip) {
  */
 function positionAndShowTooltip(tooltip, content, position) {
   tooltip.innerHTML = content;
-  tooltip.classList.remove('hidden');
+  tooltip.classList.add('visible');
 
   // Get container bounds
   const container = document.getElementById('cy');
@@ -176,6 +180,6 @@ function positionAndShowTooltip(tooltip, content, position) {
  */
 function hideTooltip(tooltip) {
   if (tooltip) {
-    tooltip.classList.add('hidden');
+    tooltip.classList.remove('visible');
   }
 }
