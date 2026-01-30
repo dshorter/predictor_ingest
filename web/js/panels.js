@@ -20,6 +20,16 @@ function initializePanels(cy) {
     });
   });
 
+  // Watch evidence panel visibility and update cy container automatically
+  const evidencePanel = document.getElementById('evidence-panel');
+  if (evidencePanel) {
+    const observer = new MutationObserver(() => {
+      console.log('evidence panel class changed:', evidencePanel.className);
+      updateCyContainer();
+    });
+    observer.observe(evidencePanel, { attributes: true, attributeFilter: ['class'] });
+  }
+
   // Error dismiss
   document.getElementById('error-dismiss')?.addEventListener('click', hideError);
 }
@@ -224,6 +234,7 @@ function openEvidencePanel(edge) {
   `;
 
   panel.classList.remove('hidden');
+  console.log('evidence panel opened, calling updateCyContainer');
   updateCyContainer();
 }
 
