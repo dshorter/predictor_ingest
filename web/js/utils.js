@@ -223,6 +223,30 @@ function showWarning(message, buttonText, buttonCallback) {
  * Show info banner (auto-dismiss)
  * @param {string} message - Info message
  */
+/**
+ * Format a docId into a readable title
+ * e.g. "2026-01-12_langchain_blog" → "Langchain Blog (Jan 12, 2026)"
+ */
+function formatDocId(docId) {
+  if (!docId) return '';
+  // Strip date prefix and replace underscores with spaces
+  const parts = docId.replace(/^\d{4}-\d{2}-\d{2}_/, '').split('_');
+  return parts.map(p => capitalize(p)).join(' ');
+}
+
+/**
+ * Extract domain from a URL for display
+ * e.g. "https://blog.langchain.dev/gpt5" → "blog.langchain.dev"
+ */
+function extractDomain(url) {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '';
+  }
+}
+
 function showInfo(message) {
   // Remove any existing info banner
   const existing = document.querySelector('.info-banner');

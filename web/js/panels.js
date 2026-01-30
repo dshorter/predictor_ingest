@@ -89,10 +89,10 @@ function openNodeDetailPanel(node) {
     </section>
 
     <div class="mt-4 flex gap-2">
-      <button class="btn btn-sm flex-1" onclick="expandNeighbors(window.cy.$('#${data.id}'))">
+      <button class="btn btn-sm flex-1" onclick="expandNeighbors(window.cy.getElementById('${data.id}'))">
         Expand
       </button>
-      <button class="btn btn-sm flex-1" onclick="zoomToNode(window.cy.$('#${data.id}'))">
+      <button class="btn btn-sm flex-1" onclick="zoomToNode(window.cy.getElementById('${data.id}'))">
         Center
       </button>
     </div>
@@ -186,22 +186,25 @@ function openEvidencePanel(edge) {
 
       ${evidence.length > 0 ? `
         <ul class="space-y-4">
-          ${evidence.map(ev => `
+          ${evidence.map(ev => {
+            const title = ev.title || formatDocId(ev.docId) || 'Untitled';
+            const source = ev.source || extractDomain(ev.url) || 'Unknown source';
+            return `
             <li class="border-l-2 border-gray-200 pl-3">
-              <div class="font-medium text-sm">${escapeHtml(ev.title || 'Untitled')}</div>
+              <div class="font-medium text-sm">${escapeHtml(title)}</div>
               <div class="text-xs text-gray-500 mt-1">
-                ${ev.source || 'Unknown source'} · ${formatDate(ev.published)}
+                ${escapeHtml(source)} · ${formatDate(ev.published)}
               </div>
               <blockquote class="text-sm text-gray-600 mt-2 italic">
                 "${escapeHtml(ev.snippet)}"
               </blockquote>
               ${ev.url ? `
-                <a href="${ev.url}" target="_blank" class="text-xs text-blue-600 mt-1 inline-block">
+                <a href="${ev.url}" target="_blank" rel="noopener" class="text-xs text-blue-600 mt-1 inline-block">
                   View document →
                 </a>
               ` : ''}
-            </li>
-          `).join('')}
+            </li>`;
+          }).join('')}
         </ul>
       ` : `
         <p class="text-sm text-gray-400">
@@ -251,7 +254,7 @@ function updateCyContainer() {
  */
 function selectNode(nodeId) {
   if (!window.cy) return;
-  const node = window.cy.$(`#${nodeId}`);
+  const node = window.cy.getElementById(nodeId);
   if (node.length > 0) {
     window.cy.elements().unselect();
     node.select();
