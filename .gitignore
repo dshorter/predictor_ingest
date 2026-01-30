@@ -26,8 +26,11 @@ htmlcov/
 .tox/
 .nox/
 
-# Project data and outputs
+# Project data and outputs (pipeline artifacts)
 data/
+
+# Exception: web sample data is small test JSON, belongs in repo
+!web/data/
 
 # Editors and OS files
 .vscode/
