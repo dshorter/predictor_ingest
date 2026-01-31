@@ -1,0 +1,352 @@
+{
+  "meta": {
+    "view": "claims",
+    "nodeCount": 12,
+    "edgeCount": 13,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": ["Open AI"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 45,
+          "mentionCount30d": 180,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic",
+          "label": "Anthropic",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 38,
+          "mentionCount30d": 150,
+          "velocity": 0.72
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": ["GPT 5"],
+          "firstSeen": "2026-01-10",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 120,
+          "mentionCount30d": 200,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": ["Opus 4.5", "Claude Opus"],
+          "firstSeen": "2025-11-15",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 65,
+          "mentionCount30d": 220,
+          "velocity": 0.78
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": ["Transformers"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 25,
+          "mentionCount30d": 95,
+          "velocity": 0.42
+        }
+      },
+      {
+        "data": {
+          "id": "tech:moe",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": ["MoE"],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 55,
+          "mentionCount30d": 140,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_safety",
+          "label": "AI Safety",
+          "type": "Topic",
+          "aliases": ["AI Alignment"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 35,
+          "mentionCount30d": 125,
+          "velocity": 0.55
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mmlu",
+          "label": "MMLU",
+          "type": "Benchmark",
+          "aliases": ["Massive Multitask Language Understanding"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 18,
+          "mentionCount30d": 72,
+          "velocity": 0.35
+        }
+      },
+      {
+        "data": {
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 28,
+          "mentionCount30d": 95,
+          "velocity": 0.62
+        }
+      },
+      {
+        "data": {
+          "id": "person:dario_amodei",
+          "label": "Dario Amodei",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 12,
+          "mentionCount30d": 48,
+          "velocity": 0.45
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 8,
+          "mentionCount30d": 32,
+          "velocity": 0.25
+        }
+      },
+      {
+        "data": {
+          "id": "tool:langchain",
+          "label": "LangChain",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 42,
+          "mentionCount30d": 165,
+          "velocity": 0.68
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:openai-gpt5",
+          "source": "org:openai",
+          "target": "model:gpt5",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "docId": "2026-01-10_openai_blog",
+              "url": "https://openai.com/blog/gpt5",
+              "published": "2026-01-10",
+              "snippet": "Today we announce GPT-5, our most capable model yet..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:anthropic-claude",
+          "source": "org:anthropic",
+          "target": "model:claude_opus",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "docId": "2025-11-15_anthropic_blog",
+              "url": "https://anthropic.com/news/claude-opus-4-5",
+              "published": "2025-11-15",
+              "snippet": "Introducing Claude Opus 4.5, our new frontier model..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpt5-transformer",
+          "source": "model:gpt5",
+          "target": "tech:transformer",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpt5-moe",
+          "source": "model:gpt5",
+          "target": "tech:moe",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.75
+        }
+      },
+      {
+        "data": {
+          "id": "e:claude-transformer",
+          "source": "model:claude_opus",
+          "target": "tech:transformer",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.90
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpt5-mmlu",
+          "source": "model:gpt5",
+          "target": "benchmark:mmlu",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2026-01-10_openai_blog",
+              "url": "https://openai.com/blog/gpt5",
+              "published": "2026-01-10",
+              "snippet": "GPT-5 achieves 95.2% on MMLU benchmark..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:claude-mmlu",
+          "source": "model:claude_opus",
+          "target": "benchmark:mmlu",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.90,
+          "evidence": [
+            {
+              "docId": "2025-11-15_anthropic_blog",
+              "url": "https://anthropic.com/news/claude-opus-4-5",
+              "published": "2025-11-15",
+              "snippet": "Claude Opus 4.5 scores 94.8% on MMLU..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:altman-openai",
+          "source": "person:sam_altman",
+          "target": "org:openai",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:amodei-anthropic",
+          "source": "person:dario_amodei",
+          "target": "org:anthropic",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpt5-crawl",
+          "source": "model:gpt5",
+          "target": "dataset:common_crawl",
+          "rel": "TRAINED_ON",
+          "kind": "hypothesis",
+          "confidence": 0.60
+        }
+      },
+      {
+        "data": {
+          "id": "e:langchain-gpt5",
+          "source": "tool:langchain",
+          "target": "model:gpt5",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidence": [
+            {
+              "docId": "2026-01-12_langchain_blog",
+              "url": "https://blog.langchain.dev/gpt5-support",
+              "published": "2026-01-12",
+              "snippet": "LangChain now supports GPT-5 with full feature parity..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:langchain-claude",
+          "source": "tool:langchain",
+          "target": "model:claude_opus",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.90,
+          "evidence": [
+            {
+              "docId": "2025-11-20_langchain_blog",
+              "url": "https://blog.langchain.dev/claude-opus-support",
+              "published": "2025-11-20",
+              "snippet": "Claude Opus 4.5 integration now available..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:openai-anthropic",
+          "source": "org:openai",
+          "target": "org:anthropic",
+          "rel": "COMPETES_WITH",
+          "kind": "inferred",
+          "confidence": 0.70
+        }
+      }
+    ]
+  }
+}
