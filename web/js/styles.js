@@ -136,10 +136,10 @@ function getCytoscapeStyles() {
         'color': '#1F2937',
         'text-outline-color': '#FFFFFF',
         'text-outline-width': 2,
-        'text-outline-opacity': 0.8,
+        'text-outline-opacity': 1,
         'border-width': 2,
-        'border-color': '#E5E7EB',
-        'border-opacity': 0.5
+        'border-color': '#D1D5DB',
+        'border-opacity': 0.7
       }
     },
 

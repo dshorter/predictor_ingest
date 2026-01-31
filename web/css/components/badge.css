@@ -98,8 +98,8 @@
 }
 
 .badge-type-document {
-  color: var(--gray-800);
-  background-color: var(--color-document);
+  color: white;
+  background-color: var(--gray-500);
 }
 
 .badge-type-event {
@@ -113,8 +113,8 @@
 }
 
 .badge-type-other {
-  color: var(--gray-800);
-  background-color: var(--color-other);
+  color: white;
+  background-color: var(--gray-500);
 }
 
 /* Relationship kind badges */

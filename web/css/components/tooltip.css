@@ -32,7 +32,7 @@
   gap: var(--space-2);
   margin-bottom: var(--space-2);
   padding-bottom: var(--space-2);
-  border-bottom: var(--border-width) solid var(--gray-100);
+  border-bottom: var(--border-width) solid var(--gray-200);
 }
 
 .tooltip-type {
@@ -56,10 +56,10 @@
 .tooltip-type.type-repo { background-color: var(--color-repo); }
 .tooltip-type.type-tech { background-color: var(--color-tech); color: var(--gray-900); }
 .tooltip-type.type-topic { background-color: var(--color-topic); }
-.tooltip-type.type-document { background-color: var(--color-document); color: var(--gray-800); }
+.tooltip-type.type-document { background-color: var(--gray-500); color: white; }
 .tooltip-type.type-event { background-color: var(--color-event); }
 .tooltip-type.type-location { background-color: var(--color-location); }
-.tooltip-type.type-other { background-color: var(--color-other); color: var(--gray-800); }
+.tooltip-type.type-other { background-color: var(--gray-500); color: white; }
 
 .tooltip-label {
   font-weight: var(--weight-semibold);
@@ -91,7 +91,7 @@
 }
 
 .tooltip-key {
-  color: var(--gray-500);
+  color: var(--gray-600);
 }
 
 .tooltip-value {
@@ -105,7 +105,7 @@
 }
 
 .tooltip-arrow {
-  color: var(--gray-400);
+  color: var(--gray-500);
 }
 
 /* Kind badges in tooltips */
@@ -144,7 +144,7 @@
 .tooltip-footer {
   margin-top: var(--space-2);
   padding-top: var(--space-2);
-  border-top: var(--border-width) solid var(--gray-100);
+  border-top: var(--border-width) solid var(--gray-200);
   font-size: var(--text-xs);
-  color: var(--gray-400);
+  color: var(--gray-500);
 }
