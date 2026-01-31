@@ -80,11 +80,11 @@ function calculateRecencyOpacity(lastSeenDate) {
   const days = daysBetween(lastSeenDate);
 
   if (days <= 7) return 1.0;    // Active: full opacity
-  if (days <= 14) return 0.85;  // Recent
-  if (days <= 30) return 0.7;   // Fading
-  if (days <= 60) return 0.55;  // Stale
-  if (days <= 90) return 0.4;   // Old
-  return 0.25;                   // Ghost node
+  if (days <= 14) return 0.9;   // Recent
+  if (days <= 30) return 0.8;   // Fading
+  if (days <= 60) return 0.7;   // Stale
+  if (days <= 90) return 0.6;   // Old
+  return 0.5;                    // Oldest nodes still clearly visible
 }
 
 /**
@@ -121,7 +121,9 @@ function getCytoscapeStyles() {
         'width': function(ele) { return calculateNodeSize(ele); },
         'height': function(ele) { return calculateNodeSize(ele); },
         'opacity': function(ele) {
-          return calculateRecencyOpacity(ele.data('lastSeen'));
+          // Fall back through lastSeen → firstSeen → publishedAt → full opacity
+          const dateField = ele.data('lastSeen') || ele.data('firstSeen') || ele.data('publishedAt');
+          return calculateRecencyOpacity(dateField);
         },
         'label': function(ele) {
           return truncateLabel(ele.data('label'), 20);
