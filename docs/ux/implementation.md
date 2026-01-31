@@ -25,7 +25,8 @@ V1/V2 feature matrix, file structure, and dependencies.
 |**Interaction**                |   |   |                        |
 |Pan/zoom                       |✅  |✅  |                        |
 |Click to select                |✅  |✅  |                        |
-|Hover to preview               |✅  |✅  |                        |
+|Click to highlight neighborhood|✅  |✅  |Dims non-neighbors      |
+|Hover tooltip                  |✅  |✅  |Lightweight preview only|
 |Context menu                   |✅  |✅  |                        |
 |Node expansion                 |❌  |✅  |Load neighbors on demand|
 |                               |   |   |                        |

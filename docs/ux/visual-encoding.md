@@ -219,6 +219,13 @@ const nodeStates = [
     }
   },
   {
+    selector: 'node.neighborhood-dimmed',  // Click-to-highlight: non-neighbor nodes
+    style: {
+      'opacity': 0.15,
+      'label': ''  // Hide labels for dimmed nodes to reduce clutter
+    }
+  },
+  {
     selector: 'node.new',  // Nodes added in last 7 days
     style: {
       'border-width': 3,
@@ -368,6 +375,14 @@ function isNewEdge(ele) {
     'width': function(ele) {
       return calculateEdgeWidth(ele.data('confidence')) + 1;  // Slightly thicker
     }
+  }
+},
+{
+  selector: 'edge.neighborhood-dimmed',  // Click-to-highlight: non-neighbor edges
+  style: {
+    'line-color': edgeColors.dimmed,
+    'target-arrow-color': edgeColors.dimmed,
+    'opacity': 0.1
   }
 }
 ```

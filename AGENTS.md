@@ -355,6 +355,7 @@ A thin static Cytoscape.js client for interactive graph exploration. The graph s
 | Search | Filter nodes by label/alias; highlight matches |
 | Filter panel | Date range, entity types, relationship kinds, confidence threshold |
 | Kind toggles | Show/hide asserted, inferred, hypothesis edges |
+| Neighborhood highlight | Click node → dims non-neighbors; hover is tooltip-only |
 | Node detail panel | Full metadata, relationships, source documents |
 | Evidence panel | Click edge → view provenance with snippets and links |
 | Zoom/pan/fit | Standard navigation; re-run layout button |
@@ -366,6 +367,7 @@ A thin static Cytoscape.js client for interactive graph exploration. The graph s
 | Node size | Velocity (acceleration) + recency boost |
 | Node color | Entity type (Org=blue, Model=violet, etc.) |
 | Node opacity | Recency (fades as lastSeen ages) |
+| Neighborhood highlight | Click node → neighbors stay visible, rest dims (opacity 0.15) |
 | Edge style | Kind: solid=asserted, dashed=inferred, dotted=hypothesis |
 | Edge thickness | Confidence score (0.5px to 4px) |
 | Edge color | Gray default; green for new edges (<7 days) |
