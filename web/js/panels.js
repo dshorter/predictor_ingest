@@ -266,6 +266,8 @@ function selectNode(nodeId) {
   if (node.length > 0) {
     window.cy.elements().unselect();
     node.select();
+    clearNeighborhoodHighlight(window.cy);
+    highlightNeighborhood(window.cy, node);
     window.cy.animate({ center: { eles: node }, duration: 300 });
     openNodeDetailPanel(node);
   }

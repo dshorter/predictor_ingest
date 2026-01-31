@@ -191,6 +191,15 @@ function getCytoscapeStyles() {
       }
     },
 
+    // Neighborhood-dimmed nodes (click-to-highlight)
+    {
+      selector: 'node.neighborhood-dimmed',
+      style: {
+        'opacity': 0.15,
+        'label': ''
+      }
+    },
+
     // New nodes (added in last 7 days)
     {
       selector: 'node.new',
@@ -284,6 +293,16 @@ function getCytoscapeStyles() {
         'line-color': edgeColors.dimmed,
         'target-arrow-color': edgeColors.dimmed,
         'opacity': 0.3
+      }
+    },
+
+    // Neighborhood-dimmed edges (click-to-highlight)
+    {
+      selector: 'edge.neighborhood-dimmed',
+      style: {
+        'line-color': edgeColors.dimmed,
+        'target-arrow-color': edgeColors.dimmed,
+        'opacity': 0.1
       }
     }
   ];

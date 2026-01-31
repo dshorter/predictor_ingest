@@ -71,14 +71,38 @@ async function initializeApp() {
 }
 
 /**
+ * Highlight the neighborhood of a node (connected edges + neighbor nodes).
+ * Dims everything else. Skips if a search is active to avoid conflicts.
+ */
+function highlightNeighborhood(cy, node) {
+  // Don't override active search dimming
+  if (cy.nodes('.search-match').length > 0) return;
+
+  const neighborhood = node.closedNeighborhood();
+
+  cy.elements().addClass('neighborhood-dimmed');
+  neighborhood.removeClass('neighborhood-dimmed');
+  neighborhood.edges().removeClass('neighborhood-dimmed');
+}
+
+/**
+ * Clear neighborhood highlighting.
+ */
+function clearNeighborhoodHighlight(cy) {
+  cy.elements().removeClass('neighborhood-dimmed');
+}
+
+/**
  * Initialize event handlers for the graph
  */
 function initializeEventHandlers(cy) {
-  // Node click - open detail panel
+  // Node click - highlight neighborhood + open detail panel
   cy.on('tap', 'node', (e) => {
     const node = e.target;
     cy.elements().unselect();
     node.select();
+    clearNeighborhoodHighlight(cy);
+    highlightNeighborhood(cy, node);
     openNodeDetailPanel(node);
   });
 
@@ -87,14 +111,16 @@ function initializeEventHandlers(cy) {
     const edge = e.target;
     cy.elements().unselect();
     edge.select();
+    clearNeighborhoodHighlight(cy);
     openEvidencePanel(edge);
   });
 
-  // Background click - close panels
+  // Background click - close panels and clear highlight
   cy.on('tap', (e) => {
     if (e.target === cy) {
       closeAllPanels();
       cy.elements().unselect();
+      clearNeighborhoodHighlight(cy);
     }
   });
 
@@ -172,6 +198,7 @@ function handleKeyboardNavigation(e, cy) {
     case 'Escape':
       closeAllPanels();
       cy.elements().unselect();
+      clearNeighborhoodHighlight(cy);
       e.preventDefault();
       break;
     case '/':
@@ -228,6 +255,8 @@ function handleArrowNavigation(e, cy) {
   if (best) {
     cy.elements().unselect();
     best.select();
+    clearNeighborhoodHighlight(cy);
+    highlightNeighborhood(cy, best);
     openNodeDetailPanel(best);
     e.preventDefault();
   }
