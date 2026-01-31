@@ -406,6 +406,22 @@ Implementation guidelines include:
 
 The UI guidelines document is implementation-ready for code generation.
 
+### Cytoscape.js Gotchas (Lessons Learned)
+
+These are hard-won lessons from development. Violating any of these will cause subtle, hard-to-debug issues:
+
+1. **No CSS pseudo-selectors.** Cytoscape does **not** support `:hover` or `:focus` in its stylesheet. Use JS events to add/remove classes (e.g., `.hover`), then target those classes in styles. Only `:selected`, `:active`, `:grabbed` work natively.
+
+2. **Colon-safe ID lookups.** Our canonical IDs use colons (`org:openai`, `model:gpt-5`). The `cy.$('#org:openai')` selector breaks because `#` uses CSS parsing where `:` is a pseudo-class separator. Always use `cy.getElementById('org:openai')` instead.
+
+3. **Manual `cy.resize()` after container changes.** Cytoscape caches its container dimensions. If you toggle a panel that changes the `#cy` element's size, you must call `cy.resize()` (with a short `setTimeout` of ~50ms) or the graph won't redraw into the new bounds.
+
+4. **fcose needs CDN sub-dependencies.** The `cytoscape-fcose` CDN bundle does **not** include `layout-base` and `cose-base`. Load those first, or fcose silently fails and falls back to `cose`. Always test layout availability with a try/catch around a dummy layout run, not by checking global variable names.
+
+5. **Separate CSS classes for separate dimming contexts.** Search uses `.dimmed`; neighborhood highlighting uses `.neighborhood-dimmed`. If both used the same class, clearing one would clear the other. Any new feature that dims elements should use its own class.
+
+See **[docs/ux/troubleshooting.md](docs/ux/troubleshooting.md)** for detailed symptoms, root causes, and fixes.
+
 ### Scale Considerations
 
 | Node Count | Client Behavior |

@@ -99,6 +99,132 @@ For future CDN-loaded extensions:
 
 ---
 
+## Selector Issues
+
+### Colon Characters in Node IDs Break cy.$() Selectors
+
+**Fixed:** 2026-01-28 UTC
+
+**Symptoms:**
+- Clicking "View" or "Expand" buttons in panels does nothing
+- Console error: `Syntax error, unrecognized expression` or silent failures
+- Affects any node with `:` in its ID (most entities: `org:openai`, `model:gpt-5`, `tool:langchain`, etc.)
+
+**Root Cause:**
+Cytoscape's `cy.$('#org:openai')` uses CSS selector syntax internally. The `#` selector treats `:` as a pseudo-class separator (`#org` + `:openai`), which fails. Since our canonical ID scheme uses colons extensively (`type:slug`), this breaks nearly all programmatic node selection.
+
+**Solution:**
+Use `cy.getElementById('org:openai')` instead of `cy.$('#org:openai')` everywhere. The `getElementById()` method does direct ID lookup without CSS parsing.
+
+```javascript
+// WRONG — breaks on colons
+const node = cy.$(`#${nodeId}`);
+
+// CORRECT — safe for any ID characters
+const node = cy.getElementById(nodeId);
+```
+
+**Files Modified:**
+- `web/js/panels.js` — All `selectNode()`, `expandNeighbors()`, `zoomToNode()` calls
+- `web/js/graph.js` — `removeElements()` function
+
+**Prevention:**
+- Never use `cy.$('#...')` or `cy.$id()` with user-facing IDs that may contain colons, dots, or brackets
+- Always use `cy.getElementById()` for single-node lookup by ID
+- For batch operations, use `cy.collection()` + `.getElementById()` in a loop, or filter with `.filter()`
+
+---
+
+## Panel / Canvas Interaction Issues
+
+### Evidence Panel Does Not Shrink the Graph Canvas
+
+**Fixed:** 2026-01-28 UTC
+
+**Symptoms:**
+- Opening the bottom evidence panel overlaps the graph instead of shrinking it
+- Graph nodes hidden behind the panel are not clickable
+- Closing the panel doesn't restore full canvas height
+
+**Root Cause:**
+The Cytoscape container (`#cy`) had a fixed height. When the evidence panel opened, nothing told the container to shrink. Additionally, Cytoscape caches its container dimensions and doesn't automatically detect DOM size changes—you must call `cy.resize()` explicitly.
+
+**Solution:**
+
+1. **CSS classes** toggle canvas sizing when panels open:
+   ```css
+   #cy.panel-bottom-open {
+     bottom: 240px;  /* evidence panel height */
+   }
+   ```
+
+2. **`updateCyContainer()`** in `panels.js` toggles classes and calls `cy.resize()`:
+   ```javascript
+   function updateCyContainer() {
+     const cyEl = document.getElementById('cy');
+     const evidenceOpen = !document.getElementById('evidence-panel')
+       ?.classList.contains('hidden');
+     cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
+     setTimeout(() => window.cy.resize(), 50);
+   }
+   ```
+
+3. **Called from** every panel open/close: `openEvidencePanel()`, `closeAllPanels()`, panel close buttons.
+
+**Files Modified:**
+- `web/css/graph/cytoscape.css` — Panel-aware sizing classes
+- `web/js/panels.js` — `updateCyContainer()` function, panel open/close handlers
+
+**Prevention:**
+- Any new panel that affects canvas bounds must call `updateCyContainer()` on show/hide
+- Always call `cy.resize()` after changing the Cytoscape container's dimensions
+- Use a short `setTimeout` (50ms) to let the DOM settle before resize
+
+---
+
+## Styling Issues
+
+### Cytoscape Ignores CSS Pseudo-Selectors (:hover, :focus)
+
+**Fixed:** 2026-01-28 UTC
+
+**Symptoms:**
+- `:hover` styles defined in `getCytoscapeStyles()` have no effect
+- Nodes and edges don't respond to mouse hover visually
+- Tooltips appear (because they use JS events) but border/color changes don't
+
+**Root Cause:**
+Cytoscape.js does **not** support CSS pseudo-selectors like `:hover` or `:focus` in its stylesheet. It only supports its own pseudo-selectors (`:selected`, `:active`, `:grabbed`) and class-based selectors (`.myclass`). The Cytoscape docs list `:hover` in some examples but it is not reliably implemented.
+
+**Solution:**
+Use JavaScript events to add/remove classes, then target those classes in the Cytoscape stylesheet:
+
+```javascript
+// In tooltips.js — add .hover class via events
+cy.on('mouseover', 'node', (e) => e.target.addClass('hover'));
+cy.on('mouseout', 'node', (e) => e.target.removeClass('hover'));
+
+// In styles.js — target the class, not pseudo-selector
+{
+  selector: 'node.hover',  // NOT 'node:hover'
+  style: {
+    'border-width': 3,
+    'border-color': '#3B82F6'
+  }
+}
+```
+
+**Files Modified:**
+- `web/js/styles.js` — Changed selectors from `node:hover`/`edge:hover` to `node.hover`/`edge.hover`
+- `web/js/tooltips.js` — Added `addClass('hover')` / `removeClass('hover')` in mouseover/mouseout handlers
+
+**Prevention:**
+- Never use `:hover`, `:focus`, or other CSS pseudo-selectors in Cytoscape stylesheets
+- Use only: `:selected`, `:active`, `:grabbed`, `:parent`, `:child`, or class-based selectors (`.className`)
+- For any interactive state, add/remove classes via Cytoscape events
+
+---
+
 ## [Future issues will be documented here]
 
 **Organization Pattern:**
