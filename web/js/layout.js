@@ -76,13 +76,35 @@ const LAYOUT_OPTIONS_BASE = {
 };
 
 /**
- * Compute scaled fcose layout options based on graph size and density.
+ * Reference calibration from trending view (medium tier: 37 nodes, 31 edges).
+ * These base params produce a good layout at this scale. We compute per-node
+ * and per-edge ratios, then apply them to any graph size.
  *
- * Problem: fixed params tuned for 15 nodes produce hairballs at 100+ nodes,
- * especially in dense views like claims (2-3 edges per node).
+ * Key insight: even with fit:true, the RATIO between repulsion and gravity
+ * determines cluster tightness. Higher repulsion/gravity ratio = more even
+ * spacing. The force simulation topology is preserved after fit-scaling.
+ */
+const REFERENCE = {
+  nodes: 37,
+  edges: 31,
+  density: 31 / 37,  // ~0.84 edges per node
+  // Base params that look good at this scale:
+  nodeSeparation: 75,
+  nodeRepulsion: 4500,
+  idealEdgeLength: 50,
+  gravity: 0.25,
+  gravityRange: 3.8,
+};
+
+/**
+ * Compute scaled fcose layout options using ratio-based scaling.
  *
- * Solution: scale separation, repulsion, edge length up and gravity down
- * as node count and edge density increase.
+ * Uses the trending view (37n/31e) as a golden reference where base params
+ * produce good results. Computes ratios from that reference and applies
+ * them to the current graph size and density.
+ *
+ * Linear scaling (not log) because fit:true normalizes absolute positions —
+ * what matters is the force RATIOS, and those need proportional scaling.
  *
  * @param {number} nodeCount - Number of nodes in the graph
  * @param {number} edgeCount - Number of edges in the graph
@@ -90,51 +112,66 @@ const LAYOUT_OPTIONS_BASE = {
  */
 function getScaledLayoutOptions(nodeCount, edgeCount) {
   const opts = { ...LAYOUT_OPTIONS_BASE };
-  const density = edgeCount / Math.max(nodeCount, 1);
 
-  // Small graphs (< 50 nodes): use base params
-  if (nodeCount < 50) {
+  // Small graphs (≤ reference size): use base params as-is
+  if (nodeCount <= REFERENCE.nodes) {
+    console.log(`Layout: ${nodeCount}n ≤ ref(${REFERENCE.nodes}), using base params`);
     return opts;
   }
 
-  // Scale factor: logarithmic growth so we don't over-separate huge graphs
-  // At 150 nodes → ~1.5x, at 500 → ~2.1x, at 2000 → ~2.8x
-  const scaleFactor = 1 + Math.log10(nodeCount / 50) * 1.05;
+  const nodeRatio = nodeCount / REFERENCE.nodes;
+  const density = edgeCount / Math.max(nodeCount, 1);
+  const densityRatio = density / REFERENCE.density;
 
-  // Density factor: denser graphs need more spacing
-  // At density 1 → 1.0x, at density 2.5 → ~1.3x, at density 4 → ~1.5x
-  const densityFactor = 1 + Math.max(0, density - 1) * 0.15;
+  // --- Ratio-based scaling from reference ---
 
-  const combined = scaleFactor * densityFactor;
+  // nodeSeparation: sqrt(nodeRatio) — spectral phase spacing
+  opts.nodeSeparation = Math.round(
+    REFERENCE.nodeSeparation * Math.sqrt(nodeRatio)
+  );
 
-  // Scale key parameters
-  opts.nodeSeparation = Math.round(75 * combined);
-  opts.nodeRepulsion = Math.round(4500 * combined * combined);
-  opts.idealEdgeLength = Math.round(50 * combined);
-  opts.gravity = Math.max(0.02, 0.25 / combined);
-  opts.gravityRange = Math.min(10, 3.8 * combined);
+  // nodeRepulsion: linear with nodeRatio, boosted by density
+  // This is THE key param — each node needs proportional repulsion force,
+  // and denser graphs need extra push to avoid overlap
+  opts.nodeRepulsion = Math.round(
+    REFERENCE.nodeRepulsion * nodeRatio * Math.max(1, densityRatio)
+  );
 
-  // For large graphs, increase iterations for better convergence
-  if (nodeCount > 500) {
-    opts.numIter = 3500;
+  // idealEdgeLength: sqrt(nodeRatio) * density boost
+  // Longer edges in bigger/denser graphs reduce visual overlap
+  opts.idealEdgeLength = Math.round(
+    REFERENCE.idealEdgeLength * Math.sqrt(nodeRatio) * Math.max(1, Math.sqrt(densityRatio))
+  );
+
+  // gravity: INVERSE of nodeRatio — this is the critical ratio
+  // Weaker gravity = less central pull = more even distribution
+  // With fit:true, the repulsion/gravity RATIO drives visual spread
+  opts.gravity = Math.max(0.005, REFERENCE.gravity / nodeRatio);
+
+  // gravityRange: increase so falloff covers the larger layout
+  opts.gravityRange = Math.min(15, REFERENCE.gravityRange * Math.sqrt(nodeRatio));
+
+  // Iteration scaling — bigger graphs need more convergence steps
+  if (nodeCount > 100) opts.numIter = 3000;
+  if (nodeCount > 500) opts.numIter = 3500;
+  if (nodeCount > 1000) opts.numIter = 4000;
+
+  // Tiling padding for disconnected components
+  if (nodeCount > 50) {
+    opts.tilingPaddingVertical = Math.round(10 * Math.sqrt(nodeRatio));
+    opts.tilingPaddingHorizontal = Math.round(10 * Math.sqrt(nodeRatio));
   }
-  if (nodeCount > 1000) {
-    opts.numIter = 4000;
-    opts.quality = 'default'; // keep default; 'proof' too slow at this scale
-  }
 
-  // Increase tiling padding for graphs with many disconnected components
-  if (nodeCount > 200) {
-    opts.tilingPaddingVertical = 20;
-    opts.tilingPaddingHorizontal = 20;
-  }
-
-  console.log(`Layout auto-scale: ${nodeCount} nodes, ${edgeCount} edges, ` +
-    `density=${density.toFixed(2)}, scale=${scaleFactor.toFixed(2)}, ` +
-    `densityFactor=${densityFactor.toFixed(2)}, combined=${combined.toFixed(2)}`);
-  console.log(`Scaled params: nodeSep=${opts.nodeSeparation}, ` +
-    `repulsion=${opts.nodeRepulsion}, edgeLen=${opts.idealEdgeLength}, ` +
-    `gravity=${opts.gravity.toFixed(3)}`);
+  console.log(
+    `Layout ratio-scale: ${nodeCount}n/${edgeCount}e | ` +
+    `nodeRatio=${nodeRatio.toFixed(1)}x, density=${density.toFixed(2)}, ` +
+    `densityRatio=${densityRatio.toFixed(2)}x`
+  );
+  console.log(
+    `Scaled → nodeSep=${opts.nodeSeparation}, repulsion=${opts.nodeRepulsion}, ` +
+    `edgeLen=${opts.idealEdgeLength}, gravity=${opts.gravity.toFixed(4)}, ` +
+    `gravRange=${opts.gravityRange.toFixed(1)}, iters=${opts.numIter}`
+  );
 
   return opts;
 }
