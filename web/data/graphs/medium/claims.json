@@ -13,229 +13,203 @@
     "nodes": [
       {
         "data": {
-          "id": "org:cohere",
-          "label": "Cohere",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-19",
-          "lastSeen": "2026-01-22",
-          "mentionCount7d": 40,
-          "mentionCount30d": 124,
-          "velocity": 0.73
-        }
-      },
-      {
-        "data": {
-          "id": "person:jeff_dean",
-          "label": "Jeff Dean",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-10",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 3,
-          "mentionCount30d": 20,
-          "velocity": 0.36
-        }
-      },
-      {
-        "data": {
-          "id": "repo:transformers",
-          "label": "transformers",
-          "type": "Repo",
-          "aliases": [
-            "huggingface/transformers"
-          ],
-          "firstSeen": "2025-12-02",
-          "lastSeen": "2026-01-02",
-          "mentionCount7d": 1,
-          "mentionCount30d": 4,
-          "velocity": 0.12
-        }
-      },
-      {
-        "data": {
-          "id": "person:jensen_huang",
-          "label": "Jensen Huang",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-18",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 4,
-          "mentionCount30d": 20,
-          "velocity": 0.94
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:redpajama_v2",
-          "label": "RedPajama v2",
+          "id": "dataset:starcoder_data",
+          "label": "StarCoder Data",
           "type": "Dataset",
-          "aliases": [
-            "RedPajama"
-          ],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-23",
-          "mentionCount7d": 3,
-          "mentionCount30d": 4,
-          "velocity": 0.68
-        }
-      },
-      {
-        "data": {
-          "id": "tech:sliding_window_attention",
-          "label": "Sliding Window Attention",
-          "type": "Tech",
-          "aliases": [
-            "SWA"
-          ],
-          "firstSeen": "2025-12-10",
-          "lastSeen": "2025-12-24",
-          "mentionCount7d": 3,
-          "mentionCount30d": 9,
-          "velocity": 0.24
-        }
-      },
-      {
-        "data": {
-          "id": "person:daniela_amodei",
-          "label": "Daniela Amodei",
-          "type": "Person",
           "aliases": [],
-          "firstSeen": "2026-01-02",
-          "lastSeen": "2026-01-06",
-          "mentionCount7d": 14,
-          "mentionCount30d": 67,
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 15,
+          "mentionCount30d": 34,
           "velocity": 0.61
         }
       },
       {
         "data": {
-          "id": "program:nist_ai_rmf",
-          "label": "NIST AI RMF",
-          "type": "Program",
-          "aliases": [
-            "AI Risk Management Framework"
-          ],
-          "firstSeen": "2025-12-08",
-          "lastSeen": "2025-12-31",
-          "mentionCount7d": 8,
-          "mentionCount30d": 18,
-          "velocity": 0.27
+          "id": "tech:qlora",
+          "label": "QLoRA",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2025-11-15",
+          "mentionCount7d": 10,
+          "mentionCount30d": 10,
+          "velocity": 0.5
         }
       },
       {
         "data": {
-          "id": "paper:attention_is_all_you_need_v2",
-          "label": "Attention Is All You Need v2",
-          "type": "Paper",
+          "id": "org:hugging_face",
+          "label": "Hugging Face",
+          "type": "Org",
+          "aliases": [
+            "HF"
+          ],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 35,
+          "mentionCount30d": 68,
+          "velocity": 0.47
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": [
+            "Opus 4.5",
+            "Claude Opus"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 9,
+          "mentionCount30d": 84,
+          "velocity": 0.23
+        }
+      },
+      {
+        "data": {
+          "id": "model:midjourney_v7",
+          "label": "Midjourney V7",
+          "type": "Model",
+          "aliases": [
+            "MJ V7"
+          ],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-10",
+          "mentionCount7d": 11,
+          "mentionCount30d": 16,
+          "velocity": 0.17
+        }
+      },
+      {
+        "data": {
+          "id": "model:qwen_3",
+          "label": "Qwen-3",
+          "type": "Model",
+          "aliases": [
+            "Qwen3",
+            "Qwen 3"
+          ],
+          "firstSeen": "2025-12-22",
+          "lastSeen": "2026-01-13",
+          "mentionCount7d": 9,
+          "mentionCount30d": 76,
+          "velocity": 0.32
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque",
+          "label": "Emad Mostaque",
+          "type": "Person",
           "aliases": [],
-          "firstSeen": "2025-12-19",
-          "lastSeen": "2025-12-29",
-          "mentionCount7d": 5,
-          "mentionCount30d": 25,
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-28",
+          "mentionCount7d": 3,
+          "mentionCount30d": 5,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "person:dario_amodei",
+          "label": "Dario Amodei",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-29",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 7,
+          "mentionCount30d": 21,
+          "velocity": 0.39
+        }
+      },
+      {
+        "data": {
+          "id": "person:mira_murati",
+          "label": "Mira Murati",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-23",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 12,
+          "mentionCount30d": 47,
           "velocity": 0.74
         }
       },
       {
         "data": {
-          "id": "model:sora_2",
-          "label": "Sora 2",
-          "type": "Model",
-          "aliases": [
-            "Sora V2"
-          ],
-          "firstSeen": "2025-10-26",
-          "lastSeen": "2025-12-02",
-          "mentionCount7d": 24,
-          "mentionCount30d": 99,
-          "velocity": 0.81
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:math",
-          "label": "MATH",
-          "type": "Benchmark",
+          "id": "tool:localai",
+          "label": "LocalAI",
+          "type": "Tool",
           "aliases": [],
-          "firstSeen": "2025-12-11",
-          "lastSeen": "2026-01-06",
-          "mentionCount7d": 7,
-          "mentionCount30d": 25,
-          "velocity": 0.66
+          "firstSeen": "2025-12-03",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 12,
+          "mentionCount30d": 38,
+          "velocity": 0.97
         }
       },
       {
         "data": {
-          "id": "model:gpt_4o_mini_2",
-          "label": "GPT-4o Mini 2",
-          "type": "Model",
-          "aliases": [
-            "GPT4o Mini 2"
-          ],
-          "firstSeen": "2026-01-04",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 13,
-          "mentionCount30d": 71,
-          "velocity": 0.08
-        }
-      },
-      {
-        "data": {
-          "id": "paper:flash_attention:_fast_and_memory_efficie",
-          "label": "Flash Attention: Fast and Memory-Efficient Attention",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2025-12-14",
-          "mentionCount7d": 0,
-          "mentionCount30d": 2,
-          "velocity": 0.43
-        }
-      },
-      {
-        "data": {
-          "id": "org:apple_ml",
-          "label": "Apple ML",
+          "id": "org:amazon_aws",
+          "label": "Amazon AWS",
           "type": "Org",
           "aliases": [
-            "Apple Machine Learning"
+            "AWS",
+            "Amazon"
           ],
-          "firstSeen": "2025-12-10",
-          "lastSeen": "2025-12-10",
-          "mentionCount7d": 10,
-          "mentionCount30d": 33,
-          "velocity": 0.82
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 34,
+          "mentionCount30d": 42,
+          "velocity": 0.87
         }
       },
       {
         "data": {
-          "id": "tool:weights_and_biases",
-          "label": "Weights & Biases",
-          "type": "Tool",
+          "id": "tech:tool_use",
+          "label": "Tool Use",
+          "type": "Tech",
           "aliases": [
-            "W&B",
-            "wandb"
+            "Function Calling"
           ],
-          "firstSeen": "2025-11-06",
-          "lastSeen": "2026-01-01",
-          "mentionCount7d": 11,
-          "mentionCount30d": 29,
-          "velocity": 0.38
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 13,
+          "mentionCount30d": 38,
+          "velocity": 0.8
         }
       },
       {
         "data": {
-          "id": "dataset:the_stack_v2",
-          "label": "The Stack v2",
-          "type": "Dataset",
+          "id": "tech:group_query_attention",
+          "label": "Group Query Attention",
+          "type": "Tech",
           "aliases": [
-            "The Stack"
+            "GQA"
           ],
-          "firstSeen": "2026-01-17",
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-11-24",
+          "mentionCount7d": 17,
+          "mentionCount30d": 27,
+          "velocity": 0.61
+        }
+      },
+      {
+        "data": {
+          "id": "tech:lora",
+          "label": "LoRA",
+          "type": "Tech",
+          "aliases": [
+            "Low-Rank Adaptation"
+          ],
+          "firstSeen": "2026-01-16",
           "lastSeen": "2026-01-18",
-          "mentionCount7d": 14,
-          "mentionCount30d": 20,
-          "velocity": 0.79
+          "mentionCount7d": 15,
+          "mentionCount30d": 48,
+          "velocity": 0.37
         }
       },
       {
@@ -253,59 +227,127 @@
       },
       {
         "data": {
-          "id": "repo:vllm",
-          "label": "vllm",
-          "type": "Repo",
-          "aliases": [
-            "vllm-project/vllm"
-          ],
-          "firstSeen": "2025-12-06",
-          "lastSeen": "2025-12-14",
-          "mentionCount7d": 12,
-          "mentionCount30d": 30,
-          "velocity": 0.84
+          "id": "paper:chain_of_thought_prompting_elicits_reaso",
+          "label": "Chain-of-Thought Prompting Elicits Reasoning",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 3,
+          "mentionCount30d": 13,
+          "velocity": 0.4
         }
       },
       {
         "data": {
-          "id": "org:anthropic",
-          "label": "Anthropic",
+          "id": "org:databricks",
+          "label": "Databricks",
           "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-16",
-          "mentionCount7d": 18,
-          "mentionCount30d": 88,
-          "velocity": 0.2
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 7,
+          "mentionCount30d": 19,
+          "velocity": 0.83
         }
       },
       {
         "data": {
-          "id": "model:gpt_5",
-          "label": "GPT-5",
-          "type": "Model",
-          "aliases": [
-            "GPT 5",
-            "gpt-5"
-          ],
-          "firstSeen": "2025-12-13",
-          "lastSeen": "2025-12-27",
-          "mentionCount7d": 8,
-          "mentionCount30d": 12,
+          "id": "person:andrej_karpathy",
+          "label": "Andrej Karpathy",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 24,
+          "mentionCount30d": 51,
           "velocity": 0.98
         }
       },
       {
         "data": {
-          "id": "person:emad_mostaque",
-          "label": "Emad Mostaque",
-          "type": "Person",
+          "id": "tech:flash_attention",
+          "label": "Flash Attention",
+          "type": "Tech",
+          "aliases": [
+            "FlashAttention"
+          ],
+          "firstSeen": "2025-12-21",
+          "lastSeen": "2026-01-02",
+          "mentionCount7d": 17,
+          "mentionCount30d": 70,
+          "velocity": 0.37
+        }
+      },
+      {
+        "data": {
+          "id": "tool:streamlit",
+          "label": "Streamlit",
+          "type": "Tool",
           "aliases": [],
-          "firstSeen": "2025-12-14",
-          "lastSeen": "2025-12-28",
-          "mentionCount7d": 3,
-          "mentionCount30d": 5,
-          "velocity": 0.79
+          "firstSeen": "2025-11-02",
+          "lastSeen": "2025-12-29",
+          "mentionCount7d": 18,
+          "mentionCount30d": 30,
+          "velocity": 0.72
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_5_core",
+          "label": "GPT-5 Core",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 5,
+          "mentionCount30d": 12,
+          "velocity": 0.35
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mt_bench",
+          "label": "MT-Bench",
+          "type": "Benchmark",
+          "aliases": [
+            "MTBench"
+          ],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 19,
+          "mentionCount30d": 35,
+          "velocity": 0.09
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai",
+          "label": "Mistral AI",
+          "type": "Org",
+          "aliases": [
+            "Mistral"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2025-12-26",
+          "mentionCount7d": 16,
+          "mentionCount30d": 44,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "model:palm_3",
+          "label": "PaLM 3",
+          "type": "Model",
+          "aliases": [
+            "PaLM3"
+          ],
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2025-12-13",
+          "mentionCount7d": 13,
+          "mentionCount30d": 45,
+          "velocity": 0.67
         }
       },
       {
@@ -326,170 +368,30 @@
       },
       {
         "data": {
-          "id": "tech:rlhf",
-          "label": "RLHF",
-          "type": "Tech",
-          "aliases": [
-            "Reinforcement Learning from Human Feedback"
-          ],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2026-01-02",
-          "mentionCount7d": 24,
-          "mentionCount30d": 41,
-          "velocity": 0.46
-        }
-      },
-      {
-        "data": {
-          "id": "tech:speculative_decoding",
-          "label": "Speculative Decoding",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-12-06",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 9,
-          "mentionCount30d": 36,
-          "velocity": 0.7
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:laion_5b",
-          "label": "LAION-5B",
-          "type": "Dataset",
-          "aliases": [
-            "LAION"
-          ],
-          "firstSeen": "2025-12-18",
-          "lastSeen": "2025-12-24",
-          "mentionCount7d": 0,
-          "mentionCount30d": 4,
-          "velocity": 0.8
-        }
-      },
-      {
-        "data": {
-          "id": "model:deepseek_v3",
-          "label": "DeepSeek-V3",
+          "id": "model:yi_large",
+          "label": "Yi-Large",
           "type": "Model",
           "aliases": [
-            "DeepSeek V3"
+            "Yi Large"
           ],
-          "firstSeen": "2026-01-18",
-          "lastSeen": "2026-01-23",
-          "mentionCount7d": 8,
-          "mentionCount30d": 12,
-          "velocity": 0.59
+          "firstSeen": "2025-11-21",
+          "lastSeen": "2026-01-09",
+          "mentionCount7d": 6,
+          "mentionCount30d": 25,
+          "velocity": 0.14
         }
       },
       {
         "data": {
-          "id": "person:fei_fei_li",
-          "label": "Fei-Fei Li",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-16",
-          "lastSeen": "2026-01-03",
-          "mentionCount7d": 3,
-          "mentionCount30d": 4,
-          "velocity": 0.3
-        }
-      },
-      {
-        "data": {
-          "id": "person:greg_brockman",
-          "label": "Greg Brockman",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-27",
-          "mentionCount7d": 27,
-          "mentionCount30d": 55,
-          "velocity": 0.93
-        }
-      },
-      {
-        "data": {
-          "id": "model:jamba_2",
-          "label": "Jamba 2",
+          "id": "model:codex_2",
+          "label": "Codex 2",
           "type": "Model",
           "aliases": [],
-          "firstSeen": "2025-11-12",
-          "lastSeen": "2025-12-10",
-          "mentionCount7d": 30,
-          "mentionCount30d": 62,
-          "velocity": 0.11
-        }
-      },
-      {
-        "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2025-10-31",
-          "lastSeen": "2025-12-04",
-          "mentionCount7d": 28,
-          "mentionCount30d": 62,
-          "velocity": 0.89
-        }
-      },
-      {
-        "data": {
-          "id": "tech:tree_of_thought",
-          "label": "Tree of Thought",
-          "type": "Tech",
-          "aliases": [
-            "ToT"
-          ],
-          "firstSeen": "2025-11-24",
-          "lastSeen": "2026-01-07",
-          "mentionCount7d": 14,
-          "mentionCount30d": 54,
-          "velocity": 0.77
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_opus_45_v2",
-          "label": "Claude Opus 4.5 v2",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-07",
-          "lastSeen": "2026-01-22",
-          "mentionCount7d": 14,
-          "mentionCount30d": 73,
-          "velocity": 0.26
-        }
-      },
-      {
-        "data": {
-          "id": "person:chris_olah",
-          "label": "Chris Olah",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-10-27",
-          "lastSeen": "2025-12-20",
-          "mentionCount7d": 13,
-          "mentionCount30d": 28,
-          "velocity": 0.09
-        }
-      },
-      {
-        "data": {
-          "id": "tech:lora",
-          "label": "LoRA",
-          "type": "Tech",
-          "aliases": [
-            "Low-Rank Adaptation"
-          ],
-          "firstSeen": "2026-01-16",
-          "lastSeen": "2026-01-18",
-          "mentionCount7d": 15,
-          "mentionCount30d": 48,
-          "velocity": 0.37
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2025-12-25",
+          "mentionCount7d": 16,
+          "mentionCount30d": 49,
+          "velocity": 0.25
         }
       },
       {
@@ -509,17 +411,391 @@
       },
       {
         "data": {
-          "id": "tech:retrieval_augmented_generation",
-          "label": "Retrieval-Augmented Generation",
+          "id": "tool:tensorrt_llm",
+          "label": "TensorRT-LLM",
+          "type": "Tool",
+          "aliases": [
+            "TensorRT LLM"
+          ],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2026-01-01",
+          "mentionCount7d": 2,
+          "mentionCount30d": 3,
+          "velocity": 0.58
+        }
+      },
+      {
+        "data": {
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-19",
+          "lastSeen": "2025-12-29",
+          "mentionCount7d": 5,
+          "mentionCount30d": 25,
+          "velocity": 0.74
+        }
+      },
+      {
+        "data": {
+          "id": "org:stability_ai",
+          "label": "Stability AI",
+          "type": "Org",
+          "aliases": [
+            "Stability"
+          ],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 54,
+          "mentionCount30d": 57,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tool:crewai",
+          "label": "CrewAI",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-26",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 2,
+          "mentionCount30d": 6,
+          "velocity": 0.56
+        }
+      },
+      {
+        "data": {
+          "id": "program:nist_ai_rmf",
+          "label": "NIST AI RMF",
+          "type": "Program",
+          "aliases": [
+            "AI Risk Management Framework"
+          ],
+          "firstSeen": "2025-12-08",
+          "lastSeen": "2025-12-31",
+          "mentionCount7d": 8,
+          "mentionCount30d": 18,
+          "velocity": 0.27
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:hellaswag",
+          "label": "HellaSwag",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-12-27",
+          "lastSeen": "2026-01-06",
+          "mentionCount7d": 10,
+          "mentionCount30d": 20,
+          "velocity": 0.44
+        }
+      },
+      {
+        "data": {
+          "id": "tool:haystack",
+          "label": "Haystack",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2026-01-16",
+          "mentionCount7d": 4,
+          "mentionCount30d": 6,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "tech:sliding_window_attention",
+          "label": "Sliding Window Attention",
           "type": "Tech",
           "aliases": [
-            "RAG"
+            "SWA"
           ],
-          "firstSeen": "2025-12-09",
-          "lastSeen": "2026-01-01",
-          "mentionCount7d": 17,
-          "mentionCount30d": 30,
-          "velocity": 0.68
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 3,
+          "mentionCount30d": 9,
+          "velocity": 0.24
+        }
+      },
+      {
+        "data": {
+          "id": "org:cohere",
+          "label": "Cohere",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-19",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 40,
+          "mentionCount30d": 124,
+          "velocity": 0.73
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4",
+          "label": "Claude Sonnet 4",
+          "type": "Model",
+          "aliases": [
+            "Sonnet 4"
+          ],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-10",
+          "mentionCount7d": 54,
+          "mentionCount30d": 105,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:laion_5b",
+          "label": "LAION-5B",
+          "type": "Dataset",
+          "aliases": [
+            "LAION"
+          ],
+          "firstSeen": "2025-12-18",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 0,
+          "mentionCount30d": 4,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemini_ultra_2",
+          "label": "Gemini Ultra 2",
+          "type": "Model",
+          "aliases": [
+            "Gemini 2",
+            "Gemini Ultra"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-31",
+          "mentionCount7d": 42,
+          "mentionCount30d": 93,
+          "velocity": 0.23
+        }
+      },
+      {
+        "data": {
+          "id": "tech:tree_of_thought",
+          "label": "Tree of Thought",
+          "type": "Tech",
+          "aliases": [
+            "ToT"
+          ],
+          "firstSeen": "2025-11-24",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 14,
+          "mentionCount30d": 54,
+          "velocity": 0.77
+        }
+      },
+      {
+        "data": {
+          "id": "model:nemotron_5",
+          "label": "Nemotron-5",
+          "type": "Model",
+          "aliases": [
+            "Nemotron 5"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2025-11-27",
+          "mentionCount7d": 13,
+          "mentionCount30d": 95,
+          "velocity": 0.38
+        }
+      },
+      {
+        "data": {
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 12,
+          "mentionCount30d": 15,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "program:executive_order_on_ai_safety",
+          "label": "Executive Order on AI Safety",
+          "type": "Program",
+          "aliases": [
+            "Biden AI EO"
+          ],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 15,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tech:kv_cache_optimization",
+          "label": "KV Cache Optimization",
+          "type": "Tech",
+          "aliases": [
+            "KV Cache"
+          ],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-12-21",
+          "mentionCount7d": 4,
+          "mentionCount30d": 12,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2025-12-04",
+          "mentionCount7d": 28,
+          "mentionCount30d": 62,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "tool:llamaindex",
+          "label": "LlamaIndex",
+          "type": "Tool",
+          "aliases": [
+            "Llama Index"
+          ],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 3,
+          "mentionCount30d": 7,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mmlu",
+          "label": "MMLU",
+          "type": "Benchmark",
+          "aliases": [
+            "Massive Multitask Language Understanding"
+          ],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-18",
+          "mentionCount7d": 0,
+          "mentionCount30d": 3,
+          "velocity": 0.48
+        }
+      },
+      {
+        "data": {
+          "id": "person:ilya_sutskever",
+          "label": "Ilya Sutskever",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2025-11-20",
+          "mentionCount7d": 7,
+          "mentionCount30d": 35,
+          "velocity": 0.13
+        }
+      },
+      {
+        "data": {
+          "id": "org:scale_ai",
+          "label": "Scale AI",
+          "type": "Org",
+          "aliases": [
+            "Scale"
+          ],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2026-01-02",
+          "mentionCount7d": 6,
+          "mentionCount30d": 17,
+          "velocity": 0.08
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": [
+            "GPT 5",
+            "gpt-5"
+          ],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 8,
+          "mentionCount30d": 12,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "person:chris_olah",
+          "label": "Chris Olah",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2025-12-20",
+          "mentionCount7d": 13,
+          "mentionCount30d": 28,
+          "velocity": 0.09
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_laws_for_neural_language_models_",
+          "label": "Scaling Laws for Neural Language Models (2025)",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-20",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 10,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:sora_2",
+          "label": "Sora 2",
+          "type": "Model",
+          "aliases": [
+            "Sora V2"
+          ],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2025-12-02",
+          "mentionCount7d": 24,
+          "mentionCount30d": 99,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:the_pile",
+          "label": "The Pile",
+          "type": "Dataset",
+          "aliases": [
+            "Pile"
+          ],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-10",
+          "mentionCount7d": 5,
+          "mentionCount30d": 44,
+          "velocity": 0.2
         }
       },
       {
@@ -537,71 +813,245 @@
       },
       {
         "data": {
-          "id": "tech:dpo",
-          "label": "DPO",
-          "type": "Tech",
+          "id": "dataset:redpajama_v2",
+          "label": "RedPajama v2",
+          "type": "Dataset",
           "aliases": [
-            "Direct Preference Optimization"
+            "RedPajama"
           ],
-          "firstSeen": "2025-11-02",
-          "lastSeen": "2025-12-26",
-          "mentionCount7d": 16,
-          "mentionCount30d": 34,
-          "velocity": 0.45
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 3,
+          "mentionCount30d": 4,
+          "velocity": 0.68
         }
       },
       {
         "data": {
-          "id": "org:runway_ml",
-          "label": "Runway ML",
+          "id": "org:ai2",
+          "label": "AI2",
           "type": "Org",
           "aliases": [
-            "Runway"
+            "Allen Institute for AI"
           ],
-          "firstSeen": "2025-12-05",
-          "lastSeen": "2025-12-21",
-          "mentionCount7d": 5,
-          "mentionCount30d": 10,
-          "velocity": 0.37
+          "firstSeen": "2025-12-11",
+          "lastSeen": "2026-01-12",
+          "mentionCount7d": 47,
+          "mentionCount30d": 73,
+          "velocity": 0.81
         }
       },
       {
         "data": {
-          "id": "tool:streamlit",
-          "label": "Streamlit",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-11-02",
-          "lastSeen": "2025-12-29",
-          "mentionCount7d": 18,
-          "mentionCount30d": 30,
-          "velocity": 0.72
-        }
-      },
-      {
-        "data": {
-          "id": "tool:litellm",
-          "label": "LiteLLM",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2026-01-18",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 4,
-          "mentionCount30d": 24,
-          "velocity": 0.65
-        }
-      },
-      {
-        "data": {
-          "id": "paper:chain_of_thought_prompting_elicits_reaso",
-          "label": "Chain-of-Thought Prompting Elicits Reasoning",
+          "id": "paper:direct_preference_optimization",
+          "label": "Direct Preference Optimization",
           "type": "Paper",
           "aliases": [],
-          "firstSeen": "2026-01-24",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 3,
+          "firstSeen": "2026-01-13",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 4,
+          "mentionCount30d": 46,
+          "velocity": 0.63
+        }
+      },
+      {
+        "data": {
+          "id": "model:deepseek_v3",
+          "label": "DeepSeek-V3",
+          "type": "Model",
+          "aliases": [
+            "DeepSeek V3"
+          ],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 8,
+          "mentionCount30d": 12,
+          "velocity": 0.59
+        }
+      },
+      {
+        "data": {
+          "id": "tech:rlhf",
+          "label": "RLHF",
+          "type": "Tech",
+          "aliases": [
+            "Reinforcement Learning from Human Feedback"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-02",
+          "mentionCount7d": 24,
+          "mentionCount30d": 41,
+          "velocity": 0.46
+        }
+      },
+      {
+        "data": {
+          "id": "person:demis_hassabis",
+          "label": "Demis Hassabis",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 9,
           "mentionCount30d": 13,
-          "velocity": 0.4
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:dolma",
+          "label": "Dolma",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 15,
+          "mentionCount30d": 40,
+          "velocity": 0.41
+        }
+      },
+      {
+        "data": {
+          "id": "person:daniela_amodei",
+          "label": "Daniela Amodei",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-02",
+          "lastSeen": "2026-01-06",
+          "mentionCount7d": 14,
+          "mentionCount30d": 67,
+          "velocity": 0.61
+        }
+      },
+      {
+        "data": {
+          "id": "person:yann_lecun",
+          "label": "Yann LeCun",
+          "type": "Person",
+          "aliases": [
+            "Y. LeCun"
+          ],
+          "firstSeen": "2025-11-27",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 4,
+          "mentionCount30d": 22,
+          "velocity": 0.24
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:the_stack_v2",
+          "label": "The Stack v2",
+          "type": "Dataset",
+          "aliases": [
+            "The Stack"
+          ],
+          "firstSeen": "2026-01-17",
+          "lastSeen": "2026-01-18",
+          "mentionCount7d": 14,
+          "mentionCount30d": 20,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "tool:semantic_kernel",
+          "label": "Semantic Kernel",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 5,
+          "mentionCount30d": 13,
+          "velocity": 0.26
+        }
+      },
+      {
+        "data": {
+          "id": "repo:vllm",
+          "label": "vllm",
+          "type": "Repo",
+          "aliases": [
+            "vllm-project/vllm"
+          ],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 12,
+          "mentionCount30d": 30,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "org:salesforce_ai",
+          "label": "Salesforce AI",
+          "type": "Org",
+          "aliases": [
+            "Salesforce Research"
+          ],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 8,
+          "mentionCount30d": 67,
+          "velocity": 0.76
+        }
+      },
+      {
+        "data": {
+          "id": "model:mixtral_8x22b",
+          "label": "Mixtral 8x22B",
+          "type": "Model",
+          "aliases": [
+            "Mixtral-8x22B"
+          ],
+          "firstSeen": "2025-11-29",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 36,
+          "mentionCount30d": 41,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:slimpajama",
+          "label": "SlimPajama",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-11",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 5,
+          "mentionCount30d": 16,
+          "velocity": 0.47
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemma_3",
+          "label": "Gemma 3",
+          "type": "Model",
+          "aliases": [
+            "Gemma3"
+          ],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-23",
+          "mentionCount7d": 42,
+          "mentionCount30d": 103,
+          "velocity": 0.52
+        }
+      },
+      {
+        "data": {
+          "id": "model:grok_3",
+          "label": "Grok-3",
+          "type": "Model",
+          "aliases": [
+            "Grok 3"
+          ],
+          "firstSeen": "2025-10-30",
+          "lastSeen": "2025-12-05",
+          "mentionCount7d": 27,
+          "mentionCount30d": 79,
+          "velocity": 0.17
         }
       },
       {
@@ -634,101 +1084,32 @@
       },
       {
         "data": {
-          "id": "person:ilya_sutskever",
-          "label": "Ilya Sutskever",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-10-27",
-          "lastSeen": "2025-11-20",
-          "mentionCount7d": 7,
-          "mentionCount30d": 35,
-          "velocity": 0.13
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:the_pile",
-          "label": "The Pile",
-          "type": "Dataset",
+          "id": "program:eu_ai_act",
+          "label": "EU AI Act",
+          "type": "Program",
           "aliases": [
-            "Pile"
+            "AI Act"
           ],
-          "firstSeen": "2026-01-01",
-          "lastSeen": "2026-01-10",
-          "mentionCount7d": 5,
-          "mentionCount30d": 44,
-          "velocity": 0.2
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 3,
+          "mentionCount30d": 15,
+          "velocity": 0.38
         }
       },
       {
         "data": {
-          "id": "org:hugging_face",
-          "label": "Hugging Face",
+          "id": "org:apple_ml",
+          "label": "Apple ML",
           "type": "Org",
           "aliases": [
-            "HF"
+            "Apple Machine Learning"
           ],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2026-01-21",
-          "mentionCount7d": 35,
-          "mentionCount30d": 68,
-          "velocity": 0.47
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:mt_bench",
-          "label": "MT-Bench",
-          "type": "Benchmark",
-          "aliases": [
-            "MTBench"
-          ],
-          "firstSeen": "2025-10-31",
-          "lastSeen": "2026-01-05",
-          "mentionCount7d": 19,
-          "mentionCount30d": 35,
-          "velocity": 0.09
-        }
-      },
-      {
-        "data": {
-          "id": "tool:gradio",
-          "label": "Gradio",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-18",
-          "lastSeen": "2025-12-22",
-          "mentionCount7d": 1,
-          "mentionCount30d": 5,
-          "velocity": 0.26
-        }
-      },
-      {
-        "data": {
-          "id": "org:midjourney",
-          "label": "Midjourney",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 7,
-          "mentionCount30d": 69,
-          "velocity": 0.41
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:gpqa",
-          "label": "GPQA",
-          "type": "Benchmark",
-          "aliases": [
-            "Graduate-Level Google-Proof QA"
-          ],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 14,
-          "mentionCount30d": 43,
-          "velocity": 0.95
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 10,
+          "mentionCount30d": 33,
+          "velocity": 0.82
         }
       },
       {
@@ -749,240 +1130,95 @@
       },
       {
         "data": {
-          "id": "person:arthur_mensch",
-          "label": "Arthur Mensch",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-14",
-          "lastSeen": "2025-12-15",
-          "mentionCount7d": 20,
-          "mentionCount30d": 43,
-          "velocity": 0.5
-        }
-      },
-      {
-        "data": {
-          "id": "model:gemma_3",
-          "label": "Gemma 3",
-          "type": "Model",
-          "aliases": [
-            "Gemma3"
-          ],
-          "firstSeen": "2025-12-01",
-          "lastSeen": "2025-12-23",
-          "mentionCount7d": 42,
-          "mentionCount30d": 103,
-          "velocity": 0.52
-        }
-      },
-      {
-        "data": {
-          "id": "org:ibm_research",
-          "label": "IBM Research",
-          "type": "Org",
-          "aliases": [
-            "IBM"
-          ],
-          "firstSeen": "2026-01-08",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 6,
-          "mentionCount30d": 13,
-          "velocity": 0.26
-        }
-      },
-      {
-        "data": {
-          "id": "model:qwen_3",
-          "label": "Qwen-3",
-          "type": "Model",
-          "aliases": [
-            "Qwen3",
-            "Qwen 3"
-          ],
-          "firstSeen": "2025-12-22",
-          "lastSeen": "2026-01-13",
-          "mentionCount7d": 9,
-          "mentionCount30d": 76,
-          "velocity": 0.32
-        }
-      },
-      {
-        "data": {
-          "id": "model:gemini_ultra_2_lite",
-          "label": "Gemini Ultra 2 Lite",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-12-09",
-          "lastSeen": "2026-01-05",
-          "mentionCount7d": 16,
-          "mentionCount30d": 40,
-          "velocity": 0.56
-        }
-      },
-      {
-        "data": {
-          "id": "paper:constitutional_ai:_harmlessness_from_ai_",
-          "label": "Constitutional AI: Harmlessness from AI Feedback",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-12-31",
-          "lastSeen": "2026-01-05",
-          "mentionCount7d": 4,
-          "mentionCount30d": 16,
-          "velocity": 0.14
-        }
-      },
-      {
-        "data": {
-          "id": "tech:constitutional_ai",
-          "label": "Constitutional AI",
-          "type": "Tech",
-          "aliases": [
-            "CAI"
-          ],
-          "firstSeen": "2025-12-17",
-          "lastSeen": "2025-12-22",
-          "mentionCount7d": 17,
-          "mentionCount30d": 35,
-          "velocity": 0.71
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:fineweb",
-          "label": "FineWeb",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2026-01-17",
-          "mentionCount7d": 8,
-          "mentionCount30d": 21,
-          "velocity": 0.43
-        }
-      },
-      {
-        "data": {
-          "id": "tech:multimodal_fusion",
-          "label": "Multimodal Fusion",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-12-18",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 28,
-          "mentionCount30d": 60,
-          "velocity": 0.44
-        }
-      },
-      {
-        "data": {
-          "id": "person:andrej_karpathy",
-          "label": "Andrej Karpathy",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-03",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 24,
-          "mentionCount30d": 51,
-          "velocity": 0.98
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:mmlu",
-          "label": "MMLU",
+          "id": "benchmark:gpqa",
+          "label": "GPQA",
           "type": "Benchmark",
           "aliases": [
-            "Massive Multitask Language Understanding"
+            "Graduate-Level Google-Proof QA"
           ],
-          "firstSeen": "2026-01-03",
-          "lastSeen": "2026-01-18",
-          "mentionCount7d": 0,
-          "mentionCount30d": 3,
-          "velocity": 0.48
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 14,
+          "mentionCount30d": 43,
+          "velocity": 0.95
         }
       },
       {
         "data": {
-          "id": "org:google_deepmind",
-          "label": "Google DeepMind",
+          "id": "org:anthropic",
+          "label": "Anthropic",
           "type": "Org",
-          "aliases": [
-            "DeepMind",
-            "Google AI"
-          ],
-          "firstSeen": "2025-12-07",
-          "lastSeen": "2026-01-11",
-          "mentionCount7d": 19,
-          "mentionCount30d": 49,
-          "velocity": 0.46
+          "aliases": [],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-16",
+          "mentionCount7d": 18,
+          "mentionCount30d": 88,
+          "velocity": 0.2
         }
       },
       {
         "data": {
-          "id": "org:amazon_aws",
-          "label": "Amazon AWS",
-          "type": "Org",
-          "aliases": [
-            "AWS",
-            "Amazon"
-          ],
-          "firstSeen": "2026-01-25",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 34,
-          "mentionCount30d": 42,
-          "velocity": 0.87
+          "id": "model:jamba_2",
+          "label": "Jamba 2",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-12",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 30,
+          "mentionCount30d": 62,
+          "velocity": 0.11
         }
       },
       {
         "data": {
-          "id": "org:databricks",
-          "label": "Databricks",
+          "id": "org:midjourney",
+          "label": "Midjourney",
           "type": "Org",
           "aliases": [],
           "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-20",
+          "lastSeen": "2026-01-24",
           "mentionCount7d": 7,
-          "mentionCount30d": 19,
-          "velocity": 0.83
+          "mentionCount30d": 69,
+          "velocity": 0.41
         }
       },
       {
         "data": {
-          "id": "person:demis_hassabis",
-          "label": "Demis Hassabis",
+          "id": "benchmark:math",
+          "label": "MATH",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-12-11",
+          "lastSeen": "2026-01-06",
+          "mentionCount7d": 7,
+          "mentionCount30d": 25,
+          "velocity": 0.66
+        }
+      },
+      {
+        "data": {
+          "id": "person:jensen_huang",
+          "label": "Jensen Huang",
           "type": "Person",
           "aliases": [],
-          "firstSeen": "2026-01-05",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 9,
-          "mentionCount30d": 13,
-          "velocity": 0.87
-        }
-      },
-      {
-        "data": {
-          "id": "tool:haystack",
-          "label": "Haystack",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-11-09",
-          "lastSeen": "2026-01-16",
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-24",
           "mentionCount7d": 4,
-          "mentionCount30d": 6,
-          "velocity": 0.79
+          "mentionCount30d": 20,
+          "velocity": 0.94
         }
       },
       {
         "data": {
-          "id": "tool:crewai",
-          "label": "CrewAI",
-          "type": "Tool",
+          "id": "person:fei_fei_li",
+          "label": "Fei-Fei Li",
+          "type": "Person",
           "aliases": [],
-          "firstSeen": "2025-11-26",
-          "lastSeen": "2025-12-22",
-          "mentionCount7d": 2,
-          "mentionCount30d": 6,
-          "velocity": 0.56
+          "firstSeen": "2025-11-16",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 3,
+          "mentionCount30d": 4,
+          "velocity": 0.3
         }
       },
       {
@@ -996,759 +1232,6 @@
           "mentionCount7d": 2,
           "mentionCount30d": 7,
           "velocity": 0.37
-        }
-      },
-      {
-        "data": {
-          "id": "tech:group_query_attention",
-          "label": "Group Query Attention",
-          "type": "Tech",
-          "aliases": [
-            "GQA"
-          ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-11-24",
-          "mentionCount7d": 17,
-          "mentionCount30d": 27,
-          "velocity": 0.61
-        }
-      },
-      {
-        "data": {
-          "id": "tech:qlora",
-          "label": "QLoRA",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-10-31",
-          "lastSeen": "2025-11-15",
-          "mentionCount7d": 10,
-          "mentionCount30d": 10,
-          "velocity": 0.5
-        }
-      },
-      {
-        "data": {
-          "id": "model:grok_3",
-          "label": "Grok-3",
-          "type": "Model",
-          "aliases": [
-            "Grok 3"
-          ],
-          "firstSeen": "2025-10-30",
-          "lastSeen": "2025-12-05",
-          "mentionCount7d": 27,
-          "mentionCount30d": 79,
-          "velocity": 0.17
-        }
-      },
-      {
-        "data": {
-          "id": "tech:sparse_attention",
-          "label": "Sparse Attention",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-11-06",
-          "lastSeen": "2025-12-14",
-          "mentionCount7d": 13,
-          "mentionCount30d": 59,
-          "velocity": 0.36
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_opus_45",
-          "label": "Claude Opus 4.5",
-          "type": "Model",
-          "aliases": [
-            "Opus 4.5",
-            "Claude Opus"
-          ],
-          "firstSeen": "2025-12-09",
-          "lastSeen": "2026-01-05",
-          "mentionCount7d": 9,
-          "mentionCount30d": 84,
-          "velocity": 0.23
-        }
-      },
-      {
-        "data": {
-          "id": "org:xai",
-          "label": "xAI",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-16",
-          "lastSeen": "2025-12-05",
-          "mentionCount7d": 16,
-          "mentionCount30d": 54,
-          "velocity": 0.06
-        }
-      },
-      {
-        "data": {
-          "id": "person:mira_murati",
-          "label": "Mira Murati",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-23",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 12,
-          "mentionCount30d": 47,
-          "velocity": 0.74
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:hellaswag",
-          "label": "HellaSwag",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2025-12-27",
-          "lastSeen": "2026-01-06",
-          "mentionCount7d": 10,
-          "mentionCount30d": 20,
-          "velocity": 0.44
-        }
-      },
-      {
-        "data": {
-          "id": "person:dario_amodei",
-          "label": "Dario Amodei",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-29",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 7,
-          "mentionCount30d": 21,
-          "velocity": 0.39
-        }
-      },
-      {
-        "data": {
-          "id": "model:whisper_v4",
-          "label": "Whisper v4",
-          "type": "Model",
-          "aliases": [
-            "Whisper V4"
-          ],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2025-11-02",
-          "mentionCount7d": 46,
-          "mentionCount30d": 112,
-          "velocity": 0.7
-        }
-      },
-      {
-        "data": {
-          "id": "tech:flash_attention",
-          "label": "Flash Attention",
-          "type": "Tech",
-          "aliases": [
-            "FlashAttention"
-          ],
-          "firstSeen": "2025-12-21",
-          "lastSeen": "2026-01-02",
-          "mentionCount7d": 17,
-          "mentionCount30d": 70,
-          "velocity": 0.37
-        }
-      },
-      {
-        "data": {
-          "id": "model:yi_large",
-          "label": "Yi-Large",
-          "type": "Model",
-          "aliases": [
-            "Yi Large"
-          ],
-          "firstSeen": "2025-11-21",
-          "lastSeen": "2026-01-09",
-          "mentionCount7d": 6,
-          "mentionCount30d": 25,
-          "velocity": 0.14
-        }
-      },
-      {
-        "data": {
-          "id": "repo:langchain",
-          "label": "langchain",
-          "type": "Repo",
-          "aliases": [
-            "langchain-ai/langchain"
-          ],
-          "firstSeen": "2025-11-08",
-          "lastSeen": "2026-01-10",
-          "mentionCount7d": 15,
-          "mentionCount30d": 24,
-          "velocity": 0.17
-        }
-      },
-      {
-        "data": {
-          "id": "tech:gguf",
-          "label": "GGUF",
-          "type": "Tech",
-          "aliases": [
-            "GGML"
-          ],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2025-12-25",
-          "mentionCount7d": 5,
-          "mentionCount30d": 32,
-          "velocity": 0.48
-        }
-      },
-      {
-        "data": {
-          "id": "model:gpt_5_core",
-          "label": "GPT-5 Core",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-10-25",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 5,
-          "mentionCount30d": 12,
-          "velocity": 0.35
-        }
-      },
-      {
-        "data": {
-          "id": "tech:kv_cache_optimization",
-          "label": "KV Cache Optimization",
-          "type": "Tech",
-          "aliases": [
-            "KV Cache"
-          ],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2025-12-21",
-          "mentionCount7d": 4,
-          "mentionCount30d": 12,
-          "velocity": 0.85
-        }
-      },
-      {
-        "data": {
-          "id": "org:meta_ai",
-          "label": "Meta AI",
-          "type": "Org",
-          "aliases": [
-            "FAIR",
-            "Meta"
-          ],
-          "firstSeen": "2025-11-05",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 1,
-          "mentionCount30d": 18,
-          "velocity": 0.25
-        }
-      },
-      {
-        "data": {
-          "id": "program:executive_order_on_ai_safety",
-          "label": "Executive Order on AI Safety",
-          "type": "Program",
-          "aliases": [
-            "Biden AI EO"
-          ],
-          "firstSeen": "2026-01-16",
-          "lastSeen": "2026-01-21",
-          "mentionCount7d": 5,
-          "mentionCount30d": 15,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:dolma",
-          "label": "Dolma",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-11-17",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 15,
-          "mentionCount30d": 40,
-          "velocity": 0.41
-        }
-      },
-      {
-        "data": {
-          "id": "tech:transformer_architecture",
-          "label": "Transformer Architecture",
-          "type": "Tech",
-          "aliases": [
-            "Transformers"
-          ],
-          "firstSeen": "2025-11-12",
-          "lastSeen": "2025-12-03",
-          "mentionCount7d": 22,
-          "mentionCount30d": 35,
-          "velocity": 0.57
-        }
-      },
-      {
-        "data": {
-          "id": "model:mixtral_8x22b",
-          "label": "Mixtral 8x22B",
-          "type": "Model",
-          "aliases": [
-            "Mixtral-8x22B"
-          ],
-          "firstSeen": "2025-11-29",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 36,
-          "mentionCount30d": 41,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "tool:tensorrt_llm",
-          "label": "TensorRT-LLM",
-          "type": "Tool",
-          "aliases": [
-            "TensorRT LLM"
-          ],
-          "firstSeen": "2025-12-13",
-          "lastSeen": "2026-01-01",
-          "mentionCount7d": 2,
-          "mentionCount30d": 3,
-          "velocity": 0.58
-        }
-      },
-      {
-        "data": {
-          "id": "tech:chain_of_thought",
-          "label": "Chain-of-Thought",
-          "type": "Tech",
-          "aliases": [
-            "CoT"
-          ],
-          "firstSeen": "2026-01-04",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 30,
-          "mentionCount30d": 77,
-          "velocity": 0.21
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:arc_agi",
-          "label": "ARC-AGI",
-          "type": "Benchmark",
-          "aliases": [
-            "ARC AGI"
-          ],
-          "firstSeen": "2025-11-06",
-          "lastSeen": "2026-01-07",
-          "mentionCount7d": 14,
-          "mentionCount30d": 39,
-          "velocity": 0.79
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:slimpajama",
-          "label": "SlimPajama",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-11-11",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 5,
-          "mentionCount30d": 16,
-          "velocity": 0.47
-        }
-      },
-      {
-        "data": {
-          "id": "paper:scaling_laws_for_neural_language_models_",
-          "label": "Scaling Laws for Neural Language Models (2025)",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-12-20",
-          "lastSeen": "2026-01-21",
-          "mentionCount7d": 5,
-          "mentionCount30d": 10,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:common_crawl",
-          "label": "Common Crawl",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-12-19",
-          "lastSeen": "2026-01-22",
-          "mentionCount7d": 3,
-          "mentionCount30d": 27,
-          "velocity": 0.44
-        }
-      },
-      {
-        "data": {
-          "id": "tool:vllm",
-          "label": "vLLM",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-17",
-          "lastSeen": "2025-12-25",
-          "mentionCount7d": 1,
-          "mentionCount30d": 4,
-          "velocity": 0.21
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_sonnet_4",
-          "label": "Claude Sonnet 4",
-          "type": "Model",
-          "aliases": [
-            "Sonnet 4"
-          ],
-          "firstSeen": "2025-10-25",
-          "lastSeen": "2026-01-10",
-          "mentionCount7d": 54,
-          "mentionCount30d": 105,
-          "velocity": 0.9
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:starcoder_data",
-          "label": "StarCoder Data",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-10-25",
-          "lastSeen": "2026-01-07",
-          "mentionCount7d": 15,
-          "mentionCount30d": 34,
-          "velocity": 0.61
-        }
-      },
-      {
-        "data": {
-          "id": "person:percy_liang",
-          "label": "Percy Liang",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-17",
-          "lastSeen": "2026-01-04",
-          "mentionCount7d": 14,
-          "mentionCount30d": 47,
-          "velocity": 0.82
-        }
-      },
-      {
-        "data": {
-          "id": "tool:semantic_kernel",
-          "label": "Semantic Kernel",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 5,
-          "mentionCount30d": 13,
-          "velocity": 0.26
-        }
-      },
-      {
-        "data": {
-          "id": "org:stability_ai",
-          "label": "Stability AI",
-          "type": "Org",
-          "aliases": [
-            "Stability"
-          ],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-22",
-          "mentionCount7d": 54,
-          "mentionCount30d": 57,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "org:scale_ai",
-          "label": "Scale AI",
-          "type": "Org",
-          "aliases": [
-            "Scale"
-          ],
-          "firstSeen": "2025-10-26",
-          "lastSeen": "2026-01-02",
-          "mentionCount7d": 6,
-          "mentionCount30d": 17,
-          "velocity": 0.08
-        }
-      },
-      {
-        "data": {
-          "id": "org:salesforce_ai",
-          "label": "Salesforce AI",
-          "type": "Org",
-          "aliases": [
-            "Salesforce Research"
-          ],
-          "firstSeen": "2025-12-01",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 8,
-          "mentionCount30d": 67,
-          "velocity": 0.76
-        }
-      },
-      {
-        "data": {
-          "id": "paper:direct_preference_optimization",
-          "label": "Direct Preference Optimization",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-13",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 4,
-          "mentionCount30d": 46,
-          "velocity": 0.63
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:humaneval",
-          "label": "HumanEval",
-          "type": "Benchmark",
-          "aliases": [
-            "Human Eval"
-          ],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2025-12-10",
-          "mentionCount7d": 0,
-          "mentionCount30d": 3,
-          "velocity": 0.51
-        }
-      },
-      {
-        "data": {
-          "id": "org:inflection_ai",
-          "label": "Inflection AI",
-          "type": "Org",
-          "aliases": [
-            "Inflection"
-          ],
-          "firstSeen": "2025-12-22",
-          "lastSeen": "2026-01-03",
-          "mentionCount7d": 17,
-          "mentionCount30d": 41,
-          "velocity": 0.94
-        }
-      },
-      {
-        "data": {
-          "id": "person:sam_altman",
-          "label": "Sam Altman",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-25",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 12,
-          "mentionCount30d": 15,
-          "velocity": 0.81
-        }
-      },
-      {
-        "data": {
-          "id": "person:aidan_gomez",
-          "label": "Aidan Gomez",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-09",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 15,
-          "mentionCount30d": 46,
-          "velocity": 0.58
-        }
-      },
-      {
-        "data": {
-          "id": "org:mistral_ai",
-          "label": "Mistral AI",
-          "type": "Org",
-          "aliases": [
-            "Mistral"
-          ],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2025-12-26",
-          "mentionCount7d": 16,
-          "mentionCount30d": 44,
-          "velocity": 0.81
-        }
-      },
-      {
-        "data": {
-          "id": "person:yann_lecun",
-          "label": "Yann LeCun",
-          "type": "Person",
-          "aliases": [
-            "Y. LeCun"
-          ],
-          "firstSeen": "2025-11-27",
-          "lastSeen": "2025-12-22",
-          "mentionCount7d": 4,
-          "mentionCount30d": 22,
-          "velocity": 0.24
-        }
-      },
-      {
-        "data": {
-          "id": "model:dall_e_4",
-          "label": "DALL-E 4",
-          "type": "Model",
-          "aliases": [
-            "DALLE 4"
-          ],
-          "firstSeen": "2025-11-13",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 16,
-          "mentionCount30d": 40,
-          "velocity": 0.95
-        }
-      },
-      {
-        "data": {
-          "id": "tool:ollama",
-          "label": "Ollama",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2026-01-03",
-          "mentionCount7d": 1,
-          "mentionCount30d": 4,
-          "velocity": 0.22
-        }
-      },
-      {
-        "data": {
-          "id": "tech:mixture_of_experts",
-          "label": "Mixture of Experts",
-          "type": "Tech",
-          "aliases": [
-            "MoE"
-          ],
-          "firstSeen": "2025-11-25",
-          "lastSeen": "2025-12-27",
-          "mentionCount7d": 11,
-          "mentionCount30d": 23,
-          "velocity": 0.67
-        }
-      },
-      {
-        "data": {
-          "id": "program:eu_ai_act",
-          "label": "EU AI Act",
-          "type": "Program",
-          "aliases": [
-            "AI Act"
-          ],
-          "firstSeen": "2025-12-09",
-          "lastSeen": "2026-01-22",
-          "mentionCount7d": 3,
-          "mentionCount30d": 15,
-          "velocity": 0.38
-        }
-      },
-      {
-        "data": {
-          "id": "model:midjourney_v7",
-          "label": "Midjourney V7",
-          "type": "Model",
-          "aliases": [
-            "MJ V7"
-          ],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2026-01-10",
-          "mentionCount7d": 11,
-          "mentionCount30d": 16,
-          "velocity": 0.17
-        }
-      },
-      {
-        "data": {
-          "id": "model:codex_2",
-          "label": "Codex 2",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-17",
-          "lastSeen": "2025-12-25",
-          "mentionCount7d": 16,
-          "mentionCount30d": 49,
-          "velocity": 0.25
-        }
-      },
-      {
-        "data": {
-          "id": "model:falcon_3",
-          "label": "Falcon 3",
-          "type": "Model",
-          "aliases": [
-            "Falcon3"
-          ],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2026-01-01",
-          "mentionCount7d": 12,
-          "mentionCount30d": 16,
-          "velocity": 0.08
-        }
-      },
-      {
-        "data": {
-          "id": "person:jan_leike",
-          "label": "Jan Leike",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-21",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 18,
-          "mentionCount30d": 27,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "tool:localai",
-          "label": "LocalAI",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-03",
-          "lastSeen": "2025-12-22",
-          "mentionCount7d": 12,
-          "mentionCount30d": 38,
-          "velocity": 0.97
-        }
-      },
-      {
-        "data": {
-          "id": "model:phi_4",
-          "label": "Phi-4",
-          "type": "Model",
-          "aliases": [
-            "Phi 4"
-          ],
-          "firstSeen": "2025-12-19",
-          "lastSeen": "2026-01-13",
-          "mentionCount7d": 8,
-          "mentionCount30d": 40,
-          "velocity": 0.51
-        }
-      },
-      {
-        "data": {
-          "id": "model:command_r_plus",
-          "label": "Command R+",
-          "type": "Model",
-          "aliases": [
-            "Command R Plus"
-          ],
-          "firstSeen": "2025-12-21",
-          "lastSeen": "2025-12-28",
-          "mentionCount7d": 22,
-          "mentionCount30d": 78,
-          "velocity": 0.53
         }
       },
       {
@@ -1769,88 +1252,46 @@
       },
       {
         "data": {
-          "id": "org:ai2",
-          "label": "AI2",
+          "id": "repo:langchain",
+          "label": "langchain",
+          "type": "Repo",
+          "aliases": [
+            "langchain-ai/langchain"
+          ],
+          "firstSeen": "2025-11-08",
+          "lastSeen": "2026-01-10",
+          "mentionCount7d": 15,
+          "mentionCount30d": 24,
+          "velocity": 0.17
+        }
+      },
+      {
+        "data": {
+          "id": "person:greg_brockman",
+          "label": "Greg Brockman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 27,
+          "mentionCount30d": 55,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "org:meta_ai",
+          "label": "Meta AI",
           "type": "Org",
           "aliases": [
-            "Allen Institute for AI"
+            "FAIR",
+            "Meta"
           ],
-          "firstSeen": "2025-12-11",
-          "lastSeen": "2026-01-12",
-          "mentionCount7d": 47,
-          "mentionCount30d": 73,
-          "velocity": 0.81
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:gsm8k",
-          "label": "GSM8K",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2025-11-03",
-          "lastSeen": "2025-12-02",
-          "mentionCount7d": 9,
-          "mentionCount30d": 22,
-          "velocity": 0.68
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:truthfulqa",
-          "label": "TruthfulQA",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2026-01-16",
+          "firstSeen": "2025-11-05",
           "lastSeen": "2026-01-20",
-          "mentionCount7d": 8,
-          "mentionCount30d": 14,
-          "velocity": 0.38
-        }
-      },
-      {
-        "data": {
-          "id": "model:palm_3",
-          "label": "PaLM 3",
-          "type": "Model",
-          "aliases": [
-            "PaLM3"
-          ],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2025-12-13",
-          "mentionCount7d": 13,
-          "mentionCount30d": 45,
-          "velocity": 0.67
-        }
-      },
-      {
-        "data": {
-          "id": "tool:llamaindex",
-          "label": "LlamaIndex",
-          "type": "Tool",
-          "aliases": [
-            "Llama Index"
-          ],
-          "firstSeen": "2026-01-19",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 3,
-          "mentionCount30d": 7,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "tech:tool_use",
-          "label": "Tool Use",
-          "type": "Tech",
-          "aliases": [
-            "Function Calling"
-          ],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2026-01-17",
-          "mentionCount7d": 13,
-          "mentionCount30d": 38,
-          "velocity": 0.8
+          "mentionCount7d": 1,
+          "mentionCount30d": 18,
+          "velocity": 0.25
         }
       },
       {
@@ -1870,33 +1311,267 @@
       },
       {
         "data": {
-          "id": "tool:autogpt",
-          "label": "AutoGPT",
-          "type": "Tool",
+          "id": "model:command_r_plus",
+          "label": "Command R+",
+          "type": "Model",
           "aliases": [
-            "Auto-GPT"
+            "Command R Plus"
           ],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2025-12-05",
-          "mentionCount7d": 1,
-          "mentionCount30d": 6,
-          "velocity": 0.39
+          "firstSeen": "2025-12-21",
+          "lastSeen": "2025-12-28",
+          "mentionCount7d": 22,
+          "mentionCount30d": 78,
+          "velocity": 0.53
         }
       },
       {
         "data": {
-          "id": "model:gemini_ultra_2",
-          "label": "Gemini Ultra 2",
+          "id": "person:jeff_dean",
+          "label": "Jeff Dean",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-10",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 3,
+          "mentionCount30d": 20,
+          "velocity": 0.36
+        }
+      },
+      {
+        "data": {
+          "id": "tool:vllm",
+          "label": "vLLM",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-17",
+          "lastSeen": "2025-12-25",
+          "mentionCount7d": 1,
+          "mentionCount30d": 4,
+          "velocity": 0.21
+        }
+      },
+      {
+        "data": {
+          "id": "org:google_deepmind",
+          "label": "Google DeepMind",
+          "type": "Org",
+          "aliases": [
+            "DeepMind",
+            "Google AI"
+          ],
+          "firstSeen": "2025-12-07",
+          "lastSeen": "2026-01-11",
+          "mentionCount7d": 19,
+          "mentionCount30d": 49,
+          "velocity": 0.46
+        }
+      },
+      {
+        "data": {
+          "id": "tool:weights_and_biases",
+          "label": "Weights & Biases",
+          "type": "Tool",
+          "aliases": [
+            "W&B",
+            "wandb"
+          ],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2026-01-01",
+          "mentionCount7d": 11,
+          "mentionCount30d": 29,
+          "velocity": 0.38
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45_v2",
+          "label": "Claude Opus 4.5 v2",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-07",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 14,
+          "mentionCount30d": 73,
+          "velocity": 0.26
+        }
+      },
+      {
+        "data": {
+          "id": "tool:gradio",
+          "label": "Gradio",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-18",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 1,
+          "mentionCount30d": 5,
+          "velocity": 0.26
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_4o_mini_2",
+          "label": "GPT-4o Mini 2",
           "type": "Model",
           "aliases": [
-            "Gemini 2",
-            "Gemini Ultra"
+            "GPT4o Mini 2"
           ],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2025-12-31",
-          "mentionCount7d": 42,
-          "mentionCount30d": 93,
-          "velocity": 0.23
+          "firstSeen": "2026-01-04",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 13,
+          "mentionCount30d": 71,
+          "velocity": 0.08
+        }
+      },
+      {
+        "data": {
+          "id": "tech:dpo",
+          "label": "DPO",
+          "type": "Tech",
+          "aliases": [
+            "Direct Preference Optimization"
+          ],
+          "firstSeen": "2025-11-02",
+          "lastSeen": "2025-12-26",
+          "mentionCount7d": 16,
+          "mentionCount30d": 34,
+          "velocity": 0.45
+        }
+      },
+      {
+        "data": {
+          "id": "tech:sparse_attention",
+          "label": "Sparse Attention",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 13,
+          "mentionCount30d": 59,
+          "velocity": 0.36
+        }
+      },
+      {
+        "data": {
+          "id": "model:dall_e_4",
+          "label": "DALL-E 4",
+          "type": "Model",
+          "aliases": [
+            "DALLE 4"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 16,
+          "mentionCount30d": 40,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:humaneval",
+          "label": "HumanEval",
+          "type": "Benchmark",
+          "aliases": [
+            "Human Eval"
+          ],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 0,
+          "mentionCount30d": 3,
+          "velocity": 0.51
+        }
+      },
+      {
+        "data": {
+          "id": "tool:langchain",
+          "label": "LangChain",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 7,
+          "mentionCount30d": 18,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "tech:multimodal_fusion",
+          "label": "Multimodal Fusion",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-18",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 28,
+          "mentionCount30d": 60,
+          "velocity": 0.44
+        }
+      },
+      {
+        "data": {
+          "id": "tool:litellm",
+          "label": "LiteLLM",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 4,
+          "mentionCount30d": 24,
+          "velocity": 0.65
+        }
+      },
+      {
+        "data": {
+          "id": "model:phi_4",
+          "label": "Phi-4",
+          "type": "Model",
+          "aliases": [
+            "Phi 4"
+          ],
+          "firstSeen": "2025-12-19",
+          "lastSeen": "2026-01-13",
+          "mentionCount7d": 8,
+          "mentionCount30d": 40,
+          "velocity": 0.51
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:truthfulqa",
+          "label": "TruthfulQA",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 8,
+          "mentionCount30d": 14,
+          "velocity": 0.38
+        }
+      },
+      {
+        "data": {
+          "id": "person:percy_liang",
+          "label": "Percy Liang",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2026-01-04",
+          "mentionCount7d": 14,
+          "mentionCount30d": 47,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "person:jan_leike",
+          "label": "Jan Leike",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-21",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 18,
+          "mentionCount30d": 27,
+          "velocity": 1.0
         }
       },
       {
@@ -1917,30 +1592,355 @@
       },
       {
         "data": {
-          "id": "tool:langchain",
-          "label": "LangChain",
-          "type": "Tool",
+          "id": "person:aidan_gomez",
+          "label": "Aidan Gomez",
+          "type": "Person",
           "aliases": [],
-          "firstSeen": "2025-12-13",
-          "lastSeen": "2025-12-14",
-          "mentionCount7d": 7,
-          "mentionCount30d": 18,
-          "velocity": 0.89
+          "firstSeen": "2026-01-09",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 15,
+          "mentionCount30d": 46,
+          "velocity": 0.58
         }
       },
       {
         "data": {
-          "id": "model:nemotron_5",
-          "label": "Nemotron-5",
+          "id": "org:inflection_ai",
+          "label": "Inflection AI",
+          "type": "Org",
+          "aliases": [
+            "Inflection"
+          ],
+          "firstSeen": "2025-12-22",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 17,
+          "mentionCount30d": 41,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gsm8k",
+          "label": "GSM8K",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-11-03",
+          "lastSeen": "2025-12-02",
+          "mentionCount7d": 9,
+          "mentionCount30d": 22,
+          "velocity": 0.68
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:fineweb",
+          "label": "FineWeb",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 8,
+          "mentionCount30d": 21,
+          "velocity": 0.43
+        }
+      },
+      {
+        "data": {
+          "id": "tech:gguf",
+          "label": "GGUF",
+          "type": "Tech",
+          "aliases": [
+            "GGML"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-25",
+          "mentionCount7d": 5,
+          "mentionCount30d": 32,
+          "velocity": 0.48
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-19",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 3,
+          "mentionCount30d": 27,
+          "velocity": 0.44
+        }
+      },
+      {
+        "data": {
+          "id": "model:whisper_v4",
+          "label": "Whisper v4",
           "type": "Model",
           "aliases": [
-            "Nemotron 5"
+            "Whisper V4"
           ],
-          "firstSeen": "2025-11-13",
-          "lastSeen": "2025-11-27",
-          "mentionCount7d": 13,
-          "mentionCount30d": 95,
-          "velocity": 0.38
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2025-11-02",
+          "mentionCount7d": 46,
+          "mentionCount30d": 112,
+          "velocity": 0.7
+        }
+      },
+      {
+        "data": {
+          "id": "paper:flash_attention:_fast_and_memory_efficie",
+          "label": "Flash Attention: Fast and Memory-Efficient Attention",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 0,
+          "mentionCount30d": 2,
+          "velocity": 0.43
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:arc_agi",
+          "label": "ARC-AGI",
+          "type": "Benchmark",
+          "aliases": [
+            "ARC AGI"
+          ],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 14,
+          "mentionCount30d": 39,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "model:falcon_3",
+          "label": "Falcon 3",
+          "type": "Model",
+          "aliases": [
+            "Falcon3"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-01",
+          "mentionCount7d": 12,
+          "mentionCount30d": 16,
+          "velocity": 0.08
+        }
+      },
+      {
+        "data": {
+          "id": "tool:ollama",
+          "label": "Ollama",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 1,
+          "mentionCount30d": 4,
+          "velocity": 0.22
+        }
+      },
+      {
+        "data": {
+          "id": "tech:speculative_decoding",
+          "label": "Speculative Decoding",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 9,
+          "mentionCount30d": 36,
+          "velocity": 0.7
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": [
+            "Transformers"
+          ],
+          "firstSeen": "2025-11-12",
+          "lastSeen": "2025-12-03",
+          "mentionCount7d": 22,
+          "mentionCount30d": 35,
+          "velocity": 0.57
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemini_ultra_2_lite",
+          "label": "Gemini Ultra 2 Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 16,
+          "mentionCount30d": 40,
+          "velocity": 0.56
+        }
+      },
+      {
+        "data": {
+          "id": "org:runway_ml",
+          "label": "Runway ML",
+          "type": "Org",
+          "aliases": [
+            "Runway"
+          ],
+          "firstSeen": "2025-12-05",
+          "lastSeen": "2025-12-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 10,
+          "velocity": 0.37
+        }
+      },
+      {
+        "data": {
+          "id": "tech:chain_of_thought",
+          "label": "Chain-of-Thought",
+          "type": "Tech",
+          "aliases": [
+            "CoT"
+          ],
+          "firstSeen": "2026-01-04",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 30,
+          "mentionCount30d": 77,
+          "velocity": 0.21
+        }
+      },
+      {
+        "data": {
+          "id": "org:ibm_research",
+          "label": "IBM Research",
+          "type": "Org",
+          "aliases": [
+            "IBM"
+          ],
+          "firstSeen": "2026-01-08",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 6,
+          "mentionCount30d": 13,
+          "velocity": 0.26
+        }
+      },
+      {
+        "data": {
+          "id": "tech:constitutional_ai",
+          "label": "Constitutional AI",
+          "type": "Tech",
+          "aliases": [
+            "CAI"
+          ],
+          "firstSeen": "2025-12-17",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 17,
+          "mentionCount30d": 35,
+          "velocity": 0.71
+        }
+      },
+      {
+        "data": {
+          "id": "person:arthur_mensch",
+          "label": "Arthur Mensch",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-15",
+          "mentionCount7d": 20,
+          "mentionCount30d": 43,
+          "velocity": 0.5
+        }
+      },
+      {
+        "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 11,
+          "mentionCount30d": 23,
+          "velocity": 0.67
+        }
+      },
+      {
+        "data": {
+          "id": "paper:constitutional_ai:_harmlessness_from_ai_",
+          "label": "Constitutional AI: Harmlessness from AI Feedback",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-31",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 4,
+          "mentionCount30d": 16,
+          "velocity": 0.14
+        }
+      },
+      {
+        "data": {
+          "id": "tech:retrieval_augmented_generation",
+          "label": "Retrieval-Augmented Generation",
+          "type": "Tech",
+          "aliases": [
+            "RAG"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-01",
+          "mentionCount7d": 17,
+          "mentionCount30d": 30,
+          "velocity": 0.68
+        }
+      },
+      {
+        "data": {
+          "id": "tool:autogpt",
+          "label": "AutoGPT",
+          "type": "Tool",
+          "aliases": [
+            "Auto-GPT"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-05",
+          "mentionCount7d": 1,
+          "mentionCount30d": 6,
+          "velocity": 0.39
+        }
+      },
+      {
+        "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-12-02",
+          "lastSeen": "2026-01-02",
+          "mentionCount7d": 1,
+          "mentionCount30d": 4,
+          "velocity": 0.12
+        }
+      },
+      {
+        "data": {
+          "id": "org:xai",
+          "label": "xAI",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-16",
+          "lastSeen": "2025-12-05",
+          "mentionCount7d": 16,
+          "mentionCount30d": 54,
+          "velocity": 0.06
         }
       }
     ],

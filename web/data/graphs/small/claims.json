@@ -13,32 +13,18 @@
     "nodes": [
       {
         "data": {
-          "id": "repo:transformers",
-          "label": "transformers",
-          "type": "Repo",
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
           "aliases": [
-            "huggingface/transformers"
+            "GPT 5",
+            "gpt-5"
           ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-08",
-          "mentionCount7d": 5,
-          "mentionCount30d": 17,
-          "velocity": 0.93
-        }
-      },
-      {
-        "data": {
-          "id": "tech:mixture_of_experts",
-          "label": "Mixture of Experts",
-          "type": "Tech",
-          "aliases": [
-            "MoE"
-          ],
-          "firstSeen": "2025-11-14",
-          "lastSeen": "2025-12-31",
-          "mentionCount7d": 11,
-          "mentionCount30d": 30,
-          "velocity": 0.69
+          "firstSeen": "2025-12-21",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 45,
+          "mentionCount30d": 105,
+          "velocity": 0.37
         }
       },
       {
@@ -52,36 +38,6 @@
           "mentionCount7d": 5,
           "mentionCount30d": 14,
           "velocity": 0.44
-        }
-      },
-      {
-        "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 21,
-          "mentionCount30d": 68,
-          "velocity": 0.73
-        }
-      },
-      {
-        "data": {
-          "id": "program:eu_ai_act",
-          "label": "EU AI Act",
-          "type": "Program",
-          "aliases": [
-            "AI Act"
-          ],
-          "firstSeen": "2026-01-24",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 5,
-          "mentionCount30d": 11,
-          "velocity": 1.0
         }
       },
       {
@@ -112,6 +68,21 @@
       },
       {
         "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 21,
+          "mentionCount30d": 68,
+          "velocity": 0.73
+        }
+      },
+      {
+        "data": {
           "id": "dataset:common_crawl",
           "label": "Common Crawl",
           "type": "Dataset",
@@ -121,22 +92,6 @@
           "mentionCount7d": 8,
           "mentionCount30d": 34,
           "velocity": 0.87
-        }
-      },
-      {
-        "data": {
-          "id": "model:gpt_5",
-          "label": "GPT-5",
-          "type": "Model",
-          "aliases": [
-            "GPT 5",
-            "gpt-5"
-          ],
-          "firstSeen": "2025-12-21",
-          "lastSeen": "2026-01-07",
-          "mentionCount7d": 45,
-          "mentionCount30d": 105,
-          "velocity": 0.37
         }
       },
       {
@@ -157,6 +112,36 @@
       },
       {
         "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-08",
+          "mentionCount7d": 5,
+          "mentionCount30d": 17,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "program:eu_ai_act",
+          "label": "EU AI Act",
+          "type": "Program",
+          "aliases": [
+            "AI Act"
+          ],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 5,
+          "mentionCount30d": 11,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
           "id": "tech:transformer_architecture",
           "label": "Transformer Architecture",
           "type": "Tech",
@@ -168,6 +153,21 @@
           "mentionCount7d": 4,
           "mentionCount30d": 13,
           "velocity": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-31",
+          "mentionCount7d": 11,
+          "mentionCount30d": 30,
+          "velocity": 0.69
         }
       }
     ],

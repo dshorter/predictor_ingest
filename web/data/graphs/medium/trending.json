@@ -1,8 +1,8 @@
 {
   "meta": {
     "view": "trending",
-    "nodeCount": 45,
-    "edgeCount": 50,
+    "nodeCount": 37,
+    "edgeCount": 31,
     "exportedAt": "2026-01-25T12:00:00Z",
     "dateRange": {
       "start": "2025-10-25",
@@ -15,36 +15,6 @@
   },
   "elements": {
     "nodes": [
-      {
-        "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2025-10-31",
-          "lastSeen": "2025-12-04",
-          "mentionCount7d": 28,
-          "mentionCount30d": 62,
-          "velocity": 0.89
-        }
-      },
-      {
-        "data": {
-          "id": "org:mistral_ai",
-          "label": "Mistral AI",
-          "type": "Org",
-          "aliases": [
-            "Mistral"
-          ],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2025-12-26",
-          "mentionCount7d": 16,
-          "mentionCount30d": 44,
-          "velocity": 0.81
-        }
-      },
       {
         "data": {
           "id": "org:stability_ai",
@@ -62,17 +32,270 @@
       },
       {
         "data": {
-          "id": "org:ai2",
-          "label": "AI2",
+          "id": "person:jan_leike",
+          "label": "Jan Leike",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-21",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 18,
+          "mentionCount30d": 27,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:mixtral_8x22b",
+          "label": "Mixtral 8x22B",
+          "type": "Model",
+          "aliases": [
+            "Mixtral-8x22B"
+          ],
+          "firstSeen": "2025-11-29",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 36,
+          "mentionCount30d": 41,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tool:llamaindex",
+          "label": "LlamaIndex",
+          "type": "Tool",
+          "aliases": [
+            "Llama Index"
+          ],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 3,
+          "mentionCount30d": 7,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_laws_for_neural_language_models_",
+          "label": "Scaling Laws for Neural Language Models (2025)",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-20",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 10,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "program:executive_order_on_ai_safety",
+          "label": "Executive Order on AI Safety",
+          "type": "Program",
+          "aliases": [
+            "Biden AI EO"
+          ],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 15,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "person:andrej_karpathy",
+          "label": "Andrej Karpathy",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 24,
+          "mentionCount30d": 51,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": [
+            "GPT 5",
+            "gpt-5"
+          ],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 8,
+          "mentionCount30d": 12,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "paper:toolformer:_language_models_can_teach_th",
+          "label": "Toolformer: Language Models Can Teach Themselves to Use Tools",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 5,
+          "mentionCount30d": 16,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "tool:localai",
+          "label": "LocalAI",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-03",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 12,
+          "mentionCount30d": 38,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "event:neurips_2025",
+          "label": "NeurIPS 2025",
+          "type": "Event",
+          "aliases": [],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2026-01-11",
+          "mentionCount7d": 7,
+          "mentionCount30d": 17,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "model:dall_e_4",
+          "label": "DALL-E 4",
+          "type": "Model",
+          "aliases": [
+            "DALLE 4"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 16,
+          "mentionCount30d": 40,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gpqa",
+          "label": "GPQA",
+          "type": "Benchmark",
+          "aliases": [
+            "Graduate-Level Google-Proof QA"
+          ],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 14,
+          "mentionCount30d": 43,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "org:inflection_ai",
+          "label": "Inflection AI",
           "type": "Org",
           "aliases": [
-            "Allen Institute for AI"
+            "Inflection"
           ],
-          "firstSeen": "2025-12-11",
-          "lastSeen": "2026-01-12",
-          "mentionCount7d": 47,
-          "mentionCount30d": 73,
-          "velocity": 0.81
+          "firstSeen": "2025-12-22",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 17,
+          "mentionCount30d": 41,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "person:jensen_huang",
+          "label": "Jensen Huang",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 4,
+          "mentionCount30d": 20,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "person:greg_brockman",
+          "label": "Greg Brockman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 27,
+          "mentionCount30d": 55,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_in_education",
+          "label": "AI in Education",
+          "type": "Topic",
+          "aliases": [
+            "EdTech AI"
+          ],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-13",
+          "mentionCount7d": 4,
+          "mentionCount30d": 7,
+          "velocity": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4",
+          "label": "Claude Sonnet 4",
+          "type": "Model",
+          "aliases": [
+            "Sonnet 4"
+          ],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-10",
+          "mentionCount7d": 54,
+          "mentionCount30d": 105,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2025-12-04",
+          "mentionCount7d": 28,
+          "mentionCount30d": 62,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "tool:langchain",
+          "label": "LangChain",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 7,
+          "mentionCount30d": 18,
+          "velocity": 0.89
         }
       },
       {
@@ -108,92 +331,6 @@
       },
       {
         "data": {
-          "id": "org:apple_ml",
-          "label": "Apple ML",
-          "type": "Org",
-          "aliases": [
-            "Apple Machine Learning"
-          ],
-          "firstSeen": "2025-12-10",
-          "lastSeen": "2025-12-10",
-          "mentionCount7d": 10,
-          "mentionCount30d": 33,
-          "velocity": 0.82
-        }
-      },
-      {
-        "data": {
-          "id": "org:inflection_ai",
-          "label": "Inflection AI",
-          "type": "Org",
-          "aliases": [
-            "Inflection"
-          ],
-          "firstSeen": "2025-12-22",
-          "lastSeen": "2026-01-03",
-          "mentionCount7d": 17,
-          "mentionCount30d": 41,
-          "velocity": 0.94
-        }
-      },
-      {
-        "data": {
-          "id": "org:databricks",
-          "label": "Databricks",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 7,
-          "mentionCount30d": 19,
-          "velocity": 0.83
-        }
-      },
-      {
-        "data": {
-          "id": "org:character_ai",
-          "label": "Character AI",
-          "type": "Org",
-          "aliases": [
-            "Character.AI"
-          ],
-          "firstSeen": "2025-11-04",
-          "lastSeen": "2026-01-23",
-          "mentionCount7d": 32,
-          "mentionCount30d": 93,
-          "velocity": 0.42
-        }
-      },
-      {
-        "data": {
-          "id": "org:salesforce_ai",
-          "label": "Salesforce AI",
-          "type": "Org",
-          "aliases": [
-            "Salesforce Research"
-          ],
-          "firstSeen": "2025-12-01",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 8,
-          "mentionCount30d": 67,
-          "velocity": 0.76
-        }
-      },
-      {
-        "data": {
-          "id": "person:sam_altman",
-          "label": "Sam Altman",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-25",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 12,
-          "mentionCount30d": 15,
-          "velocity": 0.81
-        }
-      },
-      {
-        "data": {
           "id": "person:demis_hassabis",
           "label": "Demis Hassabis",
           "type": "Person",
@@ -203,300 +340,6 @@
           "mentionCount7d": 9,
           "mentionCount30d": 13,
           "velocity": 0.87
-        }
-      },
-      {
-        "data": {
-          "id": "person:andrej_karpathy",
-          "label": "Andrej Karpathy",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-03",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 24,
-          "mentionCount30d": 51,
-          "velocity": 0.98
-        }
-      },
-      {
-        "data": {
-          "id": "person:emad_mostaque",
-          "label": "Emad Mostaque",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-14",
-          "lastSeen": "2025-12-28",
-          "mentionCount7d": 3,
-          "mentionCount30d": 5,
-          "velocity": 0.79
-        }
-      },
-      {
-        "data": {
-          "id": "person:jensen_huang",
-          "label": "Jensen Huang",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-18",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 4,
-          "mentionCount30d": 20,
-          "velocity": 0.94
-        }
-      },
-      {
-        "data": {
-          "id": "person:percy_liang",
-          "label": "Percy Liang",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-17",
-          "lastSeen": "2026-01-04",
-          "mentionCount7d": 14,
-          "mentionCount30d": 47,
-          "velocity": 0.82
-        }
-      },
-      {
-        "data": {
-          "id": "person:jan_leike",
-          "label": "Jan Leike",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-21",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 18,
-          "mentionCount30d": 27,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "person:greg_brockman",
-          "label": "Greg Brockman",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-27",
-          "mentionCount7d": 27,
-          "mentionCount30d": 55,
-          "velocity": 0.93
-        }
-      },
-      {
-        "data": {
-          "id": "model:gpt_5",
-          "label": "GPT-5",
-          "type": "Model",
-          "aliases": [
-            "GPT 5",
-            "gpt-5"
-          ],
-          "firstSeen": "2025-12-13",
-          "lastSeen": "2025-12-27",
-          "mentionCount7d": 8,
-          "mentionCount30d": 12,
-          "velocity": 0.98
-        }
-      },
-      {
-        "data": {
-          "id": "model:mixtral_8x22b",
-          "label": "Mixtral 8x22B",
-          "type": "Model",
-          "aliases": [
-            "Mixtral-8x22B"
-          ],
-          "firstSeen": "2025-11-29",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 36,
-          "mentionCount30d": 41,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "model:dall_e_4",
-          "label": "DALL-E 4",
-          "type": "Model",
-          "aliases": [
-            "DALLE 4"
-          ],
-          "firstSeen": "2025-11-13",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 16,
-          "mentionCount30d": 40,
-          "velocity": 0.95
-        }
-      },
-      {
-        "data": {
-          "id": "model:whisper_v4",
-          "label": "Whisper v4",
-          "type": "Model",
-          "aliases": [
-            "Whisper V4"
-          ],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2025-11-02",
-          "mentionCount7d": 46,
-          "mentionCount30d": 112,
-          "velocity": 0.7
-        }
-      },
-      {
-        "data": {
-          "id": "model:sora_2",
-          "label": "Sora 2",
-          "type": "Model",
-          "aliases": [
-            "Sora V2"
-          ],
-          "firstSeen": "2025-10-26",
-          "lastSeen": "2025-12-02",
-          "mentionCount7d": 24,
-          "mentionCount30d": 99,
-          "velocity": 0.81
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_sonnet_4",
-          "label": "Claude Sonnet 4",
-          "type": "Model",
-          "aliases": [
-            "Sonnet 4"
-          ],
-          "firstSeen": "2025-10-25",
-          "lastSeen": "2026-01-10",
-          "mentionCount7d": 54,
-          "mentionCount30d": 105,
-          "velocity": 0.9
-        }
-      },
-      {
-        "data": {
-          "id": "model:gpt_5_core",
-          "label": "GPT-5 Core",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-10-25",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 5,
-          "mentionCount30d": 12,
-          "velocity": 0.35
-        }
-      },
-      {
-        "data": {
-          "id": "tool:langchain",
-          "label": "LangChain",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-13",
-          "lastSeen": "2025-12-14",
-          "mentionCount7d": 7,
-          "mentionCount30d": 18,
-          "velocity": 0.89
-        }
-      },
-      {
-        "data": {
-          "id": "tool:llamaindex",
-          "label": "LlamaIndex",
-          "type": "Tool",
-          "aliases": [
-            "Llama Index"
-          ],
-          "firstSeen": "2026-01-19",
-          "lastSeen": "2026-01-20",
-          "mentionCount7d": 3,
-          "mentionCount30d": 7,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "tool:haystack",
-          "label": "Haystack",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-11-09",
-          "lastSeen": "2026-01-16",
-          "mentionCount7d": 4,
-          "mentionCount30d": 6,
-          "velocity": 0.79
-        }
-      },
-      {
-        "data": {
-          "id": "tool:localai",
-          "label": "LocalAI",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-03",
-          "lastSeen": "2025-12-22",
-          "mentionCount7d": 12,
-          "mentionCount30d": 38,
-          "velocity": 0.97
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:laion_5b",
-          "label": "LAION-5B",
-          "type": "Dataset",
-          "aliases": [
-            "LAION"
-          ],
-          "firstSeen": "2025-12-18",
-          "lastSeen": "2025-12-24",
-          "mentionCount7d": 0,
-          "mentionCount30d": 4,
-          "velocity": 0.8
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:the_stack_v2",
-          "label": "The Stack v2",
-          "type": "Dataset",
-          "aliases": [
-            "The Stack"
-          ],
-          "firstSeen": "2026-01-17",
-          "lastSeen": "2026-01-18",
-          "mentionCount7d": 14,
-          "mentionCount30d": 20,
-          "velocity": 0.79
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:gpqa",
-          "label": "GPQA",
-          "type": "Benchmark",
-          "aliases": [
-            "Graduate-Level Google-Proof QA"
-          ],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 14,
-          "mentionCount30d": 43,
-          "velocity": 0.95
-        }
-      },
-      {
-        "data": {
-          "id": "tech:speculative_decoding",
-          "label": "Speculative Decoding",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-12-06",
-          "lastSeen": "2026-01-19",
-          "mentionCount7d": 9,
-          "mentionCount30d": 36,
-          "velocity": 0.7
         }
       },
       {
@@ -516,32 +359,116 @@
       },
       {
         "data": {
-          "id": "tech:group_query_attention",
-          "label": "Group Query Attention",
-          "type": "Tech",
+          "id": "repo:vllm",
+          "label": "vllm",
+          "type": "Repo",
           "aliases": [
-            "GQA"
+            "vllm-project/vllm"
           ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-11-24",
-          "mentionCount7d": 17,
-          "mentionCount30d": 27,
-          "velocity": 0.61
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 12,
+          "mentionCount30d": 30,
+          "velocity": 0.84
         }
       },
       {
         "data": {
-          "id": "tech:tool_use",
-          "label": "Tool Use",
-          "type": "Tech",
+          "id": "org:databricks",
+          "label": "Databricks",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 7,
+          "mentionCount30d": 19,
+          "velocity": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "org:apple_ml",
+          "label": "Apple ML",
+          "type": "Org",
           "aliases": [
-            "Function Calling"
+            "Apple Machine Learning"
           ],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2026-01-17",
-          "mentionCount7d": 13,
-          "mentionCount30d": 38,
-          "velocity": 0.8
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 10,
+          "mentionCount30d": 33,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "person:percy_liang",
+          "label": "Percy Liang",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2026-01-04",
+          "mentionCount7d": 14,
+          "mentionCount30d": 47,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai",
+          "label": "Mistral AI",
+          "type": "Org",
+          "aliases": [
+            "Mistral"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2025-12-26",
+          "mentionCount7d": 16,
+          "mentionCount30d": 44,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "org:ai2",
+          "label": "AI2",
+          "type": "Org",
+          "aliases": [
+            "Allen Institute for AI"
+          ],
+          "firstSeen": "2025-12-11",
+          "lastSeen": "2026-01-12",
+          "mentionCount7d": 47,
+          "mentionCount30d": 73,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 12,
+          "mentionCount30d": 15,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "model:sora_2",
+          "label": "Sora 2",
+          "type": "Model",
+          "aliases": [
+            "Sora V2"
+          ],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2025-12-02",
+          "mentionCount7d": 24,
+          "mentionCount30d": 99,
+          "velocity": 0.81
         }
       },
       {
@@ -561,125 +488,62 @@
       },
       {
         "data": {
-          "id": "topic:ai_in_education",
-          "label": "AI in Education",
-          "type": "Topic",
+          "id": "dataset:laion_5b",
+          "label": "LAION-5B",
+          "type": "Dataset",
           "aliases": [
-            "EdTech AI"
+            "LAION"
           ],
-          "firstSeen": "2025-12-01",
-          "lastSeen": "2025-12-13",
+          "firstSeen": "2025-12-18",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 0,
+          "mentionCount30d": 4,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "tech:tool_use",
+          "label": "Tool Use",
+          "type": "Tech",
+          "aliases": [
+            "Function Calling"
+          ],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 13,
+          "mentionCount30d": 38,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque",
+          "label": "Emad Mostaque",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-28",
+          "mentionCount7d": 3,
+          "mentionCount30d": 5,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "tool:haystack",
+          "label": "Haystack",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2026-01-16",
           "mentionCount7d": 4,
-          "mentionCount30d": 7,
-          "velocity": 0.91
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_ethics",
-          "label": "AI Ethics",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-11-18",
-          "lastSeen": "2026-01-14",
-          "mentionCount7d": 4,
-          "mentionCount30d": 20,
-          "velocity": 0.67
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_copyright",
-          "label": "AI Copyright",
-          "type": "Topic",
-          "aliases": [
-            "AI and IP"
-          ],
-          "firstSeen": "2025-11-07",
-          "lastSeen": "2025-12-30",
-          "mentionCount7d": 12,
-          "mentionCount30d": 21,
-          "velocity": 0.76
-        }
-      },
-      {
-        "data": {
-          "id": "paper:scaling_laws_for_neural_language_models_",
-          "label": "Scaling Laws for Neural Language Models (2025)",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-12-20",
-          "lastSeen": "2026-01-21",
-          "mentionCount7d": 5,
-          "mentionCount30d": 10,
-          "velocity": 1.0
-        }
-      },
-      {
-        "data": {
-          "id": "paper:toolformer:_language_models_can_teach_th",
-          "label": "Toolformer: Language Models Can Teach Themselves to Use Tools",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-18",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 5,
-          "mentionCount30d": 16,
-          "velocity": 0.98
-        }
-      },
-      {
-        "data": {
-          "id": "repo:vllm",
-          "label": "vllm",
-          "type": "Repo",
-          "aliases": [
-            "vllm-project/vllm"
-          ],
-          "firstSeen": "2025-12-06",
-          "lastSeen": "2025-12-14",
-          "mentionCount7d": 12,
-          "mentionCount30d": 30,
-          "velocity": 0.84
-        }
-      },
-      {
-        "data": {
-          "id": "program:executive_order_on_ai_safety",
-          "label": "Executive Order on AI Safety",
-          "type": "Program",
-          "aliases": [
-            "Biden AI EO"
-          ],
-          "firstSeen": "2026-01-16",
-          "lastSeen": "2026-01-21",
-          "mentionCount7d": 5,
-          "mentionCount30d": 15,
-          "velocity": 1.0
+          "mentionCount30d": 6,
+          "velocity": 0.79
         }
       }
     ],
     "edges": [
-      {
-        "data": {
-          "id": "e:executive_order_on_ai_safety_salesforce_ai_governs",
-          "source": "program:executive_order_on_ai_safety",
-          "target": "org:salesforce_ai",
-          "rel": "GOVERNS",
-          "kind": "inferred",
-          "confidence": 0.69
-        }
-      },
-      {
-        "data": {
-          "id": "e:executive_order_on_ai_safety_ai_ethics_mentions",
-          "source": "program:executive_order_on_ai_safety",
-          "target": "topic:ai_ethics",
-          "rel": "MENTIONS",
-          "kind": "inferred",
-          "confidence": 0.76
-        }
-      },
       {
         "data": {
           "id": "e:emad_mostaque_databricks_operates",
@@ -752,24 +616,6 @@
       },
       {
         "data": {
-          "id": "e:character_ai_scaling_laws_for_neural_language_models__published",
-          "source": "org:character_ai",
-          "target": "paper:scaling_laws_for_neural_language_models_",
-          "rel": "PUBLISHED",
-          "kind": "asserted",
-          "confidence": 0.98,
-          "evidence": [
-            {
-              "docId": "2026-01-10_mit_technology__8113",
-              "url": "https://technologyreview.com/2026/01/10/character_ai_scaling_laws_for_",
-              "published": "2026-01-10",
-              "snippet": "Researchers at Character AI released the paper \"Scaling Laws for Neural Language Models (2025)\"..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
           "id": "e:langchain_localai_integrates_with",
           "source": "tool:langchain",
           "target": "tool:localai",
@@ -780,68 +626,12 @@
       },
       {
         "data": {
-          "id": "e:laion_5b_group_query_attention_uses_tech",
-          "source": "dataset:laion_5b",
-          "target": "tech:group_query_attention",
-          "rel": "USES_TECH",
-          "kind": "inferred",
-          "confidence": 0.48
-        }
-      },
-      {
-        "data": {
           "id": "e:sora_2_mixtral_8x22b_depends_on",
           "source": "model:sora_2",
           "target": "model:mixtral_8x22b",
           "rel": "DEPENDS_ON",
           "kind": "hypothesis",
           "confidence": 0.59
-        }
-      },
-      {
-        "data": {
-          "id": "e:vllm_gpt_5_core_integrates_with",
-          "source": "repo:vllm",
-          "target": "model:gpt_5_core",
-          "rel": "INTEGRATES_WITH",
-          "kind": "asserted",
-          "confidence": 0.79,
-          "evidence": [
-            {
-              "docId": "2025-12-09_techcrunch_6114",
-              "url": "https://techcrunch.com/2025/12/09/vllm_gpt_5_core",
-              "published": "2025-12-09",
-              "snippet": "vllm announced official support for GPT-5 Core..."
-            },
-            {
-              "docId": "2025-12-29_nextgov_8931",
-              "url": "https://nextgov.com/2025/12/29/vllm_gpt_5_core",
-              "published": "2025-12-29",
-              "snippet": "vllm now supports GPT-5 Core with full feature parity..."
-            },
-            {
-              "docId": "2025-12-30_reuters_1812",
-              "url": "https://reuters.com/technology/2025/12/30/vllm_gpt_5_core",
-              "published": "2025-12-30",
-              "snippet": "vllm announced official support for GPT-5 Core..."
-            },
-            {
-              "docId": "2026-01-15_ars_technica_2369",
-              "url": "https://arstechnica.com/2026/01/15/vllm_gpt_5_core",
-              "published": "2026-01-15",
-              "snippet": "vllm announced official support for GPT-5 Core..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:whisper_v4_gpt_5_depends_on",
-          "source": "model:whisper_v4",
-          "target": "model:gpt_5",
-          "rel": "DEPENDS_ON",
-          "kind": "inferred",
-          "confidence": 0.74
         }
       },
       {
@@ -934,24 +724,6 @@
       },
       {
         "data": {
-          "id": "e:character_ai_langchain_created",
-          "source": "org:character_ai",
-          "target": "tool:langchain",
-          "rel": "CREATED",
-          "kind": "asserted",
-          "confidence": 0.84,
-          "evidence": [
-            {
-              "docId": "2026-01-02_wired_8234",
-              "url": "https://wired.com/2026/01/02/character_ai_langchain",
-              "published": "2026-01-02",
-              "snippet": "Character AI announced LangChain, its latest org..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
           "id": "e:mistral_ai_mixtral_8x22b_launched",
           "source": "org:mistral_ai",
           "target": "model:mixtral_8x22b",
@@ -976,82 +748,12 @@
       },
       {
         "data": {
-          "id": "e:apple_ml_ai_ethics_mentions",
-          "source": "org:apple_ml",
-          "target": "topic:ai_ethics",
-          "rel": "MENTIONS",
-          "kind": "asserted",
-          "confidence": 0.93,
-          "evidence": [
-            {
-              "docId": "2025-12-19_reuters_6528",
-              "url": "https://reuters.com/technology/2025/12/19/apple_ml_ai_ethics",
-              "published": "2025-12-19",
-              "snippet": "AI Ethics was mentioned as a key factor in the analysis..."
-            },
-            {
-              "docId": "2026-01-24_the_verge_7341",
-              "url": "https://theverge.com/2026/01/24/apple_ml_ai_ethics",
-              "published": "2026-01-24",
-              "snippet": "AI Ethics was mentioned as a key factor in the analysis..."
-            },
-            {
-              "docId": "2026-01-25_the_gradient_4359",
-              "url": "https://thegradient.pub/2026/01/25/apple_ml_ai_ethics",
-              "published": "2026-01-25",
-              "snippet": "Multiple references to AI Ethics appear throughout the report..."
-            },
-            {
-              "docId": "2026-01-25_nextgov_1534",
-              "url": "https://nextgov.com/2026/01/25/apple_ml_ai_ethics",
-              "published": "2026-01-25",
-              "snippet": "AI Ethics was mentioned as a key factor in the analysis..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
           "id": "e:laion_5b_kv_cache_optimization_uses_tech",
           "source": "dataset:laion_5b",
           "target": "tech:kv_cache_optimization",
           "rel": "USES_TECH",
           "kind": "inferred",
           "confidence": 0.63
-        }
-      },
-      {
-        "data": {
-          "id": "e:character_ai_openai_partnered_with",
-          "source": "org:character_ai",
-          "target": "org:openai",
-          "rel": "PARTNERED_WITH",
-          "kind": "inferred",
-          "confidence": 0.7
-        }
-      },
-      {
-        "data": {
-          "id": "e:percy_liang_character_ai_operates",
-          "source": "person:percy_liang",
-          "target": "org:character_ai",
-          "rel": "OPERATES",
-          "kind": "asserted",
-          "confidence": 0.93,
-          "evidence": [
-            {
-              "docId": "2025-12-26_nextgov_2874",
-              "url": "https://nextgov.com/2025/12/26/percy_liang_character_ai",
-              "published": "2025-12-26",
-              "snippet": "Percy Liang serves as CEO of Character AI..."
-            },
-            {
-              "docId": "2026-01-23_reuters_9014",
-              "url": "https://reuters.com/technology/2026/01/23/percy_liang_character_ai",
-              "published": "2026-01-23",
-              "snippet": "Percy Liang leads Character AI as its chief executive..."
-            }
-          ]
         }
       },
       {
@@ -1076,16 +778,6 @@
               "snippet": "LangChain announced official support for Haystack..."
             }
           ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:andrej_karpathy_gpt_5_core_created",
-          "source": "person:andrej_karpathy",
-          "target": "model:gpt_5_core",
-          "rel": "CREATED",
-          "kind": "inferred",
-          "confidence": 0.85
         }
       },
       {
@@ -1128,40 +820,6 @@
       },
       {
         "data": {
-          "id": "e:executive_order_on_ai_safety_character_ai_governs",
-          "source": "program:executive_order_on_ai_safety",
-          "target": "org:character_ai",
-          "rel": "GOVERNS",
-          "kind": "asserted",
-          "confidence": 0.67,
-          "evidence": [
-            {
-              "docId": "2026-01-19_google_ai_blog_5484",
-              "url": "https://blog.google/technology/ai/2026/01/19/executive_order_on_ai_safety_c",
-              "published": "2026-01-19",
-              "snippet": "Under Executive Order on AI Safety, Character AI must adhere to new standards..."
-            },
-            {
-              "docId": "2026-01-25_ars_technica_5944",
-              "url": "https://arstechnica.com/2026/01/25/executive_order_on_ai_safety_c",
-              "published": "2026-01-25",
-              "snippet": "Executive Order on AI Safety establishes compliance requirements for Character AI..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:the_stack_v2_speculative_decoding_uses_tech",
-          "source": "dataset:the_stack_v2",
-          "target": "tech:speculative_decoding",
-          "rel": "USES_TECH",
-          "kind": "inferred",
-          "confidence": 0.45
-        }
-      },
-      {
-        "data": {
           "id": "e:mistral_ai_localai_created",
           "source": "org:mistral_ai",
           "target": "tool:localai",
@@ -1174,24 +832,6 @@
               "url": "https://wired.com/2025/12/25/mistral_ai_localai",
               "published": "2025-12-25",
               "snippet": "Mistral AI announced LocalAI, its latest org..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:character_ai_ai_copyright_mentions",
-          "source": "org:character_ai",
-          "target": "topic:ai_copyright",
-          "rel": "MENTIONS",
-          "kind": "asserted",
-          "confidence": 0.78,
-          "evidence": [
-            {
-              "docId": "2025-12-04_microsoft_resea_2465",
-              "url": "https://microsoft.com/en-us/research/blog/2025/12/04/character_ai_ai_copyright",
-              "published": "2025-12-04",
-              "snippet": "AI Copyright was mentioned as a key factor in the analysis..."
             }
           ]
         }
@@ -1216,30 +856,6 @@
               "url": "https://huggingface.co/blog/2026/01/20/demis_hassabis_scaling_laws_fo",
               "published": "2026-01-20",
               "snippet": "Demis Hassabis published \"Scaling Laws for Neural Language Models (2025)\" detailing novel approaches..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:salesforce_ai_ai_in_healthcare_mentions",
-          "source": "org:salesforce_ai",
-          "target": "topic:ai_in_healthcare",
-          "rel": "MENTIONS",
-          "kind": "asserted",
-          "confidence": 0.89,
-          "evidence": [
-            {
-              "docId": "2026-01-25_weights_and_bia_6893",
-              "url": "https://wandb.ai/articles/2026/01/25/salesforce_ai_ai_in_healthcare",
-              "published": "2026-01-25",
-              "snippet": "Multiple references to AI in Healthcare appear throughout the report..."
-            },
-            {
-              "docId": "2026-01-25_reuters_2941",
-              "url": "https://reuters.com/technology/2026/01/25/salesforce_ai_ai_in_healthcare",
-              "published": "2026-01-25",
-              "snippet": "Multiple references to AI in Healthcare appear throughout the report..."
             }
           ]
         }
@@ -1282,40 +898,6 @@
           "rel": "OPERATES",
           "kind": "inferred",
           "confidence": 0.95
-        }
-      },
-      {
-        "data": {
-          "id": "e:whisper_v4_tool_use_uses_tech",
-          "source": "model:whisper_v4",
-          "target": "tech:tool_use",
-          "rel": "USES_TECH",
-          "kind": "asserted",
-          "confidence": 0.58,
-          "evidence": [
-            {
-              "docId": "2025-11-22_langchain_blog_7189",
-              "url": "https://blog.langchain.dev/2025/11/22/whisper_v4_tool_use",
-              "published": "2025-11-22",
-              "snippet": "Whisper v4 leverages Tool Use to achieve state-of-the-art performance..."
-            },
-            {
-              "docId": "2026-01-06_hugging_face_bl_3451",
-              "url": "https://huggingface.co/blog/2026/01/06/whisper_v4_tool_use",
-              "published": "2026-01-06",
-              "snippet": "Technical details reveal Whisper v4 relies heavily on Tool Use..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:sam_altman_gpt_5_core_created",
-          "source": "person:sam_altman",
-          "target": "model:gpt_5_core",
-          "rel": "CREATED",
-          "kind": "inferred",
-          "confidence": 0.9
         }
       },
       {
@@ -1384,16 +966,6 @@
           "rel": "FUNDED",
           "kind": "inferred",
           "confidence": 0.7
-        }
-      },
-      {
-        "data": {
-          "id": "e:llamaindex_group_query_attention_uses_tech",
-          "source": "tool:llamaindex",
-          "target": "tech:group_query_attention",
-          "rel": "USES_TECH",
-          "kind": "inferred",
-          "confidence": 0.62
         }
       },
       {
@@ -1474,24 +1046,6 @@
               "url": "https://reuters.com/technology/2026/01/25/sam_altman_nvidia",
               "published": "2026-01-25",
               "snippet": "Sam Altman leads Nvidia as its chief executive..."
-            }
-          ]
-        }
-      },
-      {
-        "data": {
-          "id": "e:inflection_ai_ai_copyright_mentions",
-          "source": "org:inflection_ai",
-          "target": "topic:ai_copyright",
-          "rel": "MENTIONS",
-          "kind": "asserted",
-          "confidence": 0.94,
-          "evidence": [
-            {
-              "docId": "2026-01-09_nvidia_blog_2541",
-              "url": "https://blogs.nvidia.com/2026/01/09/inflection_ai_ai_copyright",
-              "published": "2026-01-09",
-              "snippet": "Multiple references to AI Copyright appear throughout the report..."
             }
           ]
         }

@@ -105,6 +105,7 @@ These are tracked in `implementation.md` but explicitly deferred:
 
 | Feature | V2 Rationale |
 |---------|-------------|
+| Hide/show isolated nodes toggle | Trending view can have disconnected nodes (high velocity but edges only to non-trending entities). fcose tiles them in a grid via `tile: true`, which is correct graph layout behavior. V2 toggle to hide isolates or pull in their top neighbor would give users control. |
 | Preset layout (stored positions) | Needs position persistence infrastructure |
 | Hybrid layout ("integrate new") | Depends on preset layout |
 | Edge bundling | Requires `cytoscape-edge-bundling` extension |
