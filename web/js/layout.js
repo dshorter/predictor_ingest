@@ -214,6 +214,15 @@ function runLayout(cy, options = {}) {
     layoutName = 'cose (fallback)';
   }
 
+  // For larger graphs, disable fit during layout computation.
+  // fit:true constrains the simulation to the viewport, crushing nodes together.
+  // Instead: let fcose decide natural spacing, then zoom out to show everything.
+  const usePostLayoutFit = nodeCount > REFERENCE.nodes;
+  if (usePostLayoutFit) {
+    layoutOptions.fit = false;
+    console.log(`Layout: ${nodeCount} nodes > ref(${REFERENCE.nodes}), using post-layout fit`);
+  }
+
   // Show loading state for large graphs
   if (nodeCount > 200) {
     showLoading('Running layout...');
@@ -225,6 +234,11 @@ function runLayout(cy, options = {}) {
   const layout = cy.layout(layoutOptions);
 
   layout.on('layoutstop', () => {
+    if (usePostLayoutFit) {
+      // Zoom out to show the full extent — nodes keep their natural spacing
+      cy.fit(cy.elements(), 30);
+      console.log(`Post-layout fit: zoom=${cy.zoom().toFixed(3)}`);
+    }
     hideLoading();
     updateLabelVisibility(cy);
     announceToScreenReader(`Layout complete. ${nodeCount} nodes arranged.`);
