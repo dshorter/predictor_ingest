@@ -795,16 +795,56 @@ class GraphGenerator:
         }
 
     def export_trending(self):
-        """Export trending view: high-velocity/novelty nodes + their edges."""
-        # Pick top nodes by velocity
+        """Export trending view: high-velocity/novelty nodes + their edges.
+
+        Ensures no isolated nodes by pulling in at least one neighbor
+        for any trending node that would otherwise be disconnected.
+        """
+        # Build adjacency from all edges
+        neighbors = {}  # entity_id -> [(edge, other_id), ...]
+        for edge in self.edges:
+            src = edge["data"]["source"]
+            tgt = edge["data"]["target"]
+            neighbors.setdefault(src, []).append((edge, tgt))
+            neighbors.setdefault(tgt, []).append((edge, src))
+
+        # Only consider entities that have at least one edge globally
+        connected_entities = [
+            e for e in self.entities if e["id"] in neighbors
+        ]
+
+        # Pick top connected nodes by velocity
         threshold = max(10, self.target_nodes // 4)
         sorted_entities = sorted(
-            self.entities, key=lambda e: e["velocity"], reverse=True
+            connected_entities, key=lambda e: e["velocity"], reverse=True
         )
         trending = sorted_entities[:threshold]
         trending_ids = set(e["id"] for e in trending)
 
-        nodes = [self._entity_node(e) for e in trending]
+        # Iteratively pull in neighbors until no nodes are isolated
+        entity_map = {e["id"]: e for e in self.entities}
+        for _ in range(5):  # max 5 rounds
+            # Find which nodes have at least one internal edge
+            has_edge = set()
+            for edge in self.edges:
+                src, tgt = edge["data"]["source"], edge["data"]["target"]
+                if src in trending_ids and tgt in trending_ids:
+                    has_edge.add(src)
+                    has_edge.add(tgt)
+            isolated = trending_ids - has_edge
+            if not isolated:
+                break
+            for eid in list(isolated):
+                if eid in neighbors:
+                    best_edge, best_other = max(
+                        neighbors[eid],
+                        key=lambda pair: entity_map.get(pair[1], {}).get("velocity", 0),
+                    )
+                    trending_ids.add(best_other)
+        # Add extra entities to the node list
+        all_trending_entities = [e for e in self.entities if e["id"] in trending_ids]
+
+        nodes = [self._entity_node(e) for e in all_trending_entities]
         edges = [
             edge for edge in self.edges
             if edge["data"]["source"] in trending_ids

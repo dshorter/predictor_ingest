@@ -2,7 +2,7 @@
   "meta": {
     "view": "trending",
     "nodeCount": 10,
-    "edgeCount": 7,
+    "edgeCount": 11,
     "exportedAt": "2026-01-25T12:00:00Z",
     "dateRange": {
       "start": "2025-10-25",
@@ -17,32 +17,46 @@
     "nodes": [
       {
         "data": {
-          "id": "program:eu_ai_act",
-          "label": "EU AI Act",
-          "type": "Program",
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
           "aliases": [
-            "AI Act"
+            "Open AI"
           ],
-          "firstSeen": "2026-01-24",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 5,
-          "mentionCount30d": 11,
-          "velocity": 1.0
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 21,
+          "mentionCount30d": 68,
+          "velocity": 0.73
         }
       },
       {
         "data": {
-          "id": "repo:transformers",
-          "label": "transformers",
-          "type": "Repo",
-          "aliases": [
-            "huggingface/transformers"
-          ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-08",
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-10",
+          "lastSeen": "2026-01-10",
           "mentionCount7d": 5,
-          "mentionCount30d": 17,
-          "velocity": 0.93
+          "mentionCount30d": 14,
+          "velocity": 0.44
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": [
+            "Opus 4.5",
+            "Claude Opus"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 7,
+          "mentionCount30d": 40,
+          "velocity": 0.38
         }
       },
       {
@@ -60,19 +74,6 @@
       },
       {
         "data": {
-          "id": "paper:attention_is_all_you_need_v2",
-          "label": "Attention Is All You Need v2",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 6,
-          "mentionCount30d": 26,
-          "velocity": 0.87
-        }
-      },
-      {
-        "data": {
           "id": "tech:transformer_architecture",
           "label": "Transformer Architecture",
           "type": "Tech",
@@ -84,34 +85,6 @@
           "mentionCount7d": 4,
           "mentionCount30d": 13,
           "velocity": 0.83
-        }
-      },
-      {
-        "data": {
-          "id": "event:neurips_2025",
-          "label": "NeurIPS 2025",
-          "type": "Event",
-          "aliases": [],
-          "firstSeen": "2025-11-27",
-          "lastSeen": "2025-12-05",
-          "mentionCount7d": 6,
-          "mentionCount30d": 14,
-          "velocity": 0.74
-        }
-      },
-      {
-        "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 21,
-          "mentionCount30d": 68,
-          "velocity": 0.73
         }
       },
       {
@@ -146,15 +119,45 @@
       },
       {
         "data": {
-          "id": "tool:langchain",
-          "label": "LangChain",
-          "type": "Tool",
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
           "aliases": [],
-          "firstSeen": "2025-12-08",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 7,
-          "mentionCount30d": 18,
-          "velocity": 0.55
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 6,
+          "mentionCount30d": 26,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-08",
+          "mentionCount7d": 5,
+          "mentionCount30d": 17,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "program:eu_ai_act",
+          "label": "EU AI Act",
+          "type": "Program",
+          "aliases": [
+            "AI Act"
+          ],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 5,
+          "mentionCount30d": 11,
+          "velocity": 1.0
         }
       }
     ],
@@ -167,6 +170,16 @@
           "rel": "GOVERNS",
           "kind": "inferred",
           "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:claude_opus_45_mixture_of_experts_uses_tech",
+          "source": "model:claude_opus_45",
+          "target": "tech:mixture_of_experts",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.72
         }
       },
       {
@@ -255,6 +268,46 @@
       },
       {
         "data": {
+          "id": "e:openai_sam_altman_hired",
+          "source": "org:openai",
+          "target": "person:sam_altman",
+          "rel": "HIRED",
+          "kind": "asserted",
+          "confidence": 0.81,
+          "evidence": [
+            {
+              "docId": "2026-01-17_google_ai_blog_8260",
+              "url": "https://blog.google/technology/ai/2026/01/17/openai_sam_altman",
+              "published": "2026-01-17",
+              "snippet": "OpenAI brought on Sam Altman from a competing lab..."
+            },
+            {
+              "docId": "2026-01-25_openai_blog_2528",
+              "url": "https://openai.com/blog/2026/01/25/openai_sam_altman",
+              "published": "2026-01-25",
+              "snippet": "OpenAI hired Sam Altman to lead its AI research division..."
+            },
+            {
+              "docId": "2026-01-25_the_gradient_4502",
+              "url": "https://thegradient.pub/2026/01/25/openai_sam_altman",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman joined OpenAI in a senior technical role..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:sam_altman_attention_is_all_you_need_v2_published",
+          "source": "person:sam_altman",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "PUBLISHED",
+          "kind": "inferred",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
           "id": "e:openai_attention_is_all_you_need_v2_published",
           "source": "org:openai",
           "target": "paper:attention_is_all_you_need_v2",
@@ -273,6 +326,24 @@
               "url": "https://venturebeat.com/2026/01/23/openai_attention_is_all_you_ne",
               "published": "2026-01-23",
               "snippet": "OpenAI published \"Attention Is All You Need v2\" detailing novel approaches..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:sam_altman_openai_operates",
+          "source": "person:sam_altman",
+          "target": "org:openai",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "docId": "2026-01-15_techcrunch_9288",
+              "url": "https://techcrunch.com/2026/01/15/sam_altman_openai",
+              "published": "2026-01-15",
+              "snippet": "Sam Altman leads OpenAI as its chief executive..."
             }
           ]
         }

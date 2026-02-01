@@ -83,12 +83,14 @@
       },
       {
         "data": {
-          "id": "paper:attention_is_all_you_need_v2",
-          "label": "Attention Is All You Need v2",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-25"
+          "id": "topic:ai_safety",
+          "label": "AI Safety",
+          "type": "Topic",
+          "aliases": [
+            "AI Alignment"
+          ],
+          "firstSeen": "2025-11-03",
+          "lastSeen": "2026-01-19"
         }
       },
       {
@@ -105,26 +107,14 @@
       },
       {
         "data": {
-          "id": "tech:transformer_architecture",
-          "label": "Transformer Architecture",
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
           "type": "Tech",
           "aliases": [
-            "Transformers"
+            "MoE"
           ],
-          "firstSeen": "2025-12-01",
-          "lastSeen": "2025-12-06"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_safety",
-          "label": "AI Safety",
-          "type": "Topic",
-          "aliases": [
-            "AI Alignment"
-          ],
-          "firstSeen": "2025-11-03",
-          "lastSeen": "2026-01-19"
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-31"
         }
       },
       {
@@ -141,14 +131,24 @@
       },
       {
         "data": {
-          "id": "tech:mixture_of_experts",
-          "label": "Mixture of Experts",
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture",
+          "label": "Transformer Architecture",
           "type": "Tech",
           "aliases": [
-            "MoE"
+            "Transformers"
           ],
-          "firstSeen": "2025-11-14",
-          "lastSeen": "2025-12-31"
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-06"
         }
       }
     ],

@@ -13,6 +13,36 @@
     "nodes": [
       {
         "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-08",
+          "mentionCount7d": 5,
+          "mentionCount30d": 17,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-31",
+          "mentionCount7d": 11,
+          "mentionCount30d": 30,
+          "velocity": 0.69
+        }
+      },
+      {
+        "data": {
           "id": "paper:attention_is_all_you_need_v2",
           "label": "Attention Is All You Need v2",
           "type": "Paper",
@@ -21,6 +51,19 @@
           "lastSeen": "2026-01-25",
           "mentionCount7d": 6,
           "mentionCount30d": 26,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2025-12-17",
+          "mentionCount7d": 8,
+          "mentionCount30d": 34,
           "velocity": 0.87
         }
       },
@@ -42,34 +85,6 @@
       },
       {
         "data": {
-          "id": "repo:transformers",
-          "label": "transformers",
-          "type": "Repo",
-          "aliases": [
-            "huggingface/transformers"
-          ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-08",
-          "mentionCount7d": 5,
-          "mentionCount30d": 17,
-          "velocity": 0.93
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:common_crawl",
-          "label": "Common Crawl",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2025-12-17",
-          "mentionCount7d": 8,
-          "mentionCount30d": 34,
-          "velocity": 0.87
-        }
-      },
-      {
-        "data": {
           "id": "tech:transformer_architecture",
           "label": "Transformer Architecture",
           "type": "Tech",
@@ -81,21 +96,6 @@
           "mentionCount7d": 4,
           "mentionCount30d": 13,
           "velocity": 0.83
-        }
-      },
-      {
-        "data": {
-          "id": "tech:mixture_of_experts",
-          "label": "Mixture of Experts",
-          "type": "Tech",
-          "aliases": [
-            "MoE"
-          ],
-          "firstSeen": "2025-11-14",
-          "lastSeen": "2025-12-31",
-          "mentionCount7d": 11,
-          "mentionCount30d": 30,
-          "velocity": 0.69
         }
       }
     ],
