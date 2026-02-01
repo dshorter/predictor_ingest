@@ -7,6 +7,7 @@
 // Application state
 const AppState = {
   currentView: 'trending',
+  currentTier: 'medium',
   currentDate: null,
   isLoading: false,
   cy: null
@@ -26,6 +27,12 @@ async function initializeApp() {
     const container = document.getElementById('cy');
     if (!container) {
       throw new Error('Graph container not found');
+    }
+
+    // Read initial tier from selector
+    const tierSelect = document.getElementById('tier-selector');
+    if (tierSelect) {
+      AppState.currentTier = tierSelect.value;
     }
 
     // Load default data
@@ -161,6 +168,12 @@ function initializeToolbar(cy) {
   // Filter toggle
   document.getElementById('btn-filter')?.addEventListener('click', () => {
     toggleFilterPanel();
+  });
+
+  // Tier selector (data size)
+  document.getElementById('tier-selector')?.addEventListener('change', async (e) => {
+    AppState.currentTier = e.target.value;
+    await switchView(AppState.currentView);
   });
 
   // View selector
@@ -300,20 +313,25 @@ async function switchDate(date) {
 }
 
 /**
- * Get data URL for a view and date
+ * Get data URL for a view, using current tier
  */
 function getDataUrl(view, date) {
   const basePath = 'data/graphs';
-  const datePart = date || 'latest';
-  return `${basePath}/${datePart}/${view}.json`;
+  // Tier overrides date; for 'latest' tier use 'latest' folder,
+  // for generated tiers use tier name as folder
+  const folder = date || AppState.currentTier || 'latest';
+  return `${basePath}/${folder}/${view}.json`;
 }
 
 /**
- * Update statistics display
+ * Update statistics display in toolbar
  */
 function updateStatsDisplay(cy) {
   const stats = getGraphStats(cy);
-  // Could update a stats element in the toolbar if we add one
+  const el = document.getElementById('graph-stats');
+  if (el) {
+    el.textContent = `${stats.nodeCount} nodes \u00B7 ${stats.edgeCount} edges`;
+  }
   console.log('Graph stats:', stats);
 }
 

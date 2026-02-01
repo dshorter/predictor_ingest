@@ -1,0 +1,1107 @@
+{
+  "meta": {
+    "view": "trending",
+    "nodeCount": 37,
+    "edgeCount": 31,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    },
+    "filters": {
+      "minVelocity": 0.1,
+      "minConfidence": 0.3
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "org:stability_ai",
+          "label": "Stability AI",
+          "type": "Org",
+          "aliases": [
+            "Stability"
+          ],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 54,
+          "mentionCount30d": 57,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "person:jan_leike",
+          "label": "Jan Leike",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-21",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 18,
+          "mentionCount30d": 27,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:mixtral_8x22b",
+          "label": "Mixtral 8x22B",
+          "type": "Model",
+          "aliases": [
+            "Mixtral-8x22B"
+          ],
+          "firstSeen": "2025-11-29",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 36,
+          "mentionCount30d": 41,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tool:llamaindex",
+          "label": "LlamaIndex",
+          "type": "Tool",
+          "aliases": [
+            "Llama Index"
+          ],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 3,
+          "mentionCount30d": 7,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_laws_for_neural_language_models_",
+          "label": "Scaling Laws for Neural Language Models (2025)",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-20",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 10,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "program:executive_order_on_ai_safety",
+          "label": "Executive Order on AI Safety",
+          "type": "Program",
+          "aliases": [
+            "Biden AI EO"
+          ],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 15,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "person:andrej_karpathy",
+          "label": "Andrej Karpathy",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 24,
+          "mentionCount30d": 51,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": [
+            "GPT 5",
+            "gpt-5"
+          ],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 8,
+          "mentionCount30d": 12,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "paper:toolformer:_language_models_can_teach_th",
+          "label": "Toolformer: Language Models Can Teach Themselves to Use Tools",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 5,
+          "mentionCount30d": 16,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "tool:localai",
+          "label": "LocalAI",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-03",
+          "lastSeen": "2025-12-22",
+          "mentionCount7d": 12,
+          "mentionCount30d": 38,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "event:neurips_2025",
+          "label": "NeurIPS 2025",
+          "type": "Event",
+          "aliases": [],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2026-01-11",
+          "mentionCount7d": 7,
+          "mentionCount30d": 17,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "model:dall_e_4",
+          "label": "DALL-E 4",
+          "type": "Model",
+          "aliases": [
+            "DALLE 4"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 16,
+          "mentionCount30d": 40,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gpqa",
+          "label": "GPQA",
+          "type": "Benchmark",
+          "aliases": [
+            "Graduate-Level Google-Proof QA"
+          ],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 14,
+          "mentionCount30d": 43,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "org:inflection_ai",
+          "label": "Inflection AI",
+          "type": "Org",
+          "aliases": [
+            "Inflection"
+          ],
+          "firstSeen": "2025-12-22",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 17,
+          "mentionCount30d": 41,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "person:jensen_huang",
+          "label": "Jensen Huang",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 4,
+          "mentionCount30d": 20,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "person:greg_brockman",
+          "label": "Greg Brockman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-27",
+          "mentionCount7d": 27,
+          "mentionCount30d": 55,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_in_education",
+          "label": "AI in Education",
+          "type": "Topic",
+          "aliases": [
+            "EdTech AI"
+          ],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-13",
+          "mentionCount7d": 4,
+          "mentionCount30d": 7,
+          "velocity": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4",
+          "label": "Claude Sonnet 4",
+          "type": "Model",
+          "aliases": [
+            "Sonnet 4"
+          ],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-10",
+          "mentionCount7d": 54,
+          "mentionCount30d": 105,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2025-12-04",
+          "mentionCount7d": 28,
+          "mentionCount30d": 62,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "tool:langchain",
+          "label": "LangChain",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 7,
+          "mentionCount30d": 18,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "org:nvidia",
+          "label": "Nvidia",
+          "type": "Org",
+          "aliases": [
+            "NVIDIA"
+          ],
+          "firstSeen": "2025-12-26",
+          "lastSeen": "2026-01-16",
+          "mentionCount7d": 7,
+          "mentionCount30d": 27,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "org:amazon_aws",
+          "label": "Amazon AWS",
+          "type": "Org",
+          "aliases": [
+            "AWS",
+            "Amazon"
+          ],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 34,
+          "mentionCount30d": 42,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "person:demis_hassabis",
+          "label": "Demis Hassabis",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 9,
+          "mentionCount30d": 13,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "tech:kv_cache_optimization",
+          "label": "KV Cache Optimization",
+          "type": "Tech",
+          "aliases": [
+            "KV Cache"
+          ],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-12-21",
+          "mentionCount7d": 4,
+          "mentionCount30d": 12,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "repo:vllm",
+          "label": "vllm",
+          "type": "Repo",
+          "aliases": [
+            "vllm-project/vllm"
+          ],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 12,
+          "mentionCount30d": 30,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "org:databricks",
+          "label": "Databricks",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 7,
+          "mentionCount30d": 19,
+          "velocity": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "org:apple_ml",
+          "label": "Apple ML",
+          "type": "Org",
+          "aliases": [
+            "Apple Machine Learning"
+          ],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 10,
+          "mentionCount30d": 33,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "person:percy_liang",
+          "label": "Percy Liang",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2026-01-04",
+          "mentionCount7d": 14,
+          "mentionCount30d": 47,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai",
+          "label": "Mistral AI",
+          "type": "Org",
+          "aliases": [
+            "Mistral"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2025-12-26",
+          "mentionCount7d": 16,
+          "mentionCount30d": 44,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "org:ai2",
+          "label": "AI2",
+          "type": "Org",
+          "aliases": [
+            "Allen Institute for AI"
+          ],
+          "firstSeen": "2025-12-11",
+          "lastSeen": "2026-01-12",
+          "mentionCount7d": 47,
+          "mentionCount30d": 73,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 12,
+          "mentionCount30d": 15,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "model:sora_2",
+          "label": "Sora 2",
+          "type": "Model",
+          "aliases": [
+            "Sora V2"
+          ],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2025-12-02",
+          "mentionCount7d": 24,
+          "mentionCount30d": 99,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_in_healthcare",
+          "label": "AI in Healthcare",
+          "type": "Topic",
+          "aliases": [
+            "Medical AI"
+          ],
+          "firstSeen": "2025-12-17",
+          "lastSeen": "2025-12-26",
+          "mentionCount7d": 13,
+          "mentionCount30d": 41,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:laion_5b",
+          "label": "LAION-5B",
+          "type": "Dataset",
+          "aliases": [
+            "LAION"
+          ],
+          "firstSeen": "2025-12-18",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 0,
+          "mentionCount30d": 4,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "tech:tool_use",
+          "label": "Tool Use",
+          "type": "Tech",
+          "aliases": [
+            "Function Calling"
+          ],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 13,
+          "mentionCount30d": 38,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque",
+          "label": "Emad Mostaque",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-28",
+          "mentionCount7d": 3,
+          "mentionCount30d": 5,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "tool:haystack",
+          "label": "Haystack",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2026-01-16",
+          "mentionCount7d": 4,
+          "mentionCount30d": 6,
+          "velocity": 0.79
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:emad_mostaque_databricks_operates",
+          "source": "person:emad_mostaque",
+          "target": "org:databricks",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "docId": "2026-01-22_the_verge_6300",
+              "url": "https://theverge.com/2026/01/22/emad_mostaque_databricks",
+              "published": "2026-01-22",
+              "snippet": "Emad Mostaque has been at the helm of Databricks since..."
+            },
+            {
+              "docId": "2026-01-25_ars_technica_9092",
+              "url": "https://arstechnica.com/2026/01/25/emad_mostaque_databricks",
+              "published": "2026-01-25",
+              "snippet": "Emad Mostaque leads Databricks as its chief executive..."
+            },
+            {
+              "docId": "2026-01-25_langchain_blog_3296",
+              "url": "https://blog.langchain.dev/2026/01/25/emad_mostaque_databricks",
+              "published": "2026-01-25",
+              "snippet": "Emad Mostaque has been at the helm of Databricks since..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:demis_hassabis_stability_ai_operates",
+          "source": "person:demis_hassabis",
+          "target": "org:stability_ai",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.93,
+          "evidence": [
+            {
+              "docId": "2026-01-25_microsoft_resea_1616",
+              "url": "https://microsoft.com/en-us/research/blog/2026/01/25/demis_hassabis_stability_ai",
+              "published": "2026-01-25",
+              "snippet": "Demis Hassabis leads Stability AI as its chief executive..."
+            },
+            {
+              "docId": "2026-01-25_wired_2015",
+              "url": "https://wired.com/2026/01/25/demis_hassabis_stability_ai",
+              "published": "2026-01-25",
+              "snippet": "Demis Hassabis serves as CEO of Stability AI..."
+            },
+            {
+              "docId": "2026-01-25_google_ai_blog_7519",
+              "url": "https://blog.google/technology/ai/2026/01/25/demis_hassabis_stability_ai",
+              "published": "2026-01-25",
+              "snippet": "Demis Hassabis has been at the helm of Stability AI since..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nvidia_stability_ai_acquired",
+          "source": "org:nvidia",
+          "target": "org:stability_ai",
+          "rel": "ACQUIRED",
+          "kind": "inferred",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:langchain_localai_integrates_with",
+          "source": "tool:langchain",
+          "target": "tool:localai",
+          "rel": "INTEGRATES_WITH",
+          "kind": "inferred",
+          "confidence": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "e:sora_2_mixtral_8x22b_depends_on",
+          "source": "model:sora_2",
+          "target": "model:mixtral_8x22b",
+          "rel": "DEPENDS_ON",
+          "kind": "hypothesis",
+          "confidence": 0.59
+        }
+      },
+      {
+        "data": {
+          "id": "e:jan_leike_ai2_operates",
+          "source": "person:jan_leike",
+          "target": "org:ai2",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "docId": "2026-01-24_reuters_2217",
+              "url": "https://reuters.com/technology/2026/01/24/jan_leike_ai2",
+              "published": "2026-01-24",
+              "snippet": "Jan Leike serves as CEO of AI2..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:jensen_huang_mixtral_8x22b_created",
+          "source": "person:jensen_huang",
+          "target": "model:mixtral_8x22b",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "docId": "2026-01-22_hugging_face_bl_1860",
+              "url": "https://huggingface.co/blog/2026/01/22/jensen_huang_mixtral_8x22b",
+              "published": "2026-01-22",
+              "snippet": "Jensen Huang unveiled Mixtral 8x22B at its annual developer conference..."
+            },
+            {
+              "docId": "2026-01-25_venturebeat_9155",
+              "url": "https://venturebeat.com/2026/01/25/jensen_huang_mixtral_8x22b",
+              "published": "2026-01-25",
+              "snippet": "Jensen Huang announced Mixtral 8x22B, its latest person..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:stability_ai_greg_brockman_hired",
+          "source": "org:stability_ai",
+          "target": "person:greg_brockman",
+          "rel": "HIRED",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "docId": "2026-01-15_weights_and_bia_4132",
+              "url": "https://wandb.ai/articles/2026/01/15/stability_ai_greg_brockman",
+              "published": "2026-01-15",
+              "snippet": "Stability AI brought on Greg Brockman from a competing lab..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:toolformer:_language_models_can_teach_th_dall_e_4_evaluated_on",
+          "source": "paper:toolformer:_language_models_can_teach_th",
+          "target": "model:dall_e_4",
+          "rel": "EVALUATED_ON",
+          "kind": "inferred",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:ai2_ai_in_education_mentions",
+          "source": "org:ai2",
+          "target": "topic:ai_in_education",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "docId": "2025-12-31_arxiv_2634",
+              "url": "https://arxiv.org/abs/2025/12/31/ai2_ai_in_education",
+              "published": "2025-12-31",
+              "snippet": "The article discusses AI in Education in the context of recent developments..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:mistral_ai_mixtral_8x22b_launched",
+          "source": "org:mistral_ai",
+          "target": "model:mixtral_8x22b",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "docId": "2026-01-18_wired_2330",
+              "url": "https://wired.com/2026/01/18/mistral_ai_mixtral_8x22b",
+              "published": "2026-01-18",
+              "snippet": "After a limited beta, Mistral AI opened Mixtral 8x22B to all users..."
+            },
+            {
+              "docId": "2026-01-23_ars_technica_5384",
+              "url": "https://arstechnica.com/2026/01/23/mistral_ai_mixtral_8x22b",
+              "published": "2026-01-23",
+              "snippet": "Mistral AI launched Mixtral 8x22B to general availability today..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:laion_5b_kv_cache_optimization_uses_tech",
+          "source": "dataset:laion_5b",
+          "target": "tech:kv_cache_optimization",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.63
+        }
+      },
+      {
+        "data": {
+          "id": "e:langchain_haystack_integrates_with",
+          "source": "tool:langchain",
+          "target": "tool:haystack",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.58,
+          "evidence": [
+            {
+              "docId": "2026-01-04_openai_blog_1934",
+              "url": "https://openai.com/blog/2026/01/04/langchain_haystack",
+              "published": "2026-01-04",
+              "snippet": "LangChain now supports Haystack with full feature parity..."
+            },
+            {
+              "docId": "2026-01-17_arxiv_3686",
+              "url": "https://arxiv.org/abs/2026/01/17/langchain_haystack",
+              "published": "2026-01-17",
+              "snippet": "LangChain announced official support for Haystack..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:emad_mostaque_mistral_ai_operates",
+          "source": "person:emad_mostaque",
+          "target": "org:mistral_ai",
+          "rel": "OPERATES",
+          "kind": "inferred",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:scaling_laws_for_neural_language_models__kv_cache_optimization_uses_tech",
+          "source": "paper:scaling_laws_for_neural_language_models_",
+          "target": "tech:kv_cache_optimization",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpqa_gpt_5_measures",
+          "source": "benchmark:gpqa",
+          "target": "model:gpt_5",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.85,
+          "evidence": [
+            {
+              "docId": "2026-01-15_bloomberg_4649",
+              "url": "https://bloomberg.com/technology/2026/01/15/gpqa_gpt_5",
+              "published": "2026-01-15",
+              "snippet": "The GPQA benchmark measures GPT-5 across multiple tasks..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:mistral_ai_localai_created",
+          "source": "org:mistral_ai",
+          "target": "tool:localai",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.93,
+          "evidence": [
+            {
+              "docId": "2025-12-25_wired_3408",
+              "url": "https://wired.com/2025/12/25/mistral_ai_localai",
+              "published": "2025-12-25",
+              "snippet": "Mistral AI announced LocalAI, its latest org..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:demis_hassabis_scaling_laws_for_neural_language_models__published",
+          "source": "person:demis_hassabis",
+          "target": "paper:scaling_laws_for_neural_language_models_",
+          "rel": "PUBLISHED",
+          "kind": "asserted",
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "docId": "2026-01-08_venturebeat_2291",
+              "url": "https://venturebeat.com/2026/01/08/demis_hassabis_scaling_laws_fo",
+              "published": "2026-01-08",
+              "snippet": "Researchers at Demis Hassabis released the paper \"Scaling Laws for Neural Language Models (2025)\"..."
+            },
+            {
+              "docId": "2026-01-20_hugging_face_bl_6953",
+              "url": "https://huggingface.co/blog/2026/01/20/demis_hassabis_scaling_laws_fo",
+              "published": "2026-01-20",
+              "snippet": "Demis Hassabis published \"Scaling Laws for Neural Language Models (2025)\" detailing novel approaches..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:sam_altman_sora_2_created",
+          "source": "person:sam_altman",
+          "target": "model:sora_2",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.86,
+          "evidence": [
+            {
+              "docId": "2026-01-25_nextgov_9229",
+              "url": "https://nextgov.com/2026/01/25/sam_altman_sora_2",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman unveiled Sora 2 at its annual developer conference..."
+            },
+            {
+              "docId": "2026-01-25_bloomberg_5697",
+              "url": "https://bloomberg.com/technology/2026/01/25/sam_altman_sora_2",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman unveiled Sora 2 at its annual developer conference..."
+            },
+            {
+              "docId": "2026-01-25_nvidia_blog_4279",
+              "url": "https://blogs.nvidia.com/2026/01/25/sam_altman_sora_2",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman announced Sora 2, its latest person..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:greg_brockman_stability_ai_operates",
+          "source": "person:greg_brockman",
+          "target": "org:stability_ai",
+          "rel": "OPERATES",
+          "kind": "inferred",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:vllm_sora_2_integrates_with",
+          "source": "repo:vllm",
+          "target": "model:sora_2",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidence": [
+            {
+              "docId": "2026-01-16_nextgov_5210",
+              "url": "https://nextgov.com/2026/01/16/vllm_sora_2",
+              "published": "2026-01-16",
+              "snippet": "vllm now supports Sora 2 with full feature parity..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:sora_2_laion_5b_trained_on",
+          "source": "model:sora_2",
+          "target": "dataset:laion_5b",
+          "rel": "TRAINED_ON",
+          "kind": "hypothesis",
+          "confidence": 0.48
+        }
+      },
+      {
+        "data": {
+          "id": "e:haystack_claude_sonnet_4_integrates_with",
+          "source": "tool:haystack",
+          "target": "model:claude_sonnet_4",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2025-11-26_the_gradient_9514",
+              "url": "https://thegradient.pub/2025/11/26/haystack_claude_sonnet_4",
+              "published": "2025-11-26",
+              "snippet": "The latest release of Haystack adds native Claude Sonnet 4 integration..."
+            },
+            {
+              "docId": "2025-12-01_the_verge_1034",
+              "url": "https://theverge.com/2025/12/01/haystack_claude_sonnet_4",
+              "published": "2025-12-01",
+              "snippet": "The latest release of Haystack adds native Claude Sonnet 4 integration..."
+            },
+            {
+              "docId": "2025-12-05_openai_blog_7839",
+              "url": "https://openai.com/blog/2025/12/05/haystack_claude_sonnet_4",
+              "published": "2025-12-05",
+              "snippet": "The latest release of Haystack adds native Claude Sonnet 4 integration..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:mistral_ai_amazon_aws_funded",
+          "source": "org:mistral_ai",
+          "target": "org:amazon_aws",
+          "rel": "FUNDED",
+          "kind": "inferred",
+          "confidence": 0.7
+        }
+      },
+      {
+        "data": {
+          "id": "e:demis_hassabis_toolformer:_language_models_can_teach_th_published",
+          "source": "person:demis_hassabis",
+          "target": "paper:toolformer:_language_models_can_teach_th",
+          "rel": "PUBLISHED",
+          "kind": "asserted",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "docId": "2026-01-24_the_gradient_9161",
+              "url": "https://thegradient.pub/2026/01/24/demis_hassabis_toolformer:_lan",
+              "published": "2026-01-24",
+              "snippet": "Demis Hassabis released \"Toolformer: Language Models Can Teach Themselves to Use Tools\" on arXiv..."
+            },
+            {
+              "docId": "2026-01-24_weights_and_bia_2821",
+              "url": "https://wandb.ai/articles/2026/01/24/demis_hassabis_toolformer:_lan",
+              "published": "2026-01-24",
+              "snippet": "Researchers at Demis Hassabis released the paper \"Toolformer: Language Models Can Teach Themselves to Use Tools\"..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:sora_2_claude_sonnet_4_depends_on",
+          "source": "model:sora_2",
+          "target": "model:claude_sonnet_4",
+          "rel": "DEPENDS_ON",
+          "kind": "hypothesis",
+          "confidence": 0.42
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpqa_mixtral_8x22b_measures",
+          "source": "benchmark:gpqa",
+          "target": "model:mixtral_8x22b",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.91,
+          "evidence": [
+            {
+              "docId": "2026-01-17_meta_ai_blog_2442",
+              "url": "https://ai.meta.com/blog/2026/01/17/gpqa_mixtral_8x22b",
+              "published": "2026-01-17",
+              "snippet": "The GPQA benchmark measures Mixtral 8x22B across multiple tasks..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:sam_altman_nvidia_operates",
+          "source": "person:sam_altman",
+          "target": "org:nvidia",
+          "rel": "OPERATES",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2026-01-25_langchain_blog_9223",
+              "url": "https://blog.langchain.dev/2026/01/25/sam_altman_nvidia",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman has been at the helm of Nvidia since..."
+            },
+            {
+              "docId": "2026-01-25_meta_ai_blog_8014",
+              "url": "https://ai.meta.com/blog/2026/01/25/sam_altman_nvidia",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman serves as CEO of Nvidia..."
+            },
+            {
+              "docId": "2026-01-25_reuters_7411",
+              "url": "https://reuters.com/technology/2026/01/25/sam_altman_nvidia",
+              "published": "2026-01-25",
+              "snippet": "Sam Altman leads Nvidia as its chief executive..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:claude_sonnet_4_mixtral_8x22b_depends_on",
+          "source": "model:claude_sonnet_4",
+          "target": "model:mixtral_8x22b",
+          "rel": "DEPENDS_ON",
+          "kind": "hypothesis",
+          "confidence": 0.45
+        }
+      },
+      {
+        "data": {
+          "id": "e:ai2_sora_2_created",
+          "source": "org:ai2",
+          "target": "model:sora_2",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.86,
+          "evidence": [
+            {
+              "docId": "2026-01-09_the_verge_8281",
+              "url": "https://theverge.com/2026/01/09/ai2_sora_2",
+              "published": "2026-01-09",
+              "snippet": "AI2 announced Sora 2, its latest org..."
+            },
+            {
+              "docId": "2026-01-16_nvidia_blog_5338",
+              "url": "https://blogs.nvidia.com/2026/01/16/ai2_sora_2",
+              "published": "2026-01-16",
+              "snippet": "AI2 unveiled Sora 2 at its annual developer conference..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:executive_order_on_ai_safety_ai2_governs",
+          "source": "program:executive_order_on_ai_safety",
+          "target": "org:ai2",
+          "rel": "GOVERNS",
+          "kind": "asserted",
+          "confidence": 0.89,
+          "evidence": [
+            {
+              "docId": "2026-01-16_wired_9942",
+              "url": "https://wired.com/2026/01/16/executive_order_on_ai_safety_a",
+              "published": "2026-01-16",
+              "snippet": "Executive Order on AI Safety regulation now covers AI2 operations..."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

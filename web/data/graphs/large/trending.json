@@ -1,0 +1,3235 @@
+{
+  "meta": {
+    "view": "trending",
+    "nodeCount": 125,
+    "edgeCount": 86,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    },
+    "filters": {
+      "minVelocity": 0.1,
+      "minConfidence": 0.3
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "org:tencent_ai",
+          "label": "Tencent AI",
+          "type": "Org",
+          "aliases": [
+            "Tencent"
+          ],
+          "firstSeen": "2026-01-07",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 24,
+          "mentionCount30d": 73,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque",
+          "label": "Emad Mostaque",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 20,
+          "mentionCount30d": 52,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:falcon_3",
+          "label": "Falcon 3",
+          "type": "Model",
+          "aliases": [
+            "Falcon3"
+          ],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 11,
+          "mentionCount30d": 44,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:aya_3",
+          "label": "Aya 3",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-21",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 31,
+          "mentionCount30d": 69,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:command_r_plus_lite",
+          "label": "Command R+ Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-17",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 21,
+          "mentionCount30d": 53,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:falcon_3_v2",
+          "label": "Falcon 3 v2",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-06",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 13,
+          "mentionCount30d": 49,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tool:cody_pro",
+          "label": "Cody Pro",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-22",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 6,
+          "mentionCount30d": 26,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:fineweb_v2",
+          "label": "FineWeb v2",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 15,
+          "mentionCount30d": 27,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:lmsys_chatbot_arena_lite",
+          "label": "LMSYS Chatbot Arena Lite",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 7,
+          "mentionCount30d": 28,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tech:tokenizer_bpe",
+          "label": "Tokenizer BPE",
+          "type": "Tech",
+          "aliases": [
+            "Byte Pair Encoding"
+          ],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 26,
+          "mentionCount30d": 56,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tech:tokenizer_bpe_next",
+          "label": "Tokenizer BPE Next",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-31",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 1,
+          "mentionCount30d": 11,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tech:red_teaming_mini",
+          "label": "Red Teaming Mini",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 28,
+          "mentionCount30d": 32,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture_pro",
+          "label": "Transformer Architecture Pro",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 4,
+          "mentionCount30d": 10,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "tech:multimodal_fusion_plus",
+          "label": "Multimodal Fusion Plus",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2026-01-12",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 27,
+          "mentionCount30d": 34,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_regulation",
+          "label": "AI Regulation",
+          "type": "Topic",
+          "aliases": [
+            "AI Governance"
+          ],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 19,
+          "mentionCount30d": 33,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "topic:open_source_ai",
+          "label": "Open Source AI",
+          "type": "Topic",
+          "aliases": [
+            "Open-Source LLM"
+          ],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 12,
+          "mentionCount30d": 18,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "topic:open_source_ai_lite",
+          "label": "Open Source AI Lite",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-21",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 13,
+          "mentionCount30d": 23,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "program:eu_ai_act",
+          "label": "EU AI Act",
+          "type": "Program",
+          "aliases": [
+            "AI Act"
+          ],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 3,
+          "mentionCount30d": 4,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "event:aaai_2026_ultra",
+          "label": "AAAI 2026 Ultra",
+          "type": "Event",
+          "aliases": [],
+          "firstSeen": "2026-01-23",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 11,
+          "mentionCount30d": 22,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "location:beijing",
+          "label": "Beijing",
+          "type": "Location",
+          "aliases": [],
+          "firstSeen": "2026-01-17",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 11,
+          "mentionCount30d": 19,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "location:london_ultra",
+          "label": "London Ultra",
+          "type": "Location",
+          "aliases": [],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 1,
+          "mentionCount30d": 5,
+          "velocity": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "model:qwen_3_next",
+          "label": "Qwen-3 Next",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 10,
+          "mentionCount30d": 49,
+          "velocity": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "org:nvidia_max",
+          "label": "Nvidia Max",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 30,
+          "mentionCount30d": 125,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "tool:autogpt",
+          "label": "AutoGPT",
+          "type": "Tool",
+          "aliases": [
+            "Auto-GPT"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 13,
+          "mentionCount30d": 36,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "tech:speculative_decoding_plus",
+          "label": "Speculative Decoding Plus",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-23",
+          "lastSeen": "2025-12-23",
+          "mentionCount7d": 25,
+          "mentionCount30d": 51,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "tech:kv_cache_optimization_max",
+          "label": "KV Cache Optimization Max",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-11",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 1,
+          "mentionCount30d": 7,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_in_healthcare",
+          "label": "AI in Healthcare",
+          "type": "Topic",
+          "aliases": [
+            "Medical AI"
+          ],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2025-11-24",
+          "mentionCount7d": 29,
+          "mentionCount30d": 73,
+          "velocity": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "org:scale_ai",
+          "label": "Scale AI",
+          "type": "Org",
+          "aliases": [
+            "Scale"
+          ],
+          "firstSeen": "2025-11-08",
+          "lastSeen": "2025-11-16",
+          "mentionCount7d": 12,
+          "mentionCount30d": 64,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "model:stable_diffusion_4_max",
+          "label": "Stable Diffusion 4 Max",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-26",
+          "lastSeen": "2026-01-18",
+          "mentionCount7d": 35,
+          "mentionCount30d": 74,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:truthfulqa_plus",
+          "label": "TruthfulQA Plus",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-02",
+          "lastSeen": "2026-01-06",
+          "mentionCount7d": 12,
+          "mentionCount30d": 20,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "tech:qlora_ultra",
+          "label": "QLoRA Ultra",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2026-01-07",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 2,
+          "mentionCount30d": 9,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_laws_for_neural_language_models_",
+          "label": "Scaling Laws for Neural Language Models (2025)",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-13",
+          "mentionCount7d": 5,
+          "mentionCount30d": 18,
+          "velocity": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "model:mixtral_8x22b_core",
+          "label": "Mixtral 8x22B Core",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 23,
+          "mentionCount30d": 36,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gpqa",
+          "label": "GPQA",
+          "type": "Benchmark",
+          "aliases": [
+            "Graduate-Level Google-Proof QA"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-02",
+          "mentionCount7d": 3,
+          "mentionCount30d": 13,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:truthfulqa",
+          "label": "TruthfulQA",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-12-02",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 2,
+          "mentionCount30d": 5,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "tech:lora",
+          "label": "LoRA",
+          "type": "Tech",
+          "aliases": [
+            "Low-Rank Adaptation"
+          ],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2025-10-26",
+          "mentionCount7d": 1,
+          "mentionCount30d": 14,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "tech:rlhf_edge",
+          "label": "RLHF Edge",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2026-01-09",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 11,
+          "mentionCount30d": 79,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "tech:sliding_window_attention_pro",
+          "label": "Sliding Window Attention Pro",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-11-02",
+          "lastSeen": "2026-01-04",
+          "mentionCount7d": 1,
+          "mentionCount30d": 5,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "paper:attention_is_all_you_need_v2_v2",
+          "label": "Attention Is All You Need v2 v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-16",
+          "lastSeen": "2025-12-21",
+          "mentionCount7d": 4,
+          "mentionCount30d": 10,
+          "velocity": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "person:demis_hassabis",
+          "label": "Demis Hassabis",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-21",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 15,
+          "mentionCount30d": 29,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": [
+            "GPT 5",
+            "gpt-5"
+          ],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-21",
+          "mentionCount7d": 19,
+          "mentionCount30d": 56,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemma_3",
+          "label": "Gemma 3",
+          "type": "Model",
+          "aliases": [
+            "Gemma3"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-14",
+          "mentionCount7d": 13,
+          "mentionCount30d": 33,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "model:whisper_v4_max",
+          "label": "Whisper v4 Max",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2025-11-03",
+          "mentionCount7d": 14,
+          "mentionCount30d": 36,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "tool:vllm_core",
+          "label": "vLLM Core",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-23",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 7,
+          "mentionCount30d": 32,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:openwebtext2_mini",
+          "label": "OpenWebText2 Mini",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 4,
+          "mentionCount30d": 8,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "tech:distillation",
+          "label": "Distillation",
+          "type": "Tech",
+          "aliases": [
+            "Knowledge Distillation"
+          ],
+          "firstSeen": "2025-12-04",
+          "lastSeen": "2026-01-02",
+          "mentionCount7d": 1,
+          "mentionCount30d": 9,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "org:baidu_ai_edge",
+          "label": "Baidu AI Edge",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-23",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 45,
+          "mentionCount30d": 96,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemma_3_lite",
+          "label": "Gemma 3 Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-08",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 3,
+          "mentionCount30d": 13,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mt_bench",
+          "label": "MT-Bench",
+          "type": "Benchmark",
+          "aliases": [
+            "MTBench"
+          ],
+          "firstSeen": "2026-01-13",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 4,
+          "mentionCount30d": 13,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:alpacaeval_2_lite",
+          "label": "AlpacaEval 2 Lite",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-11-26",
+          "lastSeen": "2025-12-02",
+          "mentionCount7d": 12,
+          "mentionCount30d": 35,
+          "velocity": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "org:stability_ai",
+          "label": "Stability AI",
+          "type": "Org",
+          "aliases": [
+            "Stability"
+          ],
+          "firstSeen": "2025-10-30",
+          "lastSeen": "2025-11-02",
+          "mentionCount7d": 9,
+          "mentionCount30d": 27,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "org:amazon_aws",
+          "label": "Amazon AWS",
+          "type": "Org",
+          "aliases": [
+            "AWS",
+            "Amazon"
+          ],
+          "firstSeen": "2025-12-29",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 6,
+          "mentionCount30d": 68,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "person:jensen_huang_mini",
+          "label": "Jensen Huang Mini",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 9,
+          "mentionCount30d": 18,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "model:phi_4",
+          "label": "Phi-4",
+          "type": "Model",
+          "aliases": [
+            "Phi 4"
+          ],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 35,
+          "mentionCount30d": 49,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "model:qwen_3_ultra",
+          "label": "Qwen-3 Ultra",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2026-01-18",
+          "mentionCount7d": 34,
+          "mentionCount30d": 101,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gsm8k",
+          "label": "GSM8K",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-14",
+          "mentionCount7d": 10,
+          "mentionCount30d": 14,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "tech:flash_attention_core",
+          "label": "Flash Attention Core",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-28",
+          "mentionCount7d": 2,
+          "mentionCount30d": 3,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "topic:prompt_engineering",
+          "label": "Prompt Engineering",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2026-01-06",
+          "mentionCount7d": 9,
+          "mentionCount30d": 45,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_in_education_v2",
+          "label": "AI in Education v2",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-26",
+          "mentionCount7d": 5,
+          "mentionCount30d": 16,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "paper:textbooks_are_all_you_need",
+          "label": "Textbooks Are All You Need",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 13,
+          "mentionCount30d": 40,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "paper:self_play_fine_tuning_for_language_model",
+          "label": "Self-Play Fine-Tuning for Language Models",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-18",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 9,
+          "mentionCount30d": 20,
+          "velocity": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_data_constrained_language_models",
+          "label": "Scaling Data-Constrained Language Models",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-21",
+          "mentionCount7d": 6,
+          "mentionCount30d": 15,
+          "velocity": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "program:nist_ai_rmf",
+          "label": "NIST AI RMF",
+          "type": "Program",
+          "aliases": [
+            "AI Risk Management Framework"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 12,
+          "mentionCount30d": 34,
+          "velocity": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "tool:localai",
+          "label": "LocalAI",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-18",
+          "lastSeen": "2025-12-13",
+          "mentionCount7d": 3,
+          "mentionCount30d": 8,
+          "velocity": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "tech:kv_cache_optimization",
+          "label": "KV Cache Optimization",
+          "type": "Tech",
+          "aliases": [
+            "KV Cache"
+          ],
+          "firstSeen": "2025-11-02",
+          "lastSeen": "2025-12-31",
+          "mentionCount7d": 20,
+          "mentionCount30d": 41,
+          "velocity": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "tech:group_query_attention_v2",
+          "label": "Group Query Attention v2",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-05",
+          "lastSeen": "2025-12-18",
+          "mentionCount7d": 4,
+          "mentionCount30d": 16,
+          "velocity": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai_core",
+          "label": "Mistral AI Core",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-07",
+          "mentionCount7d": 10,
+          "mentionCount30d": 20,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai_next",
+          "label": "Mistral AI Next",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 36,
+          "mentionCount30d": 49,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "tool:haystack_mini",
+          "label": "Haystack Mini",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-04",
+          "lastSeen": "2026-01-11",
+          "mentionCount7d": 1,
+          "mentionCount30d": 7,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "tech:distillation_next",
+          "label": "Distillation Next",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 10,
+          "mentionCount30d": 57,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_agents_mini",
+          "label": "AI Agents Mini",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 2,
+          "mentionCount30d": 7,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "paper:llm_agents:_a_survey",
+          "label": "LLM Agents: A Survey",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 11,
+          "mentionCount30d": 38,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "event:ai_safety_summit_2026_max",
+          "label": "AI Safety Summit 2026 Max",
+          "type": "Event",
+          "aliases": [],
+          "firstSeen": "2025-11-29",
+          "lastSeen": "2026-01-08",
+          "mentionCount7d": 6,
+          "mentionCount30d": 17,
+          "velocity": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "org:salesforce_ai_mini",
+          "label": "Salesforce AI Mini",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-27",
+          "lastSeen": "2025-12-17",
+          "mentionCount7d": 11,
+          "mentionCount30d": 64,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_4o_mini_2",
+          "label": "GPT-4o Mini 2",
+          "type": "Model",
+          "aliases": [
+            "GPT4o Mini 2"
+          ],
+          "firstSeen": "2025-11-04",
+          "lastSeen": "2025-11-07",
+          "mentionCount7d": 9,
+          "mentionCount30d": 58,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4_lite",
+          "label": "Claude Sonnet 4 Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2025-12-03",
+          "mentionCount7d": 26,
+          "mentionCount30d": 57,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "tool:mlflow",
+          "label": "MLflow",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 6,
+          "mentionCount30d": 18,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "tech:chain_of_thought",
+          "label": "Chain-of-Thought",
+          "type": "Tech",
+          "aliases": [
+            "CoT"
+          ],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 1,
+          "mentionCount30d": 4,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "paper:constitutional_ai:_harmlessness_from_ai_",
+          "label": "Constitutional AI: Harmlessness from AI Feedback",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 4,
+          "mentionCount30d": 9,
+          "velocity": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai_edge",
+          "label": "OpenAI Edge",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-26",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 10,
+          "mentionCount30d": 41,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "org:apple_ml_lite",
+          "label": "Apple ML Lite",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-07",
+          "mentionCount7d": 12,
+          "mentionCount30d": 67,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "tool:streamlit_pro",
+          "label": "Streamlit Pro",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-03",
+          "lastSeen": "2025-12-18",
+          "mentionCount7d": 6,
+          "mentionCount30d": 10,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:c4",
+          "label": "C4",
+          "type": "Dataset",
+          "aliases": [
+            "Colossal Clean Crawled Corpus"
+          ],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-11-29",
+          "mentionCount7d": 20,
+          "mentionCount30d": 26,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:humaneval",
+          "label": "HumanEval",
+          "type": "Benchmark",
+          "aliases": [
+            "Human Eval"
+          ],
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2025-11-07",
+          "mentionCount7d": 2,
+          "mentionCount30d": 18,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "paper:direct_preference_optimization_ultra",
+          "label": "Direct Preference Optimization Ultra",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 2,
+          "mentionCount30d": 5,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "program:darpa_ai_programs",
+          "label": "DARPA AI Programs",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2025-11-30",
+          "lastSeen": "2026-01-06",
+          "mentionCount7d": 3,
+          "mentionCount30d": 34,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "org:apple_ml",
+          "label": "Apple ML",
+          "type": "Org",
+          "aliases": [
+            "Apple Machine Learning"
+          ],
+          "firstSeen": "2025-11-26",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 15,
+          "mentionCount30d": 112,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "tech:rotary_position_embedding",
+          "label": "Rotary Position Embedding",
+          "type": "Tech",
+          "aliases": [
+            "RoPE"
+          ],
+          "firstSeen": "2025-12-28",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 1,
+          "mentionCount30d": 9,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "person:ilya_sutskever",
+          "label": "Ilya Sutskever",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 13,
+          "mentionCount30d": 38,
+          "velocity": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "tool:llamaindex_ultra",
+          "label": "LlamaIndex Ultra",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 12,
+          "mentionCount30d": 42,
+          "velocity": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:roots",
+          "label": "ROOTS",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 8,
+          "mentionCount30d": 19,
+          "velocity": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:mc4",
+          "label": "mC4",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-11-21",
+          "mentionCount7d": 5,
+          "mentionCount30d": 24,
+          "velocity": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "paper:flash_attention:_fast_and_memory_efficie",
+          "label": "Flash Attention: Fast and Memory-Efficient Attention",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-05",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 9,
+          "mentionCount30d": 11,
+          "velocity": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "repo:localai",
+          "label": "LocalAI",
+          "type": "Repo",
+          "aliases": [],
+          "firstSeen": "2026-01-06",
+          "lastSeen": "2026-01-13",
+          "mentionCount7d": 6,
+          "mentionCount30d": 52,
+          "velocity": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "person:noam_shazeer_plus",
+          "label": "Noam Shazeer Plus",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2026-01-03",
+          "mentionCount7d": 0,
+          "mentionCount30d": 5,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque_lite",
+          "label": "Emad Mostaque Lite",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-09",
+          "lastSeen": "2026-01-14",
+          "mentionCount7d": 19,
+          "mentionCount30d": 35,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": [
+            "Opus 4.5",
+            "Claude Opus"
+          ],
+          "firstSeen": "2025-11-21",
+          "lastSeen": "2025-12-25",
+          "mentionCount7d": 10,
+          "mentionCount30d": 58,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "tool:copilot_ultra",
+          "label": "Copilot Ultra",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-23",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 3,
+          "mentionCount30d": 20,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "tech:gguf",
+          "label": "GGUF",
+          "type": "Tech",
+          "aliases": [
+            "GGML"
+          ],
+          "firstSeen": "2026-01-04",
+          "lastSeen": "2026-01-11",
+          "mentionCount7d": 28,
+          "mentionCount30d": 77,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_watermarking_pro",
+          "label": "AI Watermarking Pro",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 10,
+          "mentionCount30d": 32,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "event:icml_2026",
+          "label": "ICML 2026",
+          "type": "Event",
+          "aliases": [],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2025-12-28",
+          "mentionCount7d": 19,
+          "mentionCount30d": 38,
+          "velocity": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "org:bytedance_ai_edge",
+          "label": "ByteDance AI Edge",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 12,
+          "mentionCount30d": 88,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "person:mira_murati_mini",
+          "label": "Mira Murati Mini",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-08",
+          "lastSeen": "2026-01-05",
+          "mentionCount7d": 4,
+          "mentionCount30d": 36,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:refinedweb_ultra",
+          "label": "RefinedWeb Ultra",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 4,
+          "mentionCount30d": 16,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:hellaswag",
+          "label": "HellaSwag",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-12-04",
+          "lastSeen": "2026-01-18",
+          "mentionCount7d": 3,
+          "mentionCount30d": 26,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mmlu_max",
+          "label": "MMLU Max",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 14,
+          "mentionCount30d": 31,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "tech:synthetic_data_generation_ultra",
+          "label": "Synthetic Data Generation Ultra",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2026-01-11",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 14,
+          "mentionCount30d": 43,
+          "velocity": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "org:tencent_ai_core",
+          "label": "Tencent AI Core",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 22,
+          "mentionCount30d": 60,
+          "velocity": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "person:jeff_dean_max",
+          "label": "Jeff Dean Max",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-11",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 17,
+          "mentionCount30d": 29,
+          "velocity": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "org:meta_ai_mini",
+          "label": "Meta AI Mini",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-17",
+          "lastSeen": "2026-01-17",
+          "mentionCount7d": 9,
+          "mentionCount30d": 27,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemini_ultra_2",
+          "label": "Gemini Ultra 2",
+          "type": "Model",
+          "aliases": [
+            "Gemini 2",
+            "Gemini Ultra"
+          ],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2026-01-16",
+          "mentionCount7d": 9,
+          "mentionCount30d": 71,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4",
+          "label": "Claude Sonnet 4",
+          "type": "Model",
+          "aliases": [
+            "Sonnet 4"
+          ],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-16",
+          "mentionCount7d": 10,
+          "mentionCount30d": 22,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "tool:weights_and_biases_plus",
+          "label": "Weights & Biases Plus",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 1,
+          "mentionCount30d": 3,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:arc_agi",
+          "label": "ARC-AGI",
+          "type": "Benchmark",
+          "aliases": [
+            "ARC AGI"
+          ],
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-23",
+          "mentionCount7d": 12,
+          "mentionCount30d": 25,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "tech:tree_of_thought",
+          "label": "Tree of Thought",
+          "type": "Tech",
+          "aliases": [
+            "ToT"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-05",
+          "mentionCount7d": 6,
+          "mentionCount30d": 19,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "topic:multimodal_ai",
+          "label": "Multimodal AI",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-11-12",
+          "lastSeen": "2026-01-16",
+          "mentionCount7d": 25,
+          "mentionCount30d": 47,
+          "velocity": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "org:google_deepmind_mini",
+          "label": "Google DeepMind Mini",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2026-01-19",
+          "mentionCount7d": 15,
+          "mentionCount30d": 57,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "topic:explainable_ai",
+          "label": "Explainable AI",
+          "type": "Topic",
+          "aliases": [
+            "XAI"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-10-30",
+          "mentionCount7d": 10,
+          "mentionCount30d": 31,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_job_displacement_lite",
+          "label": "AI Job Displacement Lite",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-02",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 9,
+          "mentionCount30d": 49,
+          "velocity": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:dolma_next",
+          "label": "Dolma Next",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-04",
+          "lastSeen": "2025-12-14",
+          "mentionCount7d": 2,
+          "mentionCount30d": 7,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2025-12-21",
+          "mentionCount7d": 13,
+          "mentionCount30d": 23,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "repo:llamacpp_lite",
+          "label": "llama.cpp Lite",
+          "type": "Repo",
+          "aliases": [],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2026-01-14",
+          "mentionCount7d": 4,
+          "mentionCount30d": 20,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "program:executive_order_on_ai_safety_pro",
+          "label": "Executive Order on AI Safety Pro",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2026-01-12",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 15,
+          "mentionCount30d": 29,
+          "velocity": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "org:amazon_aws_pro",
+          "label": "Amazon AWS Pro",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-04",
+          "lastSeen": "2025-12-24",
+          "mentionCount7d": 24,
+          "mentionCount30d": 45,
+          "velocity": 0.79
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:c4_ultra",
+          "label": "C4 Ultra",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-08",
+          "lastSeen": "2025-12-15",
+          "mentionCount7d": 4,
+          "mentionCount30d": 16,
+          "velocity": 0.79
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:apple_ml_tencent_ai_core_partnered_with",
+          "source": "org:apple_ml",
+          "target": "org:tencent_ai_core",
+          "rel": "PARTNERED_WITH",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidence": [
+            {
+              "docId": "2026-01-17_techcrunch_2267",
+              "url": "https://techcrunch.com/2026/01/17/apple_ml_tencent_ai_core",
+              "published": "2026-01-17",
+              "snippet": "A new collaboration between Apple ML and Tencent AI Core aims to..."
+            },
+            {
+              "docId": "2026-01-23_hugging_face_bl_7105",
+              "url": "https://huggingface.co/blog/2026/01/23/apple_ml_tencent_ai_core",
+              "published": "2026-01-23",
+              "snippet": "A new collaboration between Apple ML and Tencent AI Core aims to..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:cody_pro_falcon_3_v2_integrates_with",
+          "source": "tool:cody_pro",
+          "target": "model:falcon_3_v2",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.84,
+          "evidence": [
+            {
+              "docId": "2026-01-23_the_verge_8887",
+              "url": "https://theverge.com/2026/01/23/cody_pro_falcon_3_v2",
+              "published": "2026-01-23",
+              "snippet": "The latest release of Cody Pro adds native Falcon 3 v2 integration..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:stability_ai_eu_ai_act_complies_with",
+          "source": "org:stability_ai",
+          "target": "program:eu_ai_act",
+          "rel": "COMPLIES_WITH",
+          "kind": "asserted",
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "docId": "2026-01-24_nvidia_blog_2116",
+              "url": "https://blogs.nvidia.com/2026/01/24/stability_ai_eu_ai_act",
+              "published": "2026-01-24",
+              "snippet": "Stability AI achieved certification under EU AI Act..."
+            },
+            {
+              "docId": "2026-01-24_nextgov_1482",
+              "url": "https://nextgov.com/2026/01/24/stability_ai_eu_ai_act",
+              "published": "2026-01-24",
+              "snippet": "Stability AI achieved certification under EU AI Act..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:llm_agents:_a_survey_whisper_v4_max_evaluated_on",
+          "source": "paper:llm_agents:_a_survey",
+          "target": "model:whisper_v4_max",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.81,
+          "evidence": [
+            {
+              "docId": "2025-11-20_google_ai_blog_2649",
+              "url": "https://blog.google/technology/ai/2025/11/20/llm_agents:_a_survey_whisper_v",
+              "published": "2025-11-20",
+              "snippet": "On the Whisper v4 Max benchmark, LLM Agents: A Survey scored 70%..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:roots_distillation_next_uses_tech",
+          "source": "dataset:roots",
+          "target": "tech:distillation_next",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.74
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpt_5_lmsys_chatbot_arena_lite_evaluated_on",
+          "source": "model:gpt_5",
+          "target": "benchmark:lmsys_chatbot_arena_lite",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.81,
+          "evidence": [
+            {
+              "docId": "2026-01-12_arxiv_9148",
+              "url": "https://arxiv.org/abs/2026/01/12/gpt_5_lmsys_chatbot_arena_lite",
+              "published": "2026-01-12",
+              "snippet": "Evaluation results show GPT-5 reaching 73% on LMSYS Chatbot Arena Lite..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nist_ai_rmf_ai_agents_mini_mentions",
+          "source": "program:nist_ai_rmf",
+          "target": "topic:ai_agents_mini",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84,
+          "evidence": [
+            {
+              "docId": "2026-01-13_google_ai_blog_2036",
+              "url": "https://blog.google/technology/ai/2026/01/13/nist_ai_rmf_ai_agents_mini",
+              "published": "2026-01-13",
+              "snippet": "The article discusses AI Agents Mini in the context of recent developments..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:self_play_fine_tuning_for_language_model_qwen_3_next_evaluated_on",
+          "source": "paper:self_play_fine_tuning_for_language_model",
+          "target": "model:qwen_3_next",
+          "rel": "EVALUATED_ON",
+          "kind": "inferred",
+          "confidence": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpqa_aya_3_measures",
+          "source": "benchmark:gpqa",
+          "target": "model:aya_3",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.84,
+          "evidence": [
+            {
+              "docId": "2026-01-21_microsoft_resea_4426",
+              "url": "https://microsoft.com/en-us/research/blog/2026/01/21/gpqa_aya_3",
+              "published": "2026-01-21",
+              "snippet": "GPQA provides standardized evaluation of Aya 3..."
+            },
+            {
+              "docId": "2026-01-23_reuters_1586",
+              "url": "https://reuters.com/technology/2026/01/23/gpqa_aya_3",
+              "published": "2026-01-23",
+              "snippet": "GPQA has become the standard for evaluating Aya 3..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:whisper_v4_max_gpt_5_depends_on",
+          "source": "model:whisper_v4_max",
+          "target": "model:gpt_5",
+          "rel": "DEPENDS_ON",
+          "kind": "inferred",
+          "confidence": 0.73
+        }
+      },
+      {
+        "data": {
+          "id": "e:eu_ai_act_apple_ml_governs",
+          "source": "program:eu_ai_act",
+          "target": "org:apple_ml",
+          "rel": "GOVERNS",
+          "kind": "asserted",
+          "confidence": 0.65,
+          "evidence": [
+            {
+              "docId": "2026-01-21_weights_and_bia_9277",
+              "url": "https://wandb.ai/articles/2026/01/21/eu_ai_act_apple_ml",
+              "published": "2026-01-21",
+              "snippet": "EU AI Act regulation now covers Apple ML operations..."
+            },
+            {
+              "docId": "2026-01-25_reuters_2431",
+              "url": "https://reuters.com/technology/2026/01/25/eu_ai_act_apple_ml",
+              "published": "2026-01-25",
+              "snippet": "EU AI Act regulation now covers Apple ML operations..."
+            },
+            {
+              "docId": "2026-01-25_google_ai_blog_2029",
+              "url": "https://blog.google/technology/ai/2026/01/25/eu_ai_act_apple_ml",
+              "published": "2026-01-25",
+              "snippet": "Under EU AI Act, Apple ML must adhere to new standards..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nist_ai_rmf_prompt_engineering_mentions",
+          "source": "program:nist_ai_rmf",
+          "target": "topic:prompt_engineering",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "docId": "2025-12-20_nextgov_3479",
+              "url": "https://nextgov.com/2025/12/20/nist_ai_rmf_prompt_engineering",
+              "published": "2025-12-20",
+              "snippet": "Prompt Engineering was mentioned as a key factor in the analysis..."
+            },
+            {
+              "docId": "2026-01-22_meta_ai_blog_5221",
+              "url": "https://ai.meta.com/blog/2026/01/22/nist_ai_rmf_prompt_engineering",
+              "published": "2026-01-22",
+              "snippet": "Multiple references to Prompt Engineering appear throughout the report..."
+            },
+            {
+              "docId": "2026-01-22_the_gradient_4569",
+              "url": "https://thegradient.pub/2026/01/22/nist_ai_rmf_prompt_engineering",
+              "published": "2026-01-22",
+              "snippet": "Multiple references to Prompt Engineering appear throughout the report..."
+            },
+            {
+              "docId": "2026-01-24_mit_technology__5542",
+              "url": "https://technologyreview.com/2026/01/24/nist_ai_rmf_prompt_engineering",
+              "published": "2026-01-24",
+              "snippet": "The article discusses Prompt Engineering in the context of recent developments..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_mira_murati_mini_hired",
+          "source": "org:apple_ml",
+          "target": "person:mira_murati_mini",
+          "rel": "HIRED",
+          "kind": "asserted",
+          "confidence": 0.86,
+          "evidence": [
+            {
+              "docId": "2025-12-03_reuters_1505",
+              "url": "https://reuters.com/technology/2025/12/03/apple_ml_mira_murati_mini",
+              "published": "2025-12-03",
+              "snippet": "Apple ML brought on Mira Murati Mini from a competing lab..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:bytedance_ai_edge_qwen_3_next_launched",
+          "source": "org:bytedance_ai_edge",
+          "target": "model:qwen_3_next",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidence": [
+            {
+              "docId": "2026-01-18_the_verge_9593",
+              "url": "https://theverge.com/2026/01/18/bytedance_ai_edge_qwen_3_next",
+              "published": "2026-01-18",
+              "snippet": "ByteDance AI Edge launched Qwen-3 Next to general availability today..."
+            },
+            {
+              "docId": "2026-01-19_wired_3178",
+              "url": "https://wired.com/2026/01/19/bytedance_ai_edge_qwen_3_next",
+              "published": "2026-01-19",
+              "snippet": "After a limited beta, ByteDance AI Edge opened Qwen-3 Next to all users..."
+            },
+            {
+              "docId": "2026-01-25_reuters_2667",
+              "url": "https://reuters.com/technology/2026/01/25/bytedance_ai_edge_qwen_3_next",
+              "published": "2026-01-25",
+              "snippet": "After a limited beta, ByteDance AI Edge opened Qwen-3 Next to all users..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nvidia_max_darpa_ai_programs_complies_with",
+          "source": "org:nvidia_max",
+          "target": "program:darpa_ai_programs",
+          "rel": "COMPLIES_WITH",
+          "kind": "asserted",
+          "confidence": 0.64,
+          "evidence": [
+            {
+              "docId": "2026-01-03_meta_ai_blog_6443",
+              "url": "https://ai.meta.com/blog/2026/01/03/nvidia_max_darpa_ai_programs",
+              "published": "2026-01-03",
+              "snippet": "Nvidia Max achieved certification under DARPA AI Programs..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:jeff_dean_max_attention_is_all_you_need_v2_v2_published",
+          "source": "person:jeff_dean_max",
+          "target": "paper:attention_is_all_you_need_v2_v2",
+          "rel": "PUBLISHED",
+          "kind": "asserted",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "docId": "2026-01-18_nvidia_blog_6164",
+              "url": "https://blogs.nvidia.com/2026/01/18/jeff_dean_max_attention_is_all",
+              "published": "2026-01-18",
+              "snippet": "Researchers at Jeff Dean Max released the paper \"Attention Is All You Need v2 v2\"..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:baidu_ai_edge_gpt_5_created",
+          "source": "org:baidu_ai_edge",
+          "target": "model:gpt_5",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "docId": "2026-01-04_weights_and_bia_3002",
+              "url": "https://wandb.ai/articles/2026/01/04/baidu_ai_edge_gpt_5",
+              "published": "2026-01-04",
+              "snippet": "Baidu AI Edge unveiled GPT-5 at its annual developer conference..."
+            },
+            {
+              "docId": "2026-01-14_the_gradient_1251",
+              "url": "https://thegradient.pub/2026/01/14/baidu_ai_edge_gpt_5",
+              "published": "2026-01-14",
+              "snippet": "The team at Baidu AI Edge released GPT-5 after months of development..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:openwebtext2_mini_tokenizer_bpe_next_uses_tech",
+          "source": "dataset:openwebtext2_mini",
+          "target": "tech:tokenizer_bpe_next",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.64
+        }
+      },
+      {
+        "data": {
+          "id": "e:falcon_3_mmlu_max_evaluated_on",
+          "source": "model:falcon_3",
+          "target": "benchmark:mmlu_max",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "docId": "2026-01-25_the_verge_8306",
+              "url": "https://theverge.com/2026/01/25/falcon_3_mmlu_max",
+              "published": "2026-01-25",
+              "snippet": "On the MMLU Max benchmark, Falcon 3 scored 91%..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:executive_order_on_ai_safety_pro_ai_watermarking_pro_mentions",
+          "source": "program:executive_order_on_ai_safety_pro",
+          "target": "topic:ai_watermarking_pro",
+          "rel": "MENTIONS",
+          "kind": "inferred",
+          "confidence": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "e:ilya_sutskever_baidu_ai_edge_operates",
+          "source": "person:ilya_sutskever",
+          "target": "org:baidu_ai_edge",
+          "rel": "OPERATES",
+          "kind": "inferred",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:executive_order_on_ai_safety_pro_google_deepmind_mini_governs",
+          "source": "program:executive_order_on_ai_safety_pro",
+          "target": "org:google_deepmind_mini",
+          "rel": "GOVERNS",
+          "kind": "asserted",
+          "confidence": 0.65,
+          "evidence": [
+            {
+              "docId": "2026-01-16_the_gradient_3265",
+              "url": "https://thegradient.pub/2026/01/16/executive_order_on_ai_safety_p",
+              "published": "2026-01-16",
+              "snippet": "Executive Order on AI Safety Pro establishes compliance requirements for Google DeepMind Mini..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:executive_order_on_ai_safety_pro_baidu_ai_edge_governs",
+          "source": "program:executive_order_on_ai_safety_pro",
+          "target": "org:baidu_ai_edge",
+          "rel": "GOVERNS",
+          "kind": "asserted",
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "docId": "2026-01-19_techcrunch_3153",
+              "url": "https://techcrunch.com/2026/01/19/executive_order_on_ai_safety_p",
+              "published": "2026-01-19",
+              "snippet": "Executive Order on AI Safety Pro regulation now covers Baidu AI Edge operations..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:mira_murati_mini_gemini_ultra_2_created",
+          "source": "person:mira_murati_mini",
+          "target": "model:gemini_ultra_2",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.86,
+          "evidence": [
+            {
+              "docId": "2025-12-30_microsoft_resea_6990",
+              "url": "https://microsoft.com/en-us/research/blog/2025/12/30/mira_murati_mini_gemini_ultra_",
+              "published": "2025-12-30",
+              "snippet": "The team at Mira Murati Mini released Gemini Ultra 2 after months of development..."
+            },
+            {
+              "docId": "2026-01-16_hugging_face_bl_7075",
+              "url": "https://huggingface.co/blog/2026/01/16/mira_murati_mini_gemini_ultra_",
+              "published": "2026-01-16",
+              "snippet": "The team at Mira Murati Mini released Gemini Ultra 2 after months of development..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:haystack_mini_flash_attention_core_uses_tech",
+          "source": "tool:haystack_mini",
+          "target": "tech:flash_attention_core",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.75
+        }
+      },
+      {
+        "data": {
+          "id": "e:arc_agi_gemini_ultra_2_measures",
+          "source": "benchmark:arc_agi",
+          "target": "model:gemini_ultra_2",
+          "rel": "MEASURES",
+          "kind": "inferred",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:truthfulqa_plus_qwen_3_next_measures",
+          "source": "benchmark:truthfulqa_plus",
+          "target": "model:qwen_3_next",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.84,
+          "evidence": [
+            {
+              "docId": "2026-01-05_langchain_blog_2283",
+              "url": "https://blog.langchain.dev/2026/01/05/truthfulqa_plus_qwen_3_next",
+              "published": "2026-01-05",
+              "snippet": "TruthfulQA Plus provides standardized evaluation of Qwen-3 Next..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:truthfulqa_gpt_5_measures",
+          "source": "benchmark:truthfulqa",
+          "target": "model:gpt_5",
+          "rel": "MEASURES",
+          "kind": "inferred",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:hellaswag_aya_3_measures",
+          "source": "benchmark:hellaswag",
+          "target": "model:aya_3",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.8,
+          "evidence": [
+            {
+              "docId": "2026-01-22_venturebeat_6137",
+              "url": "https://venturebeat.com/2026/01/22/hellaswag_aya_3",
+              "published": "2026-01-22",
+              "snippet": "HellaSwag has become the standard for evaluating Aya 3..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:scale_ai_openai_edge_funded",
+          "source": "org:scale_ai",
+          "target": "org:openai_edge",
+          "rel": "FUNDED",
+          "kind": "asserted",
+          "confidence": 0.71,
+          "evidence": [
+            {
+              "docId": "2026-01-09_meta_ai_blog_4356",
+              "url": "https://ai.meta.com/blog/2026/01/09/scale_ai_openai_edge",
+              "published": "2026-01-09",
+              "snippet": "Scale AI invested $2000M in OpenAI Edge..."
+            },
+            {
+              "docId": "2026-01-14_the_verge_3580",
+              "url": "https://theverge.com/2026/01/14/scale_ai_openai_edge",
+              "published": "2026-01-14",
+              "snippet": "Scale AI led a $1000M investment round for OpenAI Edge..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:claude_opus_45_c4_trained_on",
+          "source": "model:claude_opus_45",
+          "target": "dataset:c4",
+          "rel": "TRAINED_ON",
+          "kind": "asserted",
+          "confidence": 0.82,
+          "evidence": [
+            {
+              "docId": "2026-01-21_techcrunch_1876",
+              "url": "https://techcrunch.com/2026/01/21/claude_opus_45_c4",
+              "published": "2026-01-21",
+              "snippet": "Claude Opus 4.5 was trained on C4 comprising billions of tokens..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:falcon_3_distillation_uses_tech",
+          "source": "model:falcon_3",
+          "target": "tech:distillation",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.74
+        }
+      },
+      {
+        "data": {
+          "id": "e:transformers_qwen_3_ultra_integrates_with",
+          "source": "repo:transformers",
+          "target": "model:qwen_3_ultra",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.91,
+          "evidence": [
+            {
+              "docId": "2026-01-19_langchain_blog_6133",
+              "url": "https://blog.langchain.dev/2026/01/19/transformers_qwen_3_ultra",
+              "published": "2026-01-19",
+              "snippet": "transformers announced official support for Qwen-3 Ultra..."
+            },
+            {
+              "docId": "2026-01-21_mit_technology__6181",
+              "url": "https://technologyreview.com/2026/01/21/transformers_qwen_3_ultra",
+              "published": "2026-01-21",
+              "snippet": "transformers now supports Qwen-3 Ultra with full feature parity..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:mistral_ai_core_ai_in_healthcare_mentions",
+          "source": "org:mistral_ai_core",
+          "target": "topic:ai_in_healthcare",
+          "rel": "MENTIONS",
+          "kind": "inferred",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:transformers_chain_of_thought_uses_tech",
+          "source": "repo:transformers",
+          "target": "tech:chain_of_thought",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.7
+        }
+      },
+      {
+        "data": {
+          "id": "e:roots_flash_attention_core_uses_tech",
+          "source": "dataset:roots",
+          "target": "tech:flash_attention_core",
+          "rel": "USES_TECH",
+          "kind": "hypothesis",
+          "confidence": 0.66
+        }
+      },
+      {
+        "data": {
+          "id": "e:bytedance_ai_edge_scaling_laws_for_neural_language_models__published",
+          "source": "org:bytedance_ai_edge",
+          "target": "paper:scaling_laws_for_neural_language_models_",
+          "rel": "PUBLISHED",
+          "kind": "inferred",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:qwen_3_ultra_stable_diffusion_4_max_depends_on",
+          "source": "model:qwen_3_ultra",
+          "target": "model:stable_diffusion_4_max",
+          "rel": "DEPENDS_ON",
+          "kind": "inferred",
+          "confidence": 0.48
+        }
+      },
+      {
+        "data": {
+          "id": "e:baidu_ai_edge_prompt_engineering_mentions",
+          "source": "org:baidu_ai_edge",
+          "target": "topic:prompt_engineering",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82,
+          "evidence": [
+            {
+              "docId": "2026-01-18_langchain_blog_6173",
+              "url": "https://blog.langchain.dev/2026/01/18/baidu_ai_edge_prompt_engineeri",
+              "published": "2026-01-18",
+              "snippet": "The article discusses Prompt Engineering in the context of recent developments..."
+            },
+            {
+              "docId": "2026-01-20_wired_8433",
+              "url": "https://wired.com/2026/01/20/baidu_ai_edge_prompt_engineeri",
+              "published": "2026-01-20",
+              "snippet": "The article discusses Prompt Engineering in the context of recent developments..."
+            },
+            {
+              "docId": "2026-01-21_mit_technology__5512",
+              "url": "https://technologyreview.com/2026/01/21/baidu_ai_edge_prompt_engineeri",
+              "published": "2026-01-21",
+              "snippet": "The article discusses Prompt Engineering in the context of recent developments..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:jensen_huang_mini_qwen_3_ultra_created",
+          "source": "person:jensen_huang_mini",
+          "target": "model:qwen_3_ultra",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.87,
+          "evidence": [
+            {
+              "docId": "2026-01-14_mit_technology__9541",
+              "url": "https://technologyreview.com/2026/01/14/jensen_huang_mini_qwen_3_ultra",
+              "published": "2026-01-14",
+              "snippet": "Jensen Huang Mini unveiled Qwen-3 Ultra at its annual developer conference..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:llm_agents:_a_survey_flash_attention_core_uses_tech",
+          "source": "paper:llm_agents:_a_survey",
+          "target": "tech:flash_attention_core",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.87,
+          "evidence": [
+            {
+              "docId": "2025-12-28_openai_blog_2892",
+              "url": "https://openai.com/blog/2025/12/28/llm_agents:_a_survey_flash_att",
+              "published": "2025-12-28",
+              "snippet": "Technical details reveal LLM Agents: A Survey relies heavily on Flash Attention Core..."
+            },
+            {
+              "docId": "2026-01-11_mit_technology__1225",
+              "url": "https://technologyreview.com/2026/01/11/llm_agents:_a_survey_flash_att",
+              "published": "2026-01-11",
+              "snippet": "LLM Agents: A Survey leverages Flash Attention Core to achieve state-of-the-art performance..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:gsm8k_gpt_5_measures",
+          "source": "benchmark:gsm8k",
+          "target": "model:gpt_5",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2026-01-03_reuters_4182",
+              "url": "https://reuters.com/technology/2026/01/03/gsm8k_gpt_5",
+              "published": "2026-01-03",
+              "snippet": "GSM8K has become the standard for evaluating GPT-5..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_nvidia_max_acquired",
+          "source": "org:apple_ml",
+          "target": "org:nvidia_max",
+          "rel": "ACQUIRED",
+          "kind": "asserted",
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "docId": "2026-01-09_the_verge_8816",
+              "url": "https://theverge.com/2026/01/09/apple_ml_nvidia_max",
+              "published": "2026-01-09",
+              "snippet": "Apple ML completed its acquisition of Nvidia Max..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:self_play_fine_tuning_for_language_model_stable_diffusion_4_max_evaluated_on",
+          "source": "paper:self_play_fine_tuning_for_language_model",
+          "target": "model:stable_diffusion_4_max",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.71,
+          "evidence": [
+            {
+              "docId": "2026-01-03_techcrunch_4144",
+              "url": "https://techcrunch.com/2026/01/03/self_play_fine_tuning_for_lang",
+              "published": "2026-01-03",
+              "snippet": "Self-Play Fine-Tuning for Language Models achieves 93% on Stable Diffusion 4 Max, setting a new record..."
+            },
+            {
+              "docId": "2026-01-10_openai_blog_9331",
+              "url": "https://openai.com/blog/2026/01/10/self_play_fine_tuning_for_lang",
+              "published": "2026-01-10",
+              "snippet": "Self-Play Fine-Tuning for Language Models achieves 90% on Stable Diffusion 4 Max, setting a new record..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:gpqa_falcon_3_measures",
+          "source": "benchmark:gpqa",
+          "target": "model:falcon_3",
+          "rel": "MEASURES",
+          "kind": "inferred",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_command_r_plus_lite_created",
+          "source": "org:apple_ml",
+          "target": "model:command_r_plus_lite",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "docId": "2026-01-22_mit_technology__7931",
+              "url": "https://technologyreview.com/2026/01/22/apple_ml_command_r_plus_lite",
+              "published": "2026-01-22",
+              "snippet": "The team at Apple ML released Command R+ Lite after months of development..."
+            },
+            {
+              "docId": "2026-01-22_openai_blog_9433",
+              "url": "https://openai.com/blog/2026/01/22/apple_ml_command_r_plus_lite",
+              "published": "2026-01-22",
+              "snippet": "Apple ML unveiled Command R+ Lite at its annual developer conference..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:llm_agents:_a_survey_claude_sonnet_4_lite_evaluated_on",
+          "source": "paper:llm_agents:_a_survey",
+          "target": "model:claude_sonnet_4_lite",
+          "rel": "EVALUATED_ON",
+          "kind": "inferred",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:darpa_ai_programs_prompt_engineering_mentions",
+          "source": "program:darpa_ai_programs",
+          "target": "topic:prompt_engineering",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86,
+          "evidence": [
+            {
+              "docId": "2025-12-25_ars_technica_4689",
+              "url": "https://arstechnica.com/2025/12/25/darpa_ai_programs_prompt_engin",
+              "published": "2025-12-25",
+              "snippet": "The article discusses Prompt Engineering in the context of recent developments..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:bytedance_ai_edge_nvidia_max_partnered_with",
+          "source": "org:bytedance_ai_edge",
+          "target": "org:nvidia_max",
+          "rel": "PARTNERED_WITH",
+          "kind": "asserted",
+          "confidence": 0.65,
+          "evidence": [
+            {
+              "docId": "2026-01-16_nextgov_8877",
+              "url": "https://nextgov.com/2026/01/16/bytedance_ai_edge_nvidia_max",
+              "published": "2026-01-16",
+              "snippet": "ByteDance AI Edge partnered with Nvidia Max to accelerate AI development..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:stability_ai_executive_order_on_ai_safety_pro_complies_with",
+          "source": "org:stability_ai",
+          "target": "program:executive_order_on_ai_safety_pro",
+          "rel": "COMPLIES_WITH",
+          "kind": "asserted",
+          "confidence": 0.85,
+          "evidence": [
+            {
+              "docId": "2026-01-23_reuters_7322",
+              "url": "https://reuters.com/technology/2026/01/23/stability_ai_executive_order_o",
+              "published": "2026-01-23",
+              "snippet": "Stability AI achieved certification under Executive Order on AI Safety Pro..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:copilot_ultra_tokenizer_bpe_uses_tech",
+          "source": "tool:copilot_ultra",
+          "target": "tech:tokenizer_bpe",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:nvidia_max_constitutional_ai:_harmlessness_from_ai__published",
+          "source": "org:nvidia_max",
+          "target": "paper:constitutional_ai:_harmlessness_from_ai_",
+          "rel": "PUBLISHED",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "docId": "2026-01-11_microsoft_resea_9822",
+              "url": "https://microsoft.com/en-us/research/blog/2026/01/11/nvidia_max_constitutional_ai:_",
+              "published": "2026-01-11",
+              "snippet": "Researchers at Nvidia Max released the paper \"Constitutional AI: Harmlessness from AI Feedback\"..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:salesforce_ai_mini_cody_pro_created",
+          "source": "org:salesforce_ai_mini",
+          "target": "tool:cody_pro",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.81,
+          "evidence": [
+            {
+              "docId": "2026-01-24_wired_6585",
+              "url": "https://wired.com/2026/01/24/salesforce_ai_mini_cody_pro",
+              "published": "2026-01-24",
+              "snippet": "The team at Salesforce AI Mini released Cody Pro after months of development..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:direct_preference_optimization_ultra_red_teaming_mini_uses_tech",
+          "source": "paper:direct_preference_optimization_ultra",
+          "target": "tech:red_teaming_mini",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2026-01-10_weights_and_bia_7688",
+              "url": "https://wandb.ai/articles/2026/01/10/direct_preference_optimization",
+              "published": "2026-01-10",
+              "snippet": "Technical details reveal Direct Preference Optimization Ultra relies heavily on Red Teaming Mini..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:arc_agi_falcon_3_measures",
+          "source": "benchmark:arc_agi",
+          "target": "model:falcon_3",
+          "rel": "MEASURES",
+          "kind": "inferred",
+          "confidence": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "e:alpacaeval_2_lite_command_r_plus_lite_measures",
+          "source": "benchmark:alpacaeval_2_lite",
+          "target": "model:command_r_plus_lite",
+          "rel": "MEASURES",
+          "kind": "asserted",
+          "confidence": 0.93,
+          "evidence": [
+            {
+              "docId": "2026-01-19_nvidia_blog_7891",
+              "url": "https://blogs.nvidia.com/2026/01/19/alpacaeval_2_lite_command_r_pl",
+              "published": "2026-01-19",
+              "snippet": "AlpacaEval 2 Lite provides standardized evaluation of Command R+ Lite..."
+            },
+            {
+              "docId": "2026-01-22_bloomberg_6470",
+              "url": "https://bloomberg.com/technology/2026/01/22/alpacaeval_2_lite_command_r_pl",
+              "published": "2026-01-22",
+              "snippet": "The AlpacaEval 2 Lite benchmark measures Command R+ Lite across multiple tasks..."
+            },
+            {
+              "docId": "2026-01-25_bloomberg_4703",
+              "url": "https://bloomberg.com/technology/2026/01/25/alpacaeval_2_lite_command_r_pl",
+              "published": "2026-01-25",
+              "snippet": "AlpacaEval 2 Lite has become the standard for evaluating Command R+ Lite..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:tencent_ai_tencent_ai_core_acquired",
+          "source": "org:tencent_ai",
+          "target": "org:tencent_ai_core",
+          "rel": "ACQUIRED",
+          "kind": "inferred",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:executive_order_on_ai_safety_pro_mistral_ai_next_governs",
+          "source": "program:executive_order_on_ai_safety_pro",
+          "target": "org:mistral_ai_next",
+          "rel": "GOVERNS",
+          "kind": "hypothesis",
+          "confidence": 0.68
+        }
+      },
+      {
+        "data": {
+          "id": "e:qwen_3_ultra_dolma_next_trained_on",
+          "source": "model:qwen_3_ultra",
+          "target": "dataset:dolma_next",
+          "rel": "TRAINED_ON",
+          "kind": "inferred",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:nist_ai_rmf_apple_ml_lite_governs",
+          "source": "program:nist_ai_rmf",
+          "target": "org:apple_ml_lite",
+          "rel": "GOVERNS",
+          "kind": "asserted",
+          "confidence": 0.8,
+          "evidence": [
+            {
+              "docId": "2025-12-17_langchain_blog_8421",
+              "url": "https://blog.langchain.dev/2025/12/17/nist_ai_rmf_apple_ml_lite",
+              "published": "2025-12-17",
+              "snippet": "Under NIST AI RMF, Apple ML Lite must adhere to new standards..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:bytedance_ai_edge_gemini_ultra_2_launched",
+          "source": "org:bytedance_ai_edge",
+          "target": "model:gemini_ultra_2",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "docId": "2026-01-18_techcrunch_7322",
+              "url": "https://techcrunch.com/2026/01/18/bytedance_ai_edge_gemini_ultra",
+              "published": "2026-01-18",
+              "snippet": "After a limited beta, ByteDance AI Edge opened Gemini Ultra 2 to all users..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:phi_4_dolma_next_trained_on",
+          "source": "model:phi_4",
+          "target": "dataset:dolma_next",
+          "rel": "TRAINED_ON",
+          "kind": "inferred",
+          "confidence": 0.53
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_openai_edge_funded",
+          "source": "org:apple_ml",
+          "target": "org:openai_edge",
+          "rel": "FUNDED",
+          "kind": "asserted",
+          "confidence": 0.83,
+          "evidence": [
+            {
+              "docId": "2026-01-25_wired_5322",
+              "url": "https://wired.com/2026/01/25/apple_ml_openai_edge",
+              "published": "2026-01-25",
+              "snippet": "Apple ML invested $50M in OpenAI Edge..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:baidu_ai_edge_mistral_ai_next_acquired",
+          "source": "org:baidu_ai_edge",
+          "target": "org:mistral_ai_next",
+          "rel": "ACQUIRED",
+          "kind": "asserted",
+          "confidence": 0.84,
+          "evidence": [
+            {
+              "docId": "2026-01-22_meta_ai_blog_6116",
+              "url": "https://ai.meta.com/blog/2026/01/22/baidu_ai_edge_mistral_ai_next",
+              "published": "2026-01-22",
+              "snippet": "Mistral AI Next was acquired by Baidu AI Edge for an undisclosed sum..."
+            },
+            {
+              "docId": "2026-01-22_openai_blog_7555",
+              "url": "https://openai.com/blog/2026/01/22/baidu_ai_edge_mistral_ai_next",
+              "published": "2026-01-22",
+              "snippet": "Baidu AI Edge completed its acquisition of Mistral AI Next..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:llm_agents:_a_survey_phi_4_evaluated_on",
+          "source": "paper:llm_agents:_a_survey",
+          "target": "model:phi_4",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.75,
+          "evidence": [
+            {
+              "docId": "2026-01-19_arxiv_4525",
+              "url": "https://arxiv.org/abs/2026/01/19/llm_agents:_a_survey_phi_4",
+              "published": "2026-01-19",
+              "snippet": "LLM Agents: A Survey achieves 94% on Phi-4, setting a new record..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:refinedweb_ultra_speculative_decoding_plus_uses_tech",
+          "source": "dataset:refinedweb_ultra",
+          "target": "tech:speculative_decoding_plus",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.77
+        }
+      },
+      {
+        "data": {
+          "id": "e:stable_diffusion_4_max_openwebtext2_mini_trained_on",
+          "source": "model:stable_diffusion_4_max",
+          "target": "dataset:openwebtext2_mini",
+          "rel": "TRAINED_ON",
+          "kind": "asserted",
+          "confidence": 0.87,
+          "evidence": [
+            {
+              "docId": "2026-01-25_bloomberg_7222",
+              "url": "https://bloomberg.com/technology/2026/01/25/stable_diffusion_4_max_openweb",
+              "published": "2026-01-25",
+              "snippet": "The training corpus for Stable Diffusion 4 Max includes OpenWebText2 Mini..."
+            },
+            {
+              "docId": "2026-01-25_techcrunch_8382",
+              "url": "https://techcrunch.com/2026/01/25/stable_diffusion_4_max_openweb",
+              "published": "2026-01-25",
+              "snippet": "The training corpus for Stable Diffusion 4 Max includes OpenWebText2 Mini..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:salesforce_ai_mini_apple_ml_acquired",
+          "source": "org:salesforce_ai_mini",
+          "target": "org:apple_ml",
+          "rel": "ACQUIRED",
+          "kind": "asserted",
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "docId": "2026-01-19_bloomberg_8514",
+              "url": "https://bloomberg.com/technology/2026/01/19/salesforce_ai_mini_apple_ml",
+              "published": "2026-01-19",
+              "snippet": "Salesforce AI Mini announced the acquisition of Apple ML..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:llamacpp_lite_command_r_plus_lite_integrates_with",
+          "source": "repo:llamacpp_lite",
+          "target": "model:command_r_plus_lite",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2026-01-20_techcrunch_7246",
+              "url": "https://techcrunch.com/2026/01/20/llamacpp_lite_command_r_plus_l",
+              "published": "2026-01-20",
+              "snippet": "llama.cpp Lite now supports Command R+ Lite with full feature parity..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_falcon_3_v2_launched",
+          "source": "org:apple_ml",
+          "target": "model:falcon_3_v2",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "docId": "2026-01-22_openai_blog_4074",
+              "url": "https://openai.com/blog/2026/01/22/apple_ml_falcon_3_v2",
+              "published": "2026-01-22",
+              "snippet": "After a limited beta, Apple ML opened Falcon 3 v2 to all users..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:localai_gguf_uses_tech",
+          "source": "repo:localai",
+          "target": "tech:gguf",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.69
+        }
+      },
+      {
+        "data": {
+          "id": "e:bytedance_ai_edge_attention_is_all_you_need_v2_v2_published",
+          "source": "org:bytedance_ai_edge",
+          "target": "paper:attention_is_all_you_need_v2_v2",
+          "rel": "PUBLISHED",
+          "kind": "inferred",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:gemma_3_lite_gsm8k_evaluated_on",
+          "source": "model:gemma_3_lite",
+          "target": "benchmark:gsm8k",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "docId": "2026-01-25_ars_technica_1529",
+              "url": "https://arstechnica.com/2026/01/25/gemma_3_lite_gsm8k",
+              "published": "2026-01-25",
+              "snippet": "Gemma 3 Lite achieves 99% on GSM8K, setting a new record..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nvidia_max_amazon_aws_funded",
+          "source": "org:nvidia_max",
+          "target": "org:amazon_aws",
+          "rel": "FUNDED",
+          "kind": "asserted",
+          "confidence": 0.84,
+          "evidence": [
+            {
+              "docId": "2026-01-14_mit_technology__9589",
+              "url": "https://technologyreview.com/2026/01/14/nvidia_max_amazon_aws",
+              "published": "2026-01-14",
+              "snippet": "Nvidia Max led a $50M investment round for Amazon AWS..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:roots_group_query_attention_v2_uses_tech",
+          "source": "dataset:roots",
+          "target": "tech:group_query_attention_v2",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.74
+        }
+      },
+      {
+        "data": {
+          "id": "e:meta_ai_mini_amazon_aws_funded",
+          "source": "org:meta_ai_mini",
+          "target": "org:amazon_aws",
+          "rel": "FUNDED",
+          "kind": "asserted",
+          "confidence": 0.74,
+          "evidence": [
+            {
+              "docId": "2026-01-22_ars_technica_4216",
+              "url": "https://arstechnica.com/2026/01/22/meta_ai_mini_amazon_aws",
+              "published": "2026-01-22",
+              "snippet": "Amazon AWS received funding from Meta AI Mini in its latest round..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:streamlit_pro_tokenizer_bpe_next_uses_tech",
+          "source": "tool:streamlit_pro",
+          "target": "tech:tokenizer_bpe_next",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.81,
+          "evidence": [
+            {
+              "docId": "2026-01-06_nvidia_blog_4843",
+              "url": "https://blogs.nvidia.com/2026/01/06/streamlit_pro_tokenizer_bpe_ne",
+              "published": "2026-01-06",
+              "snippet": "Streamlit Pro leverages Tokenizer BPE Next to achieve state-of-the-art performance..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:darpa_ai_programs_ai_agents_mini_mentions",
+          "source": "program:darpa_ai_programs",
+          "target": "topic:ai_agents_mini",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86,
+          "evidence": [
+            {
+              "docId": "2026-01-17_mit_technology__4741",
+              "url": "https://technologyreview.com/2026/01/17/darpa_ai_programs_ai_agents_mi",
+              "published": "2026-01-17",
+              "snippet": "AI Agents Mini was mentioned as a key factor in the analysis..."
+            },
+            {
+              "docId": "2026-01-20_bloomberg_1230",
+              "url": "https://bloomberg.com/technology/2026/01/20/darpa_ai_programs_ai_agents_mi",
+              "published": "2026-01-20",
+              "snippet": "The article discusses AI Agents Mini in the context of recent developments..."
+            },
+            {
+              "docId": "2026-01-25_meta_ai_blog_3294",
+              "url": "https://ai.meta.com/blog/2026/01/25/darpa_ai_programs_ai_agents_mi",
+              "published": "2026-01-25",
+              "snippet": "The article discusses AI Agents Mini in the context of recent developments..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:baidu_ai_edge_apple_ml_lite_partnered_with",
+          "source": "org:baidu_ai_edge",
+          "target": "org:apple_ml_lite",
+          "rel": "PARTNERED_WITH",
+          "kind": "asserted",
+          "confidence": 0.75,
+          "evidence": [
+            {
+              "docId": "2025-12-10_google_ai_blog_3341",
+              "url": "https://blog.google/technology/ai/2025/12/10/baidu_ai_edge_apple_ml_lite",
+              "published": "2025-12-10",
+              "snippet": "A new collaboration between Baidu AI Edge and Apple ML Lite aims to..."
+            },
+            {
+              "docId": "2025-12-23_microsoft_resea_8870",
+              "url": "https://microsoft.com/en-us/research/blog/2025/12/23/baidu_ai_edge_apple_ml_lite",
+              "published": "2025-12-23",
+              "snippet": "A new collaboration between Baidu AI Edge and Apple ML Lite aims to..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:localai_claude_opus_45_integrates_with",
+          "source": "repo:localai",
+          "target": "model:claude_opus_45",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "docId": "2026-01-15_meta_ai_blog_2107",
+              "url": "https://ai.meta.com/blog/2026/01/15/localai_claude_opus_45",
+              "published": "2026-01-15",
+              "snippet": "LocalAI announced official support for Claude Opus 4.5..."
+            },
+            {
+              "docId": "2026-01-23_wired_6856",
+              "url": "https://wired.com/2026/01/23/localai_claude_opus_45",
+              "published": "2026-01-23",
+              "snippet": "The latest release of LocalAI adds native Claude Opus 4.5 integration..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_attention_is_all_you_need_v2_v2_published",
+          "source": "org:apple_ml",
+          "target": "paper:attention_is_all_you_need_v2_v2",
+          "rel": "PUBLISHED",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "docId": "2025-12-31_hugging_face_bl_8016",
+              "url": "https://huggingface.co/blog/2025/12/31/apple_ml_attention_is_all_you_",
+              "published": "2025-12-31",
+              "snippet": "Apple ML released \"Attention Is All You Need v2 v2\" on arXiv..."
+            },
+            {
+              "docId": "2026-01-17_weights_and_bia_8308",
+              "url": "https://wandb.ai/articles/2026/01/17/apple_ml_attention_is_all_you_",
+              "published": "2026-01-17",
+              "snippet": "Apple ML published \"Attention Is All You Need v2 v2\" detailing novel approaches..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nvidia_max_meta_ai_mini_partnered_with",
+          "source": "org:nvidia_max",
+          "target": "org:meta_ai_mini",
+          "rel": "PARTNERED_WITH",
+          "kind": "asserted",
+          "confidence": 0.89,
+          "evidence": [
+            {
+              "docId": "2026-01-19_openai_blog_1165",
+              "url": "https://openai.com/blog/2026/01/19/nvidia_max_meta_ai_mini",
+              "published": "2026-01-19",
+              "snippet": "A new collaboration between Nvidia Max and Meta AI Mini aims to..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:baidu_ai_edge_darpa_ai_programs_complies_with",
+          "source": "org:baidu_ai_edge",
+          "target": "program:darpa_ai_programs",
+          "rel": "COMPLIES_WITH",
+          "kind": "asserted",
+          "confidence": 0.7,
+          "evidence": [
+            {
+              "docId": "2026-01-22_mit_technology__7508",
+              "url": "https://technologyreview.com/2026/01/22/baidu_ai_edge_darpa_ai_program",
+              "published": "2026-01-22",
+              "snippet": "Baidu AI Edge achieved certification under DARPA AI Programs..."
+            },
+            {
+              "docId": "2026-01-25_mit_technology__3208",
+              "url": "https://technologyreview.com/2026/01/25/baidu_ai_edge_darpa_ai_program",
+              "published": "2026-01-25",
+              "snippet": "Baidu AI Edge achieved certification under DARPA AI Programs..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apple_ml_stability_ai_funded",
+          "source": "org:apple_ml",
+          "target": "org:stability_ai",
+          "rel": "FUNDED",
+          "kind": "asserted",
+          "confidence": 0.72,
+          "evidence": [
+            {
+              "docId": "2026-01-25_meta_ai_blog_4952",
+              "url": "https://ai.meta.com/blog/2026/01/25/apple_ml_stability_ai",
+              "published": "2026-01-25",
+              "snippet": "Apple ML led a $150M investment round for Stability AI..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:weights_and_biases_plus_cody_pro_integrates_with",
+          "source": "tool:weights_and_biases_plus",
+          "target": "tool:cody_pro",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.85,
+          "evidence": [
+            {
+              "docId": "2026-01-23_venturebeat_7985",
+              "url": "https://venturebeat.com/2026/01/23/weights_and_biases_plus_cody_p",
+              "published": "2026-01-23",
+              "snippet": "Weights & Biases Plus now supports Cody Pro with full feature parity..."
+            },
+            {
+              "docId": "2026-01-25_arxiv_3887",
+              "url": "https://arxiv.org/abs/2026/01/25/weights_and_biases_plus_cody_p",
+              "published": "2026-01-25",
+              "snippet": "Weights & Biases Plus now supports Cody Pro with full feature parity..."
+            },
+            {
+              "docId": "2026-01-25_hugging_face_bl_9343",
+              "url": "https://huggingface.co/blog/2026/01/25/weights_and_biases_plus_cody_p",
+              "published": "2026-01-25",
+              "snippet": "The latest release of Weights & Biases Plus adds native Cody Pro integration..."
+            },
+            {
+              "docId": "2026-01-25_techcrunch_3967",
+              "url": "https://techcrunch.com/2026/01/25/weights_and_biases_plus_cody_p",
+              "published": "2026-01-25",
+              "snippet": "Weights & Biases Plus announced official support for Cody Pro..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:tencent_ai_scaling_laws_for_neural_language_models__published",
+          "source": "org:tencent_ai",
+          "target": "paper:scaling_laws_for_neural_language_models_",
+          "rel": "PUBLISHED",
+          "kind": "inferred",
+          "confidence": 0.9
+        }
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@
   <title>AI Trend Graph</title>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=3">
+  <link rel="stylesheet" href="css/main.css?v=4">
 </head>
 <body>
   <!-- Screen reader announcements -->
@@ -35,6 +35,17 @@
         </div>
 
         <div class="toolbar-group">
+          <label for="tier-selector">Data:</label>
+          <select id="tier-selector">
+            <option value="latest">Original (~15)</option>
+            <option value="small">Small (~15)</option>
+            <option value="medium" selected>Medium (~150)</option>
+            <option value="large">Large (~500)</option>
+            <option value="stress">Stress (~2000)</option>
+          </select>
+        </div>
+
+        <div class="toolbar-group">
           <label for="date-selector">Date:</label>
           <select id="date-selector">
             <!-- Populated dynamically -->
@@ -58,6 +69,7 @@
       </div>
 
       <div class="toolbar-right">
+        <span id="graph-stats" class="toolbar-stats"></span>
         <button id="btn-zoom-in" class="btn-icon" title="Zoom in">+</button>
         <button id="btn-zoom-out" class="btn-icon" title="Zoom out">&minus;</button>
         <button id="btn-fit" class="btn-icon" title="Fit to view">&#x2B1C;</button>
@@ -186,6 +198,6 @@
   <script src="js/tooltips.js?v=2"></script>
   <script src="js/layout.js?v=2"></script>
   <script src="js/graph.js?v=2"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>
