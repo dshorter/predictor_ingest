@@ -83,12 +83,36 @@
       },
       {
         "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-31"
+        }
+      },
+      {
+        "data": {
           "id": "paper:attention_is_all_you_need_v2",
           "label": "Attention Is All You Need v2",
           "type": "Paper",
           "aliases": [],
           "firstSeen": "2026-01-14",
           "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-15"
         }
       },
       {
@@ -125,30 +149,6 @@
           ],
           "firstSeen": "2025-11-03",
           "lastSeen": "2026-01-19"
-        }
-      },
-      {
-        "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-15"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:mixture_of_experts",
-          "label": "Mixture of Experts",
-          "type": "Tech",
-          "aliases": [
-            "MoE"
-          ],
-          "firstSeen": "2025-11-14",
-          "lastSeen": "2025-12-31"
         }
       }
     ],

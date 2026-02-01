@@ -2513,693 +2513,12 @@
       },
       {
         "data": {
-          "id": "org:samsung_ai_core",
-          "label": "Samsung AI Core",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2025-11-29"
-        }
-      },
-      {
-        "data": {
-          "id": "model:aya_3",
-          "label": "Aya 3",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-21",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "org:meta_ai_ultra",
-          "label": "Meta AI Ultra",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-08",
-          "lastSeen": "2025-12-30"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:synthetic_data_generation",
-          "label": "Synthetic Data Generation",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-10-27",
-          "lastSeen": "2026-01-12"
-        }
-      },
-      {
-        "data": {
-          "id": "person:aidan_gomez",
-          "label": "Aidan Gomez",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-14",
-          "lastSeen": "2026-01-02"
-        }
-      },
-      {
-        "data": {
-          "id": "org:microsoft_research_v2",
-          "label": "Microsoft Research v2",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-21",
-          "lastSeen": "2026-01-20"
-        }
-      },
-      {
-        "data": {
-          "id": "model:jamba_2_edge",
-          "label": "Jamba 2 Edge",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-12",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "repo:text_generation_webui",
-          "label": "text-generation-webui",
-          "type": "Repo",
-          "aliases": [
-            "oobabooga"
-          ],
-          "firstSeen": "2025-11-07",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:rlhf_mini",
-          "label": "RLHF Mini",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-12-25",
-          "lastSeen": "2025-12-28"
-        }
-      },
-      {
-        "data": {
-          "id": "org:hugging_face_max",
-          "label": "Hugging Face Max",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-07",
-          "lastSeen": "2025-12-11"
-        }
-      },
-      {
-        "data": {
-          "id": "person:percy_liang",
-          "label": "Percy Liang",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-10",
-          "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "org:character_ai_plus",
-          "label": "Character AI Plus",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-18",
-          "lastSeen": "2026-01-11"
-        }
-      },
-      {
-        "data": {
-          "id": "model:sora_2",
-          "label": "Sora 2",
-          "type": "Model",
-          "aliases": [
-            "Sora V2"
-          ],
-          "firstSeen": "2026-01-17",
-          "lastSeen": "2026-01-18"
-        }
-      },
-      {
-        "data": {
-          "id": "org:inflection_ai",
-          "label": "Inflection AI",
-          "type": "Org",
-          "aliases": [
-            "Inflection"
-          ],
-          "firstSeen": "2026-01-16",
-          "lastSeen": "2026-01-19"
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:lmsys_chatbot_arena",
-          "label": "LMSYS Chatbot Arena",
-          "type": "Benchmark",
-          "aliases": [
-            "Chatbot Arena"
-          ],
-          "firstSeen": "2025-12-09",
-          "lastSeen": "2025-12-10"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:explainable_ai",
-          "label": "Explainable AI",
-          "type": "Topic",
-          "aliases": [
-            "XAI"
-          ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-10-30"
-        }
-      },
-      {
-        "data": {
-          "id": "model:dall_e_4",
-          "label": "DALL-E 4",
-          "type": "Model",
-          "aliases": [
-            "DALLE 4"
-          ],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-20"
-        }
-      },
-      {
-        "data": {
-          "id": "model:jamba_2_lite",
-          "label": "Jamba 2 Lite",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-12-20",
-          "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "org:apple_ml_pro",
-          "label": "Apple ML Pro",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-15",
-          "lastSeen": "2026-01-05"
-        }
-      },
-      {
-        "data": {
-          "id": "model:codex_2_ultra",
-          "label": "Codex 2 Ultra",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-06",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:llamaindex_core",
-          "label": "LlamaIndex Core",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2026-01-15"
-        }
-      },
-      {
-        "data": {
           "id": "org:stability_ai_edge",
           "label": "Stability AI Edge",
           "type": "Org",
           "aliases": [],
           "firstSeen": "2026-01-03",
           "lastSeen": "2026-01-13"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:transformer_architecture_edge",
-          "label": "Transformer Architecture Edge",
-          "type": "Tech",
-          "aliases": [],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2025-12-08"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:scaling_data_constrained_language_models",
-          "label": "Scaling Data-Constrained Language Models",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-21"
-        }
-      },
-      {
-        "data": {
-          "id": "org:databricks_ultra",
-          "label": "Databricks Ultra",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-03",
-          "lastSeen": "2025-12-13"
-        }
-      },
-      {
-        "data": {
-          "id": "org:tencent_ai",
-          "label": "Tencent AI",
-          "type": "Org",
-          "aliases": [
-            "Tencent"
-          ],
-          "firstSeen": "2026-01-07",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "org:runway_ml",
-          "label": "Runway ML",
-          "type": "Org",
-          "aliases": [
-            "Runway"
-          ],
-          "firstSeen": "2025-12-05",
-          "lastSeen": "2026-01-04"
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:the_stack_v2_ultra",
-          "label": "The Stack v2 Ultra",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2025-12-03"
-        }
-      },
-      {
-        "data": {
-          "id": "org:mistral_ai_next",
-          "label": "Mistral AI Next",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-20",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "model:deepseek_v3_edge",
-          "label": "DeepSeek-V3 Edge",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2026-01-20"
-        }
-      },
-      {
-        "data": {
-          "id": "model:falcon_3_v2",
-          "label": "Falcon 3 v2",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-06",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:direct_preference_optimization_ultra",
-          "label": "Direct Preference Optimization Ultra",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-03",
-          "lastSeen": "2026-01-17"
-        }
-      },
-      {
-        "data": {
-          "id": "program:executive_order_on_ai_safety_pro",
-          "label": "Executive Order on AI Safety Pro",
-          "type": "Program",
-          "aliases": [],
-          "firstSeen": "2026-01-12",
-          "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:vllm_edge",
-          "label": "vLLM Edge",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-15",
-          "lastSeen": "2026-01-17"
-        }
-      },
-      {
-        "data": {
-          "id": "org:salesforce_ai",
-          "label": "Salesforce AI",
-          "type": "Org",
-          "aliases": [
-            "Salesforce Research"
-          ],
-          "firstSeen": "2026-01-04",
-          "lastSeen": "2026-01-05"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:quantization",
-          "label": "Quantization",
-          "type": "Tech",
-          "aliases": [
-            "GPTQ",
-            "AWQ"
-          ],
-          "firstSeen": "2025-12-31",
-          "lastSeen": "2026-01-18"
-        }
-      },
-      {
-        "data": {
-          "id": "model:qwen_3_next",
-          "label": "Qwen-3 Next",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "model:gemini_ultra_2_edge",
-          "label": "Gemini Ultra 2 Edge",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-07",
-          "lastSeen": "2026-01-19"
-        }
-      },
-      {
-        "data": {
-          "id": "program:executive_order_on_ai_safety",
-          "label": "Executive Order on AI Safety",
-          "type": "Program",
-          "aliases": [
-            "Biden AI EO"
-          ],
-          "firstSeen": "2025-11-11",
-          "lastSeen": "2026-01-13"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:tree_of_thoughts:_deliberate_problem_sol",
-          "label": "Tree of Thoughts: Deliberate Problem Solving with LLMs",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-12-01",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "org:scale_ai_plus",
-          "label": "Scale AI Plus",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-23",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "model:whisper_v4",
-          "label": "Whisper v4",
-          "type": "Model",
-          "aliases": [
-            "Whisper V4"
-          ],
-          "firstSeen": "2026-01-23",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:synthetic_media_max",
-          "label": "Synthetic Media Max",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-11-17",
-          "lastSeen": "2025-11-17"
-        }
-      },
-      {
-        "data": {
-          "id": "org:anthropic_max",
-          "label": "Anthropic Max",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-16",
-          "lastSeen": "2026-01-14"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_energy_consumption_v2",
-          "label": "AI Energy Consumption v2",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-11-05",
-          "lastSeen": "2026-01-02"
-        }
-      },
-      {
-        "data": {
-          "id": "model:gemma_3_lite",
-          "label": "Gemma 3 Lite",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-08",
-          "lastSeen": "2026-01-15"
-        }
-      },
-      {
-        "data": {
-          "id": "person:yi_tay",
-          "label": "Yi Tay",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2026-01-07",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "model:command_r_plus_ultra",
-          "label": "Command R+ Ultra",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-14",
-          "lastSeen": "2025-11-14"
-        }
-      },
-      {
-        "data": {
-          "id": "model:yi_large",
-          "label": "Yi-Large",
-          "type": "Model",
-          "aliases": [
-            "Yi Large"
-          ],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2026-01-01"
-        }
-      },
-      {
-        "data": {
-          "id": "org:bytedance_ai_edge",
-          "label": "ByteDance AI Edge",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-05",
-          "lastSeen": "2026-01-07"
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:hellaswag",
-          "label": "HellaSwag",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2025-12-04",
-          "lastSeen": "2026-01-18"
-        }
-      },
-      {
-        "data": {
-          "id": "org:nvidia_max",
-          "label": "Nvidia Max",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-01",
-          "lastSeen": "2026-01-21"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_ethics",
-          "label": "AI Ethics",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2025-11-20"
-        }
-      },
-      {
-        "data": {
-          "id": "org:anthropic",
-          "label": "Anthropic",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-05",
-          "lastSeen": "2025-12-25"
-        }
-      },
-      {
-        "data": {
-          "id": "org:apple_ml",
-          "label": "Apple ML",
-          "type": "Org",
-          "aliases": [
-            "Apple Machine Learning"
-          ],
-          "firstSeen": "2025-11-26",
-          "lastSeen": "2025-12-24"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:transformer_architecture",
-          "label": "Transformer Architecture",
-          "type": "Tech",
-          "aliases": [
-            "Transformers"
-          ],
-          "firstSeen": "2026-01-01",
-          "lastSeen": "2026-01-09"
-        }
-      },
-      {
-        "data": {
-          "id": "model:dall_e_4_plus",
-          "label": "DALL-E 4 Plus",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2025-12-10"
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:arc_agi_lite",
-          "label": "ARC-AGI Lite",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2026-01-13",
-          "lastSeen": "2026-01-25"
-        }
-      },
-      {
-        "data": {
-          "id": "org:midjourney_next",
-          "label": "Midjourney Next",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-12",
-          "lastSeen": "2025-12-11"
-        }
-      },
-      {
-        "data": {
-          "id": "org:anthropic_v2",
-          "label": "Anthropic v2",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-07",
-          "lastSeen": "2026-01-20"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:self_play_fine_tuning_for_language_model",
-          "label": "Self-Play Fine-Tuning for Language Models",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-11-18",
-          "lastSeen": "2026-01-21"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:chain_of_thought_prompting_elicits_reaso",
-          "label": "Chain-of-Thought Prompting Elicits Reasoning",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-12-20",
-          "lastSeen": "2025-12-27"
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_sonnet_4_lite",
-          "label": "Claude Sonnet 4 Lite",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-09",
-          "lastSeen": "2025-12-03"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:tensorrt_llm_next",
-          "label": "TensorRT-LLM Next",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2026-01-08",
-          "lastSeen": "2026-01-15"
-        }
-      },
-      {
-        "data": {
-          "id": "program:nsf_ai_research_institutes",
-          "label": "NSF AI Research Institutes",
-          "type": "Program",
-          "aliases": [],
-          "firstSeen": "2025-11-10",
-          "lastSeen": "2026-01-14"
-        }
-      },
-      {
-        "data": {
-          "id": "model:phi_4_ultra",
-          "label": "Phi-4 Ultra",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-16",
-          "lastSeen": "2025-11-26"
         }
       },
       {
@@ -3214,108 +2533,167 @@
       },
       {
         "data": {
-          "id": "paper:llm_agents:_a_survey",
-          "label": "LLM Agents: A Survey",
-          "type": "Paper",
+          "id": "topic:responsible_ai",
+          "label": "Responsible AI",
+          "type": "Topic",
           "aliases": [],
-          "firstSeen": "2025-11-09",
+          "firstSeen": "2025-12-08",
           "lastSeen": "2026-01-22"
         }
       },
       {
         "data": {
-          "id": "tool:cody_pro",
-          "label": "Cody Pro",
-          "type": "Tool",
+          "id": "paper:textbooks_are_all_you_need",
+          "label": "Textbooks Are All You Need",
+          "type": "Paper",
           "aliases": [],
-          "firstSeen": "2026-01-22",
+          "firstSeen": "2026-01-25",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "program:darpa_ai_programs",
+          "label": "DARPA AI Programs",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2025-11-30",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "model:midjourney_v7",
+          "label": "Midjourney V7",
+          "type": "Model",
+          "aliases": [
+            "MJ V7"
+          ],
+          "firstSeen": "2025-11-23",
+          "lastSeen": "2026-01-12"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_data_constrained_language_models",
+          "label": "Scaling Data-Constrained Language Models",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "model:qwen_3",
+          "label": "Qwen-3",
+          "type": "Model",
+          "aliases": [
+            "Qwen3",
+            "Qwen 3"
+          ],
+          "firstSeen": "2025-11-10",
+          "lastSeen": "2025-12-06"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:synthetic_data_generation",
+          "label": "Synthetic Data Generation",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2026-01-12"
+        }
+      },
+      {
+        "data": {
+          "id": "model:codex_2_ultra",
+          "label": "Codex 2 Ultra",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-06",
           "lastSeen": "2026-01-24"
         }
       },
       {
         "data": {
-          "id": "org:stability_ai",
-          "label": "Stability AI",
-          "type": "Org",
-          "aliases": [
-            "Stability"
-          ],
-          "firstSeen": "2025-10-30",
-          "lastSeen": "2025-11-02"
-        }
-      },
-      {
-        "data": {
-          "id": "model:mixtral_8x22b_edge",
-          "label": "Mixtral 8x22B Edge",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-15",
-          "lastSeen": "2025-11-23"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:mixture_of_experts_meets_instruction_tun",
-          "label": "Mixture of Experts Meets Instruction Tuning",
+          "id": "paper:llm_agents:_a_survey_pro",
+          "label": "LLM Agents: A Survey Pro",
           "type": "Paper",
           "aliases": [],
-          "firstSeen": "2025-12-08",
-          "lastSeen": "2026-01-01"
+          "firstSeen": "2025-11-02",
+          "lastSeen": "2025-12-28"
         }
       },
       {
         "data": {
-          "id": "dataset:fineweb",
-          "label": "FineWeb",
-          "type": "Dataset",
+          "id": "org:salesforce_ai_mini",
+          "label": "Salesforce AI Mini",
+          "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-12-31",
+          "firstSeen": "2025-11-27",
+          "lastSeen": "2025-12-17"
+        }
+      },
+      {
+        "data": {
+          "id": "org:hugging_face_max",
+          "label": "Hugging Face Max",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-07",
+          "lastSeen": "2025-12-11"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_agents_mini",
+          "label": "AI Agents Mini",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
           "lastSeen": "2026-01-17"
         }
       },
       {
         "data": {
-          "id": "org:cohere_pro",
-          "label": "Cohere Pro",
-          "type": "Org",
+          "id": "model:aya_3",
+          "label": "Aya 3",
+          "type": "Model",
           "aliases": [],
-          "firstSeen": "2026-01-05",
-          "lastSeen": "2026-01-11"
+          "firstSeen": "2026-01-21",
+          "lastSeen": "2026-01-24"
         }
       },
       {
         "data": {
-          "id": "org:adept_ai",
-          "label": "Adept AI",
-          "type": "Org",
-          "aliases": [
-            "Adept"
-          ],
-          "firstSeen": "2025-12-09",
-          "lastSeen": "2025-12-29"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:sparse_attention_lite",
-          "label": "Sparse Attention Lite",
-          "type": "Tech",
+          "id": "paper:tree_of_thoughts:_deliberate_problem_sol",
+          "label": "Tree of Thoughts: Deliberate Problem Solving with LLMs",
+          "type": "Paper",
           "aliases": [],
-          "firstSeen": "2025-11-17",
-          "lastSeen": "2025-11-29"
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-06"
         }
       },
       {
         "data": {
-          "id": "benchmark:swe_bench",
-          "label": "SWE-bench",
-          "type": "Benchmark",
-          "aliases": [
-            "SWE Bench"
-          ],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2026-01-09"
+          "id": "paper:chain_of_thought_prompting_elicits_reaso",
+          "label": "Chain-of-Thought Prompting Elicits Reasoning",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-20",
+          "lastSeen": "2025-12-27"
+        }
+      },
+      {
+        "data": {
+          "id": "model:whisper_v4_v2",
+          "label": "Whisper v4 v2",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-24"
         }
       },
       {
@@ -3332,24 +2710,154 @@
       },
       {
         "data": {
-          "id": "tech:rotary_position_embedding",
-          "label": "Rotary Position Embedding",
-          "type": "Tech",
-          "aliases": [
-            "RoPE"
-          ],
-          "firstSeen": "2025-12-28",
-          "lastSeen": "2026-01-03"
+          "id": "program:executive_order_on_ai_safety_pro",
+          "label": "Executive Order on AI Safety Pro",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2026-01-12",
+          "lastSeen": "2026-01-22"
         }
       },
       {
         "data": {
-          "id": "tool:semantic_kernel",
-          "label": "Semantic Kernel",
+          "id": "model:dall_e_4_lite",
+          "label": "DALL-E 4 Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "model:jamba_2_lite",
+          "label": "Jamba 2 Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-12-20",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:streamlit",
+          "label": "Streamlit",
           "type": "Tool",
           "aliases": [],
-          "firstSeen": "2025-10-25",
-          "lastSeen": "2025-11-08"
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-16"
+        }
+      },
+      {
+        "data": {
+          "id": "org:google_deepmind_mini",
+          "label": "Google DeepMind Mini",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "person:chris_olah_v2",
+          "label": "Chris Olah v2",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-30",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "org:databricks_ultra",
+          "label": "Databricks Ultra",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-03",
+          "lastSeen": "2025-12-13"
+        }
+      },
+      {
+        "data": {
+          "id": "model:command_r_plus_lite",
+          "label": "Command R+ Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-17",
+          "lastSeen": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "model:yi_large",
+          "label": "Yi-Large",
+          "type": "Model",
+          "aliases": [
+            "Yi Large"
+          ],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2026-01-01"
+        }
+      },
+      {
+        "data": {
+          "id": "org:alibaba_damo_max",
+          "label": "Alibaba DAMO Max",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-15",
+          "lastSeen": "2025-12-15"
+        }
+      },
+      {
+        "data": {
+          "id": "model:aya_3_v2",
+          "label": "Aya 3 v2",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2025-12-27"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:rlhf_mini",
+          "label": "RLHF Mini",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-12-25",
+          "lastSeen": "2025-12-28"
+        }
+      },
+      {
+        "data": {
+          "id": "org:stability_ai_lite",
+          "label": "Stability AI Lite",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "model:palm_3_ultra",
+          "label": "PaLM 3 Ultra",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-29",
+          "lastSeen": "2025-12-15"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:tensorrt_llm_next",
+          "label": "TensorRT-LLM Next",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-08",
+          "lastSeen": "2026-01-15"
         }
       },
       {
@@ -3366,248 +2874,34 @@
       },
       {
         "data": {
-          "id": "org:baidu_ai_edge",
-          "label": "Baidu AI Edge",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-23",
-          "lastSeen": "2026-01-19"
-        }
-      },
-      {
-        "data": {
-          "id": "person:jan_leike_next",
-          "label": "Jan Leike Next",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2025-11-29"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:responsible_ai_edge",
-          "label": "Responsible AI Edge",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-11-11",
-          "lastSeen": "2025-11-28"
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:lmsys_chatbot_arena_lite",
-          "label": "LMSYS Chatbot Arena Lite",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2026-01-05",
-          "lastSeen": "2026-01-21"
-        }
-      },
-      {
-        "data": {
-          "id": "model:command_r_plus_lite",
-          "label": "Command R+ Lite",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-17",
-          "lastSeen": "2026-01-19"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:retrieval_augmented_generation_for_knowl",
-          "label": "Retrieval-Augmented Generation for Knowledge-Intensive NLP",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2025-12-25"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:cursor",
-          "label": "Cursor",
+          "id": "tool:cody_pro",
+          "label": "Cody Pro",
           "type": "Tool",
           "aliases": [],
-          "firstSeen": "2025-11-18",
-          "lastSeen": "2025-11-24"
+          "firstSeen": "2026-01-22",
+          "lastSeen": "2026-01-24"
         }
       },
       {
         "data": {
-          "id": "model:palm_3_ultra",
-          "label": "PaLM 3 Ultra",
+          "id": "model:gemma_3_lite",
+          "label": "Gemma 3 Lite",
           "type": "Model",
           "aliases": [],
-          "firstSeen": "2025-11-29",
-          "lastSeen": "2025-12-15"
+          "firstSeen": "2026-01-08",
+          "lastSeen": "2026-01-15"
         }
       },
       {
         "data": {
-          "id": "org:01ai",
-          "label": "01.AI",
+          "id": "org:stability_ai",
+          "label": "Stability AI",
           "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-07",
-          "lastSeen": "2026-01-10"
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:gpqa",
-          "label": "GPQA",
-          "type": "Benchmark",
           "aliases": [
-            "Graduate-Level Google-Proof QA"
+            "Stability"
           ],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2026-01-02"
-        }
-      },
-      {
-        "data": {
-          "id": "program:eu_ai_act_next",
-          "label": "EU AI Act Next",
-          "type": "Program",
-          "aliases": [],
-          "firstSeen": "2026-01-01",
-          "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_opus_45_edge",
-          "label": "Claude Opus 4.5 Edge",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2025-12-18"
-        }
-      },
-      {
-        "data": {
-          "id": "model:aya_3_v2",
-          "label": "Aya 3 v2",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-10-26",
-          "lastSeen": "2025-12-27"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_regulation_max",
-          "label": "AI Regulation Max",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2026-01-10",
-          "lastSeen": "2026-01-21"
-        }
-      },
-      {
-        "data": {
-          "id": "org:stability_ai_lite",
-          "label": "Stability AI Lite",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-05",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "person:daniela_amodei_max",
-          "label": "Daniela Amodei Max",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-03",
-          "lastSeen": "2026-01-25"
-        }
-      },
-      {
-        "data": {
-          "id": "program:eu_ai_act",
-          "label": "EU AI Act",
-          "type": "Program",
-          "aliases": [
-            "AI Act"
-          ],
-          "firstSeen": "2026-01-16",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_copyright",
-          "label": "AI Copyright",
-          "type": "Topic",
-          "aliases": [
-            "AI and IP"
-          ],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2026-01-17"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:prompt_engineering",
-          "label": "Prompt Engineering",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-12-10",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "person:fei_fei_li_plus",
-          "label": "Fei-Fei Li Plus",
-          "type": "Person",
-          "aliases": [],
           "firstSeen": "2025-10-30",
-          "lastSeen": "2025-12-30"
-        }
-      },
-      {
-        "data": {
-          "id": "model:llama_4_max",
-          "label": "Llama 4 Max",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-01",
-          "lastSeen": "2026-01-14"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:streamlit",
-          "label": "Streamlit",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2025-12-24",
-          "lastSeen": "2026-01-16"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:responsible_ai",
-          "label": "Responsible AI",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-12-08",
-          "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "person:sam_altman",
-          "label": "Sam Altman",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-24",
-          "lastSeen": "2025-12-22"
+          "lastSeen": "2025-11-02"
         }
       },
       {
@@ -3618,6 +2912,142 @@
           "aliases": [],
           "firstSeen": "2025-12-18",
           "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "program:nist_ai_rmf",
+          "label": "NIST AI RMF",
+          "type": "Program",
+          "aliases": [
+            "AI Risk Management Framework"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-07"
+        }
+      },
+      {
+        "data": {
+          "id": "org:samsung_ai_core",
+          "label": "Samsung AI Core",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2025-11-29"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:hellaswag",
+          "label": "HellaSwag",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-12-04",
+          "lastSeen": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:autogpt",
+          "label": "AutoGPT",
+          "type": "Repo",
+          "aliases": [
+            "Significant-Gravitas/AutoGPT"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-13"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:synthetic_media_max",
+          "label": "Synthetic Media Max",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2025-11-17"
+        }
+      },
+      {
+        "data": {
+          "id": "program:ai_safety_institute_core",
+          "label": "AI Safety Institute Core",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2025-12-27",
+          "lastSeen": "2025-12-31"
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4_lite",
+          "label": "Claude Sonnet 4 Lite",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2025-12-03"
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque_mini",
+          "label": "Emad Mostaque Mini",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2025-12-02"
+        }
+      },
+      {
+        "data": {
+          "id": "org:cohere",
+          "label": "Cohere",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2025-12-16"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:sparse_attention_lite",
+          "label": "Sparse Attention Lite",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-11-17",
+          "lastSeen": "2025-11-29"
+        }
+      },
+      {
+        "data": {
+          "id": "org:tencent_ai",
+          "label": "Tencent AI",
+          "type": "Org",
+          "aliases": [
+            "Tencent"
+          ],
+          "firstSeen": "2026-01-07",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "org:cohere_pro",
+          "label": "Cohere Pro",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-11"
+        }
+      },
+      {
+        "data": {
+          "id": "org:character_ai_plus",
+          "label": "Character AI Plus",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-18",
+          "lastSeen": "2026-01-11"
         }
       },
       {
@@ -3634,12 +3064,429 @@
       },
       {
         "data": {
-          "id": "program:partnership_on_ai_plus",
-          "label": "Partnership on AI Plus",
-          "type": "Program",
+          "id": "model:command_r_plus_ultra",
+          "label": "Command R+ Ultra",
+          "type": "Model",
           "aliases": [],
-          "firstSeen": "2025-12-25",
-          "lastSeen": "2026-01-15"
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-11-14"
+        }
+      },
+      {
+        "data": {
+          "id": "model:nemotron_5",
+          "label": "Nemotron-5",
+          "type": "Model",
+          "aliases": [
+            "Nemotron 5"
+          ],
+          "firstSeen": "2025-12-27",
+          "lastSeen": "2026-01-01"
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45_max",
+          "label": "Claude Opus 4.5 Max",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-31"
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai_next",
+          "label": "Mistral AI Next",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-20",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-24",
+          "lastSeen": "2025-12-22"
+        }
+      },
+      {
+        "data": {
+          "id": "program:executive_order_on_ai_safety",
+          "label": "Executive Order on AI Safety",
+          "type": "Program",
+          "aliases": [
+            "Biden AI EO"
+          ],
+          "firstSeen": "2025-11-11",
+          "lastSeen": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:kv_cache_optimization",
+          "label": "KV Cache Optimization",
+          "type": "Tech",
+          "aliases": [
+            "KV Cache"
+          ],
+          "firstSeen": "2025-11-02",
+          "lastSeen": "2025-12-31"
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2025-12-06"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:llamaindex",
+          "label": "LlamaIndex",
+          "type": "Tool",
+          "aliases": [
+            "Llama Index"
+          ],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-16"
+        }
+      },
+      {
+        "data": {
+          "id": "person:ilya_sutskever_ultra",
+          "label": "Ilya Sutskever Ultra",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-23"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mmlu",
+          "label": "MMLU",
+          "type": "Benchmark",
+          "aliases": [
+            "Massive Multitask Language Understanding"
+          ],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-09"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_job_displacement_lite",
+          "label": "AI Job Displacement Lite",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-02",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:frontier_model_safety_next",
+          "label": "Frontier Model Safety Next",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-04",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:multimodal_ai",
+          "label": "Multimodal AI",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-11-12",
+          "lastSeen": "2026-01-16"
+        }
+      },
+      {
+        "data": {
+          "id": "org:nvidia_max",
+          "label": "Nvidia Max",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": [
+            "GPT 5",
+            "gpt-5"
+          ],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-21"
+        }
+      },
+      {
+        "data": {
+          "id": "model:command_r_plus_plus",
+          "label": "Command R+ Plus",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2026-01-04"
+        }
+      },
+      {
+        "data": {
+          "id": "person:chris_olah",
+          "label": "Chris Olah",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:scaling_laws_for_neural_language_models_",
+          "label": "Scaling Laws for Neural Language Models (2025)",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "person:greg_brockman_edge",
+          "label": "Greg Brockman Edge",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-16",
+          "lastSeen": "2025-12-15"
+        }
+      },
+      {
+        "data": {
+          "id": "program:ai_safety_institute",
+          "label": "AI Safety Institute",
+          "type": "Program",
+          "aliases": [
+            "AISI"
+          ],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2025-12-19"
+        }
+      },
+      {
+        "data": {
+          "id": "model:sora_2",
+          "label": "Sora 2",
+          "type": "Model",
+          "aliases": [
+            "Sora V2"
+          ],
+          "firstSeen": "2026-01-17",
+          "lastSeen": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "person:jensen_huang_pro",
+          "label": "Jensen Huang Pro",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-29",
+          "lastSeen": "2025-12-06"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture_edge",
+          "label": "Transformer Architecture Edge",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2025-12-08"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:vllm_edge",
+          "label": "vLLM Edge",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-12-15",
+          "lastSeen": "2026-01-17"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:cursor",
+          "label": "Cursor",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-18",
+          "lastSeen": "2025-11-24"
+        }
+      },
+      {
+        "data": {
+          "id": "person:daniela_amodei_max",
+          "label": "Daniela Amodei Max",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-03",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "model:phi_4_ultra",
+          "label": "Phi-4 Ultra",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-16",
+          "lastSeen": "2025-11-26"
+        }
+      },
+      {
+        "data": {
+          "id": "org:ai2",
+          "label": "AI2",
+          "type": "Org",
+          "aliases": [
+            "Allen Institute for AI"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-12"
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic_v2",
+          "label": "Anthropic v2",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-07",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "person:yi_tay",
+          "label": "Yi Tay",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-07",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic_max",
+          "label": "Anthropic Max",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-16",
+          "lastSeen": "2026-01-14"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:lmsys_chatbot_arena_lite",
+          "label": "LMSYS Chatbot Arena Lite",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "program:partnership_on_ai",
+          "label": "Partnership on AI",
+          "type": "Program",
+          "aliases": [
+            "PAI"
+          ],
+          "firstSeen": "2025-12-04",
+          "lastSeen": "2026-01-08"
+        }
+      },
+      {
+        "data": {
+          "id": "person:demis_hassabis",
+          "label": "Demis Hassabis",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-11-21",
+          "lastSeen": "2025-12-24"
+        }
+      },
+      {
+        "data": {
+          "id": "org:amazon_aws_plus",
+          "label": "Amazon AWS Plus",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2025-12-04"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:semantic_kernel",
+          "label": "Semantic Kernel",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2025-11-08"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:vllm",
+          "label": "vllm",
+          "type": "Repo",
+          "aliases": [
+            "vllm-project/vllm"
+          ],
+          "firstSeen": "2025-11-04",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "org:01ai_lite",
+          "label": "01.AI Lite",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-12-26"
+        }
+      },
+      {
+        "data": {
+          "id": "org:salesforce_ai",
+          "label": "Salesforce AI",
+          "type": "Org",
+          "aliases": [
+            "Salesforce Research"
+          ],
+          "firstSeen": "2026-01-04",
+          "lastSeen": "2026-01-05"
         }
       },
       {
@@ -3666,118 +3513,14 @@
       },
       {
         "data": {
-          "id": "paper:textbooks_are_all_you_need",
-          "label": "Textbooks Are All You Need",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-25",
-          "lastSeen": "2026-01-25"
-        }
-      },
-      {
-        "data": {
-          "id": "org:cohere",
-          "label": "Cohere",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-25",
-          "lastSeen": "2025-12-16"
-        }
-      },
-      {
-        "data": {
-          "id": "person:chris_olah",
-          "label": "Chris Olah",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "org:cohere_plus",
-          "label": "Cohere Plus",
-          "type": "Org",
-          "aliases": [],
+          "id": "tech:rotary_position_embedding",
+          "label": "Rotary Position Embedding",
+          "type": "Tech",
+          "aliases": [
+            "RoPE"
+          ],
           "firstSeen": "2025-12-28",
-          "lastSeen": "2026-01-11"
-        }
-      },
-      {
-        "data": {
-          "id": "org:ai2",
-          "label": "AI2",
-          "type": "Org",
-          "aliases": [
-            "Allen Institute for AI"
-          ],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2025-12-12"
-        }
-      },
-      {
-        "data": {
-          "id": "model:midjourney_v7",
-          "label": "Midjourney V7",
-          "type": "Model",
-          "aliases": [
-            "MJ V7"
-          ],
-          "firstSeen": "2025-11-23",
-          "lastSeen": "2026-01-12"
-        }
-      },
-      {
-        "data": {
-          "id": "benchmark:alpacaeval_2_lite",
-          "label": "AlpacaEval 2 Lite",
-          "type": "Benchmark",
-          "aliases": [],
-          "firstSeen": "2025-11-26",
-          "lastSeen": "2025-12-02"
-        }
-      },
-      {
-        "data": {
-          "id": "repo:vllm",
-          "label": "vllm",
-          "type": "Repo",
-          "aliases": [
-            "vllm-project/vllm"
-          ],
-          "firstSeen": "2025-11-04",
-          "lastSeen": "2026-01-20"
-        }
-      },
-      {
-        "data": {
-          "id": "person:chris_olah_v2",
-          "label": "Chris Olah v2",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-30",
-          "lastSeen": "2026-01-25"
-        }
-      },
-      {
-        "data": {
-          "id": "model:dall_e_4_lite",
-          "label": "DALL-E 4 Lite",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2026-01-05",
-          "lastSeen": "2026-01-10"
-        }
-      },
-      {
-        "data": {
-          "id": "model:command_r_plus_plus",
-          "label": "Command R+ Plus",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2026-01-04"
+          "lastSeen": "2026-01-03"
         }
       },
       {
@@ -3792,42 +3535,201 @@
       },
       {
         "data": {
-          "id": "topic:ai_watermarking_pro",
-          "label": "AI Watermarking Pro",
+          "id": "org:inflection_ai_v2",
+          "label": "Inflection AI v2",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2026-01-05"
+        }
+      },
+      {
+        "data": {
+          "id": "model:llama_4_max",
+          "label": "Llama 4 Max",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-14"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_energy_consumption_v2",
+          "label": "AI Energy Consumption v2",
           "type": "Topic",
           "aliases": [],
-          "firstSeen": "2025-12-06",
+          "firstSeen": "2025-11-05",
+          "lastSeen": "2026-01-02"
+        }
+      },
+      {
+        "data": {
+          "id": "person:fei_fei_li_plus",
+          "label": "Fei-Fei Li Plus",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-30",
+          "lastSeen": "2025-12-30"
+        }
+      },
+      {
+        "data": {
+          "id": "program:eu_ai_act",
+          "label": "EU AI Act",
+          "type": "Program",
+          "aliases": [
+            "AI Act"
+          ],
+          "firstSeen": "2026-01-16",
           "lastSeen": "2026-01-23"
         }
       },
       {
         "data": {
-          "id": "program:ai_safety_institute_core",
-          "label": "AI Safety Institute Core",
-          "type": "Program",
+          "id": "model:qwen_3_next",
+          "label": "Qwen-3 Next",
+          "type": "Model",
           "aliases": [],
-          "firstSeen": "2025-12-27",
-          "lastSeen": "2025-12-31"
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-23"
         }
       },
       {
         "data": {
-          "id": "org:google_deepmind_mini",
-          "label": "Google DeepMind Mini",
+          "id": "org:apple_ml",
+          "label": "Apple ML",
+          "type": "Org",
+          "aliases": [
+            "Apple Machine Learning"
+          ],
+          "firstSeen": "2025-11-26",
+          "lastSeen": "2025-12-24"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gpqa",
+          "label": "GPQA",
+          "type": "Benchmark",
+          "aliases": [
+            "Graduate-Level Google-Proof QA"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-02"
+        }
+      },
+      {
+        "data": {
+          "id": "org:meta_ai_ultra",
+          "label": "Meta AI Ultra",
           "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-12-14",
+          "firstSeen": "2025-12-08",
+          "lastSeen": "2025-12-30"
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic",
+          "label": "Anthropic",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-05",
+          "lastSeen": "2025-12-25"
+        }
+      },
+      {
+        "data": {
+          "id": "model:jamba_2",
+          "label": "Jamba 2",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-07",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemini_ultra_2_edge",
+          "label": "Gemini Ultra 2 Edge",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-07",
           "lastSeen": "2026-01-19"
         }
       },
       {
         "data": {
-          "id": "org:ibm_research_edge",
-          "label": "IBM Research Edge",
+          "id": "model:deepseek_v3_edge",
+          "label": "DeepSeek-V3 Edge",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:direct_preference_optimization_ultra",
+          "label": "Direct Preference Optimization Ultra",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-03",
+          "lastSeen": "2026-01-17"
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4_edge",
+          "label": "Claude Sonnet 4 Edge",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2025-12-24"
+        }
+      },
+      {
+        "data": {
+          "id": "org:scale_ai_plus",
+          "label": "Scale AI Plus",
           "type": "Org",
           "aliases": [],
+          "firstSeen": "2026-01-23",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "person:jan_leike_next",
+          "label": "Jan Leike Next",
+          "type": "Person",
+          "aliases": [],
           "firstSeen": "2025-11-19",
-          "lastSeen": "2025-12-05"
+          "lastSeen": "2025-11-29"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:quantization",
+          "label": "Quantization",
+          "type": "Tech",
+          "aliases": [
+            "GPTQ",
+            "AWQ"
+          ],
+          "firstSeen": "2025-12-31",
+          "lastSeen": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "model:codex_2_pro",
+          "label": "Codex 2 Pro",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-12-28",
+          "lastSeen": "2026-01-21"
         }
       },
       {
@@ -3838,38 +3740,6 @@
           "aliases": [],
           "firstSeen": "2025-11-30",
           "lastSeen": "2026-01-08"
-        }
-      },
-      {
-        "data": {
-          "id": "person:greg_brockman_edge",
-          "label": "Greg Brockman Edge",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-16",
-          "lastSeen": "2025-12-15"
-        }
-      },
-      {
-        "data": {
-          "id": "tech:kv_cache_optimization",
-          "label": "KV Cache Optimization",
-          "type": "Tech",
-          "aliases": [
-            "KV Cache"
-          ],
-          "firstSeen": "2025-11-02",
-          "lastSeen": "2025-12-31"
-        }
-      },
-      {
-        "data": {
-          "id": "org:alibaba_damo_max",
-          "label": "Alibaba DAMO Max",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-15",
-          "lastSeen": "2025-12-15"
         }
       },
       {
@@ -3887,253 +3757,116 @@
       },
       {
         "data": {
-          "id": "paper:flash_attention:_fast_and_memory_efficie",
-          "label": "Flash Attention: Fast and Memory-Efficient Attention",
-          "type": "Paper",
+          "id": "model:claude_opus_45_edge",
+          "label": "Claude Opus 4.5 Edge",
+          "type": "Model",
           "aliases": [],
-          "firstSeen": "2025-12-05",
-          "lastSeen": "2026-01-05"
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2025-12-18"
         }
       },
       {
         "data": {
-          "id": "org:google_deepmind_lite",
-          "label": "Google DeepMind Lite",
+          "id": "tool:llamaindex_core",
+          "label": "LlamaIndex Core",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "org:xai_max",
+          "label": "xAI Max",
           "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2026-01-08"
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2026-01-11"
         }
       },
       {
         "data": {
-          "id": "person:demis_hassabis",
-          "label": "Demis Hassabis",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-21",
-          "lastSeen": "2025-12-24"
-        }
-      },
-      {
-        "data": {
-          "id": "person:ilya_sutskever_ultra",
-          "label": "Ilya Sutskever Ultra",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-14",
-          "lastSeen": "2025-12-23"
-        }
-      },
-      {
-        "data": {
-          "id": "org:adept_ai_pro",
-          "label": "Adept AI Pro",
+          "id": "org:bytedance_ai",
+          "label": "ByteDance AI",
           "type": "Org",
+          "aliases": [
+            "ByteDance"
+          ],
+          "firstSeen": "2025-12-15",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "model:command_r_plus",
+          "label": "Command R+",
+          "type": "Model",
+          "aliases": [
+            "Command R Plus"
+          ],
+          "firstSeen": "2025-12-30",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "model:falcon_3_v2",
+          "label": "Falcon 3 v2",
+          "type": "Model",
           "aliases": [],
-          "firstSeen": "2026-01-24",
+          "firstSeen": "2026-01-06",
           "lastSeen": "2026-01-24"
         }
       },
       {
         "data": {
-          "id": "person:ilya_sutskever_edge",
-          "label": "Ilya Sutskever Edge",
+          "id": "person:daniela_amodei_core",
+          "label": "Daniela Amodei Core",
           "type": "Person",
           "aliases": [],
-          "firstSeen": "2025-10-28",
-          "lastSeen": "2025-11-02"
+          "firstSeen": "2025-11-07",
+          "lastSeen": "2025-11-11"
         }
       },
       {
         "data": {
-          "id": "person:noam_shazeer",
-          "label": "Noam Shazeer",
+          "id": "person:fei_fei_li_lite",
+          "label": "Fei-Fei Li Lite",
           "type": "Person",
           "aliases": [],
           "firstSeen": "2025-12-10",
-          "lastSeen": "2025-12-30"
+          "lastSeen": "2025-12-11"
         }
       },
       {
         "data": {
-          "id": "tool:weights_and_biases_plus",
-          "label": "Weights & Biases Plus",
+          "id": "tool:dify_ultra",
+          "label": "Dify Ultra",
           "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2026-01-19",
-          "lastSeen": "2026-01-19"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:llamaindex",
-          "label": "LlamaIndex",
-          "type": "Tool",
-          "aliases": [
-            "Llama Index"
-          ],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-16"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:llm_agents:_a_survey_pro",
-          "label": "LLM Agents: A Survey Pro",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-11-02",
-          "lastSeen": "2025-12-28"
-        }
-      },
-      {
-        "data": {
-          "id": "program:nist_ai_rmf",
-          "label": "NIST AI RMF",
-          "type": "Program",
-          "aliases": [
-            "AI Risk Management Framework"
-          ],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2026-01-07"
-        }
-      },
-      {
-        "data": {
-          "id": "model:whisper_v4_v2",
-          "label": "Whisper v4 v2",
-          "type": "Model",
           "aliases": [],
           "firstSeen": "2026-01-24",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_sonnet_4_edge",
-          "label": "Claude Sonnet 4 Edge",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2025-12-24"
-        }
-      },
-      {
-        "data": {
-          "id": "model:gpt_5",
-          "label": "GPT-5",
-          "type": "Model",
-          "aliases": [
-            "GPT 5",
-            "gpt-5"
-          ],
-          "firstSeen": "2025-11-20",
-          "lastSeen": "2025-12-21"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:multimodal_ai",
-          "label": "Multimodal AI",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2025-11-12",
-          "lastSeen": "2026-01-16"
-        }
-      },
-      {
-        "data": {
-          "id": "org:tencent_ai_core",
-          "label": "Tencent AI Core",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-15",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "org:ibm_research",
-          "label": "IBM Research",
-          "type": "Org",
-          "aliases": [
-            "IBM"
-          ],
-          "firstSeen": "2025-11-25",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "model:jamba_2",
-          "label": "Jamba 2",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-11-07",
-          "lastSeen": "2026-01-23"
-        }
-      },
-      {
-        "data": {
-          "id": "org:xai",
-          "label": "xAI",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-16",
           "lastSeen": "2026-01-25"
         }
       },
       {
         "data": {
-          "id": "benchmark:mmlu",
-          "label": "MMLU",
+          "id": "topic:responsible_ai_edge",
+          "label": "Responsible AI Edge",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-11-11",
+          "lastSeen": "2025-11-28"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:math_v2",
+          "label": "MATH v2",
           "type": "Benchmark",
-          "aliases": [
-            "Massive Multitask Language Understanding"
-          ],
-          "firstSeen": "2025-12-06",
-          "lastSeen": "2025-12-09"
-        }
-      },
-      {
-        "data": {
-          "id": "org:inflection_ai_v2",
-          "label": "Inflection AI v2",
-          "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2026-01-05"
-        }
-      },
-      {
-        "data": {
-          "id": "person:emad_mostaque_mini",
-          "label": "Emad Mostaque Mini",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-25",
-          "lastSeen": "2025-12-02"
-        }
-      },
-      {
-        "data": {
-          "id": "org:ai2_lite",
-          "label": "AI2 Lite",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-08",
-          "lastSeen": "2026-01-12"
-        }
-      },
-      {
-        "data": {
-          "id": "person:jensen_huang_pro",
-          "label": "Jensen Huang Pro",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-29",
-          "lastSeen": "2025-12-06"
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2026-01-13"
         }
       },
       {
@@ -4151,194 +3884,160 @@
       },
       {
         "data": {
-          "id": "org:salesforce_ai_mini",
-          "label": "Salesforce AI Mini",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-11-27",
-          "lastSeen": "2025-12-17"
-        }
-      },
-      {
-        "data": {
-          "id": "model:nemotron_5",
-          "label": "Nemotron-5",
-          "type": "Model",
-          "aliases": [
-            "Nemotron 5"
-          ],
-          "firstSeen": "2025-12-27",
-          "lastSeen": "2026-01-01"
-        }
-      },
-      {
-        "data": {
-          "id": "org:bytedance_ai",
-          "label": "ByteDance AI",
-          "type": "Org",
-          "aliases": [
-            "ByteDance"
-          ],
-          "firstSeen": "2025-12-15",
-          "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "paper:scaling_laws_for_neural_language_models_",
-          "label": "Scaling Laws for Neural Language Models (2025)",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2025-11-28",
-          "lastSeen": "2026-01-13"
-        }
-      },
-      {
-        "data": {
-          "id": "model:codex_2_pro",
-          "label": "Codex 2 Pro",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-12-28",
-          "lastSeen": "2026-01-21"
-        }
-      },
-      {
-        "data": {
-          "id": "model:claude_opus_45_max",
-          "label": "Claude Opus 4.5 Max",
-          "type": "Model",
-          "aliases": [],
-          "firstSeen": "2025-12-14",
-          "lastSeen": "2025-12-31"
-        }
-      },
-      {
-        "data": {
-          "id": "program:darpa_ai_programs",
-          "label": "DARPA AI Programs",
-          "type": "Program",
-          "aliases": [],
-          "firstSeen": "2025-11-30",
-          "lastSeen": "2026-01-06"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:ai_agents_mini",
-          "label": "AI Agents Mini",
+          "id": "topic:explainable_ai",
+          "label": "Explainable AI",
           "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2026-01-03",
-          "lastSeen": "2026-01-17"
+          "aliases": [
+            "XAI"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-10-30"
         }
       },
       {
         "data": {
-          "id": "tool:cursor_edge",
-          "label": "Cursor Edge",
-          "type": "Tool",
+          "id": "model:dall_e_4_plus",
+          "label": "DALL-E 4 Plus",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2025-12-10"
+        }
+      },
+      {
+        "data": {
+          "id": "org:midjourney_next",
+          "label": "Midjourney Next",
+          "type": "Org",
           "aliases": [],
           "firstSeen": "2025-11-12",
-          "lastSeen": "2026-01-13"
-        }
-      },
-      {
-        "data": {
-          "id": "person:fei_fei_li_lite",
-          "label": "Fei-Fei Li Lite",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-12-10",
           "lastSeen": "2025-12-11"
         }
       },
       {
         "data": {
-          "id": "org:amazon_aws_plus",
-          "label": "Amazon AWS Plus",
+          "id": "org:adept_ai_pro",
+          "label": "Adept AI Pro",
           "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-11-09",
-          "lastSeen": "2025-12-04"
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-24"
         }
       },
       {
         "data": {
-          "id": "benchmark:math_v2",
-          "label": "MATH v2",
+          "id": "org:microsoft_research_v2",
+          "label": "Microsoft Research v2",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-21",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "program:nsf_ai_research_institutes",
+          "label": "NSF AI Research Institutes",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2025-11-10",
+          "lastSeen": "2026-01-14"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:weights_and_biases_plus",
+          "label": "Weights & Biases Plus",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "model:dall_e_4",
+          "label": "DALL-E 4",
+          "type": "Model",
+          "aliases": [
+            "DALLE 4"
+          ],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:alpacaeval_2_lite",
+          "label": "AlpacaEval 2 Lite",
           "type": "Benchmark",
           "aliases": [],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2026-01-13"
+          "firstSeen": "2025-11-26",
+          "lastSeen": "2025-12-02"
         }
       },
       {
         "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2025-10-27",
-          "lastSeen": "2025-12-06"
-        }
-      },
-      {
-        "data": {
-          "id": "topic:frontier_model_safety_next",
-          "label": "Frontier Model Safety Next",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2026-01-04",
-          "lastSeen": "2026-01-25"
-        }
-      },
-      {
-        "data": {
-          "id": "repo:autogpt",
-          "label": "AutoGPT",
-          "type": "Repo",
-          "aliases": [
-            "Significant-Gravitas/AutoGPT"
-          ],
-          "firstSeen": "2025-10-29",
-          "lastSeen": "2025-12-13"
-        }
-      },
-      {
-        "data": {
-          "id": "program:partnership_on_ai",
-          "label": "Partnership on AI",
-          "type": "Program",
-          "aliases": [
-            "PAI"
-          ],
-          "firstSeen": "2025-12-04",
-          "lastSeen": "2026-01-08"
-        }
-      },
-      {
-        "data": {
-          "id": "program:ai_safety_institute",
-          "label": "AI Safety Institute",
-          "type": "Program",
-          "aliases": [
-            "AISI"
-          ],
-          "firstSeen": "2025-11-01",
-          "lastSeen": "2025-12-19"
-        }
-      },
-      {
-        "data": {
-          "id": "model:whisper_v4_max",
-          "label": "Whisper v4 Max",
+          "id": "model:mixtral_8x22b_edge",
+          "label": "Mixtral 8x22B Edge",
           "type": "Model",
           "aliases": [],
-          "firstSeen": "2025-10-31",
-          "lastSeen": "2025-11-03"
+          "firstSeen": "2025-11-15",
+          "lastSeen": "2025-11-23"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:swe_bench",
+          "label": "SWE-bench",
+          "type": "Benchmark",
+          "aliases": [
+            "SWE Bench"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-09"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_copyright",
+          "label": "AI Copyright",
+          "type": "Topic",
+          "aliases": [
+            "AI and IP"
+          ],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2026-01-17"
+        }
+      },
+      {
+        "data": {
+          "id": "org:01ai",
+          "label": "01.AI",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-07",
+          "lastSeen": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "org:ibm_research_edge",
+          "label": "IBM Research Edge",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-12-05"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:arc_agi_lite",
+          "label": "ARC-AGI Lite",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2026-01-13",
+          "lastSeen": "2026-01-25"
         }
       },
       {
@@ -4353,77 +4052,12 @@
       },
       {
         "data": {
-          "id": "topic:ai_job_displacement_lite",
-          "label": "AI Job Displacement Lite",
-          "type": "Topic",
-          "aliases": [],
-          "firstSeen": "2026-01-02",
-          "lastSeen": "2026-01-24"
-        }
-      },
-      {
-        "data": {
-          "id": "model:command_r_plus",
-          "label": "Command R+",
-          "type": "Model",
-          "aliases": [
-            "Command R Plus"
-          ],
-          "firstSeen": "2025-12-30",
-          "lastSeen": "2026-01-20"
-        }
-      },
-      {
-        "data": {
-          "id": "tool:dify_ultra",
-          "label": "Dify Ultra",
-          "type": "Tool",
-          "aliases": [],
-          "firstSeen": "2026-01-24",
-          "lastSeen": "2026-01-25"
-        }
-      },
-      {
-        "data": {
-          "id": "model:qwen_3",
-          "label": "Qwen-3",
-          "type": "Model",
-          "aliases": [
-            "Qwen3",
-            "Qwen 3"
-          ],
-          "firstSeen": "2025-11-10",
-          "lastSeen": "2025-12-06"
-        }
-      },
-      {
-        "data": {
-          "id": "person:yann_lecun_pro",
-          "label": "Yann LeCun Pro",
+          "id": "person:percy_liang",
+          "label": "Percy Liang",
           "type": "Person",
           "aliases": [],
-          "firstSeen": "2025-12-31",
+          "firstSeen": "2026-01-10",
           "lastSeen": "2026-01-22"
-        }
-      },
-      {
-        "data": {
-          "id": "org:xai_max",
-          "label": "xAI Max",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2026-01-11"
-        }
-      },
-      {
-        "data": {
-          "id": "person:daniela_amodei_core",
-          "label": "Daniela Amodei Core",
-          "type": "Person",
-          "aliases": [],
-          "firstSeen": "2025-11-07",
-          "lastSeen": "2025-11-11"
         }
       },
       {
@@ -4438,12 +4072,378 @@
       },
       {
         "data": {
-          "id": "org:01ai_lite",
-          "label": "01.AI Lite",
+          "id": "topic:ai_watermarking_pro",
+          "label": "AI Watermarking Pro",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:the_stack_v2_ultra",
+          "label": "The Stack v2 Ultra",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-03"
+        }
+      },
+      {
+        "data": {
+          "id": "org:cohere_plus",
+          "label": "Cohere Plus",
           "type": "Org",
           "aliases": [],
-          "firstSeen": "2025-11-19",
-          "lastSeen": "2025-12-26"
+          "firstSeen": "2025-12-28",
+          "lastSeen": "2026-01-11"
+        }
+      },
+      {
+        "data": {
+          "id": "person:aidan_gomez",
+          "label": "Aidan Gomez",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2026-01-02"
+        }
+      },
+      {
+        "data": {
+          "id": "org:inflection_ai",
+          "label": "Inflection AI",
+          "type": "Org",
+          "aliases": [
+            "Inflection"
+          ],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:text_generation_webui",
+          "label": "text-generation-webui",
+          "type": "Repo",
+          "aliases": [
+            "oobabooga"
+          ],
+          "firstSeen": "2025-11-07",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "org:adept_ai",
+          "label": "Adept AI",
+          "type": "Org",
+          "aliases": [
+            "Adept"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2025-12-29"
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:fineweb",
+          "label": "FineWeb",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-31",
+          "lastSeen": "2026-01-17"
+        }
+      },
+      {
+        "data": {
+          "id": "org:bytedance_ai_edge",
+          "label": "ByteDance AI Edge",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-07"
+        }
+      },
+      {
+        "data": {
+          "id": "model:whisper_v4",
+          "label": "Whisper v4",
+          "type": "Model",
+          "aliases": [
+            "Whisper V4"
+          ],
+          "firstSeen": "2026-01-23",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "person:noam_shazeer",
+          "label": "Noam Shazeer",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-30"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:prompt_engineering",
+          "label": "Prompt Engineering",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:self_play_fine_tuning_for_language_model",
+          "label": "Self-Play Fine-Tuning for Language Models",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-18",
+          "lastSeen": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "model:whisper_v4_max",
+          "label": "Whisper v4 Max",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-10-31",
+          "lastSeen": "2025-11-03"
+        }
+      },
+      {
+        "data": {
+          "id": "org:ai2_lite",
+          "label": "AI2 Lite",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-08",
+          "lastSeen": "2026-01-12"
+        }
+      },
+      {
+        "data": {
+          "id": "person:ilya_sutskever_edge",
+          "label": "Ilya Sutskever Edge",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2025-11-02"
+        }
+      },
+      {
+        "data": {
+          "id": "program:eu_ai_act_next",
+          "label": "EU AI Act Next",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:flash_attention:_fast_and_memory_efficie",
+          "label": "Flash Attention: Fast and Memory-Efficient Attention",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-05",
+          "lastSeen": "2026-01-05"
+        }
+      },
+      {
+        "data": {
+          "id": "person:yann_lecun_pro",
+          "label": "Yann LeCun Pro",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-31",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "model:jamba_2_edge",
+          "label": "Jamba 2 Edge",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2026-01-12",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:mixture_of_experts_meets_instruction_tun",
+          "label": "Mixture of Experts Meets Instruction Tuning",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-08",
+          "lastSeen": "2026-01-01"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": [
+            "Transformers"
+          ],
+          "firstSeen": "2026-01-01",
+          "lastSeen": "2026-01-09"
+        }
+      },
+      {
+        "data": {
+          "id": "org:runway_ml",
+          "label": "Runway ML",
+          "type": "Org",
+          "aliases": [
+            "Runway"
+          ],
+          "firstSeen": "2025-12-05",
+          "lastSeen": "2026-01-04"
+        }
+      },
+      {
+        "data": {
+          "id": "org:apple_ml_pro",
+          "label": "Apple ML Pro",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-15",
+          "lastSeen": "2026-01-05"
+        }
+      },
+      {
+        "data": {
+          "id": "org:ibm_research",
+          "label": "IBM Research",
+          "type": "Org",
+          "aliases": [
+            "IBM"
+          ],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "org:google_deepmind_lite",
+          "label": "Google DeepMind Lite",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2026-01-08"
+        }
+      },
+      {
+        "data": {
+          "id": "org:baidu_ai_edge",
+          "label": "Baidu AI Edge",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-23",
+          "lastSeen": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:cursor_edge",
+          "label": "Cursor Edge",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-12",
+          "lastSeen": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:lmsys_chatbot_arena",
+          "label": "LMSYS Chatbot Arena",
+          "type": "Benchmark",
+          "aliases": [
+            "Chatbot Arena"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2025-12-10"
+        }
+      },
+      {
+        "data": {
+          "id": "org:tencent_ai_core",
+          "label": "Tencent AI Core",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_ethics",
+          "label": "AI Ethics",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2025-10-28",
+          "lastSeen": "2025-11-20"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:retrieval_augmented_generation_for_knowl",
+          "label": "Retrieval-Augmented Generation for Knowledge-Intensive NLP",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-25"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:llm_agents:_a_survey",
+          "label": "LLM Agents: A Survey",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-09",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "program:partnership_on_ai_plus",
+          "label": "Partnership on AI Plus",
+          "type": "Program",
+          "aliases": [],
+          "firstSeen": "2025-12-25",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_regulation_max",
+          "label": "AI Regulation Max",
+          "type": "Topic",
+          "aliases": [],
+          "firstSeen": "2026-01-10",
+          "lastSeen": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "org:xai",
+          "label": "xAI",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-25"
         }
       }
     ],

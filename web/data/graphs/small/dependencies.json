@@ -26,6 +26,19 @@
       },
       {
         "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2025-12-17",
+          "mentionCount7d": 8,
+          "mentionCount30d": 34,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
           "id": "model:claude_opus_45",
           "label": "Claude Opus 4.5",
           "type": "Model",
@@ -53,19 +66,6 @@
           "mentionCount7d": 5,
           "mentionCount30d": 17,
           "velocity": 0.93
-        }
-      },
-      {
-        "data": {
-          "id": "dataset:common_crawl",
-          "label": "Common Crawl",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2025-12-17",
-          "mentionCount7d": 8,
-          "mentionCount30d": 34,
-          "velocity": 0.87
         }
       },
       {

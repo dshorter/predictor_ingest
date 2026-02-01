@@ -795,7 +795,13 @@ class GraphGenerator:
         }
 
     def export_trending(self):
-        """Export trending view: high-velocity/novelty nodes + their edges."""
+        """Export trending view: high-velocity/novelty nodes + their edges.
+
+        Some nodes may be disconnected (high velocity but edges to
+        non-trending entities). This is expected — fcose's tile option
+        positions them in a grid. A V2 toggle could let users hide/show
+        isolated nodes.
+        """
         # Pick top nodes by velocity
         threshold = max(10, self.target_nodes // 4)
         sorted_entities = sorted(

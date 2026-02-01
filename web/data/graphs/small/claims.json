@@ -13,15 +13,18 @@
     "nodes": [
       {
         "data": {
-          "id": "paper:attention_is_all_you_need_v2",
-          "label": "Attention Is All You Need v2",
-          "type": "Paper",
-          "aliases": [],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 6,
-          "mentionCount30d": 26,
-          "velocity": 0.87
+          "id": "model:gpt_5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": [
+            "GPT 5",
+            "gpt-5"
+          ],
+          "firstSeen": "2025-12-21",
+          "lastSeen": "2026-01-07",
+          "mentionCount7d": 45,
+          "mentionCount30d": 105,
+          "velocity": 0.37
         }
       },
       {
@@ -39,18 +42,56 @@
       },
       {
         "data": {
-          "id": "model:gpt_5",
-          "label": "GPT-5",
-          "type": "Model",
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 6,
+          "mentionCount30d": 26,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic",
+          "label": "Anthropic",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 7,
+          "mentionCount30d": 10,
+          "velocity": 0.29
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
           "aliases": [
-            "GPT 5",
-            "gpt-5"
+            "Open AI"
           ],
-          "firstSeen": "2025-12-21",
-          "lastSeen": "2026-01-07",
-          "mentionCount7d": 45,
-          "mentionCount30d": 105,
-          "velocity": 0.37
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 21,
+          "mentionCount30d": 68,
+          "velocity": 0.73
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2025-12-17",
+          "mentionCount7d": 8,
+          "mentionCount30d": 34,
+          "velocity": 0.87
         }
       },
       {
@@ -86,15 +127,17 @@
       },
       {
         "data": {
-          "id": "dataset:common_crawl",
-          "label": "Common Crawl",
-          "type": "Dataset",
-          "aliases": [],
-          "firstSeen": "2025-12-12",
-          "lastSeen": "2025-12-17",
-          "mentionCount7d": 8,
-          "mentionCount30d": 34,
-          "velocity": 0.87
+          "id": "program:eu_ai_act",
+          "label": "EU AI Act",
+          "type": "Program",
+          "aliases": [
+            "AI Act"
+          ],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 5,
+          "mentionCount30d": 11,
+          "velocity": 1.0
         }
       },
       {
@@ -110,49 +153,6 @@
           "mentionCount7d": 4,
           "mentionCount30d": 13,
           "velocity": 0.83
-        }
-      },
-      {
-        "data": {
-          "id": "org:anthropic",
-          "label": "Anthropic",
-          "type": "Org",
-          "aliases": [],
-          "firstSeen": "2026-01-19",
-          "lastSeen": "2026-01-24",
-          "mentionCount7d": 7,
-          "mentionCount30d": 10,
-          "velocity": 0.29
-        }
-      },
-      {
-        "data": {
-          "id": "org:openai",
-          "label": "OpenAI",
-          "type": "Org",
-          "aliases": [
-            "Open AI"
-          ],
-          "firstSeen": "2026-01-14",
-          "lastSeen": "2026-01-15",
-          "mentionCount7d": 21,
-          "mentionCount30d": 68,
-          "velocity": 0.73
-        }
-      },
-      {
-        "data": {
-          "id": "program:eu_ai_act",
-          "label": "EU AI Act",
-          "type": "Program",
-          "aliases": [
-            "AI Act"
-          ],
-          "firstSeen": "2026-01-24",
-          "lastSeen": "2026-01-25",
-          "mentionCount7d": 5,
-          "mentionCount30d": 11,
-          "velocity": 1.0
         }
       },
       {
