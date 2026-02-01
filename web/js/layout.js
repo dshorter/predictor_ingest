@@ -123,43 +123,50 @@ function getScaledLayoutOptions(nodeCount, edgeCount) {
   const density = edgeCount / Math.max(nodeCount, 1);
   const densityRatio = density / REFERENCE.density;
 
-  // --- Ratio-based scaling from reference ---
+  // --- Aggressive ratio-based scaling ---
+  // Previous sqrt/linear scaling wasn't enough: 370 edge springs pulling
+  // nodes together overwhelm moderate repulsion increases.
+  // Fix: quadratic repulsion, linear separation, inverse-square gravity.
 
-  // nodeSeparation: sqrt(nodeRatio) — spectral phase spacing
+  // nodeSeparation: LINEAR with nodeRatio — spectral phase must place nodes
+  // far apart initially so force-directed has room to work
   opts.nodeSeparation = Math.round(
-    REFERENCE.nodeSeparation * Math.sqrt(nodeRatio)
+    REFERENCE.nodeSeparation * nodeRatio
   );
 
-  // nodeRepulsion: linear with nodeRatio, boosted by density
-  // This is THE key param — each node needs proportional repulsion force,
-  // and denser graphs need extra push to avoid overlap
+  // nodeRepulsion: QUADRATIC with nodeRatio, boosted by density
+  // Each node needs to push harder as more edge springs pull inward.
+  // At 136 nodes: 4500 * 13.7 * 3.25 ≈ 200k (was 54k with linear)
   opts.nodeRepulsion = Math.round(
-    REFERENCE.nodeRepulsion * nodeRatio * Math.max(1, densityRatio)
+    REFERENCE.nodeRepulsion * nodeRatio * nodeRatio * Math.max(1, densityRatio)
   );
 
-  // idealEdgeLength: sqrt(nodeRatio) * density boost
-  // Longer edges in bigger/denser graphs reduce visual overlap
+  // idealEdgeLength: linear with nodeRatio, density boost
+  // Edges must be longer to give repulsion room to work
   opts.idealEdgeLength = Math.round(
-    REFERENCE.idealEdgeLength * Math.sqrt(nodeRatio) * Math.max(1, Math.sqrt(densityRatio))
+    REFERENCE.idealEdgeLength * nodeRatio * Math.max(1, Math.sqrt(densityRatio))
   );
 
-  // gravity: INVERSE of nodeRatio — this is the critical ratio
-  // Weaker gravity = less central pull = more even distribution
-  // With fit:true, the repulsion/gravity RATIO drives visual spread
-  opts.gravity = Math.max(0.005, REFERENCE.gravity / nodeRatio);
+  // edgeElasticity: reduce for dense graphs so edge springs are weaker
+  // This lets repulsion win the tug-of-war against edge pull
+  opts.edgeElasticity = Math.max(0.05, 0.45 / Math.max(1, densityRatio));
+
+  // gravity: INVERSE SQUARE of nodeRatio — exponentially weaker central pull
+  // This is the biggest lever: at 136 nodes, 0.25/13.7 = 0.018 (was 0.068)
+  opts.gravity = Math.max(0.001, REFERENCE.gravity / (nodeRatio * nodeRatio));
 
   // gravityRange: increase so falloff covers the larger layout
-  opts.gravityRange = Math.min(15, REFERENCE.gravityRange * Math.sqrt(nodeRatio));
+  opts.gravityRange = Math.min(20, REFERENCE.gravityRange * nodeRatio);
 
   // Iteration scaling — bigger graphs need more convergence steps
-  if (nodeCount > 100) opts.numIter = 3000;
-  if (nodeCount > 500) opts.numIter = 3500;
-  if (nodeCount > 1000) opts.numIter = 4000;
+  if (nodeCount > 100) opts.numIter = 3500;
+  if (nodeCount > 500) opts.numIter = 4500;
+  if (nodeCount > 1000) opts.numIter = 5000;
 
   // Tiling padding for disconnected components
   if (nodeCount > 50) {
-    opts.tilingPaddingVertical = Math.round(10 * Math.sqrt(nodeRatio));
-    opts.tilingPaddingHorizontal = Math.round(10 * Math.sqrt(nodeRatio));
+    opts.tilingPaddingVertical = Math.round(10 * nodeRatio);
+    opts.tilingPaddingHorizontal = Math.round(10 * nodeRatio);
   }
 
   console.log(
@@ -169,8 +176,9 @@ function getScaledLayoutOptions(nodeCount, edgeCount) {
   );
   console.log(
     `Scaled → nodeSep=${opts.nodeSeparation}, repulsion=${opts.nodeRepulsion}, ` +
-    `edgeLen=${opts.idealEdgeLength}, gravity=${opts.gravity.toFixed(4)}, ` +
-    `gravRange=${opts.gravityRange.toFixed(1)}, iters=${opts.numIter}`
+    `edgeLen=${opts.idealEdgeLength}, elasticity=${opts.edgeElasticity.toFixed(3)}, ` +
+    `gravity=${opts.gravity.toFixed(4)}, gravRange=${opts.gravityRange.toFixed(1)}, ` +
+    `iters=${opts.numIter}`
   );
 
   return opts;
