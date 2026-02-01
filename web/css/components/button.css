@@ -1,0 +1,115 @@
+/**
+ * Button Component
+ *
+ * Usage:
+ *   <button class="btn">Default</button>
+ *   <button class="btn btn-primary">Primary</button>
+ *   <button class="btn btn-sm">Small</button>
+ *   <button class="btn-icon">Icon</button>
+ *   <button class="btn-link">Link style</button>
+ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  color: var(--gray-700);
+  background-color: white;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-default),
+    border-color var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default);
+}
+
+.btn:hover {
+  background-color: var(--gray-50);
+  border-color: var(--border-color-hover);
+}
+
+.btn:active {
+  background-color: var(--gray-100);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary variant */
+.btn-primary {
+  color: white;
+  background-color: var(--blue-600);
+  border-color: var(--blue-600);
+}
+
+.btn-primary:hover {
+  background-color: var(--blue-700);
+  border-color: var(--blue-700);
+}
+
+.btn-primary:active {
+  background-color: var(--blue-700);
+}
+
+/* Small variant */
+.btn-sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+}
+
+/* Icon button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: var(--text-md);
+  color: var(--gray-600);
+  background-color: white;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default);
+}
+
+.btn-icon:hover {
+  background-color: var(--gray-50);
+  color: var(--gray-800);
+}
+
+.btn-icon:active {
+  background-color: var(--gray-100);
+}
+
+/* Link style button */
+.btn-link {
+  padding: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--blue-600);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-link:hover {
+  color: var(--blue-700);
+  text-decoration: underline;
+}

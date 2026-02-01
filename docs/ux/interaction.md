@@ -47,76 +47,115 @@ const cyOptions = {
 
 ## Click vs Hover Behaviors
 
+### Design Decision: Click-to-Highlight Neighborhood
+
+Neighborhood highlighting is triggered on **click**, not hover. Hover-based highlighting
+creates too much visual noise—every incidental mouse movement over a node would dim and
+re-render the entire graph, making the canvas feel unstable during casual exploration.
+
+Click is intentional, stable (persists until dismissed), and works on touch devices.
+
+### Hover: Lightweight Preview (Tooltip Only)
+
+Hover adds a subtle `.hover` class (blue border) and shows a tooltip after a short delay.
+It does **not** dim or highlight neighbors.
+
 ```javascript
-// Hover: Preview mode
+// Hover: Tooltip + subtle border only
 cy.on('mouseover', 'node', function(event) {
   const node = event.target;
-
-  // Highlight node and immediate neighbors
-  const neighborhood = node.closedNeighborhood();
-  neighborhood.addClass('highlighted');
-
-  // Dim everything else
-  cy.elements().not(neighborhood).addClass('dimmed');
-
-  // Show tooltip
-  showNodeTooltip(node, event.renderedPosition);
+  node.addClass('hover');
+  showNodeTooltip(node, event.renderedPosition);  // after TOOLTIP_DELAY
 });
 
 cy.on('mouseout', 'node', function(event) {
-  // Remove highlights
-  cy.elements().removeClass('highlighted').removeClass('dimmed');
-
-  // Hide tooltip
+  event.target.removeClass('hover');
   hideTooltip();
 });
 
-// Click: Select mode
-cy.on('tap', 'node', function(event) {
-  const node = event.target;
-
-  // If ctrl/cmd held, add to selection
-  if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
-    node.select();
-  } else {
-    // Single select: clear others
-    cy.elements().unselect();
-    node.select();
-  }
-
-  // Open detail panel
-  openNodeDetailPanel(node);
-});
-
-// Edge hover
+// Edge hover: same pattern
 cy.on('mouseover', 'edge', function(event) {
-  const edge = event.target;
-  edge.addClass('highlighted');
-
-  // Show edge tooltip
-  showEdgeTooltip(edge, event.renderedPosition);
+  event.target.addClass('hover');
+  showEdgeTooltip(event.target, event.renderedPosition);
 });
 
 cy.on('mouseout', 'edge', function(event) {
-  event.target.removeClass('highlighted');
+  event.target.removeClass('hover');
   hideTooltip();
 });
+```
 
-// Edge click: Open evidence panel
+### Click: Select + Highlight Neighborhood
+
+Clicking a node selects it, highlights its 1-hop neighborhood (connected nodes + edges),
+and dims everything else using the `neighborhood-dimmed` class. This uses a separate class
+from the search `.dimmed` class to avoid conflicts—if a search is active, neighborhood
+highlighting is skipped.
+
+```javascript
+// Highlight the neighborhood of a node.
+// Skips if a search is active to avoid conflicts.
+function highlightNeighborhood(cy, node) {
+  if (cy.nodes('.search-match').length > 0) return;
+
+  const neighborhood = node.closedNeighborhood();
+  cy.elements().addClass('neighborhood-dimmed');
+  neighborhood.removeClass('neighborhood-dimmed');
+}
+
+function clearNeighborhoodHighlight(cy) {
+  cy.elements().removeClass('neighborhood-dimmed');
+}
+
+// Node click: select + highlight neighborhood + open detail panel
+cy.on('tap', 'node', function(event) {
+  const node = event.target;
+  cy.elements().unselect();
+  node.select();
+  clearNeighborhoodHighlight(cy);
+  highlightNeighborhood(cy, node);
+  openNodeDetailPanel(node);
+});
+
+// Edge click: open evidence panel (clears neighborhood highlight)
 cy.on('tap', 'edge', function(event) {
   const edge = event.target;
+  cy.elements().unselect();
   edge.select();
+  clearNeighborhoodHighlight(cy);
   openEvidencePanel(edge);
 });
 
-// Background click: Deselect all
+// Background click: deselect all + clear highlight
 cy.on('tap', function(event) {
   if (event.target === cy) {
     cy.elements().unselect();
+    clearNeighborhoodHighlight(cy);
     closeAllPanels();
   }
 });
+```
 
+### Keyboard Navigation
+
+Arrow keys navigate between neighbors and also trigger neighborhood highlighting:
+
+```javascript
+// Arrow navigation re-highlights around the new node
+if (bestNeighbor) {
+  cy.elements().unselect();
+  bestNeighbor.select();
+  clearNeighborhoodHighlight(cy);
+  highlightNeighborhood(cy, bestNeighbor);
+  openNodeDetailPanel(bestNeighbor);
+}
+```
+
+Escape clears both selection and neighborhood highlighting.
+
+### Double-Click
+
+```javascript
 // Double-click node: Zoom to neighborhood
 cy.on('dbltap', 'node', function(event) {
   const node = event.target;

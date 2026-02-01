@@ -1,0 +1,2882 @@
+{
+  "meta": {
+    "view": "mentions",
+    "nodeCount": 129,
+    "edgeCount": 150,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "doc:2026-01-16_bloomberg_6248",
+          "label": "Report: Industry Analysis",
+          "type": "Document",
+          "url": "https://bloomberg.com/technology/2026/01/16/cohere_emad_mostaque",
+          "source": "Bloomberg",
+          "publishedAt": "2026-01-16"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_nvidia_blog_1887",
+          "label": "Report: Industry Overview",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/21/cohere_emad_mostaque",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_venturebeat_3987",
+          "label": "Why Engineers View Safety",
+          "type": "Document",
+          "url": "https://venturebeat.com/2026/01/22/cohere_emad_mostaque",
+          "source": "VentureBeat",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-13_nvidia_blog_5950",
+          "label": "Report: Technical Summary",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/13/aidan_gomez_flash_attention:_f",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-13_nvidia_blog_8012",
+          "label": "What Researchers Approach Scale",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2025/12/13/sora_2_sliding_window_attentio",
+          "source": "Nvidia Blog",
+          "publishedAt": "2025-12-13"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_techcrunch_6313",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://techcrunch.com/2026/01/24/attention_is_all_you_need_v2_f",
+          "source": "TechCrunch",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-29_the_verge_6976",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://theverge.com/2025/12/29/claude_sonnet_4_hellaswag",
+          "source": "The Verge",
+          "publishedAt": "2025-12-29"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_anthropic_blog_1338",
+          "label": "Why Engineers View the Future",
+          "type": "Document",
+          "url": "https://anthropic.com/news/2026/01/25/claude_sonnet_4_hellaswag",
+          "source": "Anthropic Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_wired_2741",
+          "label": "Why Companies Are Building New Models",
+          "type": "Document",
+          "url": "https://wired.com/2026/01/25/claude_sonnet_4_hellaswag",
+          "source": "Wired",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_weights_and_bia_7015",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://wandb.ai/articles/2026/01/24/chris_olah_midjourney",
+          "source": "Weights & Biases Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-04_hugging_face_bl_5294",
+          "label": "Analysis: New Developments in AI",
+          "type": "Document",
+          "url": "https://huggingface.co/blog/2025/12/04/dall_e_4_arc_agi",
+          "source": "Hugging Face Blog",
+          "publishedAt": "2025-12-04"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-10_weights_and_bia_7266",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://wandb.ai/articles/2026/01/10/dall_e_4_arc_agi",
+          "source": "Weights & Biases Blog",
+          "publishedAt": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-10_google_ai_blog_4719",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/10/dall_e_4_arc_agi",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-18_microsoft_resea_6597",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://microsoft.com/en-us/research/blog/2026/01/18/toolformer:_language_models_ca",
+          "source": "Microsoft Research Blog",
+          "publishedAt": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-30_techcrunch_5186",
+          "label": "Analysis: New Developments in AI",
+          "type": "Document",
+          "url": "https://techcrunch.com/2025/12/30/claude_opus_45_hellaswag",
+          "source": "TechCrunch",
+          "publishedAt": "2025-12-30"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-20_the_gradient_8844",
+          "label": "Report: Research Summary",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/20/microsoft_research_deepseek_v3",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-20_microsoft_resea_2784",
+          "label": "Report: Market Summary",
+          "type": "Document",
+          "url": "https://microsoft.com/en-us/research/blog/2026/01/20/microsoft_research_deepseek_v3",
+          "source": "Microsoft Research Blog",
+          "publishedAt": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-21_the_verge_3688",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://theverge.com/2025/12/21/character_ai_tensorrt_llm",
+          "source": "The Verge",
+          "publishedAt": "2025-12-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_mit_technology__1231",
+          "label": "How Companies Approach the Future",
+          "type": "Document",
+          "url": "https://technologyreview.com/2026/01/24/anthropic_chain_of_thought_pro",
+          "source": "MIT Technology Review",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-18_weights_and_bia_1171",
+          "label": "Report: Industry Update",
+          "type": "Document",
+          "url": "https://wandb.ai/articles/2026/01/18/claude_opus_45_gpqa",
+          "source": "Weights & Biases Blog",
+          "publishedAt": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-23_hugging_face_bl_3117",
+          "label": "What AI Labs Are Building Scale",
+          "type": "Document",
+          "url": "https://huggingface.co/blog/2026/01/23/claude_opus_45_gpqa",
+          "source": "Hugging Face Blog",
+          "publishedAt": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-23_google_ai_blog_5497",
+          "label": "Report: Research Overview",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/23/vllm_lora",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_bloomberg_9799",
+          "label": "Report: Technical Summary",
+          "type": "Document",
+          "url": "https://bloomberg.com/technology/2026/01/24/chain_of_thought_prompting_eli",
+          "source": "Bloomberg",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_the_gradient_5732",
+          "label": "Report: Market Analysis",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/25/chain_of_thought_prompting_eli",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-12_nextgov_9741",
+          "label": "Report: Industry Summary",
+          "type": "Document",
+          "url": "https://nextgov.com/2026/01/12/chris_olah_cohere",
+          "source": "Nextgov",
+          "publishedAt": "2026-01-12"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-23_venturebeat_4660",
+          "label": "Report: Market Overview",
+          "type": "Document",
+          "url": "https://venturebeat.com/2026/01/23/transformers_group_query_atten",
+          "source": "VentureBeat",
+          "publishedAt": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_google_ai_blog_4439",
+          "label": "Why Engineers View the Future",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/24/transformers_group_query_atten",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-14_nvidia_blog_3601",
+          "label": "Report: Research Summary",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/14/cohere_google_deepmind",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-14"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_the_verge_8177",
+          "label": "What Engineers Approach Scale",
+          "type": "Document",
+          "url": "https://theverge.com/2026/01/25/cohere_google_deepmind",
+          "source": "The Verge",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_mit_technology__1915",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://technologyreview.com/2026/01/25/cohere_google_deepmind",
+          "source": "MIT Technology Review",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_the_verge_1001",
+          "label": "Report: Technical Overview",
+          "type": "Document",
+          "url": "https://theverge.com/2026/01/25/cohere_google_deepmind",
+          "source": "The Verge",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-19_nextgov_9490",
+          "label": "How Engineers View Safety",
+          "type": "Document",
+          "url": "https://nextgov.com/2026/01/19/llamacpp_llama_4",
+          "source": "Nextgov",
+          "publishedAt": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-20_nvidia_blog_8850",
+          "label": "Report: Research Update",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/20/llamacpp_llama_4",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_microsoft_resea_8975",
+          "label": "Report: Market Analysis",
+          "type": "Document",
+          "url": "https://microsoft.com/en-us/research/blog/2026/01/21/llamacpp_llama_4",
+          "source": "Microsoft Research Blog",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-01_the_gradient_9800",
+          "label": "What Researchers Are Rethinking the Future",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/01/cohere_mistral_ai",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-01"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_weights_and_bia_4297",
+          "label": "Report: Industry Update",
+          "type": "Document",
+          "url": "https://wandb.ai/articles/2026/01/24/stability_ai_attention_is_all_",
+          "source": "Weights & Biases Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_arxiv_2688",
+          "label": "Analysis: Breaking News in AI",
+          "type": "Document",
+          "url": "https://arxiv.org/abs/2026/01/25/stability_ai_attention_is_all_",
+          "source": "arXiv",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_google_ai_blog_1233",
+          "label": "What AI Labs View the Future",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/25/stability_ai_attention_is_all_",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_langchain_blog_3499",
+          "label": "Report: Research Analysis",
+          "type": "Document",
+          "url": "https://blog.langchain.dev/2026/01/24/vllm_nemotron_5",
+          "source": "LangChain Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_microsoft_resea_2431",
+          "label": "What Companies View the Future",
+          "type": "Document",
+          "url": "https://microsoft.com/en-us/research/blog/2026/01/24/vllm_nemotron_5",
+          "source": "Microsoft Research Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_microsoft_resea_3845",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://microsoft.com/en-us/research/blog/2026/01/24/vllm_nemotron_5",
+          "source": "Microsoft Research Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_mit_technology__6997",
+          "label": "How AI Labs Are Rethinking the Future",
+          "type": "Document",
+          "url": "https://technologyreview.com/2026/01/24/vllm_nemotron_5",
+          "source": "MIT Technology Review",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_nvidia_blog_9493",
+          "label": "Why Engineers Approach the Future",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/25/aidan_gomez_gemini_ultra_2",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_wired_9954",
+          "label": "What Engineers Are Building Scale",
+          "type": "Document",
+          "url": "https://wired.com/2026/01/25/aidan_gomez_gemini_ultra_2",
+          "source": "Wired",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-22_anthropic_blog_4233",
+          "label": "Report: Industry Analysis",
+          "type": "Document",
+          "url": "https://anthropic.com/news/2025/12/22/xai_character_ai",
+          "source": "Anthropic Blog",
+          "publishedAt": "2025-12-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-13_ars_technica_6296",
+          "label": "What Companies Are Rethinking New Models",
+          "type": "Document",
+          "url": "https://arstechnica.com/2026/01/13/xai_character_ai",
+          "source": "Ars Technica",
+          "publishedAt": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_the_verge_6300",
+          "label": "Report: Industry Update",
+          "type": "Document",
+          "url": "https://theverge.com/2026/01/22/emad_mostaque_databricks",
+          "source": "The Verge",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_ars_technica_9092",
+          "label": "Why Engineers Approach Safety",
+          "type": "Document",
+          "url": "https://arstechnica.com/2026/01/25/emad_mostaque_databricks",
+          "source": "Ars Technica",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_langchain_blog_3296",
+          "label": "Report: Technical Summary",
+          "type": "Document",
+          "url": "https://blog.langchain.dev/2026/01/25/emad_mostaque_databricks",
+          "source": "LangChain Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-20_ars_technica_2120",
+          "label": "Report: Industry Update",
+          "type": "Document",
+          "url": "https://arstechnica.com/2026/01/20/anthropic_llamaindex",
+          "source": "Ars Technica",
+          "publishedAt": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_google_ai_blog_8165",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/22/anthropic_llamaindex",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_nvidia_blog_3852",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/22/anthropic_llamaindex",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_techcrunch_9569",
+          "label": "Report: Market Analysis",
+          "type": "Document",
+          "url": "https://techcrunch.com/2026/01/22/anthropic_llamaindex",
+          "source": "TechCrunch",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_langchain_blog_6651",
+          "label": "Report: Research Summary",
+          "type": "Document",
+          "url": "https://blog.langchain.dev/2026/01/21/litellm_llama_4",
+          "source": "LangChain Blog",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-24_nvidia_blog_9589",
+          "label": "Report: Industry Update",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2025/12/24/transformers_transformer_archi",
+          "source": "Nvidia Blog",
+          "publishedAt": "2025-12-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-19_nvidia_blog_8931",
+          "label": "How Researchers View the Future",
+          "type": "Document",
+          "url": "https://blogs.nvidia.com/2026/01/19/anthropic_nvidia",
+          "source": "Nvidia Blog",
+          "publishedAt": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_the_gradient_4842",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/22/anthropic_nvidia",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_the_gradient_2247",
+          "label": "Analysis: Breaking News in AI",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/21/hugging_face_gpt_4o_mini_2",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-13_ars_technica_9344",
+          "label": "Analysis: New Developments in AI",
+          "type": "Document",
+          "url": "https://arstechnica.com/2026/01/13/gpt_4o_mini_2_kv_cache_optimiz",
+          "source": "Ars Technica",
+          "publishedAt": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-22_the_gradient_6506",
+          "label": "Why AI Labs Are Rethinking the Future",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/22/gpt_4o_mini_2_kv_cache_optimiz",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_microsoft_resea_1616",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://microsoft.com/en-us/research/blog/2026/01/25/demis_hassabis_stability_ai",
+          "source": "Microsoft Research Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_wired_2015",
+          "label": "Report: Technical Analysis",
+          "type": "Document",
+          "url": "https://wired.com/2026/01/25/demis_hassabis_stability_ai",
+          "source": "Wired",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_google_ai_blog_7519",
+          "label": "Report: Technical Overview",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/25/demis_hassabis_stability_ai",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-20_google_ai_blog_6895",
+          "label": "Report: Market Summary",
+          "type": "Document",
+          "url": "https://blog.google/technology/ai/2026/01/20/microsoft_research_ai_copyrigh",
+          "source": "Google AI Blog",
+          "publishedAt": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_bloomberg_7208",
+          "label": "Report: Research Analysis",
+          "type": "Document",
+          "url": "https://bloomberg.com/technology/2026/01/24/microsoft_research_ai_copyrigh",
+          "source": "Bloomberg",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_mit_technology__5254",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://technologyreview.com/2026/01/24/microsoft_research_ai_copyrigh",
+          "source": "MIT Technology Review",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-12-27_anthropic_blog_4779",
+          "label": "Why Companies Are Building New Models",
+          "type": "Document",
+          "url": "https://anthropic.com/news/2025/12/27/ollama_mixture_of_experts",
+          "source": "Anthropic Blog",
+          "publishedAt": "2025-12-27"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_wired_8010",
+          "label": "Report: Research Analysis",
+          "type": "Document",
+          "url": "https://wired.com/2026/01/25/ollama_mixture_of_experts",
+          "source": "Wired",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_nextgov_4180",
+          "label": "What Engineers Approach New Models",
+          "type": "Document",
+          "url": "https://nextgov.com/2026/01/25/ollama_mixture_of_experts",
+          "source": "Nextgov",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-23_mit_technology__1815",
+          "label": "What Companies Are Rethinking the Future",
+          "type": "Document",
+          "url": "https://technologyreview.com/2026/01/23/mira_murati_aya_3",
+          "source": "MIT Technology Review",
+          "publishedAt": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_arxiv_6564",
+          "label": "Analysis: Breaking News in AI",
+          "type": "Document",
+          "url": "https://arxiv.org/abs/2026/01/24/mira_murati_aya_3",
+          "source": "arXiv",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-08_openai_blog_2104",
+          "label": "Analysis: Key Updates in AI",
+          "type": "Document",
+          "url": "https://openai.com/blog/2026/01/08/apple_ml_midjourney_v7",
+          "source": "OpenAI Blog",
+          "publishedAt": "2026-01-08"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_the_gradient_4039",
+          "label": "Analysis: Emerging Trends in AI",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/21/litellm_autogpt",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_ars_technica_4948",
+          "label": "Why Engineers View New Models",
+          "type": "Document",
+          "url": "https://arstechnica.com/2026/01/24/litellm_autogpt",
+          "source": "Ars Technica",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-15_venturebeat_9798",
+          "label": "Analysis: New Developments in AI",
+          "type": "Document",
+          "url": "https://venturebeat.com/2026/01/15/vllm_aya_3",
+          "source": "VentureBeat",
+          "publishedAt": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "model:aya_3",
+          "label": "Aya 3",
+          "type": "Model",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-20"
+        }
+      },
+      {
+        "data": {
+          "id": "person:aidan_gomez",
+          "label": "Aidan Gomez",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-09",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:arc_agi",
+          "label": "ARC-AGI",
+          "type": "Benchmark",
+          "aliases": [
+            "ARC AGI"
+          ],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2026-01-07"
+        }
+      },
+      {
+        "data": {
+          "id": "org:mistral_ai",
+          "label": "Mistral AI",
+          "type": "Org",
+          "aliases": [
+            "Mistral"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2025-12-26"
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_sonnet_4",
+          "label": "Claude Sonnet 4",
+          "type": "Model",
+          "aliases": [
+            "Sonnet 4"
+          ],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "model:llama_4",
+          "label": "Llama 4",
+          "type": "Model",
+          "aliases": [
+            "LLaMA 4",
+            "Llama-4"
+          ],
+          "firstSeen": "2025-12-27",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:chain_of_thought_prompting_elicits_reaso",
+          "label": "Chain-of-Thought Prompting Elicits Reasoning",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-24",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "model:sora_2",
+          "label": "Sora 2",
+          "type": "Model",
+          "aliases": [
+            "Sora V2"
+          ],
+          "firstSeen": "2025-10-26",
+          "lastSeen": "2025-12-02"
+        }
+      },
+      {
+        "data": {
+          "id": "org:xai",
+          "label": "xAI",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-11-16",
+          "lastSeen": "2025-12-05"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:group_query_attention",
+          "label": "Group Query Attention",
+          "type": "Tech",
+          "aliases": [
+            "GQA"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-11-24"
+        }
+      },
+      {
+        "data": {
+          "id": "org:nvidia",
+          "label": "Nvidia",
+          "type": "Org",
+          "aliases": [
+            "NVIDIA"
+          ],
+          "firstSeen": "2025-12-26",
+          "lastSeen": "2026-01-16"
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt_4o_mini_2",
+          "label": "GPT-4o Mini 2",
+          "type": "Model",
+          "aliases": [
+            "GPT4o Mini 2"
+          ],
+          "firstSeen": "2026-01-04",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "org:microsoft_research",
+          "label": "Microsoft Research",
+          "type": "Org",
+          "aliases": [
+            "MSR",
+            "Microsoft"
+          ],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "org:cohere",
+          "label": "Cohere",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-12-19",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "person:chris_olah",
+          "label": "Chris Olah",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-27",
+          "lastSeen": "2025-12-20"
+        }
+      },
+      {
+        "data": {
+          "id": "org:character_ai",
+          "label": "Character AI",
+          "type": "Org",
+          "aliases": [
+            "Character.AI"
+          ],
+          "firstSeen": "2025-11-04",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:llamacpp",
+          "label": "llama.cpp",
+          "type": "Repo",
+          "aliases": [],
+          "firstSeen": "2026-01-02",
+          "lastSeen": "2026-01-11"
+        }
+      },
+      {
+        "data": {
+          "id": "model:dall_e_4",
+          "label": "DALL-E 4",
+          "type": "Model",
+          "aliases": [
+            "DALLE 4"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "org:midjourney",
+          "label": "Midjourney",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "model:gemini_ultra_2",
+          "label": "Gemini Ultra 2",
+          "type": "Model",
+          "aliases": [
+            "Gemini 2",
+            "Gemini Ultra"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-31"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:litellm",
+          "label": "LiteLLM",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": [
+            "Opus 4.5",
+            "Claude Opus"
+          ],
+          "firstSeen": "2025-12-09",
+          "lastSeen": "2026-01-05"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:sliding_window_attention",
+          "label": "Sliding Window Attention",
+          "type": "Tech",
+          "aliases": [
+            "SWA"
+          ],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-24"
+        }
+      },
+      {
+        "data": {
+          "id": "org:stability_ai",
+          "label": "Stability AI",
+          "type": "Org",
+          "aliases": [
+            "Stability"
+          ],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "model:midjourney_v7",
+          "label": "Midjourney V7",
+          "type": "Model",
+          "aliases": [
+            "MJ V7"
+          ],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "model:nemotron_5",
+          "label": "Nemotron-5",
+          "type": "Model",
+          "aliases": [
+            "Nemotron 5"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2025-11-27"
+        }
+      },
+      {
+        "data": {
+          "id": "person:mira_murati",
+          "label": "Mira Murati",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-23",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:vllm",
+          "label": "vllm",
+          "type": "Repo",
+          "aliases": [
+            "vllm-project/vllm"
+          ],
+          "firstSeen": "2025-12-06",
+          "lastSeen": "2025-12-14"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:sparse_attention",
+          "label": "Sparse Attention",
+          "type": "Tech",
+          "aliases": [],
+          "firstSeen": "2025-11-06",
+          "lastSeen": "2025-12-14"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-12-19",
+          "lastSeen": "2025-12-29"
+        }
+      },
+      {
+        "data": {
+          "id": "org:hugging_face",
+          "label": "Hugging Face",
+          "type": "Org",
+          "aliases": [
+            "HF"
+          ],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-12-02",
+          "lastSeen": "2026-01-02"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:tensorrt_llm",
+          "label": "TensorRT-LLM",
+          "type": "Tool",
+          "aliases": [
+            "TensorRT LLM"
+          ],
+          "firstSeen": "2025-12-13",
+          "lastSeen": "2026-01-01"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:lora",
+          "label": "LoRA",
+          "type": "Tech",
+          "aliases": [
+            "Low-Rank Adaptation"
+          ],
+          "firstSeen": "2026-01-16",
+          "lastSeen": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:toolformer:_language_models_can_teach_th",
+          "label": "Toolformer: Language Models Can Teach Themselves to Use Tools",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:kv_cache_optimization",
+          "label": "KV Cache Optimization",
+          "type": "Tech",
+          "aliases": [
+            "KV Cache"
+          ],
+          "firstSeen": "2025-11-19",
+          "lastSeen": "2025-12-21"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:ollama",
+          "label": "Ollama",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2026-01-03"
+        }
+      },
+      {
+        "data": {
+          "id": "model:deepseek_v3",
+          "label": "DeepSeek-V3",
+          "type": "Model",
+          "aliases": [
+            "DeepSeek V3"
+          ],
+          "firstSeen": "2026-01-18",
+          "lastSeen": "2026-01-23"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-25",
+          "lastSeen": "2025-12-27"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:autogpt",
+          "label": "AutoGPT",
+          "type": "Tool",
+          "aliases": [
+            "Auto-GPT"
+          ],
+          "firstSeen": "2025-11-28",
+          "lastSeen": "2025-12-05"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:flash_attention:_fast_and_memory_efficie",
+          "label": "Flash Attention: Fast and Memory-Efficient Attention",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2025-11-20",
+          "lastSeen": "2025-12-14"
+        }
+      },
+      {
+        "data": {
+          "id": "model:falcon_3",
+          "label": "Falcon 3",
+          "type": "Model",
+          "aliases": [
+            "Falcon3"
+          ],
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2026-01-01"
+        }
+      },
+      {
+        "data": {
+          "id": "person:demis_hassabis",
+          "label": "Demis Hassabis",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2026-01-05",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:gpqa",
+          "label": "GPQA",
+          "type": "Benchmark",
+          "aliases": [
+            "Graduate-Level Google-Proof QA"
+          ],
+          "firstSeen": "2026-01-15",
+          "lastSeen": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "model:qwen_3",
+          "label": "Qwen-3",
+          "type": "Model",
+          "aliases": [
+            "Qwen3",
+            "Qwen 3"
+          ],
+          "firstSeen": "2025-12-22",
+          "lastSeen": "2026-01-13"
+        }
+      },
+      {
+        "data": {
+          "id": "org:databricks",
+          "label": "Databricks",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:hellaswag",
+          "label": "HellaSwag",
+          "type": "Benchmark",
+          "aliases": [],
+          "firstSeen": "2025-12-27",
+          "lastSeen": "2026-01-06"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:llamaindex",
+          "label": "LlamaIndex",
+          "type": "Tool",
+          "aliases": [
+            "Llama Index"
+          ],
+          "firstSeen": "2026-01-19",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "person:emad_mostaque",
+          "label": "Emad Mostaque",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-12-14",
+          "lastSeen": "2025-12-28"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": [
+            "Transformers"
+          ],
+          "firstSeen": "2025-11-12",
+          "lastSeen": "2025-12-03"
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic",
+          "label": "Anthropic",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-16"
+        }
+      },
+      {
+        "data": {
+          "id": "org:apple_ml",
+          "label": "Apple ML",
+          "type": "Org",
+          "aliases": [
+            "Apple Machine Learning"
+          ],
+          "firstSeen": "2025-12-10",
+          "lastSeen": "2025-12-10"
+        }
+      },
+      {
+        "data": {
+          "id": "org:google_deepmind",
+          "label": "Google DeepMind",
+          "type": "Org",
+          "aliases": [
+            "DeepMind",
+            "Google AI"
+          ],
+          "firstSeen": "2025-12-07",
+          "lastSeen": "2026-01-11"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_copyright",
+          "label": "AI Copyright",
+          "type": "Topic",
+          "aliases": [
+            "AI and IP"
+          ],
+          "firstSeen": "2025-11-07",
+          "lastSeen": "2025-12-30"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:doc:2026-01-16_bloomberg_6248->org:cohere",
+          "source": "doc:2026-01-16_bloomberg_6248",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-16_bloomberg_6248->person:emad_mostaque",
+          "source": "doc:2026-01-16_bloomberg_6248",
+          "target": "person:emad_mostaque",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_nvidia_blog_1887->org:cohere",
+          "source": "doc:2026-01-21_nvidia_blog_1887",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_nvidia_blog_1887->person:emad_mostaque",
+          "source": "doc:2026-01-21_nvidia_blog_1887",
+          "target": "person:emad_mostaque",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_venturebeat_3987->org:cohere",
+          "source": "doc:2026-01-22_venturebeat_3987",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_venturebeat_3987->person:emad_mostaque",
+          "source": "doc:2026-01-22_venturebeat_3987",
+          "target": "person:emad_mostaque",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-13_nvidia_blog_5950->person:aidan_gomez",
+          "source": "doc:2026-01-13_nvidia_blog_5950",
+          "target": "person:aidan_gomez",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-13_nvidia_blog_5950->paper:flash_attention:_fast_and_memory_efficie",
+          "source": "doc:2026-01-13_nvidia_blog_5950",
+          "target": "paper:flash_attention:_fast_and_memory_efficie",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-13_nvidia_blog_8012->model:sora_2",
+          "source": "doc:2025-12-13_nvidia_blog_8012",
+          "target": "model:sora_2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-13_nvidia_blog_8012->tech:sliding_window_attention",
+          "source": "doc:2025-12-13_nvidia_blog_8012",
+          "target": "tech:sliding_window_attention",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_techcrunch_6313->paper:attention_is_all_you_need_v2",
+          "source": "doc:2026-01-24_techcrunch_6313",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_techcrunch_6313->model:falcon_3",
+          "source": "doc:2026-01-24_techcrunch_6313",
+          "target": "model:falcon_3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-29_the_verge_6976->model:claude_sonnet_4",
+          "source": "doc:2025-12-29_the_verge_6976",
+          "target": "model:claude_sonnet_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-29_the_verge_6976->benchmark:hellaswag",
+          "source": "doc:2025-12-29_the_verge_6976",
+          "target": "benchmark:hellaswag",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_anthropic_blog_1338->model:claude_sonnet_4",
+          "source": "doc:2026-01-25_anthropic_blog_1338",
+          "target": "model:claude_sonnet_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_anthropic_blog_1338->benchmark:hellaswag",
+          "source": "doc:2026-01-25_anthropic_blog_1338",
+          "target": "benchmark:hellaswag",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_2741->model:claude_sonnet_4",
+          "source": "doc:2026-01-25_wired_2741",
+          "target": "model:claude_sonnet_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_2741->benchmark:hellaswag",
+          "source": "doc:2026-01-25_wired_2741",
+          "target": "benchmark:hellaswag",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_weights_and_bia_7015->person:chris_olah",
+          "source": "doc:2026-01-24_weights_and_bia_7015",
+          "target": "person:chris_olah",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_weights_and_bia_7015->org:midjourney",
+          "source": "doc:2026-01-24_weights_and_bia_7015",
+          "target": "org:midjourney",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-04_hugging_face_bl_5294->model:dall_e_4",
+          "source": "doc:2025-12-04_hugging_face_bl_5294",
+          "target": "model:dall_e_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-04_hugging_face_bl_5294->benchmark:arc_agi",
+          "source": "doc:2025-12-04_hugging_face_bl_5294",
+          "target": "benchmark:arc_agi",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_weights_and_bia_7266->model:dall_e_4",
+          "source": "doc:2026-01-10_weights_and_bia_7266",
+          "target": "model:dall_e_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_weights_and_bia_7266->benchmark:arc_agi",
+          "source": "doc:2026-01-10_weights_and_bia_7266",
+          "target": "benchmark:arc_agi",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_google_ai_blog_4719->model:dall_e_4",
+          "source": "doc:2026-01-10_google_ai_blog_4719",
+          "target": "model:dall_e_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_google_ai_blog_4719->benchmark:arc_agi",
+          "source": "doc:2026-01-10_google_ai_blog_4719",
+          "target": "benchmark:arc_agi",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-18_microsoft_resea_6597->paper:toolformer:_language_models_can_teach_th",
+          "source": "doc:2026-01-18_microsoft_resea_6597",
+          "target": "paper:toolformer:_language_models_can_teach_th",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-18_microsoft_resea_6597->model:qwen_3",
+          "source": "doc:2026-01-18_microsoft_resea_6597",
+          "target": "model:qwen_3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-30_techcrunch_5186->model:claude_opus_45",
+          "source": "doc:2025-12-30_techcrunch_5186",
+          "target": "model:claude_opus_45",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-30_techcrunch_5186->benchmark:hellaswag",
+          "source": "doc:2025-12-30_techcrunch_5186",
+          "target": "benchmark:hellaswag",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_the_gradient_8844->org:microsoft_research",
+          "source": "doc:2026-01-20_the_gradient_8844",
+          "target": "org:microsoft_research",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_the_gradient_8844->model:deepseek_v3",
+          "source": "doc:2026-01-20_the_gradient_8844",
+          "target": "model:deepseek_v3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_microsoft_resea_2784->org:microsoft_research",
+          "source": "doc:2026-01-20_microsoft_resea_2784",
+          "target": "org:microsoft_research",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_microsoft_resea_2784->model:deepseek_v3",
+          "source": "doc:2026-01-20_microsoft_resea_2784",
+          "target": "model:deepseek_v3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-21_the_verge_3688->org:character_ai",
+          "source": "doc:2025-12-21_the_verge_3688",
+          "target": "org:character_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-21_the_verge_3688->tool:tensorrt_llm",
+          "source": "doc:2025-12-21_the_verge_3688",
+          "target": "tool:tensorrt_llm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_mit_technology__1231->org:anthropic",
+          "source": "doc:2026-01-24_mit_technology__1231",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_mit_technology__1231->paper:chain_of_thought_prompting_elicits_reaso",
+          "source": "doc:2026-01-24_mit_technology__1231",
+          "target": "paper:chain_of_thought_prompting_elicits_reaso",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-18_weights_and_bia_1171->model:claude_opus_45",
+          "source": "doc:2026-01-18_weights_and_bia_1171",
+          "target": "model:claude_opus_45",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-18_weights_and_bia_1171->benchmark:gpqa",
+          "source": "doc:2026-01-18_weights_and_bia_1171",
+          "target": "benchmark:gpqa",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_hugging_face_bl_3117->model:claude_opus_45",
+          "source": "doc:2026-01-23_hugging_face_bl_3117",
+          "target": "model:claude_opus_45",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_hugging_face_bl_3117->benchmark:gpqa",
+          "source": "doc:2026-01-23_hugging_face_bl_3117",
+          "target": "benchmark:gpqa",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_google_ai_blog_5497->repo:vllm",
+          "source": "doc:2026-01-23_google_ai_blog_5497",
+          "target": "repo:vllm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_google_ai_blog_5497->tech:lora",
+          "source": "doc:2026-01-23_google_ai_blog_5497",
+          "target": "tech:lora",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_bloomberg_9799->paper:chain_of_thought_prompting_elicits_reaso",
+          "source": "doc:2026-01-24_bloomberg_9799",
+          "target": "paper:chain_of_thought_prompting_elicits_reaso",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_bloomberg_9799->tech:sparse_attention",
+          "source": "doc:2026-01-24_bloomberg_9799",
+          "target": "tech:sparse_attention",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_the_gradient_5732->paper:chain_of_thought_prompting_elicits_reaso",
+          "source": "doc:2026-01-25_the_gradient_5732",
+          "target": "paper:chain_of_thought_prompting_elicits_reaso",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_the_gradient_5732->tech:sparse_attention",
+          "source": "doc:2026-01-25_the_gradient_5732",
+          "target": "tech:sparse_attention",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-12_nextgov_9741->person:chris_olah",
+          "source": "doc:2026-01-12_nextgov_9741",
+          "target": "person:chris_olah",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-12_nextgov_9741->org:cohere",
+          "source": "doc:2026-01-12_nextgov_9741",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_venturebeat_4660->repo:transformers",
+          "source": "doc:2026-01-23_venturebeat_4660",
+          "target": "repo:transformers",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_venturebeat_4660->tech:group_query_attention",
+          "source": "doc:2026-01-23_venturebeat_4660",
+          "target": "tech:group_query_attention",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_google_ai_blog_4439->repo:transformers",
+          "source": "doc:2026-01-24_google_ai_blog_4439",
+          "target": "repo:transformers",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_google_ai_blog_4439->tech:group_query_attention",
+          "source": "doc:2026-01-24_google_ai_blog_4439",
+          "target": "tech:group_query_attention",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-14_nvidia_blog_3601->org:cohere",
+          "source": "doc:2026-01-14_nvidia_blog_3601",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-14_nvidia_blog_3601->org:google_deepmind",
+          "source": "doc:2026-01-14_nvidia_blog_3601",
+          "target": "org:google_deepmind",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_the_verge_8177->org:cohere",
+          "source": "doc:2026-01-25_the_verge_8177",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_the_verge_8177->org:google_deepmind",
+          "source": "doc:2026-01-25_the_verge_8177",
+          "target": "org:google_deepmind",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_mit_technology__1915->org:cohere",
+          "source": "doc:2026-01-25_mit_technology__1915",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_mit_technology__1915->org:google_deepmind",
+          "source": "doc:2026-01-25_mit_technology__1915",
+          "target": "org:google_deepmind",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_the_verge_1001->org:cohere",
+          "source": "doc:2026-01-25_the_verge_1001",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_the_verge_1001->org:google_deepmind",
+          "source": "doc:2026-01-25_the_verge_1001",
+          "target": "org:google_deepmind",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-19_nextgov_9490->repo:llamacpp",
+          "source": "doc:2026-01-19_nextgov_9490",
+          "target": "repo:llamacpp",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-19_nextgov_9490->model:llama_4",
+          "source": "doc:2026-01-19_nextgov_9490",
+          "target": "model:llama_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_nvidia_blog_8850->repo:llamacpp",
+          "source": "doc:2026-01-20_nvidia_blog_8850",
+          "target": "repo:llamacpp",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_nvidia_blog_8850->model:llama_4",
+          "source": "doc:2026-01-20_nvidia_blog_8850",
+          "target": "model:llama_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_microsoft_resea_8975->repo:llamacpp",
+          "source": "doc:2026-01-21_microsoft_resea_8975",
+          "target": "repo:llamacpp",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_microsoft_resea_8975->model:llama_4",
+          "source": "doc:2026-01-21_microsoft_resea_8975",
+          "target": "model:llama_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-01_the_gradient_9800->org:cohere",
+          "source": "doc:2026-01-01_the_gradient_9800",
+          "target": "org:cohere",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-01_the_gradient_9800->org:mistral_ai",
+          "source": "doc:2026-01-01_the_gradient_9800",
+          "target": "org:mistral_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_weights_and_bia_4297->org:stability_ai",
+          "source": "doc:2026-01-24_weights_and_bia_4297",
+          "target": "org:stability_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_weights_and_bia_4297->paper:attention_is_all_you_need_v2",
+          "source": "doc:2026-01-24_weights_and_bia_4297",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_arxiv_2688->org:stability_ai",
+          "source": "doc:2026-01-25_arxiv_2688",
+          "target": "org:stability_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_arxiv_2688->paper:attention_is_all_you_need_v2",
+          "source": "doc:2026-01-25_arxiv_2688",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_google_ai_blog_1233->org:stability_ai",
+          "source": "doc:2026-01-25_google_ai_blog_1233",
+          "target": "org:stability_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_google_ai_blog_1233->paper:attention_is_all_you_need_v2",
+          "source": "doc:2026-01-25_google_ai_blog_1233",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_langchain_blog_3499->repo:vllm",
+          "source": "doc:2026-01-24_langchain_blog_3499",
+          "target": "repo:vllm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_langchain_blog_3499->model:nemotron_5",
+          "source": "doc:2026-01-24_langchain_blog_3499",
+          "target": "model:nemotron_5",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_microsoft_resea_2431->repo:vllm",
+          "source": "doc:2026-01-24_microsoft_resea_2431",
+          "target": "repo:vllm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_microsoft_resea_2431->model:nemotron_5",
+          "source": "doc:2026-01-24_microsoft_resea_2431",
+          "target": "model:nemotron_5",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_microsoft_resea_3845->repo:vllm",
+          "source": "doc:2026-01-24_microsoft_resea_3845",
+          "target": "repo:vllm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_microsoft_resea_3845->model:nemotron_5",
+          "source": "doc:2026-01-24_microsoft_resea_3845",
+          "target": "model:nemotron_5",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_mit_technology__6997->repo:vllm",
+          "source": "doc:2026-01-24_mit_technology__6997",
+          "target": "repo:vllm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_mit_technology__6997->model:nemotron_5",
+          "source": "doc:2026-01-24_mit_technology__6997",
+          "target": "model:nemotron_5",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_nvidia_blog_9493->person:aidan_gomez",
+          "source": "doc:2026-01-25_nvidia_blog_9493",
+          "target": "person:aidan_gomez",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_nvidia_blog_9493->model:gemini_ultra_2",
+          "source": "doc:2026-01-25_nvidia_blog_9493",
+          "target": "model:gemini_ultra_2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_9954->person:aidan_gomez",
+          "source": "doc:2026-01-25_wired_9954",
+          "target": "person:aidan_gomez",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_9954->model:gemini_ultra_2",
+          "source": "doc:2026-01-25_wired_9954",
+          "target": "model:gemini_ultra_2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.81
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-22_anthropic_blog_4233->org:xai",
+          "source": "doc:2025-12-22_anthropic_blog_4233",
+          "target": "org:xai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-22_anthropic_blog_4233->org:character_ai",
+          "source": "doc:2025-12-22_anthropic_blog_4233",
+          "target": "org:character_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-13_ars_technica_6296->org:xai",
+          "source": "doc:2026-01-13_ars_technica_6296",
+          "target": "org:xai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-13_ars_technica_6296->org:character_ai",
+          "source": "doc:2026-01-13_ars_technica_6296",
+          "target": "org:character_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_the_verge_6300->person:emad_mostaque",
+          "source": "doc:2026-01-22_the_verge_6300",
+          "target": "person:emad_mostaque",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_the_verge_6300->org:databricks",
+          "source": "doc:2026-01-22_the_verge_6300",
+          "target": "org:databricks",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_ars_technica_9092->person:emad_mostaque",
+          "source": "doc:2026-01-25_ars_technica_9092",
+          "target": "person:emad_mostaque",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_ars_technica_9092->org:databricks",
+          "source": "doc:2026-01-25_ars_technica_9092",
+          "target": "org:databricks",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_langchain_blog_3296->person:emad_mostaque",
+          "source": "doc:2026-01-25_langchain_blog_3296",
+          "target": "person:emad_mostaque",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_langchain_blog_3296->org:databricks",
+          "source": "doc:2026-01-25_langchain_blog_3296",
+          "target": "org:databricks",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_ars_technica_2120->org:anthropic",
+          "source": "doc:2026-01-20_ars_technica_2120",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_ars_technica_2120->tool:llamaindex",
+          "source": "doc:2026-01-20_ars_technica_2120",
+          "target": "tool:llamaindex",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_google_ai_blog_8165->org:anthropic",
+          "source": "doc:2026-01-22_google_ai_blog_8165",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_google_ai_blog_8165->tool:llamaindex",
+          "source": "doc:2026-01-22_google_ai_blog_8165",
+          "target": "tool:llamaindex",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_nvidia_blog_3852->org:anthropic",
+          "source": "doc:2026-01-22_nvidia_blog_3852",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_nvidia_blog_3852->tool:llamaindex",
+          "source": "doc:2026-01-22_nvidia_blog_3852",
+          "target": "tool:llamaindex",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_techcrunch_9569->org:anthropic",
+          "source": "doc:2026-01-22_techcrunch_9569",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_techcrunch_9569->tool:llamaindex",
+          "source": "doc:2026-01-22_techcrunch_9569",
+          "target": "tool:llamaindex",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_langchain_blog_6651->tool:litellm",
+          "source": "doc:2026-01-21_langchain_blog_6651",
+          "target": "tool:litellm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_langchain_blog_6651->model:llama_4",
+          "source": "doc:2026-01-21_langchain_blog_6651",
+          "target": "model:llama_4",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-24_nvidia_blog_9589->repo:transformers",
+          "source": "doc:2025-12-24_nvidia_blog_9589",
+          "target": "repo:transformers",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-24_nvidia_blog_9589->tech:transformer_architecture",
+          "source": "doc:2025-12-24_nvidia_blog_9589",
+          "target": "tech:transformer_architecture",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-19_nvidia_blog_8931->org:anthropic",
+          "source": "doc:2026-01-19_nvidia_blog_8931",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-19_nvidia_blog_8931->org:nvidia",
+          "source": "doc:2026-01-19_nvidia_blog_8931",
+          "target": "org:nvidia",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_the_gradient_4842->org:anthropic",
+          "source": "doc:2026-01-22_the_gradient_4842",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_the_gradient_4842->org:nvidia",
+          "source": "doc:2026-01-22_the_gradient_4842",
+          "target": "org:nvidia",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_the_gradient_2247->org:hugging_face",
+          "source": "doc:2026-01-21_the_gradient_2247",
+          "target": "org:hugging_face",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_the_gradient_2247->model:gpt_4o_mini_2",
+          "source": "doc:2026-01-21_the_gradient_2247",
+          "target": "model:gpt_4o_mini_2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-13_ars_technica_9344->model:gpt_4o_mini_2",
+          "source": "doc:2026-01-13_ars_technica_9344",
+          "target": "model:gpt_4o_mini_2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-13_ars_technica_9344->tech:kv_cache_optimization",
+          "source": "doc:2026-01-13_ars_technica_9344",
+          "target": "tech:kv_cache_optimization",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_the_gradient_6506->model:gpt_4o_mini_2",
+          "source": "doc:2026-01-22_the_gradient_6506",
+          "target": "model:gpt_4o_mini_2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-22_the_gradient_6506->tech:kv_cache_optimization",
+          "source": "doc:2026-01-22_the_gradient_6506",
+          "target": "tech:kv_cache_optimization",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_microsoft_resea_1616->person:demis_hassabis",
+          "source": "doc:2026-01-25_microsoft_resea_1616",
+          "target": "person:demis_hassabis",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_microsoft_resea_1616->org:stability_ai",
+          "source": "doc:2026-01-25_microsoft_resea_1616",
+          "target": "org:stability_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_2015->person:demis_hassabis",
+          "source": "doc:2026-01-25_wired_2015",
+          "target": "person:demis_hassabis",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.8
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_2015->org:stability_ai",
+          "source": "doc:2026-01-25_wired_2015",
+          "target": "org:stability_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_google_ai_blog_7519->person:demis_hassabis",
+          "source": "doc:2026-01-25_google_ai_blog_7519",
+          "target": "person:demis_hassabis",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_google_ai_blog_7519->org:stability_ai",
+          "source": "doc:2026-01-25_google_ai_blog_7519",
+          "target": "org:stability_ai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_google_ai_blog_6895->org:microsoft_research",
+          "source": "doc:2026-01-20_google_ai_blog_6895",
+          "target": "org:microsoft_research",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_google_ai_blog_6895->topic:ai_copyright",
+          "source": "doc:2026-01-20_google_ai_blog_6895",
+          "target": "topic:ai_copyright",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_bloomberg_7208->org:microsoft_research",
+          "source": "doc:2026-01-24_bloomberg_7208",
+          "target": "org:microsoft_research",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.98
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_bloomberg_7208->topic:ai_copyright",
+          "source": "doc:2026-01-24_bloomberg_7208",
+          "target": "topic:ai_copyright",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_mit_technology__5254->org:microsoft_research",
+          "source": "doc:2026-01-24_mit_technology__5254",
+          "target": "org:microsoft_research",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_mit_technology__5254->topic:ai_copyright",
+          "source": "doc:2026-01-24_mit_technology__5254",
+          "target": "topic:ai_copyright",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-27_anthropic_blog_4779->tool:ollama",
+          "source": "doc:2025-12-27_anthropic_blog_4779",
+          "target": "tool:ollama",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.94
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-12-27_anthropic_blog_4779->tech:mixture_of_experts",
+          "source": "doc:2025-12-27_anthropic_blog_4779",
+          "target": "tech:mixture_of_experts",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_8010->tool:ollama",
+          "source": "doc:2026-01-25_wired_8010",
+          "target": "tool:ollama",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.86
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_wired_8010->tech:mixture_of_experts",
+          "source": "doc:2026-01-25_wired_8010",
+          "target": "tech:mixture_of_experts",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_nextgov_4180->tool:ollama",
+          "source": "doc:2026-01-25_nextgov_4180",
+          "target": "tool:ollama",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_nextgov_4180->tech:mixture_of_experts",
+          "source": "doc:2026-01-25_nextgov_4180",
+          "target": "tech:mixture_of_experts",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_mit_technology__1815->person:mira_murati",
+          "source": "doc:2026-01-23_mit_technology__1815",
+          "target": "person:mira_murati",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-23_mit_technology__1815->model:aya_3",
+          "source": "doc:2026-01-23_mit_technology__1815",
+          "target": "model:aya_3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_arxiv_6564->person:mira_murati",
+          "source": "doc:2026-01-24_arxiv_6564",
+          "target": "person:mira_murati",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_arxiv_6564->model:aya_3",
+          "source": "doc:2026-01-24_arxiv_6564",
+          "target": "model:aya_3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-08_openai_blog_2104->org:apple_ml",
+          "source": "doc:2026-01-08_openai_blog_2104",
+          "target": "org:apple_ml",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-08_openai_blog_2104->model:midjourney_v7",
+          "source": "doc:2026-01-08_openai_blog_2104",
+          "target": "model:midjourney_v7",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_the_gradient_4039->tool:litellm",
+          "source": "doc:2026-01-21_the_gradient_4039",
+          "target": "tool:litellm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_the_gradient_4039->tool:autogpt",
+          "source": "doc:2026-01-21_the_gradient_4039",
+          "target": "tool:autogpt",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_ars_technica_4948->tool:litellm",
+          "source": "doc:2026-01-24_ars_technica_4948",
+          "target": "tool:litellm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_ars_technica_4948->tool:autogpt",
+          "source": "doc:2026-01-24_ars_technica_4948",
+          "target": "tool:autogpt",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-15_venturebeat_9798->repo:vllm",
+          "source": "doc:2026-01-15_venturebeat_9798",
+          "target": "repo:vllm",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-15_venturebeat_9798->model:aya_3",
+          "source": "doc:2026-01-15_venturebeat_9798",
+          "target": "model:aya_3",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      }
+    ]
+  }
+}

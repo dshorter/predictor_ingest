@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "view": "dependencies",
+    "nodeCount": 6,
+    "edgeCount": 5,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25",
+          "mentionCount7d": 6,
+          "mentionCount30d": 26,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus_45",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": [
+            "Opus 4.5",
+            "Claude Opus"
+          ],
+          "firstSeen": "2025-11-13",
+          "lastSeen": "2025-12-10",
+          "mentionCount7d": 7,
+          "mentionCount30d": 40,
+          "velocity": 0.38
+        }
+      },
+      {
+        "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-08",
+          "mentionCount7d": 5,
+          "mentionCount30d": 17,
+          "velocity": 0.93
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-12-12",
+          "lastSeen": "2025-12-17",
+          "mentionCount7d": 8,
+          "mentionCount30d": 34,
+          "velocity": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": [
+            "Transformers"
+          ],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-06",
+          "mentionCount7d": 4,
+          "mentionCount30d": 13,
+          "velocity": 0.83
+        }
+      },
+      {
+        "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-31",
+          "mentionCount7d": 11,
+          "mentionCount30d": 30,
+          "velocity": 0.69
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:claude_opus_45_mixture_of_experts_uses_tech",
+          "source": "model:claude_opus_45",
+          "target": "tech:mixture_of_experts",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.72
+        }
+      },
+      {
+        "data": {
+          "id": "e:transformers_transformer_architecture_uses_tech",
+          "source": "repo:transformers",
+          "target": "tech:transformer_architecture",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.69,
+          "evidence": [
+            {
+              "docId": "2026-01-19_openai_blog_6310",
+              "url": "https://openai.com/blog/2026/01/19/transformers_transformer_archi",
+              "published": "2026-01-19",
+              "snippet": "Under the hood, transformers implements Transformer Architecture for improved efficiency..."
+            },
+            {
+              "docId": "2026-01-21_mit_technology__4923",
+              "url": "https://technologyreview.com/2026/01/21/transformers_transformer_archi",
+              "published": "2026-01-21",
+              "snippet": "transformers leverages Transformer Architecture to achieve state-of-the-art performance..."
+            },
+            {
+              "docId": "2026-01-21_the_gradient_2133",
+              "url": "https://thegradient.pub/2026/01/21/transformers_transformer_archi",
+              "published": "2026-01-21",
+              "snippet": "Technical details reveal transformers relies heavily on Transformer Architecture..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:attention_is_all_you_need_v2_mixture_of_experts_uses_tech",
+          "source": "paper:attention_is_all_you_need_v2",
+          "target": "tech:mixture_of_experts",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.87,
+          "evidence": [
+            {
+              "docId": "2026-01-17_techcrunch_6107",
+              "url": "https://techcrunch.com/2026/01/17/attention_is_all_you_need_v2_m",
+              "published": "2026-01-17",
+              "snippet": "Under the hood, Attention Is All You Need v2 implements Mixture of Experts for improved efficiency..."
+            },
+            {
+              "docId": "2026-01-24_weights_and_bia_8397",
+              "url": "https://wandb.ai/articles/2026/01/24/attention_is_all_you_need_v2_m",
+              "published": "2026-01-24",
+              "snippet": "Attention Is All You Need v2 leverages Mixture of Experts to achieve state-of-the-art performance..."
+            },
+            {
+              "docId": "2026-01-24_wired_1344",
+              "url": "https://wired.com/2026/01/24/attention_is_all_you_need_v2_m",
+              "published": "2026-01-24",
+              "snippet": "Technical details reveal Attention Is All You Need v2 relies heavily on Mixture of Experts..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:common_crawl_transformer_architecture_uses_tech",
+          "source": "dataset:common_crawl",
+          "target": "tech:transformer_architecture",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.71
+        }
+      },
+      {
+        "data": {
+          "id": "e:common_crawl_mixture_of_experts_uses_tech",
+          "source": "dataset:common_crawl",
+          "target": "tech:mixture_of_experts",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.57
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "view": "dependencies",
+    "nodeCount": 8,
+    "edgeCount": 9,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "model:gpt5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": ["GPT 5"],
+          "firstSeen": "2026-01-10",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 120,
+          "mentionCount30d": 200,
+          "velocity": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": ["Opus 4.5", "Claude Opus"],
+          "firstSeen": "2025-11-15",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 65,
+          "mentionCount30d": 220,
+          "velocity": 0.78
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": ["Transformers"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-20",
+          "mentionCount7d": 25,
+          "mentionCount30d": 95,
+          "velocity": 0.42
+        }
+      },
+      {
+        "data": {
+          "id": "tech:moe",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": ["MoE"],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 55,
+          "mentionCount30d": 140,
+          "velocity": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mmlu",
+          "label": "MMLU",
+          "type": "Benchmark",
+          "aliases": ["Massive Multitask Language Understanding"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-22",
+          "mentionCount7d": 18,
+          "mentionCount30d": 72,
+          "velocity": 0.35
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-15",
+          "mentionCount7d": 8,
+          "mentionCount30d": 32,
+          "velocity": 0.25
+        }
+      },
+      {
+        "data": {
+          "id": "tool:langchain",
+          "label": "LangChain",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24",
+          "mentionCount7d": 42,
+          "mentionCount30d": 165,
+          "velocity": 0.68
+        }
+      },
+      {
+        "data": {
+          "id": "tech:rlhf",
+          "label": "RLHF",
+          "type": "Tech",
+          "aliases": ["Reinforcement Learning from Human Feedback"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-18",
+          "mentionCount7d": 15,
+          "mentionCount30d": 60,
+          "velocity": 0.38
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:dep:gpt5-transformer",
+          "source": "model:gpt5",
+          "target": "tech:transformer",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:gpt5-moe",
+          "source": "model:gpt5",
+          "target": "tech:moe",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.75
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:claude-transformer",
+          "source": "model:claude_opus",
+          "target": "tech:transformer",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.90
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:gpt5-rlhf",
+          "source": "model:gpt5",
+          "target": "tech:rlhf",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.80
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:claude-rlhf",
+          "source": "model:claude_opus",
+          "target": "tech:rlhf",
+          "rel": "USES_TECH",
+          "kind": "inferred",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:gpt5-mmlu",
+          "source": "model:gpt5",
+          "target": "benchmark:mmlu",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "2026-01-10_openai_blog",
+              "url": "https://openai.com/blog/gpt5",
+              "published": "2026-01-10",
+              "snippet": "GPT-5 achieves 95.2% on MMLU benchmark..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:claude-mmlu",
+          "source": "model:claude_opus",
+          "target": "benchmark:mmlu",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.90,
+          "evidence": [
+            {
+              "docId": "2025-11-15_anthropic_blog",
+              "url": "https://anthropic.com/news/claude-opus-4-5",
+              "published": "2025-11-15",
+              "snippet": "Claude Opus 4.5 scores 94.8% on MMLU..."
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:gpt5-crawl",
+          "source": "model:gpt5",
+          "target": "dataset:common_crawl",
+          "rel": "TRAINED_ON",
+          "kind": "hypothesis",
+          "confidence": 0.60
+        }
+      },
+      {
+        "data": {
+          "id": "e:dep:langchain-gpt5",
+          "source": "tool:langchain",
+          "target": "model:gpt5",
+          "rel": "INTEGRATES_WITH",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidence": [
+            {
+              "docId": "2026-01-12_langchain_blog",
+              "url": "https://blog.langchain.dev/gpt5-support",
+              "published": "2026-01-12",
+              "snippet": "LangChain now supports GPT-5 with full feature parity..."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
