@@ -225,6 +225,61 @@ cy.on('mouseout', 'node', (e) => e.target.removeClass('hover'));
 
 ---
 
+## Layout Scaling Issues
+
+### Fixed fcose Params Produce Hairballs at 100+ Nodes
+
+**Fixed:** 2026-02-01 UTC
+
+**Symptoms:**
+- Claims view (136 nodes, 371 edges) renders as an unreadable central cluster
+- Zooming doesn't help — nodes are tightly packed
+- Trending view (~37 nodes) looks fine with same params
+
+**Root Cause:**
+Base fcose parameters were tuned for ~15-node graphs. At 100+ nodes, the fixed
+`nodeRepulsion: 4500` and `gravity: 0.25` produce insufficient spreading force.
+Additionally, `fit: true` normalizes the layout to the viewport, so simply
+increasing absolute param values has minimal effect — what matters is the
+*ratio between forces* (repulsion vs gravity).
+
+**First Attempt (Failed):**
+Logarithmic scaling (`1 + log10(n/50) * 1.05`) produced a combined 1.83x
+multiplier for medium claims. This was too conservative — the layout computed
+in a larger virtual space but `fit: true` scaled it back to the same visual
+bounding box with similar cluster tightness.
+
+**Solution — Ratio-Based Scaling:**
+Use the trending view (37 nodes, 31 edges) as a "golden reference" where base
+params produce good results. Scale params proportionally from that reference:
+
+- `nodeRepulsion`: × nodeRatio × densityRatio (linear, the most impactful)
+- `gravity`: ÷ nodeRatio (inverse — this ratio is the key to preventing hairballs)
+- `idealEdgeLength`: × √nodeRatio × √densityRatio
+- `nodeSeparation`: × √nodeRatio
+
+For medium claims, this produces repulsion/gravity ratio of ~792k vs the old
+~111k — a 7x stronger spread differential.
+
+**Files Modified:**
+- `web/js/layout.js` — `getScaledLayoutOptions()`, `REFERENCE` constant
+
+**Verification:**
+Open browser console — every layout run logs:
+```
+Layout ratio-scale: 136n/371e | nodeRatio=3.7x, density=2.73, densityRatio=3.26x
+Scaled → nodeSep=144, repulsion=53855, edgeLen=173, gravity=0.0680, ...
+```
+Use `debugLayout()` to see base vs scaled params. Use `adjustLayout({...})` to
+test overrides.
+
+**Prevention:**
+- Never use fixed layout params for variable-size graphs
+- See `docs/ux/layout-temporal.md` for the full reference calibration table
+- When tuning params, think in terms of force *ratios*, not absolute values
+
+---
+
 ## [Future issues will be documented here]
 
 **Organization Pattern:**

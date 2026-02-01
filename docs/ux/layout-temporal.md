@@ -6,11 +6,49 @@ Layout algorithms, position storage, and time-based features.
 
 ## V1: Force-Directed on Load
 
-For V1, compute layout on each page load using a force-directed algorithm:
+For V1, compute layout on each page load using a force-directed algorithm.
+Parameters auto-scale based on graph size and density using a **reference
+calibration** from the trending view.
+
+### Reference Calibration (Golden Ratio)
+
+The trending view at medium scale (37 nodes, 31 edges, density ~0.84) is our
+golden reference where the base parameters produce a well-spaced, readable
+layout. All larger graphs scale from this reference point.
+
+| Parameter | Reference Value | Scaling Rule | Rationale |
+|-----------|----------------|--------------|-----------|
+| `nodeSeparation` | 75 | × √(nodeRatio) | Spectral phase spacing grows with graph, sqrt prevents extreme values |
+| `nodeRepulsion` | 4500 | × nodeRatio × densityRatio | Linear per node; denser graphs get proportionally more push |
+| `idealEdgeLength` | 50 | × √(nodeRatio) × √(densityRatio) | Longer edges in bigger/denser graphs reduce overlap |
+| `gravity` | 0.25 | ÷ nodeRatio | Inverse scaling — weaker pull prevents central hairball |
+| `gravityRange` | 3.8 | × √(nodeRatio), max 15 | Falloff covers larger layout space |
+| `numIter` | 2500 | 3000 at 100+, 3500 at 500+, 4000 at 1000+ | More iterations for convergence at scale |
+
+Where:
+- `nodeRatio = nodeCount / 37`
+- `densityRatio = (edgeCount/nodeCount) / 0.84`
+
+**Why ratio-based, not logarithmic:** With `fit: true`, fcose computes positions
+then scales to the viewport. What matters is the *ratio between forces*, not
+absolute values. The repulsion/gravity ratio determines cluster tightness even
+after fit-normalization. Linear scaling preserves this ratio proportionally;
+logarithmic scaling was too conservative and produced visually identical results.
+
+### Example Scaled Values
+
+| View | Nodes | Edges | nodeSep | Repulsion | EdgeLen | Gravity |
+|------|-------|-------|---------|-----------|---------|---------|
+| Trending (ref) | 37 | 31 | 75 | 4,500 | 50 | 0.2500 |
+| Claims medium | 136 | 371 | 144 | 53,855 | 173 | 0.0680 |
+| Claims large | 422 | 1,403 | 253 | 203,661 | 336 | 0.0219 |
+| Stress claims | 1,203 | 4,622 | 428 | 670,935 | 611 | 0.0077 |
+
+### Base Configuration
 
 ```javascript
-// V1 Layout Configuration
-const V1_LAYOUT_OPTIONS = {
+// Base layout options (used as-is for graphs ≤ 37 nodes)
+const LAYOUT_OPTIONS_BASE = {
   name: 'fcose',  // Fast compound spring embedder
 
   // Animation
@@ -22,9 +60,10 @@ const V1_LAYOUT_OPTIONS = {
   quality: 'default',  // 'draft', 'default', or 'proof'
   randomize: true,
 
-  // Node repulsion
+  // Node repulsion (reference values for ~37 nodes)
+  nodeSeparation: 75,
   nodeRepulsion: 4500,
-  idealEdgeLength: 100,
+  idealEdgeLength: 50,
   edgeElasticity: 0.45,
   nestingFactor: 0.1,
 
@@ -37,27 +76,35 @@ const V1_LAYOUT_OPTIONS = {
 
   // Tiling (for disconnected components)
   tile: true,
-  tilingPaddingVertical: 30,
-  tilingPaddingHorizontal: 30,
+  tilingPaddingVertical: 10,
+  tilingPaddingHorizontal: 10,
 
   // Fit after layout
   fit: true,
-  padding: 30
+  padding: 50
 };
 
-function runForceDirectedLayout(cy) {
-  showLayoutProgress(true);
-
-  const layout = cy.layout(V1_LAYOUT_OPTIONS);
-
-  layout.on('layoutstop', function() {
-    showLayoutProgress(false);
-    updateLabelVisibility(cy);
-  });
-
-  layout.run();
-}
+// Reference calibration point
+const REFERENCE = {
+  nodes: 37,        // trending medium node count
+  edges: 31,        // trending medium edge count
+  density: 31 / 37  // ~0.84 edges per node
+};
 ```
+
+### Auto-Scaling Implementation
+
+See `web/js/layout.js` — `getScaledLayoutOptions(nodeCount, edgeCount)`.
+
+The console logs the computed ratios and final params on every layout run for
+debugging:
+```
+Layout ratio-scale: 136n/371e | nodeRatio=3.7x, density=2.73, densityRatio=3.26x
+Scaled → nodeSep=144, repulsion=53855, edgeLen=173, gravity=0.0680, gravRange=7.3, iters=3000
+```
+
+Use `debugLayout()` in the browser console to see base vs scaled params for the
+current graph. Use `adjustLayout({ gravity: 0.01 })` to test individual params.
 
 ---
 
