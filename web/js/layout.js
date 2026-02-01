@@ -30,15 +30,12 @@ function isFcoseAvailable() {
 }
 
 /**
- * Default layout options for fcose
+ * Base layout options for fcose (small graphs, < 50 nodes)
  *
- * PARAMETER HUNT - adjust these values to find optimal spread:
- * - nodeSeparation: spacing in spectral phase (THE KEY PARAM)
- * - nodeRepulsion: force pushing nodes apart
- * - idealEdgeLength: target edge length
- * - gravity: pull toward center (lower = more spread)
+ * These are tuned for ~15 node graphs. For larger graphs,
+ * getScaledLayoutOptions() returns adjusted parameters.
  */
-const LAYOUT_OPTIONS = {
+const LAYOUT_OPTIONS_BASE = {
   name: 'fcose',
 
   // Quality vs speed: 'draft', 'default', or 'proof'
@@ -57,23 +54,13 @@ const LAYOUT_OPTIONS = {
   randomize: true,
 
   // === KEY SPECTRAL PHASE PARAMETERS ===
-  // nodeSeparation: THE FIX - controls spacing in spectral layout phase
   nodeSeparation: 75,
 
   // === FORCE-DIRECTED PHASE PARAMETERS ===
-  // Node repulsion force
   nodeRepulsion: 4500,
-
-  // Ideal edge length
   idealEdgeLength: 50,
-
-  // Edge elasticity
   edgeElasticity: 0.45,
-
-  // Gravity - pulls nodes toward center
   gravity: 0.25,
-
-  // Gravity range - affects gravity falloff
   gravityRange: 3.8,
 
   // === ITERATION SETTINGS ===
@@ -87,6 +74,70 @@ const LAYOUT_OPTIONS = {
   // === NESTING (for compound nodes) ===
   nestingFactor: 0.1,
 };
+
+/**
+ * Compute scaled fcose layout options based on graph size and density.
+ *
+ * Problem: fixed params tuned for 15 nodes produce hairballs at 100+ nodes,
+ * especially in dense views like claims (2-3 edges per node).
+ *
+ * Solution: scale separation, repulsion, edge length up and gravity down
+ * as node count and edge density increase.
+ *
+ * @param {number} nodeCount - Number of nodes in the graph
+ * @param {number} edgeCount - Number of edges in the graph
+ * @returns {object} fcose layout options with scaled parameters
+ */
+function getScaledLayoutOptions(nodeCount, edgeCount) {
+  const opts = { ...LAYOUT_OPTIONS_BASE };
+  const density = edgeCount / Math.max(nodeCount, 1);
+
+  // Small graphs (< 50 nodes): use base params
+  if (nodeCount < 50) {
+    return opts;
+  }
+
+  // Scale factor: logarithmic growth so we don't over-separate huge graphs
+  // At 150 nodes → ~1.5x, at 500 → ~2.1x, at 2000 → ~2.8x
+  const scaleFactor = 1 + Math.log10(nodeCount / 50) * 1.05;
+
+  // Density factor: denser graphs need more spacing
+  // At density 1 → 1.0x, at density 2.5 → ~1.3x, at density 4 → ~1.5x
+  const densityFactor = 1 + Math.max(0, density - 1) * 0.15;
+
+  const combined = scaleFactor * densityFactor;
+
+  // Scale key parameters
+  opts.nodeSeparation = Math.round(75 * combined);
+  opts.nodeRepulsion = Math.round(4500 * combined * combined);
+  opts.idealEdgeLength = Math.round(50 * combined);
+  opts.gravity = Math.max(0.02, 0.25 / combined);
+  opts.gravityRange = Math.min(10, 3.8 * combined);
+
+  // For large graphs, increase iterations for better convergence
+  if (nodeCount > 500) {
+    opts.numIter = 3500;
+  }
+  if (nodeCount > 1000) {
+    opts.numIter = 4000;
+    opts.quality = 'default'; // keep default; 'proof' too slow at this scale
+  }
+
+  // Increase tiling padding for graphs with many disconnected components
+  if (nodeCount > 200) {
+    opts.tilingPaddingVertical = 20;
+    opts.tilingPaddingHorizontal = 20;
+  }
+
+  console.log(`Layout auto-scale: ${nodeCount} nodes, ${edgeCount} edges, ` +
+    `density=${density.toFixed(2)}, scale=${scaleFactor.toFixed(2)}, ` +
+    `densityFactor=${densityFactor.toFixed(2)}, combined=${combined.toFixed(2)}`);
+  console.log(`Scaled params: nodeSep=${opts.nodeSeparation}, ` +
+    `repulsion=${opts.nodeRepulsion}, edgeLen=${opts.idealEdgeLength}, ` +
+    `gravity=${opts.gravity.toFixed(3)}`);
+
+  return opts;
+}
 
 /**
  * Fallback cose options if fcose fails
@@ -115,15 +166,16 @@ function runLayout(cy, options = {}) {
   let layoutOptions;
   let layoutName;
 
+  const nodeCount = cy.nodes().length;
+  const edgeCount = cy.edges().length;
+
   if (fcoseAvailable) {
-    layoutOptions = { ...LAYOUT_OPTIONS, ...options };
+    layoutOptions = { ...getScaledLayoutOptions(nodeCount, edgeCount), ...options };
     layoutName = 'fcose';
   } else {
     layoutOptions = { ...COSE_FALLBACK, ...options };
     layoutName = 'cose (fallback)';
   }
-
-  const nodeCount = cy.nodes().length;
 
   // Show loading state for large graphs
   if (nodeCount > 200) {
@@ -151,8 +203,10 @@ function runLayout(cy, options = {}) {
  * Run layout on a subset of nodes (for expand operations)
  */
 function runPartialLayout(cy, nodes, options = {}) {
+  const nodeCount = cy.nodes().length;
+  const edgeCount = cy.edges().length;
   const layoutOptions = {
-    ...LAYOUT_OPTIONS,
+    ...getScaledLayoutOptions(nodeCount, edgeCount),
     ...options,
     fit: false,
     randomize: false,
@@ -274,7 +328,10 @@ window.debugLayout = function() {
     console.log('Graph not initialized yet');
   }
 
-  console.log('LAYOUT_OPTIONS:', LAYOUT_OPTIONS);
+  console.log('LAYOUT_OPTIONS_BASE:', LAYOUT_OPTIONS_BASE);
+  if (typeof cy !== 'undefined') {
+    console.log('Scaled options:', getScaledLayoutOptions(cy.nodes().length, cy.edges().length));
+  }
 };
 
 /**
