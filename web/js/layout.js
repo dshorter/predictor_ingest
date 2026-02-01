@@ -124,36 +124,34 @@ function getScaledLayoutOptions(nodeCount, edgeCount) {
   const densityRatio = density / REFERENCE.density;
 
   // --- Aggressive ratio-based scaling ---
-  // Previous sqrt/linear scaling wasn't enough: 370 edge springs pulling
-  // nodes together overwhelm moderate repulsion increases.
-  // Fix: quadratic repulsion, linear separation, inverse-square gravity.
+  // Dense graphs (like deps 93n/202e) need density to hit as hard as node count.
+  // Use quadratic for BOTH nodeRatio and densityRatio in repulsion and gravity.
 
-  // nodeSeparation: LINEAR with nodeRatio — spectral phase must place nodes
-  // far apart initially so force-directed has room to work
+  // nodeSeparation: linear with nodeRatio, boosted by density
   opts.nodeSeparation = Math.round(
-    REFERENCE.nodeSeparation * nodeRatio
+    REFERENCE.nodeSeparation * nodeRatio * Math.max(1, Math.sqrt(densityRatio))
   );
 
-  // nodeRepulsion: QUADRATIC with nodeRatio, boosted by density
-  // Each node needs to push harder as more edge springs pull inward.
-  // At 136 nodes: 4500 * 13.7 * 3.25 ≈ 200k (was 54k with linear)
+  // nodeRepulsion: QUADRATIC nodeRatio × QUADRATIC densityRatio
+  // This ensures small-but-dense graphs (deps: 93n/202e) get strong repulsion
+  // Deps: 4500 * 6.3 * 6.7 = 190k.  Claims: 4500 * 13.5 * 10.6 = 644k.
   opts.nodeRepulsion = Math.round(
-    REFERENCE.nodeRepulsion * nodeRatio * nodeRatio * Math.max(1, densityRatio)
+    REFERENCE.nodeRepulsion * (nodeRatio * nodeRatio) * Math.max(1, densityRatio * densityRatio)
   );
 
-  // idealEdgeLength: linear with nodeRatio, density boost
-  // Edges must be longer to give repulsion room to work
+  // idealEdgeLength: linear with nodeRatio, linear density boost
   opts.idealEdgeLength = Math.round(
-    REFERENCE.idealEdgeLength * nodeRatio * Math.max(1, Math.sqrt(densityRatio))
+    REFERENCE.idealEdgeLength * nodeRatio * Math.max(1, densityRatio)
   );
 
   // edgeElasticity: reduce for dense graphs so edge springs are weaker
-  // This lets repulsion win the tug-of-war against edge pull
-  opts.edgeElasticity = Math.max(0.05, 0.45 / Math.max(1, densityRatio));
+  opts.edgeElasticity = Math.max(0.05, 0.45 / Math.max(1, densityRatio * densityRatio));
 
-  // gravity: INVERSE SQUARE of nodeRatio — exponentially weaker central pull
-  // This is the biggest lever: at 136 nodes, 0.25/13.7 = 0.018 (was 0.068)
-  opts.gravity = Math.max(0.001, REFERENCE.gravity / (nodeRatio * nodeRatio));
+  // gravity: INVERSE of (nodeRatio^2 × densityRatio)
+  // Density now weakens gravity too — critical for deps-like graphs
+  opts.gravity = Math.max(0.001,
+    REFERENCE.gravity / (nodeRatio * nodeRatio * Math.max(1, densityRatio))
+  );
 
   // gravityRange: increase so falloff covers the larger layout
   opts.gravityRange = Math.min(20, REFERENCE.gravityRange * nodeRatio);
