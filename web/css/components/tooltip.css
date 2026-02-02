@@ -11,7 +11,7 @@
   min-width: 200px;
   max-width: 300px;
   padding: var(--space-3);
-  background-color: white;
+  background-color: var(--color-bg-primary);
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);

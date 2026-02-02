@@ -57,7 +57,7 @@
   max-width: 400px;
   padding: var(--space-8);
   text-align: center;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   border: var(--border-width) solid var(--color-error);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);

@@ -200,6 +200,13 @@
   --color-badge-error-bg: #7F1D1D;
   --color-badge-info-bg: #1E3A5F;
 
+  /* Edge colors — brighter for dark backgrounds */
+  --edge-default: #9CA3AF;
+  --edge-new: #34D399;
+  --edge-hover: #60A5FA;
+  --edge-selected: #3B82F6;
+  --edge-dimmed: #4B5563;
+
   /* Cytoscape dark overrides */
   --cy-text-color: #F3F4F6;
   --cy-text-outline: #111827;
