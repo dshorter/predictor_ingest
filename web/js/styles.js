@@ -5,33 +5,47 @@
  * See docs/ux/visual-encoding.md for specification.
  */
 
+/**
+ * Read a CSS custom property value from :root.
+ * Returns the trimmed string value or the fallback if not found.
+ */
+function getCSSVar(name, fallback) {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name).trim();
+  return value || fallback;
+}
+
 // Node type colors (from design tokens)
-const nodeTypeColors = {
-  'Org': '#4A90D9',
-  'Person': '#50B4A8',
-  'Program': '#6366F1',
-  'Tool': '#8B5CF6',
-  'Model': '#7C3AED',
-  'Dataset': '#F59E0B',
-  'Benchmark': '#D97706',
-  'Paper': '#10B981',
-  'Repo': '#059669',
-  'Tech': '#EAB308',
-  'Topic': '#64748B',
-  'Document': '#9CA3AF',
-  'Event': '#F43F5E',
-  'Location': '#0EA5E9',
-  'Other': '#A1A1AA'
-};
+function getNodeTypeColors() {
+  return {
+    'Org': getCSSVar('--color-org', '#4A90D9'),
+    'Person': getCSSVar('--color-person', '#50B4A8'),
+    'Program': getCSSVar('--color-program', '#6366F1'),
+    'Tool': getCSSVar('--color-tool', '#8B5CF6'),
+    'Model': getCSSVar('--color-model', '#7C3AED'),
+    'Dataset': getCSSVar('--color-dataset', '#F59E0B'),
+    'Benchmark': getCSSVar('--color-benchmark', '#D97706'),
+    'Paper': getCSSVar('--color-paper', '#10B981'),
+    'Repo': getCSSVar('--color-repo', '#059669'),
+    'Tech': getCSSVar('--color-tech', '#EAB308'),
+    'Topic': getCSSVar('--color-topic', '#64748B'),
+    'Document': getCSSVar('--color-document', '#9CA3AF'),
+    'Event': getCSSVar('--color-event', '#F43F5E'),
+    'Location': getCSSVar('--color-location', '#0EA5E9'),
+    'Other': getCSSVar('--color-other', '#A1A1AA')
+  };
+}
 
 // Edge colors
-const edgeColors = {
-  default: '#6B7280',
-  new: '#22C55E',
-  hover: '#3B82F6',
-  selected: '#2563EB',
-  dimmed: '#D1D5DB'
-};
+function getEdgeColors() {
+  return {
+    default: getCSSVar('--edge-default', '#6B7280'),
+    new: getCSSVar('--edge-new', '#22C55E'),
+    hover: getCSSVar('--edge-hover', '#3B82F6'),
+    selected: getCSSVar('--edge-selected', '#2563EB'),
+    dimmed: getCSSVar('--edge-dimmed', '#D1D5DB')
+  };
+}
 
 // Node sizing constants
 const MIN_NODE_SIZE = 20;
@@ -110,6 +124,9 @@ function isNewEdge(ele) {
  * Get Cytoscape stylesheet
  */
 function getCytoscapeStyles() {
+  const nodeTypeColors = getNodeTypeColors();
+  const edgeColors = getEdgeColors();
+
   return [
     // Base node style
     {
@@ -135,12 +152,12 @@ function getCytoscapeStyles() {
         'text-valign': 'bottom',
         'text-halign': 'center',
         'text-margin-y': 5,
-        'color': '#1F2937',
-        'text-outline-color': '#FFFFFF',
+        'color': getCSSVar('--cy-text-color', '#1F2937'),
+        'text-outline-color': getCSSVar('--cy-text-outline', '#FFFFFF'),
         'text-outline-width': 2,
         'text-outline-opacity': 1,
         'border-width': 2,
-        'border-color': '#D1D5DB',
+        'border-color': getCSSVar('--cy-node-border', '#D1D5DB'),
         'border-opacity': 0.7
       }
     },
@@ -150,7 +167,7 @@ function getCytoscapeStyles() {
       selector: 'node.hover',
       style: {
         'border-width': 3,
-        'border-color': '#3B82F6',
+        'border-color': getCSSVar('--cy-node-border-hover', '#3B82F6'),
         'border-opacity': 1,
         'label': function(ele) { return ele.data('label'); },
         'z-index': 9999,
@@ -164,9 +181,9 @@ function getCytoscapeStyles() {
       selector: 'node:selected',
       style: {
         'border-width': 4,
-        'border-color': '#2563EB',
+        'border-color': getCSSVar('--cy-node-border-selected', '#2563EB'),
         'border-opacity': 1,
-        'overlay-color': '#3B82F6',
+        'overlay-color': getCSSVar('--cy-node-overlay-selected', '#3B82F6'),
         'overlay-opacity': 0.15,
         'label': function(ele) { return ele.data('label'); },
         'font-weight': 'bold'
@@ -178,7 +195,7 @@ function getCytoscapeStyles() {
       selector: 'node.highlighted',
       style: {
         'border-width': 3,
-        'border-color': '#F59E0B',
+        'border-color': getCSSVar('--cy-node-border-highlighted', '#F59E0B'),
         'border-opacity': 1
       }
     },
@@ -205,7 +222,7 @@ function getCytoscapeStyles() {
       selector: 'node.new',
       style: {
         'border-width': 3,
-        'border-color': '#22C55E',
+        'border-color': getCSSVar('--cy-node-border-new', '#22C55E'),
         'border-style': 'double'
       }
     },

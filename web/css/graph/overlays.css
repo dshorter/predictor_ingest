@@ -14,7 +14,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--color-overlay);
   z-index: var(--z-overlay);
 }
 
@@ -50,7 +50,7 @@
 
 /* Error overlay */
 #error-overlay {
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: var(--color-overlay-heavy);
 }
 
 .error-content {
@@ -81,7 +81,7 @@
   left: 50%;
   transform: translateX(-50%);
   padding: var(--space-3) var(--space-6);
-  background-color: #FEF3C7;
+  background-color: var(--color-badge-warning-bg);
   border: var(--border-width) solid var(--color-warning);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);

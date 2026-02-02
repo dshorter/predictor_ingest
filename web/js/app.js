@@ -14,10 +14,60 @@ const AppState = {
 };
 
 /**
+ * Initialize theme from OS preference or saved preference.
+ * Saved preference (localStorage) overrides OS detection.
+ */
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+  // else: no attribute = light mode (default)
+
+  // Listen for OS theme changes (only if no saved preference)
+  window.matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        document.documentElement.setAttribute(
+          'data-theme', e.matches ? 'dark' : 'light'
+        );
+        reapplyGraphStyles();
+      }
+    });
+}
+
+/**
+ * Toggle theme between light and dark. Saves to localStorage.
+ */
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  reapplyGraphStyles();
+}
+
+/**
+ * Re-read CSS variables and reapply Cytoscape styles.
+ * Must be called after any theme change.
+ */
+function reapplyGraphStyles() {
+  if (AppState.cy) {
+    AppState.cy.style(getCytoscapeStyles());
+    AppState.cy.style().update();
+  }
+}
+
+/**
  * Initialize the application
  */
 async function initializeApp() {
   console.log('Initializing AI Trend Graph...');
+
+  // Initialize theme BEFORE any rendering
+  initTheme();
 
   try {
     // Show loading state
@@ -53,6 +103,26 @@ async function initializeApp() {
     initializeFilters(AppState.cy);
     initializeHelp();
     initializeToolbar(AppState.cy);
+
+    // Wire theme toggle button
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        toggleTheme();
+        const icon = document.getElementById('theme-icon');
+        if (icon) {
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          icon.textContent = isDark ? '☀' : '☾';
+        }
+      });
+
+      // Set initial icon state
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const themeIcon = document.getElementById('theme-icon');
+      if (themeIcon) {
+        themeIcon.textContent = isDark ? '☀' : '☾';
+      }
+    }
 
     // Run initial layout
     runLayout(AppState.cy);
