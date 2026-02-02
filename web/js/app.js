@@ -51,6 +51,7 @@ async function initializeApp() {
     initializeTooltips(AppState.cy);
     initializeSearch(AppState.cy);
     initializeFilters(AppState.cy);
+    initializeHelp();
     initializeToolbar(AppState.cy);
 
     // Run initial layout
@@ -140,6 +141,11 @@ function initializeEventHandlers(cy) {
   document.addEventListener('keydown', (e) => {
     handleKeyboardNavigation(e, cy);
   });
+
+  // Global keyboard shortcuts (? for help)
+  document.addEventListener('keydown', (e) => {
+    handleGlobalKeyboard(e);
+  });
 }
 
 /**
@@ -168,6 +174,11 @@ function initializeToolbar(cy) {
   // Filter toggle
   document.getElementById('btn-filter')?.addEventListener('click', () => {
     toggleFilterPanel();
+  });
+
+  // Help button
+  document.getElementById('btn-help')?.addEventListener('click', () => {
+    toggleHelpPanel();
   });
 
   // Tier selector (data size)
@@ -224,6 +235,29 @@ function handleKeyboardNavigation(e, cy) {
     case 'ArrowLeft':
     case 'ArrowRight':
       handleArrowNavigation(e, cy);
+      break;
+  }
+}
+
+/**
+ * Handle global keyboard shortcuts
+ */
+function handleGlobalKeyboard(e) {
+  // Don't handle if typing in an input field
+  const activeElement = document.activeElement;
+  if (activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable
+  )) {
+    return;
+  }
+
+  switch (e.key) {
+    case '?':
+      // Toggle help panel
+      toggleHelpPanel();
+      e.preventDefault();
       break;
   }
 }

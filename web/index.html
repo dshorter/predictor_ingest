@@ -75,6 +75,7 @@
         <button id="btn-fit" class="btn-icon" title="Fit to view">&#x2B1C;</button>
         <button id="btn-layout" class="btn-icon" title="Re-run layout">&#x21BB;</button>
         <button id="btn-filter" class="btn-icon" title="Toggle filters">&#x2699;</button>
+        <button id="btn-help" class="btn-icon" title="Help (?)">?</button>
       </div>
     </header>
 
@@ -161,6 +162,37 @@
           <!-- Populated dynamically on edge select -->
         </div>
       </aside>
+
+      <!-- Help panel (right sidebar) -->
+      <aside id="help-panel" class="panel panel-right hidden" role="dialog" aria-labelledby="help-title">
+        <div class="help-header">
+          <h2 id="help-title" class="help-title">Help</h2>
+          <button class="panel-close" aria-label="Close help panel">&times;</button>
+        </div>
+
+        <!-- Tab navigation -->
+        <nav class="help-tabs" role="tablist">
+          <button class="help-tab active" data-tab="quick-start" role="tab" aria-selected="true" aria-controls="help-quick-start">
+            Quick Start
+          </button>
+          <button class="help-tab" data-tab="topics" role="tab" aria-selected="false" aria-controls="help-topics">
+            Topics
+          </button>
+        </nav>
+
+        <!-- Tab content -->
+        <div class="help-content">
+          <!-- Quick Start Tab -->
+          <div id="help-quick-start" class="help-tab-pane active" role="tabpanel" aria-labelledby="help-tab-quick-start">
+            <!-- Populated by help.js from content.js -->
+          </div>
+
+          <!-- Topics Tab -->
+          <div id="help-topics" class="help-tab-pane" role="tabpanel" aria-labelledby="help-tab-topics">
+            <!-- Populated by help.js from content.js (accordion) -->
+          </div>
+        </div>
+      </aside>
     </main>
 
     <!-- Tooltip (positioned absolutely) -->
@@ -198,6 +230,8 @@
   <script src="js/tooltips.js?v=2"></script>
   <script src="js/layout.js?v=4"></script>
   <script src="js/graph.js?v=2"></script>
+  <script src="help/content.js?v=1"></script>
+  <script src="js/help.js?v=1"></script>
   <script src="js/app.js?v=4"></script>
 </body>
 </html>

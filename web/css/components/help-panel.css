@@ -1,0 +1,390 @@
+/**
+ * Help Panel Styles
+ *
+ * Styling for the in-app help documentation panel.
+ * Reuses panel patterns from panel.css with help-specific additions.
+ */
+
+/* ========================================
+   Help Panel Container
+   ======================================== */
+
+#help-panel {
+  /* Reuse panel base styles but override positioning */
+  position: fixed;
+  top: 60px; /* Below toolbar */
+  right: 0;
+  bottom: 0;
+  width: 350px;
+  background: var(--color-bg-primary, white);
+  border-left: 1px solid var(--color-border-primary, #E5E7EB);
+  box-shadow: var(--shadow-md, -2px 0 8px rgba(0, 0, 0, 0.1));
+  z-index: 150; /* Above graph, below toolbar, same level as detail panel */
+  overflow-y: auto;
+  transform: translateX(0);
+  transition: transform 0.3s var(--ease-out, ease-out);
+}
+
+#help-panel.hidden {
+  transform: translateX(100%);
+  pointer-events: none;
+}
+
+/* ========================================
+   Panel Header
+   ======================================== */
+
+.help-header {
+  position: sticky;
+  top: 0;
+  background: var(--color-bg-primary, white);
+  border-bottom: 1px solid var(--color-border-secondary, #F3F4F6);
+  padding: var(--space-4, 16px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.help-title {
+  font-size: var(--font-size-lg, 18px);
+  font-weight: 600;
+  color: var(--color-text-primary, #1F2937);
+  margin: 0;
+}
+
+/* Close button (reuses panel-close styles) */
+.help-panel .panel-close {
+  position: static; /* Override panel.css absolute positioning */
+  margin-left: auto;
+}
+
+/* ========================================
+   Tab Navigation
+   ======================================== */
+
+.help-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border-secondary, #E5E7EB);
+  background: var(--color-bg-secondary, #F9FAFB);
+}
+
+.help-tab {
+  flex: 1;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 500;
+  color: var(--color-text-secondary, #6B7280);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s var(--ease-out, ease-out);
+}
+
+.help-tab:hover {
+  color: var(--color-text-primary, #1F2937);
+  background: var(--color-bg-tertiary, #F3F4F6);
+}
+
+.help-tab.active {
+  color: var(--color-primary, #3B82F6);
+  background: var(--color-bg-primary, white);
+  border-bottom-color: var(--color-primary, #3B82F6);
+}
+
+/* ========================================
+   Tab Content Area
+   ======================================== */
+
+.help-content {
+  padding: var(--space-4, 16px);
+}
+
+.help-tab-pane {
+  display: none;
+}
+
+.help-tab-pane.active {
+  display: block;
+}
+
+/* ========================================
+   Help Sections
+   ======================================== */
+
+.help-section {
+  margin-bottom: var(--space-6, 24px);
+}
+
+.help-section h3 {
+  font-size: var(--font-size-base, 16px);
+  font-weight: 600;
+  color: var(--color-text-primary, #1F2937);
+  margin-top: 0;
+  margin-bottom: var(--space-3, 12px);
+}
+
+.help-section h4 {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 600;
+  color: var(--color-text-primary, #1F2937);
+  margin-top: var(--space-4, 16px);
+  margin-bottom: var(--space-2, 8px);
+}
+
+.help-section h5 {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 600;
+  color: var(--color-text-secondary, #6B7280);
+  margin-top: var(--space-3, 12px);
+  margin-bottom: var(--space-2, 8px);
+}
+
+.help-section p {
+  font-size: var(--font-size-sm, 14px);
+  line-height: 1.6;
+  color: var(--color-text-secondary, #4B5563);
+  margin-top: 0;
+  margin-bottom: var(--space-3, 12px);
+}
+
+.help-section ul,
+.help-section ol {
+  font-size: var(--font-size-sm, 14px);
+  line-height: 1.6;
+  color: var(--color-text-secondary, #4B5563);
+  margin: var(--space-2, 8px) 0;
+  padding-left: var(--space-5, 20px);
+}
+
+.help-section li {
+  margin-bottom: var(--space-2, 8px);
+}
+
+/* ========================================
+   Accordion (Details/Summary)
+   ======================================== */
+
+.help-accordion {
+  border-top: 1px solid var(--color-border-secondary, #E5E7EB);
+}
+
+.help-accordion details {
+  border-bottom: 1px solid var(--color-border-secondary, #E5E7EB);
+}
+
+.help-accordion summary {
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 600;
+  color: var(--color-text-primary, #1F2937);
+  cursor: pointer;
+  list-style: none; /* Hide default triangle */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.15s ease;
+}
+
+.help-accordion summary:hover {
+  background: var(--color-bg-secondary, #F9FAFB);
+}
+
+/* Custom arrow icon */
+.help-accordion summary::after {
+  content: '›';
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-text-tertiary, #9CA3AF);
+  transition: transform 0.2s ease;
+  transform: rotate(0deg);
+}
+
+.help-accordion details[open] summary::after {
+  transform: rotate(90deg);
+}
+
+.help-accordion-content {
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  padding-top: 0;
+}
+
+/* ========================================
+   Keyboard Shortcut Tags
+   ======================================== */
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-family: var(--font-family-mono, 'SF Mono', 'Monaco', 'Menlo', monospace);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-primary, #1F2937);
+  background: var(--color-bg-tertiary, #F3F4F6);
+  border: 1px solid var(--color-border-primary, #D1D5DB);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+
+.help-table {
+  width: 100%;
+  font-size: var(--font-size-sm, 14px);
+  border-collapse: collapse;
+  margin: var(--space-3, 12px) 0;
+}
+
+.help-table td {
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-bottom: 1px solid var(--color-border-secondary, #F3F4F6);
+  vertical-align: top;
+}
+
+.help-table td:first-child {
+  padding-left: 0;
+  font-weight: 500;
+  color: var(--color-text-primary, #1F2937);
+}
+
+.help-table td:last-child {
+  color: var(--color-text-secondary, #6B7280);
+}
+
+.help-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Help action column (for navigation table) */
+.help-action {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+/* ========================================
+   Interactive Prompts
+   ======================================== */
+
+.help-prompt {
+  background: var(--color-bg-info, #EFF6FF);
+  border-left: 3px solid var(--color-primary, #3B82F6);
+  padding: var(--space-3, 12px);
+  border-radius: var(--radius-md, 6px);
+  margin: var(--space-3, 12px) 0;
+}
+
+.help-prompt p {
+  margin: var(--space-2, 8px) 0;
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-text-primary, #1F2937);
+}
+
+.help-prompt p:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Notes and Callouts
+   ======================================== */
+
+.help-note {
+  background: var(--color-bg-secondary, #F9FAFB);
+  border: 1px solid var(--color-border-secondary, #E5E7EB);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--font-size-xs, 13px);
+  color: var(--color-text-secondary, #6B7280);
+  margin: var(--space-3, 12px) 0;
+}
+
+/* ========================================
+   Color Legend
+   ======================================== */
+
+.color-legend {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2, 8px);
+  margin: var(--space-3, 12px) 0;
+}
+
+.color-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-text-secondary, #4B5563);
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Glossary
+   ======================================== */
+
+.help-glossary {
+  margin: var(--space-3, 12px) 0;
+}
+
+.help-glossary dt {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 600;
+  color: var(--color-text-primary, #1F2937);
+  margin-top: var(--space-3, 12px);
+  margin-bottom: var(--space-1, 4px);
+}
+
+.help-glossary dt:first-child {
+  margin-top: 0;
+}
+
+.help-glossary dd {
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-text-secondary, #6B7280);
+  margin-left: var(--space-4, 16px);
+  margin-bottom: var(--space-2, 8px);
+}
+
+/* ========================================
+   Links
+   ======================================== */
+
+.help-content a {
+  color: var(--color-primary, #3B82F6);
+  text-decoration: none;
+}
+
+.help-content a:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+   Scrollbar Styling (Webkit)
+   ======================================== */
+
+#help-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+#help-panel::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary, #F9FAFB);
+}
+
+#help-panel::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary, #D1D5DB);
+  border-radius: var(--radius-full, 999px);
+}
+
+#help-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary, #9CA3AF);
+}

@@ -26,6 +26,7 @@
 @import 'components/panel.css';
 @import 'components/toolbar.css';
 @import 'components/tooltip.css';
+@import 'components/help-panel.css';
 
 /* 5. Graph-specific */
 @import 'graph/cytoscape.css';
