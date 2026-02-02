@@ -131,12 +131,12 @@
 }
 
 .tooltip-badge.trending {
-  background-color: #FEF3C7;
+  background-color: var(--color-badge-warning-bg);
   color: var(--color-warning);
 }
 
 .tooltip-badge.new {
-  background-color: #D1FAE5;
+  background-color: var(--color-badge-success-bg);
   color: var(--color-success);
 }
 
