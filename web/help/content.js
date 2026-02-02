@@ -155,14 +155,14 @@ const HelpContent = {
 
         <h4>Node Color (Entity Type)</h4>
         <div class="color-legend">
-          <div class="color-item"><span class="color-swatch" style="background: #4A90D9;"></span> Blue = Org (companies, agencies)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #7C3AED;"></span> Violet = Model (AI/ML models)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #50B4A8;"></span> Teal = Person (individuals)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #8B5CF6;"></span> Purple = Tool (software, platforms)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #F59E0B;"></span> Orange = Dataset (training data)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #10B981;"></span> Green = Paper (research papers)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #EAB308;"></span> Gold = Tech (technologies, techniques)</div>
-          <div class="color-item"><span class="color-swatch" style="background: #64748B;"></span> Slate = Topic (abstract themes)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-org);"></span> Blue = Org (companies, agencies)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-model);"></span> Violet = Model (AI/ML models)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-person);"></span> Teal = Person (individuals)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-tool);"></span> Purple = Tool (software, platforms)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-dataset);"></span> Orange = Dataset (training data)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-paper);"></span> Green = Paper (research papers)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-tech);"></span> Gold = Tech (technologies, techniques)</div>
+          <div class="color-item"><span class="color-swatch" style="background: var(--color-topic);"></span> Slate = Topic (abstract themes)</div>
         </div>
         <p class="help-note">
           <a href="#" onclick="openTopicSection('glossary'); return false;">See full list of 15 entity types →</a>

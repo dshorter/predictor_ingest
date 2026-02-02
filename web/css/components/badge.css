@@ -23,22 +23,22 @@
 /* Semantic variants */
 .badge-success {
   color: var(--color-success);
-  background-color: #D1FAE5;
+  background-color: var(--color-badge-success-bg);
 }
 
 .badge-warning {
   color: var(--color-warning);
-  background-color: #FEF3C7;
+  background-color: var(--color-badge-warning-bg);
 }
 
 .badge-error {
   color: var(--color-error);
-  background-color: #FEE2E2;
+  background-color: var(--color-badge-error-bg);
 }
 
 .badge-info {
   color: var(--color-info);
-  background-color: #DBEAFE;
+  background-color: var(--color-badge-info-bg);
 }
 
 /* Entity type badges */
@@ -125,10 +125,10 @@
 
 .badge-kind-inferred {
   color: var(--color-warning);
-  background-color: #FEF3C7;
+  background-color: var(--color-badge-warning-bg);
 }
 
 .badge-kind-hypothesis {
   color: var(--color-info);
-  background-color: #DBEAFE;
+  background-color: var(--color-badge-info-bg);
 }

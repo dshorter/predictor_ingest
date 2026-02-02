@@ -103,6 +103,37 @@
   --edge-dimmed: #D1D5DB;
 
   /* ==========================================================================
+     Colors - Semantic Surface (light mode defaults)
+     ========================================================================== */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F9FAFB;       /* gray-50 */
+  --color-bg-tertiary: #F3F4F6;        /* gray-100 */
+  --color-bg-info: #EFF6FF;
+  --color-text-primary: #1F2937;        /* gray-800 */
+  --color-text-secondary: #6B7280;      /* gray-500 */
+  --color-text-tertiary: #9CA3AF;       /* gray-400 */
+  --color-border-primary: #D1D5DB;      /* gray-300 */
+  --color-border-secondary: #E5E7EB;    /* gray-200 */
+  --color-primary: #3B82F6;             /* blue-500 */
+  --color-focus-ring: rgba(59, 130, 246, 0.2);
+  --color-overlay: rgba(255, 255, 255, 0.9);
+  --color-overlay-heavy: rgba(255, 255, 255, 0.95);
+  --color-badge-success-bg: #D1FAE5;
+  --color-badge-warning-bg: #FEF3C7;
+  --color-badge-error-bg: #FEE2E2;
+  --color-badge-info-bg: #DBEAFE;
+
+  /* Cytoscape-specific (used by styles.js via getComputedStyle) */
+  --cy-text-color: #1F2937;
+  --cy-text-outline: #FFFFFF;
+  --cy-node-border: #D1D5DB;
+  --cy-node-border-hover: #3B82F6;
+  --cy-node-border-selected: #2563EB;
+  --cy-node-overlay-selected: #3B82F6;
+  --cy-node-border-highlighted: #F59E0B;
+  --cy-node-border-new: #22C55E;
+
+  /* ==========================================================================
      Shadows
      ========================================================================== */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -148,4 +179,55 @@
   --toolbar-height: 56px;
   --panel-width: 280px;
   --max-content-width: 1200px;
+}
+
+[data-theme="dark"] {
+  --color-bg-primary: #111827;          /* gray-900 */
+  --color-bg-secondary: #1F2937;        /* gray-800 */
+  --color-bg-tertiary: #374151;         /* gray-700 */
+  --color-bg-info: #1E3A5F;
+  --color-text-primary: #F3F4F6;        /* gray-100 */
+  --color-text-secondary: #9CA3AF;      /* gray-400 */
+  --color-text-tertiary: #6B7280;       /* gray-500 */
+  --color-border-primary: #4B5563;      /* gray-600 */
+  --color-border-secondary: #374151;    /* gray-700 */
+  --color-primary: #60A5FA;             /* blue-400 — brighter for dark bg */
+  --color-focus-ring: rgba(96, 165, 250, 0.3);
+  --color-overlay: rgba(17, 24, 39, 0.9);
+  --color-overlay-heavy: rgba(17, 24, 39, 0.95);
+  --color-badge-success-bg: #064E3B;
+  --color-badge-warning-bg: #78350F;
+  --color-badge-error-bg: #7F1D1D;
+  --color-badge-info-bg: #1E3A5F;
+
+  /* Edge colors — brighter for dark backgrounds */
+  --edge-default: #9CA3AF;
+  --edge-new: #34D399;
+  --edge-hover: #60A5FA;
+  --edge-selected: #3B82F6;
+  --edge-dimmed: #4B5563;
+
+  /* Cytoscape dark overrides */
+  --cy-text-color: #F3F4F6;
+  --cy-text-outline: #111827;
+  --cy-node-border: #4B5563;
+  --cy-node-border-hover: #60A5FA;
+  --cy-node-border-selected: #3B82F6;
+  --cy-node-overlay-selected: #60A5FA;
+  --cy-node-border-highlighted: #FBBF24;
+  --cy-node-border-new: #34D399;
+
+  /* Override grays used directly */
+  --gray-50: #1F2937;
+  --gray-100: #374151;
+  --gray-200: #4B5563;
+  --gray-300: #6B7280;
+  --gray-800: #F3F4F6;
+  --gray-900: #F9FAFB;
+
+  /* Override border/shadow */
+  --border-color: var(--gray-300);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0, 0, 0, 0.2);
 }

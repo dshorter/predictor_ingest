@@ -9,7 +9,7 @@
 
 .panel {
   position: absolute;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   border: var(--border-width) solid var(--border-color);
   box-shadow: var(--shadow-lg);
   z-index: var(--z-dropdown);
