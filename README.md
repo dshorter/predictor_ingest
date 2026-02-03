@@ -61,9 +61,15 @@ python -m ingest.rss --feed https://example.com/feed.xml --limit 10
 
 **Mode B: Manual** (paste into ChatGPT)
 ```bash
-# Generate document bundle for manual extraction
-# Then save extraction JSON to data/extractions/
+# Full workflow documented in docs/backend/workflow-guide.md
+
+# Quick start:
+make pipeline        # ingest + generate docpack
+# → Paste .md into ChatGPT, save extraction JSONs to data/extractions/
+make post-extract    # import + resolve + export + trending
 ```
+
+See **[docs/backend/workflow-guide.md](docs/backend/workflow-guide.md)** for complete Mode B instructions.
 
 ### 4. Export Graph
 
@@ -199,9 +205,15 @@ feeds:
 
 ## Documentation
 
-- **AGENTS.md** - Detailed specification and design decisions
+### User Documentation
+- **[docs/backend/workflow-guide.md](docs/backend/workflow-guide.md)** - Complete manual workflow guide (Mode B)
+- **[docs/ux/README.md](docs/ux/README.md)** - Web UI implementation guidelines
+
+### Technical Documentation
+- **AGENTS.md** / **CLAUDE.md** - Detailed specification and design decisions
 - **schemas/extraction.json** - JSON Schema for extraction output
 - **schemas/sqlite.sql** - Database schema
+- **docs/backend/manual-workflow-plan.md** - Implementation plan for Mode B scripts
 
 ## License
 
