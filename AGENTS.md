@@ -519,9 +519,33 @@ These three provide coverage across:
 
 ---
 
+## Architecture
+
+### Domain Separation
+
+The pipeline is split into a **domain-independent framework** (scoring, validation,
+export, resolution) and **domain-specific configuration** (entity types, relation
+taxonomy, sources, extraction prompts). This separation is intentional and must be
+preserved. See **[docs/architecture/domain-separation.md](docs/architecture/domain-separation.md)**
+for the boundary definition and enforcement rules.
+
+### Key Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal distillation formulas, source requirements, validation framework, weight tuning protocol |
+| [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Boundary between framework and domain config; rules for what goes where |
+| [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 vision for applying the framework to other domains |
+| [docs/ux/README.md](docs/ux/README.md) | Cytoscape client implementation guidelines |
+| [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
+| [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs and workflow guide |
+
+---
+
 ## Backlog (post-V1 ideas)
 - Persist node positions (`preset` layout) for stability across days
-- Add “follow-up query” generation for hypothesis edges (2-hop research discipline)
+- Add "follow-up query" generation for hypothesis edges (2-hop research discipline)
 - Better entity resolution (Wikidata IDs for high-degree nodes)
 - Community detection + clustering views
 - Source-type enrichment (paper/repo/hiring/product changelog) for earlier weak signals
+- Multi-domain support (see [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md))
