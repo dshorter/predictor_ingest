@@ -355,6 +355,7 @@ A thin static Cytoscape.js client for interactive graph exploration. The graph s
 | Search | Filter nodes by label/alias; highlight matches |
 | Filter panel | Date range, entity types, relationship kinds, confidence threshold |
 | Kind toggles | Show/hide asserted, inferred, hypothesis edges |
+| Neighborhood highlight | Click node → dims non-neighbors; hover is tooltip-only |
 | Node detail panel | Full metadata, relationships, source documents |
 | Evidence panel | Click edge → view provenance with snippets and links |
 | Zoom/pan/fit | Standard navigation; re-run layout button |
@@ -366,6 +367,7 @@ A thin static Cytoscape.js client for interactive graph exploration. The graph s
 | Node size | Velocity (acceleration) + recency boost |
 | Node color | Entity type (Org=blue, Model=violet, etc.) |
 | Node opacity | Recency (fades as lastSeen ages) |
+| Neighborhood highlight | Click node → neighbors stay visible, rest dims (opacity 0.15) |
 | Edge style | Kind: solid=asserted, dashed=inferred, dotted=hypothesis |
 | Edge thickness | Confidence score (0.5px to 4px) |
 | Edge color | Gray default; green for new edges (<7 days) |
@@ -384,7 +386,9 @@ V2 position storage enables:
 
 ### Detailed Specification
 
-See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation guidelines including:
+See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation guidelines. For common issues and fixes, see **[docs/ux/troubleshooting.md](docs/ux/troubleshooting.md)**.
+
+Implementation guidelines include:
 
 - Node and edge visual encoding (formulas, full color palette with hex codes)
 - Label visibility rules and collision detection
@@ -401,6 +405,22 @@ See **[docs/ux/README.md](docs/ux/README.md)** for comprehensive implementation 
 - Recommended file structure and dependencies
 
 The UI guidelines document is implementation-ready for code generation.
+
+### Cytoscape.js Gotchas (Lessons Learned)
+
+These are hard-won lessons from development. Violating any of these will cause subtle, hard-to-debug issues:
+
+1. **No CSS pseudo-selectors.** Cytoscape does **not** support `:hover` or `:focus` in its stylesheet. Use JS events to add/remove classes (e.g., `.hover`), then target those classes in styles. Only `:selected`, `:active`, `:grabbed` work natively.
+
+2. **Colon-safe ID lookups.** Our canonical IDs use colons (`org:openai`, `model:gpt-5`). The `cy.$('#org:openai')` selector breaks because `#` uses CSS parsing where `:` is a pseudo-class separator. Always use `cy.getElementById('org:openai')` instead.
+
+3. **Manual `cy.resize()` after container changes.** Cytoscape caches its container dimensions. If you toggle a panel that changes the `#cy` element's size, you must call `cy.resize()` (with a short `setTimeout` of ~50ms) or the graph won't redraw into the new bounds.
+
+4. **fcose needs CDN sub-dependencies.** The `cytoscape-fcose` CDN bundle does **not** include `layout-base` and `cose-base`. Load those first, or fcose silently fails and falls back to `cose`. Always test layout availability with a try/catch around a dummy layout run, not by checking global variable names.
+
+5. **Separate CSS classes for separate dimming contexts.** Search uses `.dimmed`; neighborhood highlighting uses `.neighborhood-dimmed`. If both used the same class, clearing one would clear the other. Any new feature that dims elements should use its own class.
+
+See **[docs/ux/troubleshooting.md](docs/ux/troubleshooting.md)** for detailed symptoms, root causes, and fixes.
 
 ### Scale Considerations
 
@@ -499,9 +519,33 @@ These three provide coverage across:
 
 ---
 
+## Architecture
+
+### Domain Separation
+
+The pipeline is split into a **domain-independent framework** (scoring, validation,
+export, resolution) and **domain-specific configuration** (entity types, relation
+taxonomy, sources, extraction prompts). This separation is intentional and must be
+preserved. See **[docs/architecture/domain-separation.md](docs/architecture/domain-separation.md)**
+for the boundary definition and enforcement rules.
+
+### Key Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal distillation formulas, source requirements, validation framework, weight tuning protocol |
+| [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Boundary between framework and domain config; rules for what goes where |
+| [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 vision for applying the framework to other domains |
+| [docs/ux/README.md](docs/ux/README.md) | Cytoscape client implementation guidelines |
+| [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
+| [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs and workflow guide |
+
+---
+
 ## Backlog (post-V1 ideas)
 - Persist node positions (`preset` layout) for stability across days
-- Add “follow-up query” generation for hypothesis edges (2-hop research discipline)
+- Add "follow-up query" generation for hypothesis edges (2-hop research discipline)
 - Better entity resolution (Wikidata IDs for high-degree nodes)
 - Community detection + clustering views
 - Source-type enrichment (paper/repo/hiring/product changelog) for earlier weak signals
+- Multi-domain support (see [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md))

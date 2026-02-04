@@ -1,0 +1,358 @@
+{
+  "meta": {
+    "view": "mentions",
+    "nodeCount": 18,
+    "edgeCount": 16,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "doc:2026-01-10_openai_blog",
+          "label": "OpenAI Announces GPT-5",
+          "type": "Document",
+          "url": "https://openai.com/blog/gpt5",
+          "source": "OpenAI Blog",
+          "publishedAt": "2026-01-10"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-11-15_anthropic_blog",
+          "label": "Introducing Claude Opus 4.5",
+          "type": "Document",
+          "url": "https://anthropic.com/news/claude-opus-4-5",
+          "source": "Anthropic Blog",
+          "publishedAt": "2025-11-15"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-15_openai_safety",
+          "label": "OpenAI Safety Update",
+          "type": "Document",
+          "url": "https://openai.com/safety",
+          "source": "OpenAI Blog",
+          "publishedAt": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-20_anthropic_safety",
+          "label": "Constitutional AI and Safety Research",
+          "type": "Document",
+          "url": "https://anthropic.com/research/safety",
+          "source": "Anthropic Blog",
+          "publishedAt": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-12_langchain_blog",
+          "label": "LangChain Adds GPT-5 Support",
+          "type": "Document",
+          "url": "https://blog.langchain.dev/gpt5-support",
+          "source": "LangChain Blog",
+          "publishedAt": "2026-01-12"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2025-11-20_langchain_blog",
+          "label": "Claude Opus 4.5 Integration Available",
+          "type": "Document",
+          "url": "https://blog.langchain.dev/claude-opus-support",
+          "source": "LangChain Blog",
+          "publishedAt": "2025-11-20"
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": ["Open AI"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "org:anthropic",
+          "label": "Anthropic",
+          "type": "Org",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "model:gpt5",
+          "label": "GPT-5",
+          "type": "Model",
+          "aliases": ["GPT 5"],
+          "firstSeen": "2026-01-10",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "model:claude_opus",
+          "label": "Claude Opus 4.5",
+          "type": "Model",
+          "aliases": ["Opus 4.5", "Claude Opus"],
+          "firstSeen": "2025-11-15",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": ["Transformers"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:moe",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": ["MoE"],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_safety",
+          "label": "AI Safety",
+          "type": "Topic",
+          "aliases": ["AI Alignment"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "benchmark:mmlu",
+          "label": "MMLU",
+          "type": "Benchmark",
+          "aliases": ["Massive Multitask Language Understanding"],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-22"
+        }
+      },
+      {
+        "data": {
+          "id": "person:sam_altman",
+          "label": "Sam Altman",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "person:dario_amodei",
+          "label": "Dario Amodei",
+          "type": "Person",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-20"
+        }
+      },
+      {
+        "data": {
+          "id": "tool:langchain",
+          "label": "LangChain",
+          "type": "Tool",
+          "aliases": [],
+          "firstSeen": "2025-10-25",
+          "lastSeen": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "dataset:common_crawl",
+          "label": "Common Crawl",
+          "type": "Dataset",
+          "aliases": [],
+          "firstSeen": "2025-11-01",
+          "lastSeen": "2026-01-15"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_openai_blog->org:openai",
+          "source": "doc:2026-01-10_openai_blog",
+          "target": "org:openai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_openai_blog->model:gpt5",
+          "source": "doc:2026-01-10_openai_blog",
+          "target": "model:gpt5",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_openai_blog->person:sam_altman",
+          "source": "doc:2026-01-10_openai_blog",
+          "target": "person:sam_altman",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_openai_blog->benchmark:mmlu",
+          "source": "doc:2026-01-10_openai_blog",
+          "target": "benchmark:mmlu",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.90
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-10_openai_blog->tech:moe",
+          "source": "doc:2026-01-10_openai_blog",
+          "target": "tech:moe",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.85
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-11-15_anthropic_blog->org:anthropic",
+          "source": "doc:2025-11-15_anthropic_blog",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-11-15_anthropic_blog->model:claude_opus",
+          "source": "doc:2025-11-15_anthropic_blog",
+          "target": "model:claude_opus",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-11-15_anthropic_blog->person:dario_amodei",
+          "source": "doc:2025-11-15_anthropic_blog",
+          "target": "person:dario_amodei",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-11-15_anthropic_blog->benchmark:mmlu",
+          "source": "doc:2025-11-15_anthropic_blog",
+          "target": "benchmark:mmlu",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.88
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-15_openai_safety->org:openai",
+          "source": "doc:2026-01-15_openai_safety",
+          "target": "org:openai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-15_openai_safety->topic:ai_safety",
+          "source": "doc:2026-01-15_openai_safety",
+          "target": "topic:ai_safety",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_anthropic_safety->org:anthropic",
+          "source": "doc:2026-01-20_anthropic_safety",
+          "target": "org:anthropic",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-20_anthropic_safety->topic:ai_safety",
+          "source": "doc:2026-01-20_anthropic_safety",
+          "target": "topic:ai_safety",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-12_langchain_blog->tool:langchain",
+          "source": "doc:2026-01-12_langchain_blog",
+          "target": "tool:langchain",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-12_langchain_blog->model:gpt5",
+          "source": "doc:2026-01-12_langchain_blog",
+          "target": "model:gpt5",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2025-11-20_langchain_blog->tool:langchain",
+          "source": "doc:2025-11-20_langchain_blog",
+          "target": "tool:langchain",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 1.0
+        }
+      }
+    ]
+  }
+}

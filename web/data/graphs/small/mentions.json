@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "view": "mentions",
+    "nodeCount": 13,
+    "edgeCount": 14,
+    "exportedAt": "2026-01-25T12:00:00Z",
+    "dateRange": {
+      "start": "2025-10-25",
+      "end": "2026-01-25"
+    }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "doc:2026-01-18_wired_2827",
+          "label": "What Researchers Are Building Scale",
+          "type": "Document",
+          "url": "https://wired.com/2026/01/18/openai_ai_safety",
+          "source": "Wired",
+          "publishedAt": "2026-01-18"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-25_openai_blog_5315",
+          "label": "How Companies Are Rethinking New Models",
+          "type": "Document",
+          "url": "https://openai.com/blog/2026/01/25/openai_ai_safety",
+          "source": "OpenAI Blog",
+          "publishedAt": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-19_openai_blog_6310",
+          "label": "Analysis: Breaking News in AI",
+          "type": "Document",
+          "url": "https://openai.com/blog/2026/01/19/transformers_transformer_archi",
+          "source": "OpenAI Blog",
+          "publishedAt": "2026-01-19"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_mit_technology__4923",
+          "label": "Report: Research Analysis",
+          "type": "Document",
+          "url": "https://technologyreview.com/2026/01/21/transformers_transformer_archi",
+          "source": "MIT Technology Review",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-21_the_gradient_2133",
+          "label": "Report: Technical Analysis",
+          "type": "Document",
+          "url": "https://thegradient.pub/2026/01/21/transformers_transformer_archi",
+          "source": "The Gradient",
+          "publishedAt": "2026-01-21"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-17_techcrunch_6107",
+          "label": "Report: Technical Summary",
+          "type": "Document",
+          "url": "https://techcrunch.com/2026/01/17/attention_is_all_you_need_v2_m",
+          "source": "TechCrunch",
+          "publishedAt": "2026-01-17"
+        }
+      },
+      {
+        "data": {
+          "id": "doc:2026-01-24_weights_and_bia_8397",
+          "label": "Report: Industry Overview",
+          "type": "Document",
+          "url": "https://wandb.ai/articles/2026/01/24/attention_is_all_you_need_v2_m",
+          "source": "Weights & Biases Blog",
+          "publishedAt": "2026-01-24"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:mixture_of_experts",
+          "label": "Mixture of Experts",
+          "type": "Tech",
+          "aliases": [
+            "MoE"
+          ],
+          "firstSeen": "2025-11-14",
+          "lastSeen": "2025-12-31"
+        }
+      },
+      {
+        "data": {
+          "id": "paper:attention_is_all_you_need_v2",
+          "label": "Attention Is All You Need v2",
+          "type": "Paper",
+          "aliases": [],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-25"
+        }
+      },
+      {
+        "data": {
+          "id": "org:openai",
+          "label": "OpenAI",
+          "type": "Org",
+          "aliases": [
+            "Open AI"
+          ],
+          "firstSeen": "2026-01-14",
+          "lastSeen": "2026-01-15"
+        }
+      },
+      {
+        "data": {
+          "id": "repo:transformers",
+          "label": "transformers",
+          "type": "Repo",
+          "aliases": [
+            "huggingface/transformers"
+          ],
+          "firstSeen": "2025-10-29",
+          "lastSeen": "2025-12-08"
+        }
+      },
+      {
+        "data": {
+          "id": "tech:transformer_architecture",
+          "label": "Transformer Architecture",
+          "type": "Tech",
+          "aliases": [
+            "Transformers"
+          ],
+          "firstSeen": "2025-12-01",
+          "lastSeen": "2025-12-06"
+        }
+      },
+      {
+        "data": {
+          "id": "topic:ai_safety",
+          "label": "AI Safety",
+          "type": "Topic",
+          "aliases": [
+            "AI Alignment"
+          ],
+          "firstSeen": "2025-11-03",
+          "lastSeen": "2026-01-19"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:doc:2026-01-18_wired_2827->org:openai",
+          "source": "doc:2026-01-18_wired_2827",
+          "target": "org:openai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.91
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-18_wired_2827->topic:ai_safety",
+          "source": "doc:2026-01-18_wired_2827",
+          "target": "topic:ai_safety",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.89
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_openai_blog_5315->org:openai",
+          "source": "doc:2026-01-25_openai_blog_5315",
+          "target": "org:openai",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.82
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-25_openai_blog_5315->topic:ai_safety",
+          "source": "doc:2026-01-25_openai_blog_5315",
+          "target": "topic:ai_safety",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-19_openai_blog_6310->repo:transformers",
+          "source": "doc:2026-01-19_openai_blog_6310",
+          "target": "repo:transformers",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.95
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-19_openai_blog_6310->tech:transformer_architecture",
+          "source": "doc:2026-01-19_openai_blog_6310",
+          "target": "tech:transformer_architecture",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_mit_technology__4923->repo:transformers",
+          "source": "doc:2026-01-21_mit_technology__4923",
+          "target": "repo:transformers",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_mit_technology__4923->tech:transformer_architecture",
+          "source": "doc:2026-01-21_mit_technology__4923",
+          "target": "tech:transformer_architecture",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.96
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_the_gradient_2133->repo:transformers",
+          "source": "doc:2026-01-21_the_gradient_2133",
+          "target": "repo:transformers",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.87
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-21_the_gradient_2133->tech:transformer_architecture",
+          "source": "doc:2026-01-21_the_gradient_2133",
+          "target": "tech:transformer_architecture",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.97
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-17_techcrunch_6107->paper:attention_is_all_you_need_v2",
+          "source": "doc:2026-01-17_techcrunch_6107",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.84
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-17_techcrunch_6107->tech:mixture_of_experts",
+          "source": "doc:2026-01-17_techcrunch_6107",
+          "target": "tech:mixture_of_experts",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.99
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_weights_and_bia_8397->paper:attention_is_all_you_need_v2",
+          "source": "doc:2026-01-24_weights_and_bia_8397",
+          "target": "paper:attention_is_all_you_need_v2",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.92
+        }
+      },
+      {
+        "data": {
+          "id": "e:doc:2026-01-24_weights_and_bia_8397->tech:mixture_of_experts",
+          "source": "doc:2026-01-24_weights_and_bia_8397",
+          "target": "tech:mixture_of_experts",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.9
+        }
+      }
+    ]
+  }
+}

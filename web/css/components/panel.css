@@ -1,0 +1,150 @@
+/**
+ * Panel Component
+ *
+ * Usage:
+ *   <aside class="panel panel-left">Left sidebar</aside>
+ *   <aside class="panel panel-right collapsed">Right sidebar</aside>
+ *   <aside class="panel panel-bottom">Bottom panel</aside>
+ */
+
+.panel {
+  position: absolute;
+  background-color: var(--color-bg-primary);
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown);
+  transition: transform var(--duration-slow) var(--easing-default);
+}
+
+.panel-content {
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+/* Close button */
+.panel-close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  color: var(--gray-500);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--easing-default),
+    background-color var(--duration-fast) var(--easing-default);
+}
+
+.panel-close:hover {
+  color: var(--gray-700);
+  background-color: var(--gray-100);
+}
+
+/* Left panel (detail view) */
+.panel-left {
+  top: var(--toolbar-height);
+  left: 0;
+  bottom: 0;
+  width: var(--panel-width);
+  border-left: none;
+  border-top: none;
+  border-bottom: none;
+}
+
+.panel-left.hidden {
+  transform: translateX(-100%);
+}
+
+/* Right panel (filters) */
+.panel-right {
+  top: var(--toolbar-height);
+  right: 0;
+  bottom: 0;
+  width: var(--panel-width);
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
+}
+
+.panel-right.collapsed {
+  transform: translateX(100%);
+}
+
+/* Bottom panel (evidence) */
+.panel-bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 40vh;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+.panel-bottom.hidden {
+  transform: translateY(100%);
+}
+
+/* Panel sections */
+.filter-section {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-width) solid var(--gray-200);
+}
+
+.filter-section:last-of-type {
+  border-bottom: none;
+}
+
+.filter-section h3 {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-600);
+  margin-bottom: var(--space-3);
+}
+
+/* Filter actions */
+.filter-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.filter-actions .btn {
+  flex: 1;
+}
+
+.filter-actions-small {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* Date presets */
+.date-presets {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.date-presets .btn-sm {
+  flex: 1;
+}
+
+.date-presets .btn-sm.active {
+  background-color: var(--blue-600);
+  border-color: var(--blue-600);
+  color: white;
+}
+
+/* Hidden utility for panels */
+.hidden {
+  display: none !important;
+}

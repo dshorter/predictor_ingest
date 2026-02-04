@@ -55,8 +55,9 @@ function calculateNodeSize(node) {
   // Recency boost for new nodes
   const recencyBoost = calculateRecencyBoost(node.data('firstSeen'));
 
-  // Degree provides subtle secondary scaling (logarithmic to prevent mega-nodes)
-  const degreeMultiplier = 1 + (Math.log10(degree + 1) * 0.15);
+  // Degree is a strong size driver — hub nodes should be visibly larger
+  // degree 1 → 1.0x, degree 3 → 1.55x, degree 6 → 1.90x, degree 10 → 2.15x
+  const degreeMultiplier = 1 + (Math.log2(degree) * 0.5);
 
   let size = BASE_SIZE * velocityMultiplier * recencyBoost * degreeMultiplier;
 
@@ -219,6 +220,13 @@ const nodeStates = [
     }
   },
   {
+    selector: 'node.neighborhood-dimmed',  // Click-to-highlight: non-neighbor nodes
+    style: {
+      'opacity': 0.15,
+      'label': ''  // Hide labels for dimmed nodes to reduce clutter
+    }
+  },
+  {
     selector: 'node.new',  // Nodes added in last 7 days
     style: {
       'border-width': 3,
@@ -368,6 +376,14 @@ function isNewEdge(ele) {
     'width': function(ele) {
       return calculateEdgeWidth(ele.data('confidence')) + 1;  // Slightly thicker
     }
+  }
+},
+{
+  selector: 'edge.neighborhood-dimmed',  // Click-to-highlight: non-neighbor edges
+  style: {
+    'line-color': edgeColors.dimmed,
+    'target-arrow-color': edgeColors.dimmed,
+    'opacity': 0.1
   }
 }
 ```
