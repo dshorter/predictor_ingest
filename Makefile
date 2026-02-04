@@ -35,9 +35,15 @@ trending:
 
 # ── Composites ─────────────────────────────────────────────────────────
 
-pipeline: ingest docpack
+pipeline:
+	@touch data/pipeline.lock
+	$(MAKE) ingest docpack
+	@rm -f data/pipeline.lock
 
-post-extract: import resolve export trending
+post-extract:
+	@touch data/pipeline.lock
+	$(MAKE) import resolve export trending
+	@rm -f data/pipeline.lock
 
 # ── Testing ────────────────────────────────────────────────────────────
 
