@@ -32,4 +32,5 @@ where = ["src"]
 [tool.pytest.ini_options]
 markers = [
     "network: marks tests as requiring network access (deselect with '-m \"not network\"')",
+    "llm_live: marks tests that call real LLM APIs (requires API keys in env)",
 ]

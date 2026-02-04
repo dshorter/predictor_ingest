@@ -1,0 +1,128 @@
+{
+  "good_response": {
+    "_description": "A well-formed LLM response that passes schema validation",
+    "docId": "2026-01-15_arxiv_transformer_efficiency",
+    "extractorVersion": "1.0.0",
+    "entities": [
+      {"name": "FlashAttention-3", "type": "Tech", "aliases": ["FA3"], "idHint": "tech:flashattention_3"},
+      {"name": "FlashAttention-2", "type": "Tech", "idHint": "tech:flashattention_2"},
+      {"name": "NVIDIA", "type": "Org", "idHint": "org:nvidia"},
+      {"name": "Stanford University", "type": "Org", "idHint": "org:stanford_university"},
+      {"name": "Tri Dao", "type": "Person", "idHint": "person:tri_dao"},
+      {"name": "Daniel Y. Fu", "type": "Person", "idHint": "person:daniel_y_fu"},
+      {"name": "GPT-4", "type": "Model", "idHint": "model:gpt_4"},
+      {"name": "LLaMA-4", "type": "Model", "idHint": "model:llama_4"},
+      {"name": "Meta", "type": "Org", "idHint": "org:meta"},
+      {"name": "Hugging Face", "type": "Org", "idHint": "org:hugging_face"},
+      {"name": "H100", "type": "Tech", "aliases": ["NVIDIA H100"], "idHint": "tech:h100"},
+      {"name": "PyTorch", "type": "Tool", "idHint": "tool:pytorch"},
+      {"name": "OpenWebText", "type": "Dataset", "idHint": "dataset:openwebtext"},
+      {"name": "NVIDIA Research", "type": "Org", "idHint": "org:nvidia_research"},
+      {"name": "Dao-AILab/flash-attention", "type": "Repo", "idHint": "repo:dao_ailab_flash_attention"},
+      {"name": "Hugging Face Transformers", "type": "Tool", "aliases": ["Transformers library"], "idHint": "tool:hugging_face_transformers"}
+    ],
+    "relations": [
+      {
+        "source": "Tri Dao", "rel": "CREATED", "target": "FlashAttention-3",
+        "kind": "asserted", "confidence": 0.95,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "Tri Dao and Daniel Y. Fu developed the algorithm at Stanford University"}]
+      },
+      {
+        "source": "FlashAttention-3", "rel": "USES_TECH", "target": "H100",
+        "kind": "asserted", "confidence": 0.9,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "achieves 1.5-2x speedup over FlashAttention-2 on NVIDIA H100 GPUs"}]
+      },
+      {
+        "source": "FlashAttention-3", "rel": "INTEGRATES_WITH", "target": "PyTorch",
+        "kind": "asserted", "confidence": 0.9,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "implemented in CUDA and integrated with PyTorch"}]
+      },
+      {
+        "source": "FlashAttention-3", "rel": "EVALUATED_ON", "target": "OpenWebText",
+        "kind": "asserted", "confidence": 0.85,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "experiments on the OpenWebText dataset show that models trained with FlashAttention-3 achieve identical perplexity"}]
+      },
+      {
+        "source": "Meta", "rel": "USES_TECH", "target": "FlashAttention-3",
+        "kind": "asserted", "confidence": 0.85,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "adopted by Hugging Face Transformers library and Meta's LLaMA-4 training pipeline"}]
+      }
+    ],
+    "techTerms": ["attention mechanism", "softmax", "Tensor Memory Accelerator", "TMA", "warp-specialized pipelining", "CUDA", "perplexity", "block scheduling"],
+    "dates": [
+      {"text": "2026-01-15", "start": "2026-01-15", "end": "2026-01-15", "resolution": "exact"}
+    ],
+    "notes": ["FlashAttention-3 extends FlashAttention-2; relationship is implicit succession not explicit replacement"]
+  },
+
+  "bad_response_invalid_enum": {
+    "_description": "Response with invalid entity type and relation type enums",
+    "docId": "2026-01-15_arxiv_transformer_efficiency",
+    "extractorVersion": "1.0.0",
+    "entities": [
+      {"name": "FlashAttention-3", "type": "Algorithm"},
+      {"name": "NVIDIA", "type": "Company"},
+      {"name": "Tri Dao", "type": "Researcher"}
+    ],
+    "relations": [
+      {
+        "source": "Tri Dao", "rel": "INVENTED", "target": "FlashAttention-3",
+        "kind": "asserted", "confidence": 0.95,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "Tri Dao developed the algorithm"}]
+      }
+    ],
+    "techTerms": ["attention"],
+    "dates": []
+  },
+
+  "bad_response_missing_evidence": {
+    "_description": "Asserted relation without evidence array",
+    "docId": "2026-01-15_arxiv_transformer_efficiency",
+    "extractorVersion": "1.0.0",
+    "entities": [
+      {"name": "FlashAttention-3", "type": "Tech"},
+      {"name": "Tri Dao", "type": "Person"}
+    ],
+    "relations": [
+      {
+        "source": "Tri Dao", "rel": "CREATED", "target": "FlashAttention-3",
+        "kind": "asserted", "confidence": 0.95
+      }
+    ],
+    "techTerms": [],
+    "dates": []
+  },
+
+  "bad_response_missing_fields": {
+    "_description": "Missing required top-level fields",
+    "docId": "2026-01-15_arxiv_transformer_efficiency",
+    "entities": [
+      {"name": "FlashAttention-3", "type": "Tech"}
+    ],
+    "relations": []
+  },
+
+  "bad_response_confidence_out_of_range": {
+    "_description": "Confidence value exceeds 1.0",
+    "docId": "2026-01-15_arxiv_transformer_efficiency",
+    "extractorVersion": "1.0.0",
+    "entities": [
+      {"name": "FlashAttention-3", "type": "Tech"},
+      {"name": "Tri Dao", "type": "Person"}
+    ],
+    "relations": [
+      {
+        "source": "Tri Dao", "rel": "CREATED", "target": "FlashAttention-3",
+        "kind": "asserted", "confidence": 95,
+        "evidence": [{"docId": "2026-01-15_arxiv_transformer_efficiency", "url": "https://arxiv.org/abs/2026.01234", "published": "2026-01-15", "snippet": "Tri Dao developed the algorithm"}]
+      }
+    ],
+    "techTerms": [],
+    "dates": []
+  },
+
+  "bad_response_markdown_wrapped": {
+    "_description": "Valid JSON but wrapped in markdown fences (common LLM behavior)",
+    "_raw": "Here's the extraction:\n\n```json\n{\"docId\": \"2026-01-15_arxiv_transformer_efficiency\", \"extractorVersion\": \"1.0.0\", \"entities\": [{\"name\": \"FlashAttention-3\", \"type\": \"Tech\"}], \"relations\": [], \"techTerms\": [\"attention\"], \"dates\": []}\n```\n\nI extracted the key entities from the paper."
+  }
+}
