@@ -1,0 +1,42 @@
+[
+  {
+    "docId": "2026-01-15_arxiv_transformer_efficiency",
+    "title": "FlashAttention-3: Fast and Accurate Attention with Hardware-Aware Optimization",
+    "url": "https://arxiv.org/abs/2026.01234",
+    "published": "2026-01-15",
+    "source": "arXiv",
+    "text": "We introduce FlashAttention-3, a fast and memory-efficient attention mechanism that extends FlashAttention-2 with new techniques for modern GPU architectures. Our method achieves 1.5-2x speedup over FlashAttention-2 on NVIDIA H100 GPUs while maintaining exact attention computation. FlashAttention-3 introduces three key innovations: (1) asynchronous softmax computation using the Tensor Memory Accelerator (TMA), (2) warp-specialized pipelining for overlapping computation and memory access, and (3) hardware-aware block scheduling. We evaluate FlashAttention-3 on GPT-4 scale training runs and demonstrate 1.8x end-to-end training speedup on sequences of length 8K-64K. The method is implemented in CUDA and integrated with PyTorch. Our experiments on the OpenWebText dataset show that models trained with FlashAttention-3 achieve identical perplexity to standard attention while using 40% less memory. The code is available at github.com/Dao-AILab/flash-attention. FlashAttention-3 has been adopted by Hugging Face Transformers library and Meta's LLaMA-4 training pipeline. Tri Dao and Daniel Y. Fu developed the algorithm at Stanford University in collaboration with NVIDIA Research."
+  },
+  {
+    "docId": "2026-01-20_huggingface_smollm3",
+    "title": "SmolLM3: Pushing the Boundaries of Small Language Models",
+    "url": "https://huggingface.co/blog/smollm3",
+    "published": "2026-01-20",
+    "source": "Hugging Face Blog",
+    "text": "Today we are excited to release SmolLM3, the latest iteration of our compact language model family. SmolLM3 comes in three sizes: 360M, 1.7B, and 3B parameters. The 3B model achieves performance comparable to Llama-3.2-8B on several benchmarks while being less than half the size. SmolLM3 was trained on SmolCorpus-v3, our curated dataset of 6 trillion tokens, using a novel curriculum learning strategy. The training was conducted on a cluster of 512 NVIDIA A100 GPUs over 3 weeks. Key improvements over SmolLM2 include better reasoning capabilities measured on GSM8K (72.1% vs 58.3%) and improved code generation on HumanEval (61.5% vs 45.2%). SmolLM3 uses grouped query attention and rotary position embeddings, and supports context lengths up to 8192 tokens. The model is released under the Apache 2.0 license and is available on the Hugging Face Hub. We evaluated SmolLM3 on MMLU, HellaSwag, ARC-Challenge, and TruthfulQA benchmarks. Loubna Ben Allal and Anton Lozhkov led the research at Hugging Face, with contributions from the open-source community. The model can be fine-tuned using the TRL library with LoRA adapters for domain-specific tasks."
+  },
+  {
+    "docId": "2026-01-18_openai_gpt5_tools",
+    "title": "New Tool Use Capabilities in GPT-5",
+    "url": "https://openai.com/blog/gpt5-tools",
+    "published": "2026-01-18",
+    "source": "OpenAI Blog",
+    "text": "We are announcing new tool use capabilities for GPT-5 that significantly improve how the model interacts with external systems. GPT-5 can now reliably execute multi-step tool chains, maintaining context across 10+ sequential tool calls with 97% accuracy. The new capabilities include structured output generation with guaranteed JSON schema compliance, parallel function calling with dependency resolution, and real-time web browsing with citation extraction. These improvements build on the function calling architecture introduced in GPT-3.5 and refined in GPT-4. Enterprise customers including Stripe, Shopify, and Morgan Stanley have been beta testing the new capabilities since December 2025. Stripe reported a 40% reduction in API integration errors after switching to GPT-5's structured output mode. The tool use improvements were developed by OpenAI's Applied Research team led by Barret Zoph. GPT-5 tool use is available through the OpenAI API and the Assistants API. Pricing for tool use calls follows the standard GPT-5 token pricing. The model uses a new internal planning module called ChainPlanner that decomposes complex tool use tasks into verified execution steps. We evaluated the system on the ToolBench and API-Bank benchmarks, achieving state-of-the-art results."
+  },
+  {
+    "docId": "2026-01-22_arxiv_multimodal_safety",
+    "title": "Red-Teaming Multimodal Foundation Models: A Comprehensive Safety Evaluation",
+    "url": "https://arxiv.org/abs/2026.05678",
+    "published": "2026-01-22",
+    "source": "arXiv",
+    "text": "We present a comprehensive safety evaluation of six leading multimodal foundation models: GPT-4V, Gemini Ultra, Claude 3.5 Sonnet, LLaVA-Next, Qwen-VL-Max, and Intern-VL2. Our red-teaming methodology covers 12 risk categories including harmful content generation, bias amplification, privacy leakage, and jailbreak robustness. We introduce SafetyBench-MM, a new benchmark consisting of 5,000 adversarial test cases across text, image, and video modalities. Results show significant variation across models: Claude 3.5 Sonnet achieved the highest overall safety score (0.89), followed by GPT-4V (0.85) and Gemini Ultra (0.82). Open-source models scored lower, with LLaVA-Next at 0.71. We find that all models remain vulnerable to cross-modal attacks where harmful intent is split across text and image inputs. The evaluation was conducted by researchers at the AI Safety Institute (AISI) in partnership with Carnegie Mellon University. We recommend that model developers adopt our SafetyBench-MM as part of their pre-release evaluation process. The benchmark and evaluation toolkit are released under the MIT license at github.com/aisi/safetybench-mm. This work was funded by the National Science Foundation under grant NSF-2401234."
+  },
+  {
+    "docId": "2026-01-25_huggingface_dataset_release",
+    "title": "Introducing FineWeb-Edu 2: A Curated Dataset for Training Better Language Models",
+    "url": "https://huggingface.co/blog/fineweb-edu-2",
+    "published": "2026-01-25",
+    "source": "Hugging Face Blog",
+    "text": "We are releasing FineWeb-Edu 2, an updated and expanded version of our educational web content dataset. FineWeb-Edu 2 contains 3.2 trillion tokens of high-quality educational content filtered from Common Crawl using our improved quality classifier built on Llama-3.1-70B. The dataset covers STEM, humanities, social sciences, and professional domains with language support for English, French, German, Spanish, and Chinese. Compared to the original FineWeb-Edu, version 2 improves downstream model performance by 3-5% on academic benchmarks including MMLU and ARC. The quality filtering pipeline uses a two-stage approach: first, a lightweight fastText classifier removes low-quality pages, then the Llama-based classifier scores remaining content on educational value. We validated the dataset by training a 1.5B parameter model from scratch and comparing against models trained on RedPajama-v2 and Dolma. Guilherme Penedo and Hynek Kydlicek led the data curation effort at Hugging Face. FineWeb-Edu 2 is released under the ODC-By license and is available for download on the Hugging Face Hub. We also provide the quality classifier weights for researchers who want to apply similar filtering to their own data."
+  }
+]
