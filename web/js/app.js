@@ -202,6 +202,26 @@ function initializeEventHandlers(cy) {
     }
   });
 
+  // Double-click node: zoom to neighborhood
+  cy.on('dbltap', 'node', (e) => {
+    const node = e.target;
+    const neighborhood = node.closedNeighborhood();
+    cy.animate({
+      fit: { eles: neighborhood, padding: 50 },
+      duration: 300
+    });
+  });
+
+  // Double-click background: fit all
+  cy.on('dbltap', (e) => {
+    if (e.target === cy) {
+      cy.animate({
+        fit: { padding: 30 },
+        duration: 300
+      });
+    }
+  });
+
   // Zoom change - update label visibility
   cy.on('zoom', () => {
     updateLabelVisibility(cy);
