@@ -73,6 +73,131 @@ Each source should be evaluated on:
 - **Entity coverage:** Does it name specific tools, models, orgs?
 - **Independence:** Does it overlap heavily with another source?
 
+### 2.5 Source Selection as Methodology
+
+Source selection is not administrative — it is a **methodological decision**
+that directly affects prediction quality. Every source in the list shapes
+which entities are visible, how quickly trends surface, and what biases exist
+in the output. Treat the source list with the same rigor as the scoring
+formulas.
+
+**Principles:**
+
+1. **Coverage mapping before adding.** Before adding a source, document which
+   entity types and topic areas it primarily covers. This creates a coverage
+   map that exposes gaps and redundancies.
+
+2. **Category balance.** Maintain representation across source categories
+   (academic, industry, open-source, journalism, policy, community). Over-
+   weighting one category biases which signals arrive first.
+
+3. **Topic coverage inventory.** For each major topic area the system tracks,
+   at least 2-3 sources should provide regular coverage. If a topic depends
+   on a single source, that topic's trend signals are fragile.
+
+4. **Independence requirement.** Two sources that syndicate or republish each
+   other's content count as one source for corroboration purposes. Prefer
+   sources with original reporting or analysis.
+
+5. **Volume balance.** A source producing 30 docs/day alongside one producing
+   1 doc/week creates a volume imbalance that raw mention counts can't
+   distinguish from genuine signal. Per-source normalization (Section 4)
+   mitigates this, but extreme imbalances should be avoided at selection time.
+
+### 2.6 Source Coverage Profile
+
+Each source should have a documented **coverage profile** recording:
+
+```yaml
+source: "arXiv CS.AI"
+category: "academic"
+primary_entity_types: ["Paper", "Model", "Dataset", "Benchmark", "Person"]
+primary_topics: ["machine learning", "NLP", "computer vision", "reinforcement learning"]
+avg_volume: "10-30 docs/day"
+timeliness: "same-day (preprint)"
+signal_density: "high (structured metadata, explicit claims)"
+independence: "primary source (not syndicated)"
+added_date: "2026-01-15"
+```
+
+When the source list changes, these profiles enable impact assessment:
+what coverage is being gained or lost.
+
+### 2.7 Source Substitution Protocol
+
+When a source must be replaced (it shuts down, degrades in quality, becomes
+paywalled, etc.), the replacement is not arbitrary. The goal is **coverage
+continuity** — the replacement should cover the same entity types and topic
+areas as the source it replaces.
+
+#### Why substitution matters
+
+Each source carries an implicit "topic portfolio." Entities that were
+primarily tracked through that source will experience an artificial signal
+discontinuity when it disappears:
+
+- **False deceleration:** Entities covered heavily by the old source lose
+  mentions → velocity drops, even though nothing changed in the real world
+- **False acceleration:** If the replacement source covers different topics,
+  those topics gain mentions → velocity spikes artificially
+- **Coverage gaps:** If a topic was only covered by the departing source
+  and the replacement doesn't cover it, that topic becomes invisible to
+  the system — the most dangerous failure mode, because it's silent
+
+#### Substitution checklist
+
+Before swapping a source:
+
+1. **Pull the departing source's coverage profile** (Section 2.6)
+2. **Identify entities primarily covered by this source** — entities where
+   >50% of recent mentions came from this source
+3. **Select a replacement that overlaps on primary entity types and topics.**
+   Compare coverage profiles. A good replacement shares >= 60% of the
+   departing source's primary_topics
+4. **Check the replacement's independence** — don't replace a source with
+   one that syndicates from a source you already have
+5. **Apply a transition window** (see below)
+6. **Log the substitution** in the source change log (Section 2.8)
+
+#### Transition window
+
+When a source is swapped, velocity calculations spanning the change date
+are unreliable. To prevent false signals:
+
+- **Dampening period:** 14 days (2x the standard velocity window)
+- During the dampening period, mentions from the new source are weighted
+  at 0.5x, ramping linearly to 1.0x by day 14
+- Mentions from the old source in the historical window are kept at full
+  weight (they're real data, just no longer growing)
+- After day 14, the new source is treated as fully established
+
+This ensures velocity ratios don't spike or crash due to the swap itself.
+
+#### Batch substitution limits
+
+| Sources swapped simultaneously | Risk level | Action |
+|-------------------------------|------------|--------|
+| 1 of 20 | Low | Standard transition window |
+| 2-3 of 20 | Medium | Transition window + review top-20 trending for false signals |
+| 4-5 of 20 (20-25%) | High | Extended dampening (21 days); flag all trending output as provisional |
+| 6+ of 20 (>25%) | Critical | Treat as corpus re-initialization; reset velocity baselines |
+
+### 2.8 Source Change Log
+
+Every addition, removal, or substitution must be logged. This log is
+essential for interpreting historical trend data — a velocity spike on
+the same day a source was added is probably an artifact, not a real trend.
+
+| Date | Action | Source | Replacement | Reason | Coverage Impact |
+|------|--------|--------|-------------|--------|-----------------|
+| (initial) | added | arXiv CS.AI | — | Initial source set | Academic papers |
+| (initial) | added | Hugging Face Blog | — | Initial source set | Open-source ecosystem |
+| (initial) | added | OpenAI Blog | — | Initial source set | Industry announcements |
+
+This log should live in `config/source_changelog.yaml` and be machine-readable
+so that the scoring pipeline can detect recent source changes and apply
+transition dampening automatically.
+
 ---
 
 ## 3. Signal Distillation Pipeline
@@ -410,6 +535,8 @@ are hypotheses. Here is the protocol for tuning them:
 | Bridge scoring | Static snapshot | Delta over time |
 | Source corroboration | Not weighted | Per-entity source diversity modifier |
 | Volume normalization | Raw counts | Per-source normalized counts |
+| Source substitution | Manual, no dampening | Transition windows + automated dampening |
+| Source coverage profiles | Not tracked | Per-source YAML profiles with topic inventory |
 | Validation | Manual retrospective review | Semi-automated with ground truth feeds |
 | Weight tuning | Manual A/B | Offline replay + automated comparison |
 | Spike vs. sustained | Not distinguished | Binary classifier on velocity curve shape |
@@ -432,3 +559,7 @@ These are concrete next steps, ordered by impact on prediction quality:
 - [ ] **Multi-window velocity** (7d + 14d + 30d blend)
 - [ ] **Pipeline health dashboard** (Section 7.1 metrics)
 - [ ] **Spike vs. sustained trend classifier**
+- [ ] **Source coverage profiles** for all active sources (Section 2.6)
+- [ ] **Source change log** in `config/source_changelog.yaml` (Section 2.8)
+- [ ] **Transition dampening** in velocity calculation after source swaps (Section 2.7)
+- [ ] **Per-entity primary source tracking** to flag fragile single-source signals
