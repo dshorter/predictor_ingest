@@ -199,7 +199,9 @@ feeds:
 
 ## Documentation
 
+- **[Product Guide](docs/product/README.md)** - UI walkthrough, visual encoding, workflows, and screenshot guide
 - **AGENTS.md** - Detailed specification and design decisions
+- **[UX Implementation](docs/ux/README.md)** - Cytoscape client technical specs and design tokens
 - **schemas/extraction.json** - JSON Schema for extraction output
 - **schemas/sqlite.sql** - Database schema
 
