@@ -10,8 +10,8 @@ The AI Trend Graph is a force-directed network where **nodes are entities** (org
 
 The default view shows **Trending** entities: the nodes with the highest recent velocity, novelty, or bridging activity. This is the starting point for spotting what's moving.
 
-> **Screenshot: `overview.png`**
-> *Full application with the Trending view loaded. Show the toolbar at top, the graph canvas in center, and the filter panel collapsed on the right. Include a mix of node sizes and colors to demonstrate the visual encoding. Ideally capture a state with 30-50 nodes where clusters and isolated nodes are both visible.*
+<!-- Capture: Full application with Trending view loaded. Toolbar at top, graph canvas in center, filter panel collapsed. Mix of node sizes/colors. 30-50 nodes with visible clusters. -->
+![Overview of the AI Trend Graph application](images/overview.png)
 
 ---
 
@@ -23,29 +23,29 @@ The graph offers four views, each a different lens on the same underlying data.
 
 The default. Filtered to entities with the highest velocity (accelerating mentions), novelty (recently appeared), or bridge score (connecting otherwise separate clusters). This is where you look first.
 
-> **Screenshot: `view-trending.png`**
-> *Trending view with ~30-40 nodes. Larger nodes should be prominent in the center. Show at least 2-3 visible clusters and a few bridge edges connecting them. The view selector in the toolbar should show "Trending" selected.*
+<!-- Capture: Trending view with ~30-40 nodes. Larger nodes prominent in center. 2-3 visible clusters with bridge edges. View selector shows "Trending". -->
+![Trending view showing high-velocity entities](images/view-trending.png)
 
 ### Claims
 
 The full semantic graph: entity-to-entity relationships like "OpenAI CREATED GPT-5" or "Meta USES_TECH transformer." This is the richest view but can be dense.
 
-> **Screenshot: `view-claims.png`**
-> *Claims view showing a denser graph (~100+ nodes). The increased density compared to Trending should be obvious. Show the graph stats in the toolbar reflecting the higher node/edge count.*
+<!-- Capture: Claims view with ~100+ nodes. Noticeably denser than Trending. Graph stats in toolbar show higher counts. -->
+![Claims view showing the full semantic graph](images/view-claims.png)
 
 ### Mentions
 
 Document-to-entity edges. Every article that mentions an entity gets a MENTIONS edge. Useful for tracing provenance — which sources are talking about which entities.
 
-> **Screenshot: `view-mentions.png`**
-> *Mentions view. Document nodes (type "Document") should be visible alongside entity nodes. The bipartite structure — documents on one side, entities on the other — should be apparent.*
+<!-- Capture: Mentions view. Document nodes visible alongside entity nodes. Bipartite structure apparent. -->
+![Mentions view showing document-to-entity relationships](images/view-mentions.png)
 
 ### Dependencies
 
 A filtered view showing only dependency-type relationships: USES_TECH, USES_MODEL, USES_DATASET, TRAINED_ON, EVALUATED_ON, DEPENDS_ON, REQUIRES. This view answers "what depends on what?" and reveals the supply chain of AI.
 
-> **Screenshot: `view-dependencies.png`**
-> *Dependencies view showing technology dependency chains. Ideally capture a cluster where a model depends on a dataset, uses a technology, and is evaluated on a benchmark — a clear chain of dependencies.*
+<!-- Capture: Dependencies view with technology dependency chains. Show a cluster: model → dataset → technology → benchmark chain. -->
+![Dependencies view showing technology supply chains](images/view-dependencies.png)
 
 ---
 
@@ -75,8 +75,8 @@ Each entity type has a consistent color across all views:
 | Lime | Program | Government or institutional programs |
 | Gray | Document | Source articles |
 
-> **Screenshot: `node-colors.png`**
-> *A section of the graph showing at least 5-6 different node types with their distinct colors. Ideally show an Org (blue), Model (violet), Tech (teal), and a few others in close proximity so the color coding is obvious. Include a hover tooltip on one node showing its type.*
+<!-- Capture: Section of graph with 5-6 different node types. Show Org (blue), Model (violet), Tech (teal), others. Hover tooltip on one node showing type. -->
+![Node color coding by entity type](images/node-colors.png)
 
 ### Node Opacity = Recency
 
@@ -98,8 +98,8 @@ Thicker edges have higher confidence scores (ranging from 0.5px to 4px). A thick
 
 Gray by default. Green edges are new — added within the last 7 days. Green edges on the Trending view are where the action is.
 
-> **Screenshot: `edge-styles.png`**
-> *Close-up of a section showing different edge styles: at least one solid (asserted), one dashed (inferred), and if possible one dotted (hypothesis). Show varying thicknesses. If any green (new) edges are visible, include them. Zoom in enough that the line styles are clearly distinguishable.*
+<!-- Capture: Close-up showing edge styles. At least one solid (asserted), one dashed (inferred), one dotted (hypothesis) if possible. Varying thicknesses. Green new edges if visible. Zoom in so line styles are clear. -->
+![Edge styles showing confidence levels](images/edge-styles.png)
 
 ---
 
@@ -114,29 +114,29 @@ Clicking a node does two things:
 
 Click the canvas background to clear the selection and restore full visibility.
 
-> **Screenshot: `click-node.png`**
-> *A node selected with neighborhood highlighting active. The selected node and its immediate neighbors should be bright; the rest of the graph should be visibly dimmed. The detail panel should be open on the left showing the node's metadata and relationship list.*
+<!-- Capture: Node selected with neighborhood highlighting. Selected node and neighbors bright, rest dimmed. Detail panel open on left showing metadata and relationships. -->
+![Clicking a node highlights its neighborhood and shows details](images/click-node.png)
 
 ### Click an Edge
 
 Clicking an edge opens the **evidence panel** at the bottom, showing the provenance for that relationship: the source article(s), publication dates, evidence snippets (direct quotes), and confidence score. This is how you verify a claim — every asserted edge traces back to a specific passage in a specific article.
 
-> **Screenshot: `click-edge.png`**
-> *An edge selected with the evidence panel open at the bottom. The panel should show at least one evidence entry with a snippet, source URL, and publication date. The graph canvas should be visibly shorter to accommodate the panel.*
+<!-- Capture: Edge selected with evidence panel open at bottom. Panel shows evidence entry with snippet, source URL, publication date. Graph canvas shorter to accommodate panel. -->
+![Clicking an edge shows provenance and evidence](images/click-edge.png)
 
 ### Hover
 
 Hovering over a node shows a tooltip with the entity label, type, and key metrics (velocity, first seen, last seen). Hovering over an edge shows the relationship type, confidence, and kind.
 
-> **Screenshot: `hover-tooltip.png`**
-> *A tooltip visible on a hovered node showing its label, type, and metrics. The node should have a visible hover border highlight (blue border). Keep it simple — just the tooltip and the highlighted node.*
+<!-- Capture: Tooltip visible on hovered node showing label, type, metrics. Node has visible hover highlight (blue border). -->
+![Hover tooltip showing node details](images/hover-tooltip.png)
 
 ### Search
 
 The search box in the toolbar (also activated with `/` keyboard shortcut) filters nodes by label or alias. Matching nodes stay bright; non-matches dim. Press Enter to zoom the camera to fit all matches. Press Escape or click the X to clear.
 
-> **Screenshot: `search.png`**
-> *Search in action with a term typed (e.g., "transformer" or "openai"). Matching nodes should be bright with the rest dimmed. The search results count should be visible next to the input. Show 2-3 matches highlighted in the graph.*
+<!-- Capture: Search active with term typed (e.g., "transformer" or "openai"). Matching nodes bright, rest dimmed. Search results count visible. 2-3 matches highlighted. -->
+![Search filtering and highlighting matching nodes](images/search.png)
 
 ### Keyboard Navigation
 
@@ -153,8 +153,8 @@ The search box in the toolbar (also activated with `/` keyboard shortcut) filter
 
 The filter panel (toggle with the gear icon in the toolbar) lets you narrow the graph to exactly what you care about.
 
-> **Screenshot: `filter-panel.png`**
-> *The filter panel expanded on the right side. Show all four filter sections: Date Range (with preset buttons), Entity Types (with checkboxes), Relationship Kind (asserted/inferred/hypothesis toggles), and Confidence threshold (slider). The panel should be fully visible with the graph behind it.*
+<!-- Capture: Filter panel expanded on right. Show all four sections: Date Range (preset buttons), Entity Types (checkboxes), Relationship Kind (toggles), Confidence threshold (slider). Panel fully visible with graph behind. -->
+![Filter panel with all filter options](images/filter-panel.png)
 
 ### Date Range
 
@@ -182,8 +182,8 @@ A slider (default 30%) that hides edges below the threshold. Raise it to see onl
 
 ## Toolbar Controls
 
-> **Screenshot: `toolbar.png`**
-> *The full toolbar in isolation or with a thin strip of the graph below it. Label the key elements: View selector, Data tier selector, Search box, graph stats, zoom buttons, layout button, theme toggle, filter toggle, help button.*
+<!-- Capture: Full toolbar (can include thin strip of graph below). Consider annotating: View selector, Data selector, Search box, graph stats, zoom buttons, layout button, theme toggle, filter toggle, help button. -->
+![Toolbar controls](images/toolbar.png)
 
 | Control | What it does |
 |---------|--------------|
@@ -204,11 +204,11 @@ A slider (default 30%) that hides edges below the threshold. Raise it to see onl
 
 The application supports both light and dark themes, toggled from the toolbar. The graph colors are designed to work well in both modes.
 
-> **Screenshot: `dark-mode.png`**
-> *The application in dark mode with a graph loaded. Show enough of the interface — toolbar, graph, and ideally one panel — to demonstrate that the full UI adapts to the dark theme. Pair with a light mode screenshot if space allows.*
+<!-- Capture: Application in dark mode with graph loaded. Show toolbar, graph, and one panel if possible. -->
+![Dark mode theme](images/dark-mode.png)
 
-> **Screenshot: `light-mode.png`**
-> *Same or similar graph state in light mode, for comparison with the dark mode screenshot above.*
+<!-- Capture: Same or similar graph state in light mode for comparison. -->
+![Light mode theme](images/light-mode.png)
 
 ---
 
@@ -228,8 +228,8 @@ How new is this entity? Recently appeared entities with few historical mentions 
 
 Is this entity connecting previously separate parts of the graph? Bridge nodes sit between clusters that don't otherwise interact. A technology that suddenly connects a government program to an open-source project, or a researcher bridging two separate fields, scores high here. These are often the most interesting signals — they indicate cross-pollination or convergence.
 
-> **Screenshot: `trend-signals.png`**
-> *The Trending view with annotations (can be added post-capture) pointing out: (1) a large node labeled as "high velocity," (2) a recently appeared node labeled as "high novelty," and (3) a node connecting two clusters labeled as "bridge." This may work better as an annotated composite rather than a raw screenshot.*
+<!-- Capture: Trending view. Consider post-capture annotations: (1) large node = "high velocity", (2) recently appeared node = "high novelty", (3) node connecting clusters = "bridge". May work better as annotated composite. -->
+![Trend signals: velocity, novelty, and bridge score](images/trend-signals.png)
 
 ---
 
