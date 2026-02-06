@@ -273,26 +273,178 @@ Call it from the main health check sequence alongside the existing checks.
 
 ---
 
-## 5. Nginx Config Addition
+## 5. Nginx Configuration
 
-If `nginx/nginx.conf` uses a simple static file config, the volume mounts
-handle everything. If it has explicit `location` blocks, add:
+The predictor web client needs to be served via the existing nginx container.
+This section provides step-by-step instructions.
+
+### 5.1 Check current nginx config
+
+First, examine what's in `nginx/nginx.conf` in the ai-agent-platform repo:
+
+```bash
+cat /opt/ai-agent-platform/nginx/nginx.conf
+```
+
+You'll see one of two patterns:
+- **Simple:** Just serves files from `/usr/share/nginx/html` with no explicit locations
+- **Explicit:** Has `location` blocks for specific paths
+
+### 5.2 Update docker-compose.yml volumes
+
+Add volume mounts to the `web` (nginx) service so it can see the predictor
+files. In `docker-compose.yml`, find the `web:` service and update its volumes:
+
+```yaml
+  web:
+    image: nginx:alpine
+    container_name: web-server
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./public:/usr/share/nginx/html
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # ADD THESE TWO LINES:
+      - /opt/predictor_ingest/web:/usr/share/nginx/html/predictor:ro
+      - ./public/graphs:/usr/share/nginx/html/predictor/data/graphs:ro
+    networks:
+      - app-network
+```
+
+This mounts:
+- The predictor web client at `/predictor/`
+- The graph JSON output at `/predictor/data/graphs/`
+
+### 5.3 Update nginx.conf
+
+Edit `nginx/nginx.conf` to add location blocks for the predictor. Here's a
+complete example config — adjust based on your existing setup:
 
 ```nginx
-location /predictor/ {
-    alias /usr/share/nginx/html/predictor/;
-    try_files $uri $uri/ =404;
-    add_header Cache-Control "no-cache";
+worker_processes auto;
+
+events {
+    worker_connections 1024;
 }
 
-location /predictor/data/graphs/ {
-    alias /usr/share/nginx/html/predictor/data/graphs/;
-    add_header Cache-Control "no-cache";
-    add_header Access-Control-Allow-Origin "*";
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        # Default root for existing content (HVAC dashboard, etc.)
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Existing location for root path
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        # ─────────────────────────────────────────────────────────
+        # PREDICTOR WEB CLIENT
+        # ─────────────────────────────────────────────────────────
+
+        # Main predictor app
+        location /predictor/ {
+            alias /usr/share/nginx/html/predictor/;
+            index index.html;
+            try_files $uri $uri/ /predictor/index.html;
+
+            # Prevent caching of HTML (always get fresh app)
+            location ~* \.html$ {
+                add_header Cache-Control "no-cache, no-store, must-revalidate";
+                add_header Pragma "no-cache";
+                add_header Expires "0";
+            }
+
+            # Cache static assets (JS, CSS, images) for 1 hour
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+                add_header Cache-Control "public, max-age=3600";
+            }
+        }
+
+        # Graph JSON data — always fresh, CORS enabled
+        location /predictor/data/graphs/ {
+            alias /usr/share/nginx/html/predictor/data/graphs/;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Pragma "no-cache";
+            add_header Expires "0";
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, OPTIONS";
+            add_header Access-Control-Allow-Headers "Content-Type";
+
+            # Handle CORS preflight
+            if ($request_method = 'OPTIONS') {
+                add_header Access-Control-Allow-Origin "*";
+                add_header Access-Control-Allow-Methods "GET, OPTIONS";
+                add_header Access-Control-Allow-Headers "Content-Type";
+                add_header Content-Length 0;
+                add_header Content-Type text/plain;
+                return 204;
+            }
+        }
+
+        # ─────────────────────────────────────────────────────────
+    }
 }
 ```
 
-`no-cache` ensures the client always gets fresh graph data after a pipeline run.
+### 5.4 Create the graphs output directory
+
+The pipeline writes graph JSON to `data/graphs/` inside predictor_ingest,
+but nginx expects it in `public/graphs/` in ai-agent-platform. Create a
+symlink or use the docker volume mount (already in 5.2).
+
+If running without Docker initially, create the symlink:
+
+```bash
+mkdir -p /opt/ai-agent-platform/public/graphs
+# Graphs will be copied here after each pipeline run
+```
+
+Then add a post-export step to copy graphs (or modify `run_export.py` to
+write directly to `/opt/ai-agent-platform/public/graphs/`).
+
+Alternatively, if using Docker with the volume mounts from 5.2, the graphs
+are automatically visible — no symlink needed.
+
+### 5.5 Restart nginx and test
+
+```bash
+cd /opt/ai-agent-platform
+docker compose restart web
+```
+
+Test access:
+
+```bash
+# Should return the predictor index.html
+curl -I http://localhost:8080/predictor/
+
+# Should return graph JSON (once pipeline has run)
+curl http://localhost:8080/predictor/data/graphs/trending.json
+```
+
+From your browser (through ngrok if configured):
+- `https://agents-platform.ngrok.io/predictor/` — predictor web client
+- `https://agents-platform.ngrok.io/predictor/data/graphs/trending.json` — graph data
+
+### 5.6 Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| 404 on `/predictor/` | Volume not mounted | Check `docker compose config` shows the mount |
+| 403 Forbidden | Permission issue | Ensure predictor/web files are readable: `chmod -R o+r /opt/predictor_ingest/web` |
+| Stale graph data | Browser cache | Hard refresh (Ctrl+Shift+R) or check Cache-Control headers |
+| CORS error in console | Missing headers | Verify nginx config has `Access-Control-Allow-Origin` |
+| Empty graph | No data yet | Run `make pipeline && make post-extract` first |
 
 ---
 
