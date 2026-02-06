@@ -151,4 +151,7 @@
 .toolbar-right .btn-icon {
   width: 36px;
   height: 36px;
+  /* Ensure buttons are clickable and don't get swipe gestures */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
