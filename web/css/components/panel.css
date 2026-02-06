@@ -14,9 +14,6 @@
   box-shadow: var(--shadow-lg);
   z-index: var(--z-dropdown);
   transition: transform var(--duration-slow) var(--easing-default);
-  /* Prevent touch-drag from moving the panel */
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
 }
 
 .panel-content {
