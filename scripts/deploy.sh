@@ -35,7 +35,7 @@ if [ -f "$COMPOSE_DIR/docker-compose.yml" ] && \
 else
     log "No docker compose with predictor service found, running directly"
     cd "$REPO_DIR"
-    pip install -e . --quiet
+    python3 -m pip install -e . --quiet
     log "Dependencies updated"
 fi
 
