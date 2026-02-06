@@ -4,6 +4,7 @@
 DB ?= data/db/predictor.db
 DATE ?= $(shell date +%Y-%m-%d)
 GRAPHS_DIR ?= data/graphs
+LOCK_FILE ?= /app/data/pipeline.lock
 
 # ── Setup ──────────────────────────────────────────────────────────────
 
@@ -36,14 +37,14 @@ trending:
 # ── Composites ─────────────────────────────────────────────────────────
 
 pipeline:
-	@touch data/pipeline.lock
+	@touch $(LOCK_FILE)
 	$(MAKE) ingest docpack
-	@rm -f data/pipeline.lock
+	@rm -f $(LOCK_FILE)
 
 post-extract:
-	@touch data/pipeline.lock
+	@touch $(LOCK_FILE)
 	$(MAKE) import resolve export trending
-	@rm -f data/pipeline.lock
+	@rm -f $(LOCK_FILE)
 
 # ── Testing ────────────────────────────────────────────────────────────
 
