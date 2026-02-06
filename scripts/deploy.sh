@@ -31,12 +31,10 @@ if [ -f "$COMPOSE_DIR/docker-compose.yml" ] && \
     docker compose up -d predictor
     log "Predictor container restarted"
 
-# Otherwise, just install deps directly on the host
+# Otherwise, just update the code (static files only, no Python deps needed)
 else
-    log "No docker compose with predictor service found, running directly"
-    cd "$REPO_DIR"
-    python3 -m pip install -e . --quiet
-    log "Dependencies updated"
+    log "No docker compose with predictor service found"
+    log "Static files updated — no Python install required"
 fi
 
 log "Deploy complete"
