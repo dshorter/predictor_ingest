@@ -10,7 +10,9 @@ const AppState = {
   currentTier: 'medium',
   currentDate: null,
   isLoading: false,
-  cy: null
+  cy: null,
+  navigator: null,
+  navigatorVisible: true
 };
 
 /**
@@ -57,6 +59,70 @@ function reapplyGraphStyles() {
   if (AppState.cy) {
     AppState.cy.style(getCytoscapeStyles());
     AppState.cy.style().update();
+  }
+}
+
+/**
+ * Initialize the navigator minimap.
+ * Must be called after Cytoscape is initialized.
+ */
+function initNavigator(cy) {
+  // Destroy existing navigator if present
+  if (AppState.navigator) {
+    AppState.navigator.destroy();
+    AppState.navigator = null;
+  }
+
+  const container = document.getElementById('cy-navigator');
+  if (!container || !cy) return;
+
+  // Check if navigator extension is available
+  if (typeof cy.navigator !== 'function') {
+    console.warn('Cytoscape navigator extension not loaded');
+    container.classList.add('hidden');
+    return;
+  }
+
+  try {
+    AppState.navigator = cy.navigator({
+      container: container,
+      viewLiveFramerate: 0,  // Update only on events, not continuously
+      thumbnailEventFramerate: 30,
+      thumbnailLiveFramerate: false,
+      dblClickDelay: 200,
+      removeCustomContainer: false,
+      rerenderDelay: 100
+    });
+
+    // Apply visibility state
+    if (!AppState.navigatorVisible) {
+      container.classList.add('hidden');
+    } else {
+      container.classList.remove('hidden');
+    }
+
+    console.log('Navigator minimap initialized');
+  } catch (error) {
+    console.error('Failed to initialize navigator:', error);
+    container.classList.add('hidden');
+  }
+}
+
+/**
+ * Toggle navigator minimap visibility.
+ */
+function toggleNavigator() {
+  const container = document.getElementById('cy-navigator');
+  const btn = document.getElementById('btn-minimap');
+
+  AppState.navigatorVisible = !AppState.navigatorVisible;
+
+  if (container) {
+    container.classList.toggle('hidden', !AppState.navigatorVisible);
+  }
+
+  if (btn) {
+    btn.classList.toggle('active', AppState.navigatorVisible);
   }
 }
 
@@ -126,6 +192,9 @@ async function initializeApp() {
 
     // Run initial layout
     runLayout(AppState.cy);
+
+    // Initialize navigator minimap
+    initNavigator(AppState.cy);
 
     // Update stats display
     updateStatsDisplay(AppState.cy);
@@ -259,6 +328,11 @@ function initializeToolbar(cy) {
   // Layout button
   document.getElementById('btn-layout')?.addEventListener('click', () => {
     runLayout(cy);
+  });
+
+  // Minimap toggle
+  document.getElementById('btn-minimap')?.addEventListener('click', () => {
+    toggleNavigator();
   });
 
   // Filter toggle
@@ -424,6 +498,9 @@ async function switchView(view) {
 
     // Re-run layout
     runLayout(AppState.cy);
+
+    // Re-initialize navigator for new graph data
+    initNavigator(AppState.cy);
 
     // Update stats
     updateStatsDisplay(AppState.cy);
