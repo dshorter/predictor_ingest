@@ -325,14 +325,7 @@ function initializeFilterPanel(filter) {
     syncFilterUI(filter);
   });
 
-  // Filter panel toggle
-  document.getElementById('btn-filter')?.addEventListener('click', () => {
-    const panel = document.getElementById('filter-panel');
-    if (panel) {
-      panel.classList.toggle('collapsed');
-      document.getElementById('cy')?.classList.toggle('panel-right-open');
-    }
-  });
+  // NOTE: Filter panel toggle is handled in app.js to avoid duplicate handlers
 }
 
 /**
