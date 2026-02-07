@@ -86,13 +86,25 @@ function initNavigator(cy) {
   try {
     AppState.navigator = cy.navigator({
       container: container,
-      viewLiveFramerate: 0,  // Update only on events, not continuously
+      viewLiveFramerate: 0,
       thumbnailEventFramerate: 30,
       thumbnailLiveFramerate: false,
       dblClickDelay: 200,
       removeCustomContainer: false,
       rerenderDelay: 100
     });
+
+    // Force a resize after initialization to ensure proper rendering
+    setTimeout(() => {
+      if (AppState.navigator) {
+        // The navigator extension has a resize method
+        if (typeof AppState.navigator.resize === 'function') {
+          AppState.navigator.resize();
+        }
+        // Also trigger a pan event to force thumbnail update
+        cy.emit('pan');
+      }
+    }, 150);
 
     // Apply visibility state
     if (!AppState.navigatorVisible) {
