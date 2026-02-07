@@ -80,11 +80,11 @@
 
 /* Navigator internal wrapper created by the extension */
 .navigator-container .cytoscape-navigator {
-  background-color: var(--gray-100);
+  background-color: var(--gray-100) !important;
 }
 
 [data-theme="dark"] .navigator-container .cytoscape-navigator {
-  background-color: var(--gray-800);
+  background-color: var(--gray-800) !important;
 }
 
 /* Let the canvas be positioned by the navigator extension */
@@ -92,11 +92,11 @@
   display: block;
 }
 
-/* Navigator viewport rectangle */
+/* Navigator viewport rectangle - bright red outline, no fill */
 .navigator-container .cytoscape-navigatorView {
-  background-color: var(--blue-500);
-  opacity: 0.25;
-  border: 2px solid var(--blue-500);
+  background-color: transparent !important;
+  opacity: 1 !important;
+  border: 2px solid #ff3333 !important;
 }
 
 /* Navigator overlay for interaction */
