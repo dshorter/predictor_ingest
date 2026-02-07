@@ -47,7 +47,6 @@
   right: var(--space-4);
   width: 180px;
   height: 140px;
-  background-color: var(--gray-100);
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
@@ -56,9 +55,8 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* Dark theme adjustments */
+/* Dark theme - just adjust border */
 [data-theme="dark"] .navigator-container {
-  background-color: var(--gray-800);
   border-color: var(--gray-600);
 }
 
@@ -78,13 +76,9 @@
   bottom: calc(40vh + var(--space-4));
 }
 
-/* Navigator internal wrapper created by the extension */
+/* Navigator internal wrapper - let extension control its own background */
 .navigator-container .cytoscape-navigator {
-  background-color: var(--gray-100) !important;
-}
-
-[data-theme="dark"] .navigator-container .cytoscape-navigator {
-  background-color: var(--gray-800) !important;
+  /* Extension manages its own background; we don't override */
 }
 
 /* Let the canvas be positioned by the navigator extension */
@@ -99,7 +93,7 @@
   border: 2px solid #ff3333 !important;
 }
 
-/* Navigator overlay for interaction */
+/* Navigator overlay for interaction (panning support is built-in) */
 .navigator-container .cytoscape-navigatorOverlay {
   cursor: move;
 }
