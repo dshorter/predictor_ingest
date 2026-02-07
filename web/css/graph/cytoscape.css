@@ -76,13 +76,8 @@
   bottom: calc(40vh + var(--space-4));
 }
 
-/* Navigator internal wrapper - this is where the canvas lives */
+/* Navigator internal wrapper created by the extension */
 .navigator-container .cytoscape-navigator {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
   background-color: var(--gray-100);
 }
 
@@ -90,13 +85,9 @@
   background-color: var(--gray-800);
 }
 
-/* Ensure canvas fills the navigator */
+/* Let the canvas be positioned by the navigator extension */
 .navigator-container canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
+  display: block;
 }
 
 /* Navigator viewport rectangle */
