@@ -98,6 +98,17 @@
   background-color: var(--gray-100);
 }
 
+.btn-icon.active {
+  background-color: var(--blue-500);
+  color: white;
+  border-color: var(--blue-500);
+}
+
+.btn-icon.active:hover {
+  background-color: var(--blue-600);
+  border-color: var(--blue-600);
+}
+
 /* Link style button */
 .btn-link {
   padding: 0;

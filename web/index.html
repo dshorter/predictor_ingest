@@ -6,7 +6,9 @@
   <title>AI Trend Graph</title>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=5">
+  <link rel="stylesheet" href="css/main.css?v=6">
+  <!-- Cytoscape Navigator styles -->
+  <link rel="stylesheet" href="https://unpkg.com/cytoscape-navigator@2.0.1/cytoscape-navigator.css">
 </head>
 <body>
   <!-- Screen reader announcements -->
@@ -74,6 +76,7 @@
         <button id="btn-zoom-out" class="btn-icon" title="Zoom out">&minus;</button>
         <button id="btn-fit" class="btn-icon" title="Fit to view">&#x2B1C;</button>
         <button id="btn-layout" class="btn-icon" title="Re-run layout">&#x21BB;</button>
+        <button id="btn-minimap" class="btn-icon active" title="Toggle minimap">&#x25A3;</button>
         <button id="theme-toggle" class="btn-icon" title="Toggle dark/light mode">
           <span id="theme-icon">☀</span>
         </button>
@@ -86,6 +89,9 @@
     <main id="main-content">
       <!-- Cytoscape container -->
       <div id="cy" tabindex="0" role="application" aria-label="AI Trend Graph visualization"></div>
+
+      <!-- Navigator minimap container -->
+      <div id="cy-navigator" class="navigator-container"></div>
 
       <!-- Filter panel (right sidebar) -->
       <aside id="filter-panel" class="panel panel-right collapsed">
@@ -223,6 +229,8 @@
   <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
   <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"></script>
   <script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
+  <!-- Navigator minimap extension -->
+  <script src="https://unpkg.com/cytoscape-navigator@2.0.1/cytoscape-navigator.js"></script>
 
   <!-- Application scripts -->
   <script src="js/utils.js?v=2"></script>
@@ -235,6 +243,6 @@
   <script src="js/graph.js?v=2"></script>
   <script src="help/content.js?v=1"></script>
   <script src="js/help.js?v=1"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>

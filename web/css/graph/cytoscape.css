@@ -39,3 +39,53 @@
   outline: 2px solid var(--blue-500);
   outline-offset: -2px;
 }
+
+/* Navigator minimap container */
+.navigator-container {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  width: 180px;
+  height: 140px;
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-overlay);
+  overflow: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .navigator-container {
+  background-color: var(--gray-800);
+  border-color: var(--gray-600);
+}
+
+/* Hidden state for toggle */
+.navigator-container.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+/* Adjust position when panels are open */
+#cy.panel-right-open ~ .navigator-container {
+  right: calc(var(--panel-width) + var(--space-4));
+}
+
+#cy.panel-bottom-open ~ .navigator-container {
+  bottom: calc(40vh + var(--space-4));
+}
+
+/* Navigator viewport overlay styling */
+.cytoscape-navigator .cytoscape-navigatorView {
+  background-color: var(--blue-500);
+  opacity: 0.2;
+  border: 2px solid var(--blue-500);
+}
+
+/* Navigator thumbnail area */
+.cytoscape-navigator .cytoscape-navigatorOverlay {
+  cursor: move;
+}

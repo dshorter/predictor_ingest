@@ -106,7 +106,7 @@ These are tracked in `implementation.md` but explicitly deferred:
 | Feature | V2 Rationale |
 |---------|-------------|
 | Hide/show isolated nodes toggle | Trending view can have disconnected nodes (high velocity but edges only to non-trending entities). fcose tiles them in a grid via `tile: true`, which is correct graph layout behavior. V2 toggle to hide isolates or pull in their top neighbor would give users control. |
-| Navigator minimap (bird's-eye inset) | `cytoscape-navigator` extension provides a thumbnail inset showing the full graph with a viewport rectangle. Useful once graphs exceed ~100 nodes. CDN: `cytoscape-navigator`, auto-registers. Needs a container element and ~10 lines of init code. See [cytoscape-navigator on GitHub](https://github.com/cytoscape/cytoscape.js-navigator). |
+| ~~Navigator minimap (bird's-eye inset)~~ | **IMPLEMENTED** - Added in V1. Toggle button in toolbar, positioned bottom-right corner, adjusts when panels open. |
 | Preset layout (stored positions) | Needs position persistence infrastructure |
 | Hybrid layout ("integrate new") | Depends on preset layout |
 | Edge bundling | Requires `cytoscape-edge-bundling` extension |
