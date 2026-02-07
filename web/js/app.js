@@ -89,7 +89,7 @@ function initNavigator(cy) {
 
     AppState.navigator = cy.navigator({
       container: '#cy-navigator',
-      viewLiveFramerate: 0,
+      viewLiveFramerate: 60,
       thumbnailEventFramerate: 30,
       thumbnailLiveFramerate: false,
       dblClickDelay: 200,
