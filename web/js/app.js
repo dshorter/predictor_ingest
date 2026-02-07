@@ -190,11 +190,12 @@ async function initializeApp() {
       }
     }
 
-    // Run initial layout
-    runLayout(AppState.cy);
-
-    // Initialize navigator minimap
-    initNavigator(AppState.cy);
+    // Run initial layout and initialize navigator after it completes
+    const layout = runLayout(AppState.cy);
+    layout.on('layoutstop', () => {
+      // Initialize navigator minimap after layout is done
+      initNavigator(AppState.cy);
+    });
 
     // Update stats display
     updateStatsDisplay(AppState.cy);
@@ -496,11 +497,11 @@ async function switchView(view) {
     AppState.cy.elements().remove();
     addElements(AppState.cy, data.elements);
 
-    // Re-run layout
-    runLayout(AppState.cy);
-
-    // Re-initialize navigator for new graph data
-    initNavigator(AppState.cy);
+    // Re-run layout and re-initialize navigator after it completes
+    const layout = runLayout(AppState.cy);
+    layout.on('layoutstop', () => {
+      initNavigator(AppState.cy);
+    });
 
     // Update stats
     updateStatsDisplay(AppState.cy);

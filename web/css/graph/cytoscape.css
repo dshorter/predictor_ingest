@@ -47,7 +47,6 @@
   right: var(--space-4);
   width: 180px;
   height: 140px;
-  background-color: var(--gray-100);
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
@@ -58,7 +57,6 @@
 
 /* Dark theme adjustments */
 [data-theme="dark"] .navigator-container {
-  background-color: var(--gray-800);
   border-color: var(--gray-600);
 }
 
@@ -78,14 +76,37 @@
   bottom: calc(40vh + var(--space-4));
 }
 
-/* Navigator viewport overlay styling */
-.cytoscape-navigator .cytoscape-navigatorView {
+/* Navigator internal wrapper - this is where the canvas lives */
+.navigator-container .cytoscape-navigator {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: var(--gray-100);
+}
+
+[data-theme="dark"] .navigator-container .cytoscape-navigator {
+  background-color: var(--gray-800);
+}
+
+/* Ensure canvas fills the navigator */
+.navigator-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Navigator viewport rectangle */
+.navigator-container .cytoscape-navigatorView {
   background-color: var(--blue-500);
-  opacity: 0.2;
+  opacity: 0.25;
   border: 2px solid var(--blue-500);
 }
 
-/* Navigator thumbnail area */
-.cytoscape-navigator .cytoscape-navigatorOverlay {
+/* Navigator overlay for interaction */
+.navigator-container .cytoscape-navigatorOverlay {
   cursor: move;
 }
