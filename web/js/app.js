@@ -84,8 +84,11 @@ function initNavigator(cy) {
   }
 
   try {
+    // Clear container and let extension create fresh content
+    container.innerHTML = '';
+
     AppState.navigator = cy.navigator({
-      container: container,
+      container: '#cy-navigator',
       viewLiveFramerate: 0,
       thumbnailEventFramerate: 30,
       thumbnailLiveFramerate: false,
@@ -94,17 +97,17 @@ function initNavigator(cy) {
       rerenderDelay: 100
     });
 
-    // Force a resize after initialization to ensure proper rendering
+    console.log('Navigator object:', AppState.navigator);
+    console.log('Container children after init:', container.children.length);
+
+    // Force resize and update after initialization
     setTimeout(() => {
       if (AppState.navigator) {
-        // The navigator extension has a resize method
-        if (typeof AppState.navigator.resize === 'function') {
-          AppState.navigator.resize();
-        }
-        // Also trigger a pan event to force thumbnail update
-        cy.emit('pan');
+        cy.resize();
+        cy.fit();
+        console.log('Navigator container HTML:', container.innerHTML.substring(0, 200));
       }
-    }, 150);
+    }, 200);
 
     // Apply visibility state
     if (!AppState.navigatorVisible) {
