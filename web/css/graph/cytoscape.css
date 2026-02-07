@@ -47,6 +47,7 @@
   right: var(--space-4);
   width: 180px;
   height: 140px;
+  background-color: var(--gray-100);
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
@@ -57,6 +58,7 @@
 
 /* Dark theme adjustments */
 [data-theme="dark"] .navigator-container {
+  background-color: var(--gray-800);
   border-color: var(--gray-600);
 }
 
