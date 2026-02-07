@@ -262,9 +262,18 @@ function initializeToolbar(cy) {
   });
 
   // Filter toggle
-  document.getElementById('btn-filter')?.addEventListener('click', () => {
-    toggleFilterPanel();
-  });
+  const filterBtn = document.getElementById('btn-filter');
+  if (filterBtn) {
+    filterBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Filter button clicked');
+      toggleFilterPanel();
+    });
+    console.log('Filter button handler attached');
+  } else {
+    console.error('Filter button not found in DOM');
+  }
 
   // Help button
   document.getElementById('btn-help')?.addEventListener('click', () => {
@@ -463,10 +472,28 @@ function updateStatsDisplay(cy) {
  * Toggle filter panel
  */
 function toggleFilterPanel() {
+  console.log('toggleFilterPanel called');
   const panel = document.getElementById('filter-panel');
   if (panel) {
+    const wasCollapsed = panel.classList.contains('collapsed');
     panel.classList.toggle('collapsed');
-    updateCyContainer();
+    console.log('Filter panel toggled:', wasCollapsed ? 'opening' : 'closing');
+
+    // Update cy container if function exists
+    if (typeof updateCyContainer === 'function') {
+      updateCyContainer();
+    } else {
+      // Fallback: directly toggle the cy class
+      const cyEl = document.getElementById('cy');
+      if (cyEl) {
+        cyEl.classList.toggle('panel-right-open', wasCollapsed);
+        if (window.cy) {
+          setTimeout(() => window.cy.resize(), 50);
+        }
+      }
+    }
+  } else {
+    console.error('Filter panel element not found');
   }
 }
 
