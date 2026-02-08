@@ -241,3 +241,121 @@ def import_manual_extraction(
     save_extraction(data, output_dir)
 
     return data
+
+
+# ---------------------------------------------------------------------------
+# Shadow mode comparison utilities
+# ---------------------------------------------------------------------------
+
+
+def compute_entity_overlap(
+    primary: dict[str, Any],
+    understudy: dict[str, Any],
+) -> float:
+    """Compute entity name overlap between two extractions.
+
+    Args:
+        primary: Primary extraction dict
+        understudy: Understudy extraction dict
+
+    Returns:
+        Overlap percentage (0-100)
+    """
+    primary_names = {e.get("name", "").lower() for e in primary.get("entities", [])}
+    understudy_names = {e.get("name", "").lower() for e in understudy.get("entities", [])}
+
+    if not primary_names:
+        return 100.0 if not understudy_names else 0.0
+
+    intersection = primary_names & understudy_names
+    return len(intersection) / len(primary_names) * 100
+
+
+def compute_relation_overlap(
+    primary: dict[str, Any],
+    understudy: dict[str, Any],
+) -> float:
+    """Compute relation overlap between two extractions.
+
+    Relations are compared by (source, rel, target) tuples, case-insensitive.
+
+    Args:
+        primary: Primary extraction dict
+        understudy: Understudy extraction dict
+
+    Returns:
+        Overlap percentage (0-100)
+    """
+    def relation_key(r: dict[str, Any]) -> tuple[str, str, str]:
+        return (
+            r.get("source", "").lower(),
+            r.get("rel", "").upper(),
+            r.get("target", "").lower(),
+        )
+
+    primary_rels = {relation_key(r) for r in primary.get("relations", [])}
+    understudy_rels = {relation_key(r) for r in understudy.get("relations", [])}
+
+    if not primary_rels:
+        return 100.0 if not understudy_rels else 0.0
+
+    intersection = primary_rels & understudy_rels
+    return len(intersection) / len(primary_rels) * 100
+
+
+def compare_extractions(
+    primary: dict[str, Any],
+    understudy: dict[str, Any],
+    understudy_model: str,
+    schema_valid: bool,
+    parse_error: Optional[str] = None,
+    primary_duration_ms: Optional[int] = None,
+    understudy_duration_ms: Optional[int] = None,
+) -> dict[str, Any]:
+    """Compare primary and understudy extractions for shadow mode tracking.
+
+    Args:
+        primary: Primary (Sonnet) extraction dict
+        understudy: Understudy extraction dict (may be empty if failed)
+        understudy_model: Model name of understudy
+        schema_valid: Whether understudy passed schema validation
+        parse_error: Error message if understudy failed
+        primary_duration_ms: Primary extraction time
+        understudy_duration_ms: Understudy extraction time
+
+    Returns:
+        Comparison stats dict ready for insert_extraction_comparison()
+    """
+    primary_entities = len(primary.get("entities", []))
+    primary_relations = len(primary.get("relations", []))
+    primary_tech_terms = len(primary.get("techTerms", []))
+
+    if schema_valid and understudy:
+        understudy_entities = len(understudy.get("entities", []))
+        understudy_relations = len(understudy.get("relations", []))
+        understudy_tech_terms = len(understudy.get("techTerms", []))
+        entity_overlap = compute_entity_overlap(primary, understudy)
+        relation_overlap = compute_relation_overlap(primary, understudy)
+    else:
+        understudy_entities = None
+        understudy_relations = None
+        understudy_tech_terms = None
+        entity_overlap = None
+        relation_overlap = None
+
+    return {
+        "doc_id": primary.get("docId", ""),
+        "understudy_model": understudy_model,
+        "schema_valid": schema_valid,
+        "parse_error": parse_error,
+        "primary_entities": primary_entities,
+        "primary_relations": primary_relations,
+        "primary_tech_terms": primary_tech_terms,
+        "understudy_entities": understudy_entities,
+        "understudy_relations": understudy_relations,
+        "understudy_tech_terms": understudy_tech_terms,
+        "entity_overlap_pct": entity_overlap,
+        "relation_overlap_pct": relation_overlap,
+        "primary_duration_ms": primary_duration_ms,
+        "understudy_duration_ms": understudy_duration_ms,
+    }

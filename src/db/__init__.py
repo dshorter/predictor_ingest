@@ -329,3 +329,142 @@ def resolve_alias(conn: sqlite3.Connection, alias: str) -> Optional[str]:
     )
     row = cursor.fetchone()
     return row["canonical_id"] if row else None
+
+
+# ---------------------------------------------------------------------------
+# Shadow mode comparison tracking
+# ---------------------------------------------------------------------------
+
+
+def insert_extraction_comparison(
+    conn: sqlite3.Connection,
+    doc_id: str,
+    run_date: str,
+    understudy_model: str,
+    schema_valid: bool,
+    parse_error: Optional[str] = None,
+    primary_entities: Optional[int] = None,
+    primary_relations: Optional[int] = None,
+    primary_tech_terms: Optional[int] = None,
+    understudy_entities: Optional[int] = None,
+    understudy_relations: Optional[int] = None,
+    understudy_tech_terms: Optional[int] = None,
+    entity_overlap_pct: Optional[float] = None,
+    relation_overlap_pct: Optional[float] = None,
+    primary_duration_ms: Optional[int] = None,
+    understudy_duration_ms: Optional[int] = None,
+) -> None:
+    """Record comparison between primary and understudy extraction.
+
+    Args:
+        conn: Database connection
+        doc_id: Document ID
+        run_date: Date of extraction run (ISO format)
+        understudy_model: Model name of understudy (e.g. "gemini-2.5-flash")
+        schema_valid: Whether understudy output passed schema validation
+        parse_error: Error message if parsing/validation failed
+        primary_entities: Entity count from primary model
+        primary_relations: Relation count from primary model
+        primary_tech_terms: Tech term count from primary model
+        understudy_entities: Entity count from understudy model
+        understudy_relations: Relation count from understudy model
+        understudy_tech_terms: Tech term count from understudy model
+        entity_overlap_pct: Percentage of entity overlap (0-100)
+        relation_overlap_pct: Percentage of relation overlap (0-100)
+        primary_duration_ms: Primary extraction time in milliseconds
+        understudy_duration_ms: Understudy extraction time in milliseconds
+    """
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO extraction_comparison (
+            doc_id, run_date, understudy_model,
+            schema_valid, parse_error,
+            primary_entities, primary_relations, primary_tech_terms,
+            understudy_entities, understudy_relations, understudy_tech_terms,
+            entity_overlap_pct, relation_overlap_pct,
+            primary_duration_ms, understudy_duration_ms
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            doc_id, run_date, understudy_model,
+            1 if schema_valid else 0, parse_error,
+            primary_entities, primary_relations, primary_tech_terms,
+            understudy_entities, understudy_relations, understudy_tech_terms,
+            entity_overlap_pct, relation_overlap_pct,
+            primary_duration_ms, understudy_duration_ms,
+        ),
+    )
+    conn.commit()
+
+
+def get_understudy_summary(
+    conn: sqlite3.Connection,
+    understudy_model: str,
+    min_date: Optional[str] = None,
+) -> dict[str, Any]:
+    """Get aggregated performance summary for an understudy model.
+
+    Args:
+        conn: Database connection
+        understudy_model: Model name to summarize
+        min_date: Optional minimum date filter (ISO format)
+
+    Returns:
+        Summary dict with pass rates, averages, and counts
+    """
+    if min_date:
+        cursor = conn.execute(
+            """
+            SELECT
+                COUNT(*) as total_docs,
+                SUM(schema_valid) as valid_count,
+                AVG(entity_overlap_pct) as avg_entity_overlap,
+                AVG(relation_overlap_pct) as avg_relation_overlap,
+                AVG(understudy_duration_ms) as avg_duration_ms
+            FROM extraction_comparison
+            WHERE understudy_model = ? AND run_date >= ?
+            """,
+            (understudy_model, min_date),
+        )
+    else:
+        cursor = conn.execute(
+            """
+            SELECT
+                COUNT(*) as total_docs,
+                SUM(schema_valid) as valid_count,
+                AVG(entity_overlap_pct) as avg_entity_overlap,
+                AVG(relation_overlap_pct) as avg_relation_overlap,
+                AVG(understudy_duration_ms) as avg_duration_ms
+            FROM extraction_comparison
+            WHERE understudy_model = ?
+            """,
+            (understudy_model,),
+        )
+
+    row = cursor.fetchone()
+    total = row["total_docs"] or 0
+    valid = row["valid_count"] or 0
+
+    return {
+        "model": understudy_model,
+        "total_docs": total,
+        "schema_pass_rate": (valid / total * 100) if total > 0 else 0,
+        "avg_entity_overlap_pct": row["avg_entity_overlap"],
+        "avg_relation_overlap_pct": row["avg_relation_overlap"],
+        "avg_duration_ms": row["avg_duration_ms"],
+    }
+
+
+def list_understudy_models(conn: sqlite3.Connection) -> list[str]:
+    """List all understudy models that have comparison data.
+
+    Args:
+        conn: Database connection
+
+    Returns:
+        List of model names
+    """
+    cursor = conn.execute(
+        "SELECT DISTINCT understudy_model FROM extraction_comparison ORDER BY understudy_model"
+    )
+    return [row["understudy_model"] for row in cursor.fetchall()]
