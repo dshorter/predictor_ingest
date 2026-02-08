@@ -81,3 +81,40 @@ CREATE TABLE IF NOT EXISTS entity_aliases (
 );
 
 CREATE INDEX IF NOT EXISTS idx_aliases_canonical ON entity_aliases(canonical_id);
+
+-- Extraction comparison table (shadow mode understudy tracking)
+-- Tracks how well understudy models perform vs the primary (Sonnet)
+CREATE TABLE IF NOT EXISTS extraction_comparison (
+  doc_id TEXT NOT NULL,
+  run_date TEXT NOT NULL,
+  understudy_model TEXT NOT NULL,
+
+  -- Did it work at all?
+  schema_valid INTEGER NOT NULL DEFAULT 0,  -- 0/1 boolean
+  parse_error TEXT,
+
+  -- Counts from primary (Sonnet)
+  primary_entities INTEGER,
+  primary_relations INTEGER,
+  primary_tech_terms INTEGER,
+
+  -- Counts from understudy
+  understudy_entities INTEGER,
+  understudy_relations INTEGER,
+  understudy_tech_terms INTEGER,
+
+  -- Match rates (computed after both complete)
+  entity_overlap_pct REAL,
+  relation_overlap_pct REAL,
+
+  -- Timing
+  primary_duration_ms INTEGER,
+  understudy_duration_ms INTEGER,
+
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (doc_id, understudy_model)
+);
+
+CREATE INDEX IF NOT EXISTS idx_comparison_model ON extraction_comparison(understudy_model);
+CREATE INDEX IF NOT EXISTS idx_comparison_date ON extraction_comparison(run_date);

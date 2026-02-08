@@ -124,7 +124,88 @@ Relevant only if eliminating API costs becomes a goal.
 | GPT-4.1 Mini | ~$0.10 | ~$2.90 |
 | Claude Haiku 3.5 | ~$0.22 | ~$6.80 |
 
-## Evaluation Plan
+## Recommended Approach: Shadow Mode
+
+Rather than a staged tier selection process, we use **shadow mode** for continuous
+validation with zero production risk.
+
+### Architecture
+
+```
+Article
+   ├── Primary (Sonnet) → extractions table → graph
+   │
+   └── Understudy (shadow) → extraction_comparison table → analysis
+```
+
+### How It Works
+
+1. **Sonnet runs as primary** — produces actual extractions used in the pipeline
+2. **Understudy runs in parallel** — same inputs, output goes to comparison table
+3. **No errors raised for understudy** — failures are silently logged as data
+4. **Learn over time** — accumulate real-world comparison data
+
+### Why Shadow Mode
+
+| Staged Tier Selection | Shadow Mode |
+|-----------------------|-------------|
+| Validate upfront, then trust | Continuous real-world comparison |
+| Switch models, monitor for drift | Never switch, always have data |
+| Tier 2 failures affect pipeline | Understudy failures are just data |
+| Complex: when to re-baseline? | Simple: always have both |
+
+### Cost
+
+At 20 docs/day:
+- Sonnet (primary): ~$25/month
+- Understudy (shadow): ~$1-7/month
+- **Total**: ~$26-32/month for continuous validation
+
+### Comparison Stats Table
+
+The `extraction_comparison` table captures:
+
+```sql
+CREATE TABLE extraction_comparison (
+    doc_id TEXT,
+    run_date TEXT,
+    understudy_model TEXT,
+
+    -- Did it work at all?
+    schema_valid BOOLEAN,
+    parse_error TEXT,
+
+    -- Counts vs primary
+    primary_entities INTEGER,
+    understudy_entities INTEGER,
+    primary_relations INTEGER,
+    understudy_relations INTEGER,
+
+    -- Match rates
+    entity_overlap_pct REAL,
+    relation_overlap_pct REAL,
+
+    PRIMARY KEY (doc_id, understudy_model)
+);
+```
+
+### Promotion Criteria
+
+When comparison data shows an understudy consistently achieving:
+- **Schema pass rate**: >= 95%
+- **Entity overlap**: >= 85%
+- **Relation overlap**: >= 80%
+
+...over 100+ documents, it can be considered for primary promotion (cost savings).
+
+Until then, Sonnet remains primary with zero quality risk.
+
+---
+
+## Initial Evaluation (Before Shadow Mode)
+
+Use the evaluation harness to confirm understudy candidates are viable before
+adding them to shadow mode.
 
 ### Phase 1: JSON schema compliance (automated)
 
@@ -147,15 +228,10 @@ Run the evaluation harness (`tests/test_llm_eval.py`):
    - Kind (asserted/inferred/hypothesis) appropriateness
    - Evidence snippet fidelity (does snippet appear in source text?)
 
-### Phase 3: Selection
+### Phase 3: Add to Shadow Mode
 
-Pick the model with:
-- >= 90% schema pass rate (after post-processing)
-- Acceptable benchmark scores for NER/RE tasks
-- Reasonable cost
-
-If two models tie on compliance, prefer the one with better inference benchmarks.
-If compliance is comparable and inference is comparable, prefer lower cost.
+Models passing Phase 1-2 can be added to the understudy pool for continuous
+comparison against Sonnet production extractions.
 
 ## Evaluation Harness
 
