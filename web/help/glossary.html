@@ -5,180 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Glossary - AI Trend Graph</title>
   
-  <!-- Use existing CSS tokens -->
+  <!-- Use existing app CSS -->
   <link rel="stylesheet" href="../css/main.css">
   
   <style>
-    body {
-      background: var(--color-bg-primary, #0a0a0a);
-      color: var(--color-text-primary, #e5e5e5);
-      font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-      line-height: var(--leading-relaxed, 1.625);
-      padding: 0;
-      margin: 0;
-    }
+    /* Minimal custom styles for standalone glossary page */
     
+    /* Center content with max-width */
     .glossary-container {
       max-width: 900px;
       margin: 0 auto;
-      padding: var(--space-8, 32px) var(--space-6, 24px);
-    }
-    
-    /* Header */
-    h1 {
-      font-size: var(--text-2xl, 30px);
-      font-weight: var(--weight-bold, 700);
-      color: var(--color-text-primary, #e5e5e5);
-      margin-bottom: var(--space-4, 16px);
-      border-bottom: 1px solid var(--color-border-subtle, #2a2a2a);
-      padding-bottom: var(--space-4, 16px);
-    }
-    
-    h2 {
-      font-size: var(--text-xl, 24px);
-      font-weight: var(--weight-semibold, 600);
-      color: var(--color-text-primary, #e5e5e5);
-      margin-top: var(--space-12, 48px);
-      margin-bottom: var(--space-4, 16px);
-      border-bottom: 1px solid var(--color-border-subtle, #2a2a2a);
-      padding-bottom: var(--space-2, 8px);
-    }
-    
-    h3 {
-      font-size: var(--text-lg, 18px);
-      font-weight: var(--weight-semibold, 600);
-      color: var(--color-text-secondary, #b3b3b3);
-      margin-top: var(--space-8, 32px);
-      margin-bottom: var(--space-3, 12px);
-    }
-    
-    h4 {
-      font-size: var(--text-md, 16px);
-      font-weight: var(--weight-medium, 500);
-      color: var(--color-text-secondary, #b3b3b3);
-      margin-top: var(--space-6, 24px);
-      margin-bottom: var(--space-2, 8px);
-    }
-    
-    /* Paragraphs and text */
-    p {
-      margin-bottom: var(--space-4, 16px);
-      color: var(--color-text-secondary, #b3b3b3);
-    }
-    
-    strong {
-      font-weight: var(--weight-semibold, 600);
-      color: var(--color-text-primary, #e5e5e5);
-    }
-    
-    /* Links */
-    a {
-      color: var(--color-primary, #3b82f6);
-      text-decoration: none;
-    }
-    
-    a:hover {
-      text-decoration: underline;
-    }
-    
-    /* Lists */
-    ul, ol {
-      margin-bottom: var(--space-4, 16px);
-      padding-left: var(--space-6, 24px);
-    }
-    
-    li {
-      margin-bottom: var(--space-2, 8px);
-      color: var(--color-text-secondary, #b3b3b3);
-    }
-    
-    /* Tables */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: var(--space-6, 24px);
-      background: var(--color-bg-secondary, #121212);
-      border: 1px solid var(--color-border-subtle, #2a2a2a);
-    }
-    
-    th {
-      background: var(--color-bg-tertiary, #1a1a1a);
-      color: var(--color-text-primary, #e5e5e5);
-      font-weight: var(--weight-semibold, 600);
-      text-align: left;
-      padding: var(--space-3, 12px) var(--space-4, 16px);
-      border-bottom: 1px solid var(--color-border, #404040);
-    }
-    
-    td {
-      padding: var(--space-3, 12px) var(--space-4, 16px);
-      border-bottom: 1px solid var(--color-border-subtle, #2a2a2a);
-      color: var(--color-text-secondary, #b3b3b3);
-    }
-    
-    tr:last-child td {
-      border-bottom: none;
-    }
-    
-    /* Code blocks */
-    code {
-      font-family: var(--font-mono, "SF Mono", Consolas, monospace);
-      font-size: var(--text-sm, 13px);
-      background: var(--color-bg-tertiary, #1a1a1a);
-      padding: 2px 6px;
-      border-radius: 3px;
-      color: var(--color-accent-cyan, #06b6d4);
-    }
-    
-    pre {
-      background: var(--color-bg-tertiary, #1a1a1a);
-      border: 1px solid var(--color-border-subtle, #2a2a2a);
-      border-radius: 4px;
-      padding: var(--space-4, 16px);
-      overflow-x: auto;
-      margin-bottom: var(--space-4, 16px);
-    }
-    
-    pre code {
-      background: none;
-      padding: 0;
+      padding: var(--space-8) var(--space-6);
     }
     
     /* Navigation back button */
     .nav-back {
       display: inline-block;
-      margin-bottom: var(--space-6, 24px);
-      padding: var(--space-2, 8px) var(--space-4, 16px);
-      background: var(--color-bg-secondary, #121212);
-      border: 1px solid var(--color-border, #404040);
-      border-radius: 4px;
-      color: var(--color-text-primary, #e5e5e5);
+      margin-bottom: var(--space-6);
+      padding: var(--space-2) var(--space-4);
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      border-radius: var(--radius-md);
+      color: var(--gray-100);
       text-decoration: none;
-      font-size: var(--text-sm, 13px);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      transition: background var(--duration-fast);
     }
     
     .nav-back:hover {
-      background: var(--color-bg-tertiary, #1a1a1a);
+      background: var(--gray-700);
       text-decoration: none;
     }
     
-    /* Table of contents */
-    #markdown-toc {
-      background: var(--color-bg-secondary, #121212);
-      border: 1px solid var(--color-border, #404040);
-      border-radius: 4px;
-      padding: var(--space-4, 16px) var(--space-6, 24px);
-      margin-bottom: var(--space-8, 32px);
+    /* Page title styling */
+    .glossary-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      color: var(--gray-100);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--gray-800);
     }
     
-    #markdown-toc li {
-      margin-bottom: var(--space-1, 4px);
+    /* Section headings need more top spacing on standalone page */
+    .help-section > h2 {
+      margin-top: var(--space-12);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--gray-800);
+    }
+    
+    .help-section:first-child > h2 {
+      margin-top: 0;
+    }
+    
+    /* Footer styling */
+    .glossary-footer {
+      margin-top: var(--space-16);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--gray-800);
+      text-align: center;
+      color: var(--gray-500);
+      font-size: var(--text-sm);
     }
     
     /* Responsive */
     @media (max-width: 768px) {
       .glossary-container {
-        padding: var(--space-4, 16px);
+        padding: var(--space-4);
       }
     }
   </style>
@@ -187,7 +81,7 @@
   <div class="glossary-container">
     <a href="../index.html" class="nav-back">← Back to Graph</a>
     
-    <h1 id="project-glossary">Project Glossary</h1>
+    <div class="help-section"><h1 id="project-glossary">Project Glossary</h1>
 <p><strong>A comprehensive reference guide for understanding the AI Trend Graph knowledge graph pipeline.</strong></p>
 <p>This glossary explains key concepts, terms, and technical vocabulary used throughout the project. It's designed for technically-educated readers who are new to knowledge graphs, trend analysis, or graph-based data visualization.</p>
 <hr />
@@ -297,7 +191,7 @@
 <hr />
 <h2 id="entity-types-node-types">Entity Types (Node Types)</h2>
 <p>These are the categories of entities we track. Each has a specific prefix in its canonical ID.</p>
-<table>
+<table class="help-table">
 <thead>
 <tr>
 <th>Type</th>
@@ -403,7 +297,7 @@
 <h2 id="relationship-types-edge-types">Relationship Types (Edge Types)</h2>
 <p>These are the canonical relationship labels we use. Each describes a specific type of connection.</p>
 <h3 id="document-relationships">Document Relationships</h3>
-<table>
+<table class="help-table">
 <thead>
 <tr>
 <th>Relation</th>
@@ -430,7 +324,7 @@
 </tbody>
 </table>
 <h3 id="organizational-people-relationships">Organizational &amp; People Relationships</h3>
-<table>
+<table class="help-table">
 <thead>
 <tr>
 <th>Relation</th>
@@ -502,7 +396,7 @@
 </tbody>
 </table>
 <h3 id="technical-relationships">Technical Relationships</h3>
-<table>
+<table class="help-table">
 <thead>
 <tr>
 <th>Relation</th>
@@ -564,7 +458,7 @@
 </tbody>
 </table>
 <h3 id="analysis-relationships">Analysis Relationships</h3>
-<table>
+<table class="help-table">
 <thead>
 <tr>
 <th>Relation</th>
@@ -1015,7 +909,7 @@ Disallow: /admin/
 </ol>
 <hr />
 <h2 id="quick-reference-acronyms">Quick Reference: Acronyms</h2>
-<table>
+<table class="help-table">
 <thead>
 <tr>
 <th>Acronym</th>
@@ -1104,12 +998,11 @@ Disallow: /admin/
 <hr />
 <p><strong>Document version</strong>: 1.0
 <strong>Last updated</strong>: 2026-02-07
-<strong>Maintained by</strong>: Project contributors</p>
+<strong>Maintained by</strong>: Project contributors</p></div>
     
-    <hr style="margin-top: 64px; border: none; border-top: 1px solid var(--color-border-subtle, #2a2a2a);">
-    <p style="text-align: center; color: var(--color-text-tertiary, #666); font-size: var(--text-sm, 13px);">
+    <div class="glossary-footer">
       <a href="../index.html">Return to AI Trend Graph</a>
-    </p>
+    </div>
   </div>
 </body>
 </html>
