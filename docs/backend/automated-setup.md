@@ -13,11 +13,17 @@ One-time setup to get the automated extraction pipeline running with Sonnet as p
 
 ---
 
-## 1. Clone and Install
+## 1. Clone (skip if repo already exists)
 
 ```bash
-# Clone the repo
 git clone https://github.com/dshorter/predictor_ingest.git /opt/predictor_ingest
+```
+
+---
+
+## 2. Install Python Environment
+
+```bash
 cd /opt/predictor_ingest
 
 # Create virtual environment
@@ -28,9 +34,14 @@ source venv/bin/activate
 pip install -e .
 ```
 
+**Note:** Always activate the venv before running pipeline commands:
+```bash
+source /opt/predictor_ingest/venv/bin/activate
+```
+
 ---
 
-## 2. Configure API Keys
+## 3. Configure API Keys
 
 Create a `.env` file in the repo root:
 
@@ -57,7 +68,7 @@ set -a; source /opt/predictor_ingest/.env; set +a
 
 ---
 
-## 3. Initialize Database
+## 4. Initialize Database
 
 ```bash
 make init-db
@@ -73,7 +84,7 @@ sqlite3 data/db/predictor.db ".tables"
 
 ---
 
-## 4. Verify API Connection
+## 5. Verify API Connection
 
 Test that the API key works:
 
@@ -100,7 +111,7 @@ If you get an error:
 
 ---
 
-## 5. Configure Feeds
+## 6. Configure Feeds
 
 Review `config/feeds.yaml`:
 
@@ -125,7 +136,7 @@ feeds:
 
 ---
 
-## 6. First Manual Run
+## 7. First Manual Run
 
 Run each stage to verify everything works:
 
@@ -166,7 +177,7 @@ make post-extract  # import + resolve + export + trending
 
 ---
 
-## 7. Verify Output
+## 8. Verify Output
 
 Check the database has data:
 
@@ -197,7 +208,7 @@ python -m http.server 8000 --directory web
 
 ---
 
-## 8. Configure Shadow Mode (Optional)
+## 9. Configure Shadow Mode (Optional)
 
 To run an understudy model alongside Sonnet for comparison:
 
@@ -225,7 +236,7 @@ GROUP BY understudy_model;
 
 ---
 
-## 9. Set Up Daily Cron
+## 10. Set Up Daily Cron
 
 Create a cron job for daily automated runs:
 
@@ -246,7 +257,7 @@ mkdir -p data/logs
 
 ---
 
-## 10. Verify Daily Run Log
+## 11. Verify Daily Run Log
 
 After the first automated run, check:
 
