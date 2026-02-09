@@ -188,9 +188,11 @@ ls -la data/graphs/$(date +%Y-%m-%d)/
 Copy to web client and test:
 
 ```bash
-cp -r data/graphs/$(date +%Y-%m-%d)/* web/data/graphs/latest/
+# Copy to the "live" folder (shown as "Today's Graph" in the UI)
+cp -r data/graphs/$(date +%Y-%m-%d)/* web/data/graphs/live/
+
 python -m http.server 8000 --directory web
-# Open http://localhost:8000
+# Open http://localhost:8000, select "Today's Graph" from Data dropdown
 ```
 
 ---
@@ -232,7 +234,8 @@ Create a cron job for daily automated runs:
 crontab -e
 
 # Add this line (runs at 6 AM daily)
-0 6 * * * cd /opt/predictor_ingest && source venv/bin/activate && source .env && make pipeline && make post-extract >> data/logs/cron.log 2>&1
+# Runs pipeline, then copies output to web/data/graphs/live/ for the UI
+0 6 * * * cd /opt/predictor_ingest && source venv/bin/activate && source .env && make pipeline && make post-extract && cp -r data/graphs/$(date +\%Y-\%m-\%d)/* web/data/graphs/live/ >> data/logs/cron.log 2>&1
 ```
 
 Create the logs directory:
