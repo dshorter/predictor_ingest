@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "view": "trending",
+    "nodeCount": 0,
+    "edgeCount": 0,
+    "exportedAt": null,
+    "dateRange": null,
+    "note": "Placeholder - will be populated by first pipeline run"
+  },
+  "elements": {
+    "nodes": [],
+    "edges": []
+  }
+}

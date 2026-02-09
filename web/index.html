@@ -39,11 +39,15 @@
         <div class="toolbar-group">
           <label for="tier-selector">Data:</label>
           <select id="tier-selector">
-            <option value="latest">Original (~15)</option>
-            <option value="small">Small (~15)</option>
-            <option value="medium" selected>Medium (~150)</option>
-            <option value="large">Large (~500)</option>
-            <option value="stress">Stress (~2000)</option>
+            <optgroup label="Live Data">
+              <option value="live">Today's Graph</option>
+            </optgroup>
+            <optgroup label="Test Data">
+              <option value="small">Small (~15)</option>
+              <option value="medium" selected>Medium (~150)</option>
+              <option value="large">Large (~500)</option>
+              <option value="stress">Stress (~2000)</option>
+            </optgroup>
           </select>
         </div>
 
