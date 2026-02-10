@@ -9,8 +9,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Initialize the SQLite database.")
     parser.add_argument(
         "--db",
-        default="data/db/ingest.sqlite",
-        help="Path to sqlite db.",
+        default="data/db/predictor.db",
+        help="Path to SQLite database (default: data/db/predictor.db)",
     )
     parser.add_argument(
         "--schema",

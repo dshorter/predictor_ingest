@@ -213,7 +213,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--db",
         default=None,
-        help="Path to sqlite db (default data/db/ingest.sqlite). Use '-' to disable.",
+        help="Path to SQLite database (default data/db/predictor.db). Use '-' to disable.",
     )
     parser.add_argument(
         "--schema",
@@ -301,7 +301,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     text_dir.mkdir(parents=True, exist_ok=True)
 
     if args.db is None:
-        db_path = repo / "data" / "db" / "ingest.sqlite"
+        db_path = repo / "data" / "db" / "predictor.db"
     elif args.db == "-":
         db_path = None
     else:
