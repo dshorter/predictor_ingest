@@ -98,6 +98,26 @@ def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
                     entity["type"] = canonical
                     break
 
+    # Normalize dates - convert null start/end to empty strings or remove
+    for date_obj in data.get("dates", []):
+        if date_obj.get("start") is None:
+            date_obj.pop("start", None)
+        if date_obj.get("end") is None:
+            date_obj.pop("end", None)
+
+    # Normalize techTerms - handle objects with term/definition structure
+    if "techTerms" in data:
+        normalized_terms = []
+        for term in data.get("techTerms", []):
+            if isinstance(term, str):
+                normalized_terms.append(term)
+            elif isinstance(term, dict):
+                # Extract just the term from object format
+                term_str = term.get("term") or term.get("name") or str(term)
+                if term_str:
+                    normalized_terms.append(term_str)
+        data["techTerms"] = normalized_terms
+
     return data
 
 
