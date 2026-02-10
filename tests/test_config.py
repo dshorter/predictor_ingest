@@ -30,6 +30,23 @@ feeds:
         assert feeds[0].url == "https://example.com/feed.xml"
         assert feeds[0].type == "rss"
         assert feeds[0].enabled is True
+        assert feeds[0].limit == 0
+
+    def test_loads_feed_with_limit(self, tmp_path):
+        """Should parse per-feed limit from YAML."""
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "Limited Feed"
+    url: "https://example.com/feed.xml"
+    limit: 20
+  - name: "Unlimited Feed"
+    url: "https://example.com/other.xml"
+""")
+        feeds = load_feeds(config_file)
+        assert len(feeds) == 2
+        assert feeds[0].limit == 20
+        assert feeds[1].limit == 0
 
     def test_filters_disabled_feeds_by_default(self, tmp_path):
         """Should only return enabled feeds by default."""
@@ -142,6 +159,7 @@ class TestFeedConfig:
         feed = FeedConfig(name="Test", url="https://example.com/feed.xml")
         assert feed.type == "rss"
         assert feed.enabled is True
+        assert feed.limit == 0
 
     def test_custom_values(self):
         """Should accept custom values for all fields."""
@@ -150,9 +168,11 @@ class TestFeedConfig:
             url="https://example.com/atom.xml",
             type="atom",
             enabled=False,
+            limit=25,
         )
         assert feed.type == "atom"
         assert feed.enabled is False
+        assert feed.limit == 25
 
 
 class TestLoadFeedsIntegration:
@@ -163,8 +183,12 @@ class TestLoadFeedsIntegration:
         config_path = Path(__file__).parent.parent / "config" / "feeds.yaml"
         if config_path.exists():
             feeds = load_feeds(config_path)
-            # Should have at least the 3 feeds we defined
-            assert len(feeds) >= 3
-            # Check one of the known feeds
+            # Should have at least the 7 feeds we defined
+            assert len(feeds) >= 7
+            # Check known feeds
             names = [f.name for f in feeds]
             assert "arXiv CS.AI" in names
+            assert "Anthropic Blog" in names
+            # arXiv should have a per-feed limit
+            arxiv = next(f for f in feeds if f.name == "arXiv CS.AI")
+            assert arxiv.limit == 20

@@ -21,12 +21,14 @@ class FeedConfig:
         url: URL of the RSS/Atom feed
         type: Feed type ('rss' or 'atom'), defaults to 'rss'
         enabled: Whether to include this feed in ingestion, defaults to True
+        limit: Max items per ingestion run (0 = unlimited), defaults to 0
     """
 
     name: str
     url: str
     type: str = "rss"
     enabled: bool = True
+    limit: int = 0
 
 
 def load_feeds(
@@ -68,6 +70,7 @@ def load_feeds(
             url=feed_dict["url"],
             type=feed_dict.get("type", "rss"),
             enabled=feed_dict.get("enabled", True),
+            limit=feed_dict.get("limit", 0),
         )
         if include_disabled or feed.enabled:
             feeds.append(feed)

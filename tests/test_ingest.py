@@ -94,8 +94,9 @@ class TestConfigIntegration:
         config_path = Path(__file__).parent.parent / "config" / "feeds.yaml"
         feeds = load_feeds(config_path)
 
-        assert len(feeds) >= 3
+        assert len(feeds) >= 7
         assert any(f.name == "arXiv CS.AI" for f in feeds)
+        assert any(f.name == "Anthropic Blog" for f in feeds)
         assert all(f.url.startswith("https://") for f in feeds)
 
     def test_all_feeds_have_required_fields(self):
