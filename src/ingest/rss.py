@@ -263,28 +263,29 @@ def validate_args(args: argparse.Namespace) -> None:
             raise SystemExit(1)
 
 
-def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str]]]:
-    """Get list of (feed_url, source_name) from args.
+def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str], int]]:
+    """Get list of (feed_url, source_name, per_feed_limit) from args.
 
     Args:
         args: Parsed arguments
 
     Returns:
-        List of (url, source_name) tuples. source_name is None for CLI feeds.
+        List of (url, source_name, limit) tuples. source_name is None for CLI feeds.
+        limit is 0 (unlimited) for CLI feeds.
     """
-    feeds: list[tuple[str, Optional[str]]] = []
+    feeds: list[tuple[str, Optional[str], int]] = []
 
     # Load from config file
     if args.config:
         config_path = Path(args.config)
         config_feeds = load_feeds(config_path)
         for feed in config_feeds:
-            feeds.append((feed.url, feed.name))
+            feeds.append((feed.url, feed.name, feed.limit))
 
-    # Add CLI feeds
+    # Add CLI feeds (no per-feed limit)
     if args.feed:
         for url in args.feed:
-            feeds.append((url, None))
+            feeds.append((url, None, 0))
 
     return feeds
 
@@ -328,10 +329,15 @@ def main(argv: Optional[list[str]] = None) -> int:
     total_skipped = 0
     total_errors = 0
 
-    for feed_url, feed_name in feeds:
+    for feed_url, feed_name, feed_limit in feeds:
         # Use feed name from config, or CLI --source override, or let ingest_feed detect
         source = args.source or feed_name
-        print(f"  Processing: {feed_name or feed_url}")
+
+        # CLI --limit overrides per-feed config limit; otherwise use per-feed limit
+        effective_limit = args.limit if args.limit > 0 else feed_limit
+
+        limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
+        print(f"  Processing: {feed_name or feed_url}{limit_info}")
 
         fetched, skipped, errors = ingest_feed(
             feed_url=feed_url,
@@ -341,7 +347,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             conn=conn,
             repo=repo,
             source_override=source,
-            limit=args.limit,
+            limit=effective_limit,
             timeout=args.timeout,
             skip_existing=args.skip_existing,
         )

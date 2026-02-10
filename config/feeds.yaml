@@ -1,19 +1,27 @@
 # RSS feeds for AI trend graph ingestion
 # Runtime configuration - parsed by src/ingest/rss.py
+#
+# Per-feed `limit` caps items ingested per run (0 = unlimited).
+# The CLI --limit flag overrides per-feed limits when set.
 
 feeds:
+  # --- Tier 1: Core sources (high signal, direct coverage) ---
+
   - name: "arXiv CS.AI"
     url: "https://rss.arxiv.org/rss/cs.AI"
     type: rss
     enabled: true
+    limit: 20
     # Academic papers; structured metadata (authors, affiliations)
-    # High volume - consider filtering or sampling
+    # High volume (~50-100/day); limit keeps it proportional to other sources.
+    # RSS includes title + abstract — cheap triage before full-paper fetch.
 
   - name: "Hugging Face Blog"
     url: "https://huggingface.co/blog/feed.xml"
     type: rss
     enabled: true
     # Model releases, dataset announcements, open-source ecosystem
+    # Low volume (few posts/week); no limit needed
 
   - name: "OpenAI Blog"
     url: "https://openai.com/blog/rss.xml"
@@ -21,8 +29,28 @@ feeds:
     enabled: true
     # Major industry announcements, model launches
 
-# Future sources to consider:
-# - Anthropic Blog: https://www.anthropic.com/news/rss.xml
-# - Google AI Blog: https://blog.google/technology/ai/rss/
-# - MIT Technology Review AI: https://www.technologyreview.com/feed/
-# - The Gradient: https://thegradient.pub/rss/
+  - name: "Anthropic Blog"
+    url: "https://www.anthropic.com/news/rss.xml"
+    type: rss
+    enabled: true
+    # Safety research, model releases, policy positions
+    # Fills major-lab gap — without this we only see OpenAI's perspective
+
+  - name: "Google AI Blog"
+    url: "https://blog.google/technology/ai/rss/"
+    type: rss
+    enabled: true
+    # Gemini, DeepMind research, infra announcements
+
+  - name: "MIT Technology Review"
+    url: "https://www.technologyreview.com/feed/"
+    type: rss
+    enabled: true
+    # Journalistic lens: policy, societal impact, cross-domain angles
+    # Surfaces stories that lab blogs won't cover
+
+  - name: "The Gradient"
+    url: "https://thegradient.pub/rss/"
+    type: rss
+    enabled: true
+    # In-depth technical analysis bridging academia and industry
