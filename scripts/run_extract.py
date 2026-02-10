@@ -40,9 +40,11 @@ from extract import (
     build_extraction_prompt,
     parse_extraction_response,
     save_extraction,
+    compare_extractions,
     ExtractionError,
     EXTRACTOR_VERSION,
 )
+from db import init_db, insert_extraction_comparison
 
 
 def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
@@ -66,6 +68,11 @@ def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
 def get_default_model() -> str:
     """Get default model from environment or use fallback."""
     return os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-20250514")
+
+
+def get_understudy_model() -> str | None:
+    """Get understudy model from environment."""
+    return os.environ.get("UNDERSTUDY_MODEL")
 
 
 def extract_with_anthropic(
@@ -117,6 +124,9 @@ def run_extraction(
     model: str | None = None,
     max_docs: Optional[int] = None,
     skip_existing: bool = True,
+    shadow_mode: bool = False,
+    understudy_model: str | None = None,
+    db_path: Path | None = None,
 ) -> tuple[int, int, int]:
     """Run extraction on all documents in a docpack.
 
@@ -126,12 +136,27 @@ def run_extraction(
         model: Model ID to use
         max_docs: Maximum documents to process (None for all)
         skip_existing: Skip documents that already have extractions
+        shadow_mode: If True, run understudy model in parallel and log comparison
+        understudy_model: Model ID for understudy (required if shadow_mode=True)
+        db_path: Path to SQLite database for comparison logging
 
     Returns:
         Tuple of (processed, succeeded, failed) counts
     """
     if model is None:
         model = get_default_model()
+
+    # Shadow mode setup
+    conn = None
+    if shadow_mode:
+        if not understudy_model:
+            print("ERROR: --shadow requires UNDERSTUDY_MODEL env var or --understudy-model")
+            sys.exit(1)
+        if db_path:
+            conn = init_db(db_path)
+            print(f"Shadow mode: comparing {model} vs {understudy_model}")
+        else:
+            print(f"Shadow mode enabled but no --db specified; comparisons won't be logged")
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -160,7 +185,7 @@ def run_extraction(
         processed += 1
 
         try:
-            # Call API
+            # Call primary API
             response_text, duration_ms = extract_with_anthropic(doc, model=model)
 
             # Parse and validate
@@ -173,6 +198,63 @@ def run_extraction(
             relation_count = len(extraction.get("relations", []))
             print(f"OK ({entity_count} entities, {relation_count} relations, {duration_ms}ms)")
             succeeded += 1
+
+            # Shadow mode: run understudy and log comparison
+            if shadow_mode and understudy_model:
+                try:
+                    us_response, us_duration = extract_with_anthropic(doc, model=understudy_model)
+                    us_extraction = parse_extraction_response(us_response, doc_id)
+                    us_valid = True
+                    us_error = None
+                except ExtractionError as ue:
+                    us_extraction = {}
+                    us_valid = False
+                    us_error = str(ue)
+                    us_duration = 0
+                except Exception as ue:
+                    us_extraction = {}
+                    us_valid = False
+                    us_error = f"{type(ue).__name__}: {ue}"
+                    us_duration = 0
+
+                # Compare and log
+                comparison = compare_extractions(
+                    primary=extraction,
+                    understudy=us_extraction,
+                    understudy_model=understudy_model,
+                    schema_valid=us_valid,
+                    parse_error=us_error,
+                    primary_duration_ms=duration_ms,
+                    understudy_duration_ms=us_duration,
+                )
+
+                if conn:
+                    from datetime import date
+                    insert_extraction_comparison(
+                        conn,
+                        doc_id=comparison["doc_id"],
+                        run_date=date.today().isoformat(),
+                        understudy_model=comparison["understudy_model"],
+                        schema_valid=comparison["schema_valid"],
+                        parse_error=comparison["parse_error"],
+                        primary_entities=comparison["primary_entities"],
+                        primary_relations=comparison["primary_relations"],
+                        primary_tech_terms=comparison["primary_tech_terms"],
+                        understudy_entities=comparison["understudy_entities"],
+                        understudy_relations=comparison["understudy_relations"],
+                        understudy_tech_terms=comparison["understudy_tech_terms"],
+                        entity_overlap_pct=comparison["entity_overlap_pct"],
+                        relation_overlap_pct=comparison["relation_overlap_pct"],
+                        primary_duration_ms=comparison["primary_duration_ms"],
+                        understudy_duration_ms=comparison["understudy_duration_ms"],
+                    )
+
+                # Log shadow result
+                if us_valid:
+                    overlap = comparison.get("entity_overlap_pct", 0) or 0
+                    print(f"    └─ understudy: OK ({overlap:.0f}% entity overlap)")
+                else:
+                    print(f"    └─ understudy: FAILED ({us_error[:50]}...)")
 
         except ExtractionError as e:
             print(f"FAILED: {e}")
@@ -227,6 +309,21 @@ def main() -> int:
         action="store_true",
         help="Re-process documents that already have extractions",
     )
+    parser.add_argument(
+        "--shadow",
+        action="store_true",
+        help="Enable shadow mode: run understudy model and log comparison stats",
+    )
+    parser.add_argument(
+        "--understudy-model",
+        default=None,
+        help="Understudy model ID (default: UNDERSTUDY_MODEL env var)",
+    )
+    parser.add_argument(
+        "--db",
+        default="data/db/predictor.db",
+        help="Path to SQLite database for shadow mode logging (default: data/db/predictor.db)",
+    )
     args = parser.parse_args()
 
     docpack_path = Path(args.docpack)
@@ -235,8 +332,12 @@ def main() -> int:
         return 1
 
     model = args.model or get_default_model()
+    understudy = args.understudy_model or get_understudy_model()
+
     print(f"Extraction runner v{EXTRACTOR_VERSION}")
     print(f"Model: {model}")
+    if args.shadow:
+        print(f"Shadow mode: ON (understudy: {understudy or 'NOT SET'})")
     print(f"Docpack: {docpack_path}")
     print(f"Output: {args.output_dir}")
     print()
@@ -247,6 +348,9 @@ def main() -> int:
         model=model,
         max_docs=args.max_docs,
         skip_existing=not args.no_skip,
+        shadow_mode=args.shadow,
+        understudy_model=understudy,
+        db_path=Path(args.db) if args.shadow else None,
     )
 
     print()
