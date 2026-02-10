@@ -101,23 +101,46 @@ stories cross into mainstream awareness. Not used for entity extraction; only fo
 
 ---
 
-## The arXiv Volume Problem
+## High-Volume Source Management
 
-arXiv CS.AI publishes 50-100 papers per day. Ingesting all of them would drown
-out the other sources and consume disproportionate extraction tokens.
+Some sources publish far more than can be cost-effectively extracted in full.
+arXiv CS.AI alone produces 50-100 papers per day. Ingesting everything would
+drown out other sources and consume disproportionate extraction tokens.
 
-### Solution: Per-feed limits + two-pass triage
+### Solution: Per-feed limits (V1)
 
-1. **Per-feed limit** (`limit: 20` in feeds.yaml) caps items per ingestion run.
-   This is simple, deterministic, and keeps arXiv proportional.
+`limit` in feeds.yaml caps items per ingestion run. Simple, deterministic, and
+keeps any single source proportional. arXiv is currently set to 20/run.
 
-2. **Two-pass triage** (future enhancement): arXiv RSS includes title + abstract
-   in the feed XML itself. Phase 1 extracts entities from the abstract only
-   (cheap — ~200-500 tokens). Phase 2 fetches the full paper only for items
-   whose abstract mentions entities already in the graph or scores high on
-   novelty. This is the practical answer to the "Heisenberg problem" — you don't
-   know if a paper is worth the tokens until you read it, but the abstract gives
-   you a low-cost observation before committing to the full measurement.
+### Solution: Two-pass triage (V2)
+
+The fundamental tension: you don't know if a document is worth the extraction
+tokens until you've read it, but reading *is* the cost. (The Heisenberg problem
+of NLP.)
+
+Two-pass triage resolves this for any source that provides a **cheap preview**:
+
+| Source Type | Cheap Preview | Full Document |
+|---|---|---|
+| arXiv | Title + abstract (in RSS XML) | Full paper PDF |
+| News aggregators | Headline + lead paragraph | Full article |
+| GitHub releases | Release title + notes | Full repo/docs |
+| Patent feeds | Title + abstract | Full filing |
+
+**Phase 1 (cheap):** Extract entities from the preview only (~200-500 tokens).
+Score against the existing graph — does this mention known entities? Does it
+introduce novel ones?
+
+**Phase 2 (selective):** Fetch and extract the full document only for items that
+scored above a threshold in Phase 1. This concentrates token spend on documents
+most likely to enrich the graph.
+
+This pattern generalizes to any high-volume source with a summary/abstract/
+headline layer. The implementation requires:
+- A `preview_text` field in the document record (populated from feed metadata)
+- A lightweight scoring function that checks entity overlap with the graph
+- A `triage_status` field (`preview_extracted`, `promoted`, `skipped`)
+- A second extraction pass that runs only on promoted documents
 
 ---
 
@@ -176,11 +199,12 @@ talked about, and the human decides *whether* to follow that thread.
 
 ### Medium-term (V1.5)
 - Implement entity watchlist query (Tier 2)
-- Add two-pass triage for arXiv (abstract-first extraction)
 - Consider 1-2 additional vantage points if gaps emerge (e.g., government/policy:
   NIST, EU AI Act sources)
 
 ### Long-term (V2)
+- Two-pass triage for high-volume sources (arXiv first, then generalize to any
+  source with a cheap preview layer — news headlines, GitHub release notes, etc.)
 - Mainstream echo scoring (Tier 3)
 - Source quality scoring based on extraction yield (entities per token)
 - Automated watchlist surfacing in the Cytoscape UI
