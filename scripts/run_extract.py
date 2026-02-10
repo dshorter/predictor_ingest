@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Optional
 
@@ -24,11 +25,13 @@ def load_dotenv() -> None:
     if env_path.exists():
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
-                line = line.strip()
+                # Strip whitespace and handle Windows CRLF
+                line = line.replace("\r", "").strip()
                 if line and not line.startswith("#") and "=" in line:
                     key, _, value = line.partition("=")
                     key = key.strip()
-                    value = value.strip().strip("\"'")
+                    # Strip quotes and whitespace from value
+                    value = value.strip().strip("\"'").strip()
                     if key and key not in os.environ:
                         os.environ[key] = value
 
@@ -67,12 +70,14 @@ def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
 
 def get_default_model() -> str:
     """Get default model from environment or use fallback."""
-    return os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-20250514")
+    model = os.environ.get("PRIMARY_MODEL", "").strip()
+    return model if model else "claude-sonnet-4-20250514"
 
 
 def get_understudy_model() -> str | None:
     """Get understudy model from environment."""
-    return os.environ.get("UNDERSTUDY_MODEL")
+    model = os.environ.get("UNDERSTUDY_MODEL", "").strip()
+    return model if model else None
 
 
 def extract_with_anthropic(
@@ -127,6 +132,7 @@ def run_extraction(
     shadow_mode: bool = False,
     understudy_model: str | None = None,
     db_path: Path | None = None,
+    parallel: bool = False,
 ) -> tuple[int, int, int]:
     """Run extraction on all documents in a docpack.
 
@@ -136,9 +142,10 @@ def run_extraction(
         model: Model ID to use
         max_docs: Maximum documents to process (None for all)
         skip_existing: Skip documents that already have extractions
-        shadow_mode: If True, run understudy model in parallel and log comparison
+        shadow_mode: If True, run understudy model and log comparison
         understudy_model: Model ID for understudy (required if shadow_mode=True)
         db_path: Path to SQLite database for comparison logging
+        parallel: If True, run primary and understudy extractions in parallel
 
     Returns:
         Tuple of (processed, succeeded, failed) counts
@@ -185,39 +192,71 @@ def run_extraction(
         processed += 1
 
         try:
-            # Call primary API
-            response_text, duration_ms = extract_with_anthropic(doc, model=model)
+            # Shadow mode with parallel execution
+            if shadow_mode and understudy_model and parallel:
+                # Run both extractions in parallel
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    primary_future = executor.submit(extract_with_anthropic, doc, model)
+                    understudy_future = executor.submit(extract_with_anthropic, doc, understudy_model)
 
-            # Parse and validate
-            extraction = parse_extraction_response(response_text, doc_id)
+                    # Get primary result
+                    response_text, duration_ms = primary_future.result()
+                    extraction = parse_extraction_response(response_text, doc_id)
+                    save_extraction(extraction, output_dir)
 
-            # Save
-            save_extraction(extraction, output_dir)
+                    entity_count = len(extraction.get("entities", []))
+                    relation_count = len(extraction.get("relations", []))
+                    print(f"OK ({entity_count} entities, {relation_count} relations, {duration_ms}ms)")
+                    succeeded += 1
 
-            entity_count = len(extraction.get("entities", []))
-            relation_count = len(extraction.get("relations", []))
-            print(f"OK ({entity_count} entities, {relation_count} relations, {duration_ms}ms)")
-            succeeded += 1
+                    # Get understudy result
+                    try:
+                        us_response, us_duration = understudy_future.result()
+                        us_extraction = parse_extraction_response(us_response, doc_id)
+                        us_valid = True
+                        us_error = None
+                    except ExtractionError as ue:
+                        us_extraction = {}
+                        us_valid = False
+                        us_error = str(ue)
+                        us_duration = 0
+                    except Exception as ue:
+                        us_extraction = {}
+                        us_valid = False
+                        us_error = f"{type(ue).__name__}: {ue}"
+                        us_duration = 0
 
-            # Shadow mode: run understudy and log comparison
+            else:
+                # Sequential: Call primary API first
+                response_text, duration_ms = extract_with_anthropic(doc, model=model)
+                extraction = parse_extraction_response(response_text, doc_id)
+                save_extraction(extraction, output_dir)
+
+                entity_count = len(extraction.get("entities", []))
+                relation_count = len(extraction.get("relations", []))
+                print(f"OK ({entity_count} entities, {relation_count} relations, {duration_ms}ms)")
+                succeeded += 1
+
+                # Shadow mode: run understudy sequentially
+                if shadow_mode and understudy_model:
+                    try:
+                        us_response, us_duration = extract_with_anthropic(doc, model=understudy_model)
+                        us_extraction = parse_extraction_response(us_response, doc_id)
+                        us_valid = True
+                        us_error = None
+                    except ExtractionError as ue:
+                        us_extraction = {}
+                        us_valid = False
+                        us_error = str(ue)
+                        us_duration = 0
+                    except Exception as ue:
+                        us_extraction = {}
+                        us_valid = False
+                        us_error = f"{type(ue).__name__}: {ue}"
+                        us_duration = 0
+
+            # Log shadow comparison (for both parallel and sequential)
             if shadow_mode and understudy_model:
-                try:
-                    us_response, us_duration = extract_with_anthropic(doc, model=understudy_model)
-                    us_extraction = parse_extraction_response(us_response, doc_id)
-                    us_valid = True
-                    us_error = None
-                except ExtractionError as ue:
-                    us_extraction = {}
-                    us_valid = False
-                    us_error = str(ue)
-                    us_duration = 0
-                except Exception as ue:
-                    us_extraction = {}
-                    us_valid = False
-                    us_error = f"{type(ue).__name__}: {ue}"
-                    us_duration = 0
-
-                # Compare and log
                 comparison = compare_extractions(
                     primary=extraction,
                     understudy=us_extraction,
@@ -315,6 +354,11 @@ def main() -> int:
         help="Enable shadow mode: run understudy model and log comparison stats",
     )
     parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run primary and understudy extractions in parallel (requires --shadow)",
+    )
+    parser.add_argument(
         "--understudy-model",
         default=None,
         help="Understudy model ID (default: UNDERSTUDY_MODEL env var)",
@@ -337,7 +381,8 @@ def main() -> int:
     print(f"Extraction runner v{EXTRACTOR_VERSION}")
     print(f"Model: {model}")
     if args.shadow:
-        print(f"Shadow mode: ON (understudy: {understudy or 'NOT SET'})")
+        mode = "parallel" if args.parallel else "sequential"
+        print(f"Shadow mode: ON ({mode}, understudy: {understudy or 'NOT SET'})")
     print(f"Docpack: {docpack_path}")
     print(f"Output: {args.output_dir}")
     print()
@@ -351,6 +396,7 @@ def main() -> int:
         shadow_mode=args.shadow,
         understudy_model=understudy,
         db_path=Path(args.db) if args.shadow else None,
+        parallel=args.parallel,
     )
 
     print()
