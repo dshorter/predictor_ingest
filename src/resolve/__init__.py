@@ -376,6 +376,13 @@ class EntityResolver:
         # Try to resolve first
         existing = self.resolve(name, entity_type)
         if existing:
+            # Update last_seen if provided
+            if kwargs.get("last_seen"):
+                self.conn.execute(
+                    "UPDATE entities SET last_seen = ? WHERE entity_id = ? AND (last_seen IS NULL OR last_seen < ?)",
+                    (kwargs["last_seen"], existing, kwargs["last_seen"]),
+                )
+                self.conn.commit()
             return existing
 
         # Create new entity
@@ -409,11 +416,13 @@ class EntityResolver:
     def resolve_extraction(
         self,
         extraction: dict[str, Any],
+        observed_date: Optional[str] = None,
     ) -> dict[str, str]:
         """Resolve all entities in an extraction.
 
         Args:
             extraction: Extraction dict with entities list
+            observed_date: Document published date (ISO) for first_seen/last_seen
 
         Returns:
             Mapping of entity names to resolved IDs
@@ -424,7 +433,11 @@ class EntityResolver:
             name = entity["name"]
             entity_type = entity["type"]
 
-            entity_id = self.resolve_or_create(name, entity_type)
+            entity_id = self.resolve_or_create(
+                name, entity_type,
+                first_seen=observed_date,
+                last_seen=observed_date,
+            )
             resolved[name] = entity_id
 
         return resolved

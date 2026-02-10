@@ -74,13 +74,21 @@ def import_extractions(
             stats["files_processed"] += 1
             continue
 
+        # Look up document's published date for entity timestamps
+        cursor = conn.execute(
+            "SELECT published_at FROM documents WHERE doc_id = ?",
+            (doc_id,)
+        )
+        row = cursor.fetchone()
+        doc_published = row[0] if row else None
+
         # Resolve entities — get name-to-ID mapping
         # Track which are new vs resolved to existing
         entities_before = set()
         cursor = conn.execute("SELECT entity_id FROM entities")
         entities_before = {row[0] for row in cursor.fetchall()}
 
-        name_to_id = resolver.resolve_extraction(extraction)
+        name_to_id = resolver.resolve_extraction(extraction, observed_date=doc_published)
 
         entities_after = set()
         cursor = conn.execute("SELECT entity_id FROM entities")

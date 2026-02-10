@@ -80,11 +80,12 @@ def build_document_node(doc: dict[str, Any]) -> dict[str, Any]:
     return {"data": data}
 
 
-def build_edge(relation: dict[str, Any]) -> dict[str, Any]:
+def build_edge(relation: dict[str, Any], evidence: list[dict[str, Any]] = None) -> dict[str, Any]:
     """Build a Cytoscape edge from a relation dict.
 
     Args:
         relation: Relation dict with source_id, target_id, rel, etc.
+        evidence: List of evidence records for this relation
 
     Returns:
         Cytoscape edge dict with data property
@@ -107,6 +108,18 @@ def build_edge(relation: dict[str, Any]) -> dict[str, Any]:
         data["docId"] = relation["doc_id"]
     if relation.get("verb_raw"):
         data["verbRaw"] = relation["verb_raw"]
+
+    # Include evidence if provided
+    if evidence:
+        data["evidence"] = [
+            {
+                "docId": ev.get("doc_id"),
+                "url": ev.get("url"),
+                "published": ev.get("published"),
+                "snippet": ev.get("snippet"),
+            }
+            for ev in evidence
+        ]
 
     return {"data": data}
 
@@ -184,6 +197,23 @@ class GraphExporter:
 
         return relations
 
+    def _get_evidence_for_relation(self, relation_id: int) -> list[dict[str, Any]]:
+        """Get evidence records for a relation."""
+        cursor = self.conn.execute(
+            "SELECT * FROM evidence WHERE relation_id = ?",
+            (relation_id,)
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+    def _build_edges_with_evidence(self, relations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Build edges including evidence data."""
+        edges = []
+        for rel in relations:
+            relation_id = rel.get("relation_id")
+            evidence = self._get_evidence_for_relation(relation_id) if relation_id else []
+            edges.append(build_edge(rel, evidence))
+        return edges
+
     def _get_referenced_entity_ids(
         self,
         relations: list[dict[str, Any]]
@@ -219,7 +249,7 @@ class GraphExporter:
         relations = self._get_relations(kinds=kinds)
 
         nodes = [build_node(e) for e in entities]
-        edges = [build_edge(r) for r in relations]
+        edges = self._build_edges_with_evidence(relations)
 
         return {
             "elements": {
@@ -268,7 +298,7 @@ class GraphExporter:
                 if doc_node not in nodes:
                     nodes.append(doc_node)
 
-        edges = [build_edge(r) for r in relations]
+        edges = self._build_edges_with_evidence(relations)
 
         return {
             "elements": {
@@ -305,7 +335,7 @@ class GraphExporter:
         referenced_ids = self._get_referenced_entity_ids(relations)
         nodes = self._filter_nodes_by_ids(entity_nodes, referenced_ids)
 
-        edges = [build_edge(r) for r in relations]
+        edges = self._build_edges_with_evidence(relations)
 
         return {
             "elements": {
@@ -340,7 +370,7 @@ class GraphExporter:
         referenced_ids = self._get_referenced_entity_ids(relations)
         nodes = self._filter_nodes_by_ids(entity_nodes, referenced_ids)
 
-        edges = [build_edge(r) for r in relations]
+        edges = self._build_edges_with_evidence(relations)
 
         return {
             "elements": {
