@@ -37,11 +37,68 @@ RELATION_TYPES = [
     "PREDICTS", "DETECTS", "MONITORS",
 ]
 
+# Map common LLM variations to canonical relation types
+RELATION_NORMALIZATION = {
+    "ANNOUNCED": "ANNOUNCES",
+    "ANNOUNCING": "ANNOUNCES",
+    "MENTIONED": "MENTIONS",
+    "MENTIONING": "MENTIONS",
+    "CITED": "CITES",
+    "CITING": "CITES",
+    "LAUNCHED_BY": "LAUNCHED",
+    "PUBLISHED_BY": "PUBLISHED",
+    "CREATED_BY": "CREATED",
+    "FUNDED_BY": "FUNDED",
+    "USED": "USES_TECH",
+    "USING": "USES_TECH",
+    "DEVELOPED": "CREATED",
+    "DEVELOPED_BY": "CREATED",
+    "BUILT": "CREATED",
+    "BUILT_BY": "CREATED",
+    "RELEASED": "LAUNCHED",
+    "RELEASED_BY": "LAUNCHED",
+    "PARTNERS_WITH": "PARTNERED_WITH",
+    "PARTNERING_WITH": "PARTNERED_WITH",
+}
+
 
 class ExtractionError(Exception):
     """Raised when extraction fails."""
 
     pass
+
+
+def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
+    """Normalize LLM output variations to canonical forms.
+
+    Args:
+        data: Raw extraction dict from LLM
+
+    Returns:
+        Normalized extraction dict
+    """
+    # Normalize relation types
+    for relation in data.get("relations", []):
+        rel = relation.get("rel", "").upper()
+        if rel in RELATION_NORMALIZATION:
+            relation["rel"] = RELATION_NORMALIZATION[rel]
+        elif rel not in RELATION_TYPES:
+            # Try to match without underscores/hyphens
+            normalized = rel.replace("-", "_").replace(" ", "_")
+            if normalized in RELATION_NORMALIZATION:
+                relation["rel"] = RELATION_NORMALIZATION[normalized]
+
+    # Normalize entity types
+    for entity in data.get("entities", []):
+        etype = entity.get("type", "")
+        # Capitalize first letter for consistency
+        if etype and etype.lower() in [t.lower() for t in ENTITY_TYPES]:
+            for canonical in ENTITY_TYPES:
+                if etype.lower() == canonical.lower():
+                    entity["type"] = canonical
+                    break
+
+    return data
 
 
 def build_extraction_prompt(
@@ -158,6 +215,9 @@ def parse_extraction_response(
     # Inject docId if missing
     if "docId" not in data:
         data["docId"] = doc_id
+
+    # Normalize LLM output variations before validation
+    data = normalize_extraction(data)
 
     # Validate against schema
     try:
