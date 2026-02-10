@@ -123,6 +123,120 @@ def extract_with_anthropic(
     return response.content[0].text, duration_ms
 
 
+def run_shadow_only(
+    docpack_path: Path,
+    output_dir: Path,
+    understudy_model: str,
+    db_path: Path | None = None,
+    max_docs: Optional[int] = None,
+) -> tuple[int, int, int]:
+    """Run only the understudy extraction against existing primary results.
+
+    Loads primary extractions from disk, runs the understudy model,
+    and logs comparison stats. Does NOT call the primary model.
+
+    Args:
+        docpack_path: Path to JSONL docpack file
+        output_dir: Directory where primary extractions live
+        understudy_model: Model ID for understudy
+        db_path: Path to SQLite database for comparison logging
+        max_docs: Maximum documents to process (None for all)
+
+    Returns:
+        Tuple of (processed, succeeded, failed) counts
+    """
+    conn = None
+    if db_path:
+        conn = init_db(db_path)
+    print(f"Shadow-only mode: running {understudy_model} against existing extractions")
+
+    docs = load_docpack(docpack_path)
+    print(f"Loaded {len(docs)} documents from {docpack_path}")
+
+    if max_docs:
+        docs = docs[:max_docs]
+        print(f"Limiting to first {max_docs} documents")
+
+    processed = 0
+    succeeded = 0
+    failed = 0
+
+    for i, doc in enumerate(docs, 1):
+        doc_id = doc.get("docId", f"unknown_{i}")
+
+        # Load existing primary extraction
+        primary_path = output_dir / f"{doc_id}.json"
+        if not primary_path.exists():
+            print(f"  [{i}/{len(docs)}] {doc_id}: SKIPPED (no primary extraction)")
+            continue
+
+        with open(primary_path, "r", encoding="utf-8") as f:
+            extraction = json.load(f)
+
+        print(f"  [{i}/{len(docs)}] {doc_id}: understudy extracting...", end=" ", flush=True)
+        processed += 1
+
+        try:
+            us_response, us_duration = extract_with_anthropic(doc, model=understudy_model)
+            us_extraction = parse_extraction_response(us_response, doc_id)
+            us_valid = True
+            us_error = None
+        except ExtractionError as ue:
+            us_extraction = {}
+            us_valid = False
+            us_error = str(ue)
+            us_duration = 0
+        except Exception as ue:
+            us_extraction = {}
+            us_valid = False
+            us_error = f"{type(ue).__name__}: {ue}"
+            us_duration = 0
+
+        comparison = compare_extractions(
+            primary=extraction,
+            understudy=us_extraction,
+            understudy_model=understudy_model,
+            schema_valid=us_valid,
+            parse_error=us_error,
+            primary_duration_ms=0,
+            understudy_duration_ms=us_duration,
+        )
+
+        if conn:
+            from datetime import date
+            insert_extraction_comparison(
+                conn,
+                doc_id=comparison["doc_id"],
+                run_date=date.today().isoformat(),
+                understudy_model=comparison["understudy_model"],
+                schema_valid=comparison["schema_valid"],
+                parse_error=comparison["parse_error"],
+                primary_entities=comparison["primary_entities"],
+                primary_relations=comparison["primary_relations"],
+                primary_tech_terms=comparison["primary_tech_terms"],
+                understudy_entities=comparison["understudy_entities"],
+                understudy_relations=comparison["understudy_relations"],
+                understudy_tech_terms=comparison["understudy_tech_terms"],
+                entity_overlap_pct=comparison["entity_overlap_pct"],
+                relation_overlap_pct=comparison["relation_overlap_pct"],
+                primary_duration_ms=comparison["primary_duration_ms"],
+                understudy_duration_ms=comparison["understudy_duration_ms"],
+            )
+
+        if us_valid:
+            overlap = comparison.get("entity_overlap_pct", 0) or 0
+            print(f"OK ({overlap:.0f}% entity overlap, {us_duration}ms)")
+            succeeded += 1
+        else:
+            print(f"FAILED ({us_error[:60]}...)")
+            failed += 1
+
+        if i < len(docs):
+            time.sleep(0.5)
+
+    return processed, succeeded, failed
+
+
 def run_extraction(
     docpack_path: Path,
     output_dir: Path,
@@ -354,6 +468,11 @@ def main() -> int:
         help="Enable shadow mode: run understudy model and log comparison stats",
     )
     parser.add_argument(
+        "--shadow-only",
+        action="store_true",
+        help="Run only the understudy model against existing primary extractions (no primary API calls)",
+    )
+    parser.add_argument(
         "--parallel",
         action="store_true",
         help="Run primary and understudy extractions in parallel (requires --shadow)",
@@ -379,25 +498,43 @@ def main() -> int:
     understudy = args.understudy_model or get_understudy_model()
 
     print(f"Extraction runner v{EXTRACTOR_VERSION}")
-    print(f"Model: {model}")
-    if args.shadow:
-        mode = "parallel" if args.parallel else "sequential"
-        print(f"Shadow mode: ON ({mode}, understudy: {understudy or 'NOT SET'})")
-    print(f"Docpack: {docpack_path}")
-    print(f"Output: {args.output_dir}")
-    print()
 
-    processed, succeeded, failed = run_extraction(
-        docpack_path=docpack_path,
-        output_dir=Path(args.output_dir),
-        model=model,
-        max_docs=args.max_docs,
-        skip_existing=not args.no_skip,
-        shadow_mode=args.shadow,
-        understudy_model=understudy,
-        db_path=Path(args.db) if args.shadow else None,
-        parallel=args.parallel,
-    )
+    if args.shadow_only:
+        if not understudy:
+            print("ERROR: --shadow-only requires UNDERSTUDY_MODEL env var or --understudy-model")
+            return 1
+        print(f"Shadow-only mode: {understudy}")
+        print(f"Docpack: {docpack_path}")
+        print(f"Extractions dir: {args.output_dir}")
+        print()
+
+        processed, succeeded, failed = run_shadow_only(
+            docpack_path=docpack_path,
+            output_dir=Path(args.output_dir),
+            understudy_model=understudy,
+            db_path=Path(args.db),
+            max_docs=args.max_docs,
+        )
+    else:
+        print(f"Model: {model}")
+        if args.shadow:
+            mode = "parallel" if args.parallel else "sequential"
+            print(f"Shadow mode: ON ({mode}, understudy: {understudy or 'NOT SET'})")
+        print(f"Docpack: {docpack_path}")
+        print(f"Output: {args.output_dir}")
+        print()
+
+        processed, succeeded, failed = run_extraction(
+            docpack_path=docpack_path,
+            output_dir=Path(args.output_dir),
+            model=model,
+            max_docs=args.max_docs,
+            skip_existing=not args.no_skip,
+            shadow_mode=args.shadow,
+            understudy_model=understudy,
+            db_path=Path(args.db) if args.shadow else None,
+            parallel=args.parallel,
+        )
 
     print()
     print(f"Done. Processed: {processed}, Succeeded: {succeeded}, Failed: {failed}")
