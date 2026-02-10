@@ -1,9 +1,10 @@
-.PHONY: setup init-db ingest docpack import resolve export trending pipeline post-extract test test-network test-all
+.PHONY: setup init-db ingest docpack extract import resolve export trending pipeline post-extract test test-network test-all
 
 # Configurable paths (override with: make export DATE=2026-01-15)
 DB ?= data/db/predictor.db
 DATE ?= $(shell date +%Y-%m-%d)
 GRAPHS_DIR ?= data/graphs
+DOCPACK ?= data/docpacks/daily_bundle_$(DATE).jsonl
 
 # ── Setup ──────────────────────────────────────────────────────────────
 
@@ -20,6 +21,9 @@ ingest:
 
 docpack:
 	python scripts/build_docpack.py --db $(DB) --date $(DATE)
+
+extract:
+	python scripts/run_extract.py --docpack $(DOCPACK)
 
 import:
 	python scripts/import_extractions.py --db $(DB)
