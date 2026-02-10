@@ -17,6 +17,25 @@ from typing import Any, Optional
 # Add src/ to import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+
+def load_dotenv() -> None:
+    """Load .env file from project root if it exists."""
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip("\"'")
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+
+
+# Load environment variables from .env file
+load_dotenv()
+
 from extract import (
     build_extraction_prompt,
     parse_extraction_response,
@@ -44,9 +63,14 @@ def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
     return docs
 
 
+def get_default_model() -> str:
+    """Get default model from environment or use fallback."""
+    return os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-20250514")
+
+
 def extract_with_anthropic(
     doc: dict[str, Any],
-    model: str = "claude-sonnet-4-20250514",
+    model: str | None = None,
     max_tokens: int = 8192,
 ) -> tuple[str, int]:
     """Call Anthropic API to extract from a document.
@@ -70,6 +94,9 @@ def extract_with_anthropic(
         print("ERROR: ANTHROPIC_API_KEY environment variable not set")
         sys.exit(1)
 
+    if model is None:
+        model = get_default_model()
+
     client = anthropic.Anthropic(api_key=api_key)
     prompt = build_extraction_prompt(doc)
 
@@ -87,7 +114,7 @@ def extract_with_anthropic(
 def run_extraction(
     docpack_path: Path,
     output_dir: Path,
-    model: str = "claude-sonnet-4-20250514",
+    model: str | None = None,
     max_docs: Optional[int] = None,
     skip_existing: bool = True,
 ) -> tuple[int, int, int]:
@@ -103,6 +130,9 @@ def run_extraction(
     Returns:
         Tuple of (processed, succeeded, failed) counts
     """
+    if model is None:
+        model = get_default_model()
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     docs = load_docpack(docpack_path)
@@ -183,8 +213,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--model",
-        default="claude-sonnet-4-20250514",
-        help="Model ID to use (default: claude-sonnet-4-20250514)",
+        default=None,
+        help="Model ID to use (default: PRIMARY_MODEL env var or claude-sonnet-4-20250514)",
     )
     parser.add_argument(
         "--max-docs",
@@ -204,8 +234,9 @@ def main() -> int:
         print(f"ERROR: Docpack not found: {docpack_path}")
         return 1
 
+    model = args.model or get_default_model()
     print(f"Extraction runner v{EXTRACTOR_VERSION}")
-    print(f"Model: {args.model}")
+    print(f"Model: {model}")
     print(f"Docpack: {docpack_path}")
     print(f"Output: {args.output_dir}")
     print()
@@ -213,7 +244,7 @@ def main() -> int:
     processed, succeeded, failed = run_extraction(
         docpack_path=docpack_path,
         output_dir=Path(args.output_dir),
-        model=args.model,
+        model=model,
         max_docs=args.max_docs,
         skip_existing=not args.no_skip,
     )
