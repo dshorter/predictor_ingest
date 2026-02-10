@@ -24,14 +24,16 @@ def build_docpack(
     target_date: str,
     max_docs: int,
     output_dir: Path,
+    all_docs: bool = False,
 ) -> int:
     """Build JSONL and markdown bundles from cleaned documents.
 
     Args:
         db_path: Path to SQLite database
-        target_date: Date to filter by (YYYY-MM-DD)
+        target_date: Date to filter by (YYYY-MM-DD), ignored if all_docs=True
         max_docs: Maximum documents per bundle
         output_dir: Directory to write bundles
+        all_docs: If True, ignore date filter and grab all cleaned documents
 
     Returns:
         Number of documents bundled
@@ -39,22 +41,36 @@ def build_docpack(
     conn = init_db(db_path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Query documents cleaned/fetched on the target date
-    cursor = conn.execute(
-        """
-        SELECT doc_id, url, source, title, published_at, fetched_at, text_path
-        FROM documents
-        WHERE status IN ('fetched', 'cleaned')
-          AND date(fetched_at) = ?
-        ORDER BY fetched_at DESC
-        LIMIT ?
-        """,
-        (target_date, max_docs),
-    )
+    # Query documents - optionally filter by date
+    if all_docs:
+        cursor = conn.execute(
+            """
+            SELECT doc_id, url, source, title, published_at, fetched_at, text_path
+            FROM documents
+            WHERE status IN ('fetched', 'cleaned')
+            ORDER BY fetched_at DESC
+            LIMIT ?
+            """,
+            (max_docs,),
+        )
+        bundle_label = "all"
+    else:
+        cursor = conn.execute(
+            """
+            SELECT doc_id, url, source, title, published_at, fetched_at, text_path
+            FROM documents
+            WHERE status IN ('fetched', 'cleaned')
+              AND date(fetched_at) = ?
+            ORDER BY fetched_at DESC
+            LIMIT ?
+            """,
+            (target_date, max_docs),
+        )
+        bundle_label = target_date
     rows = [dict(row) for row in cursor.fetchall()]
 
     if not rows:
-        print(f"No documents found for {target_date}")
+        print(f"No documents found for {bundle_label}")
         conn.close()
         return 0
 
@@ -83,20 +99,20 @@ def build_docpack(
         })
 
     if not docs:
-        print(f"No documents with readable text for {target_date}")
+        print(f"No documents with readable text for {bundle_label}")
         conn.close()
         return 0
 
     # Write JSONL
-    jsonl_path = output_dir / f"daily_bundle_{target_date}.jsonl"
+    jsonl_path = output_dir / f"daily_bundle_{bundle_label}.jsonl"
     with open(jsonl_path, "w", encoding="utf-8") as f:
         for doc in docs:
             f.write(json.dumps(doc, ensure_ascii=False) + "\n")
 
     # Write Markdown
-    md_path = output_dir / f"daily_bundle_{target_date}.md"
+    md_path = output_dir / f"daily_bundle_{bundle_label}.md"
     with open(md_path, "w", encoding="utf-8") as f:
-        f.write(f"# Daily Document Bundle — {target_date}\n\n")
+        f.write(f"# Document Bundle — {bundle_label}\n\n")
         f.write(
             "Extract entities, relations, and evidence from each document below.\n"
             "Output one JSON object per document following the schema in schemas/extraction.json.\n"
@@ -141,6 +157,10 @@ def main() -> int:
         "--output-dir", default="data/docpacks",
         help="Output directory (default: data/docpacks)",
     )
+    parser.add_argument(
+        "--all", action="store_true",
+        help="Ignore date filter, bundle all cleaned documents",
+    )
     args = parser.parse_args()
 
     count = build_docpack(
@@ -148,6 +168,7 @@ def main() -> int:
         target_date=args.date,
         max_docs=args.max_docs,
         output_dir=Path(args.output_dir),
+        all_docs=args.all,
     )
 
     return 0 if count >= 0 else 1
