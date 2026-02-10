@@ -24,11 +24,13 @@ def load_dotenv() -> None:
     if env_path.exists():
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
-                line = line.strip()
+                # Strip whitespace and handle Windows CRLF
+                line = line.replace("\r", "").strip()
                 if line and not line.startswith("#") and "=" in line:
                     key, _, value = line.partition("=")
                     key = key.strip()
-                    value = value.strip().strip("\"'")
+                    # Strip quotes and whitespace from value
+                    value = value.strip().strip("\"'").strip()
                     if key and key not in os.environ:
                         os.environ[key] = value
 
@@ -67,12 +69,14 @@ def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
 
 def get_default_model() -> str:
     """Get default model from environment or use fallback."""
-    return os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-20250514")
+    model = os.environ.get("PRIMARY_MODEL", "").strip()
+    return model if model else "claude-sonnet-4-20250514"
 
 
 def get_understudy_model() -> str | None:
     """Get understudy model from environment."""
-    return os.environ.get("UNDERSTUDY_MODEL")
+    model = os.environ.get("UNDERSTUDY_MODEL", "").strip()
+    return model if model else None
 
 
 def extract_with_anthropic(
