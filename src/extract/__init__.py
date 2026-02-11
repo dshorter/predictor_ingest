@@ -404,7 +404,7 @@ OPENAI_EXTRACTION_TOOL = {
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "required": ["text"],
+                        "required": ["text", "start", "end", "resolution", "anchor"],
                         "additionalProperties": False,
                         "properties": {
                             "text": {"type": "string", "description": "Raw date text"},
