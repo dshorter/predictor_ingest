@@ -34,3 +34,13 @@ markers = [
     "network: marks tests as requiring network access (deselect with '-m \"not network\"')",
     "llm_live: marks tests that call real LLM APIs (requires API keys in env)",
 ]
+
+[tool.versions]
+python = ">=3.10"
+feedparser = ">=6.0.11"
+requests = ">=2.31.0"
+beautifulsoup4 = ">=4.12.3"
+pyyaml = ">=6.0.1"
+jsonschema = ">=4.20.0"
+
+
