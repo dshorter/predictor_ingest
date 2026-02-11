@@ -298,11 +298,11 @@ class LLMProvider:
 
 
 class OpenAIProvider(LLMProvider):
-    """OpenAI API provider (GPT-4.1, GPT-4.1-mini)."""
+    """OpenAI API provider using tool calling with strict schema enforcement."""
 
     name = "openai"
 
-    def __init__(self, model: str = "gpt-4.1-mini"):
+    def __init__(self, model: str = "gpt-5-nano"):
         self.model = model
         self._client: Any = None
 
@@ -319,15 +319,28 @@ class OpenAIProvider(LLMProvider):
         return self._client
 
     def extract(self, doc: dict[str, Any]) -> str:
+        from extract import (
+            build_extraction_system_prompt,
+            build_extraction_user_prompt,
+            OPENAI_EXTRACTION_TOOL,
+        )
         client = self._get_client()
-        prompt = build_extraction_prompt(doc)
+        system_prompt = build_extraction_system_prompt()
+        user_prompt = build_extraction_user_prompt(doc)
         response = client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
             temperature=0.0,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            tools=[OPENAI_EXTRACTION_TOOL],
+            tool_choice={"type": "function", "function": {"name": "emit_extraction"}},
         )
-        return response.choices[0].message.content
+        choice = response.choices[0]
+        if choice.message.tool_calls:
+            return choice.message.tool_calls[0].function.arguments
+        return choice.message.content or "{}"
 
 
 class AnthropicProvider(LLMProvider):
@@ -396,6 +409,8 @@ class GeminiProvider(LLMProvider):
 
 PROVIDERS = {
     "openai": OpenAIProvider,
+    "openai-5-nano": lambda: OpenAIProvider(model="gpt-5-nano"),
+    "openai-4.1-nano": lambda: OpenAIProvider(model="gpt-4.1-nano"),
     "openai-4.1": lambda: OpenAIProvider(model="gpt-4.1"),
     "openai-mini": lambda: OpenAIProvider(model="gpt-4.1-mini"),
     "anthropic-haiku": lambda: AnthropicProvider(model="claude-haiku-4-5-20250901"),
@@ -596,6 +611,7 @@ class TestLiveLLMEvaluation:
         return sample_articles[0]
 
     @pytest.mark.parametrize("provider_key", [
+        "openai-5-nano",
         "openai-mini",
         "anthropic-haiku",
         "gemini-flash",
@@ -630,6 +646,7 @@ class TestLiveLLMEvaluation:
         assert result.json_parseable, f"{provider_key} failed to produce valid JSON"
 
     @pytest.mark.parametrize("provider_key", [
+        "openai-5-nano",
         "openai-mini",
         "anthropic-haiku",
         "gemini-flash",

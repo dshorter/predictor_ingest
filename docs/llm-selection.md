@@ -103,9 +103,17 @@ Use one of these to produce reference extractions for validating Tier 2 outputs.
 
 | Model | JSON Enforcement | Cost (per 1M in/out) | Notes |
 |-------|-----------------|----------------------|-------|
-| GPT-4.1 Mini | Native `strict: true` | $0.40 / $1.60 | Best cost/quality for structured output |
-| Gemini 2.5 Flash | Native schema enforcement | $0.15 / $0.60 | Cheapest viable option |
-| Claude Haiku 3.5 | Tool use with schema | $0.80 / $4.00 | Anthropic's fast tier |
+| **GPT-5 nano** | Tool calling `strict: true` | $0.10 / $0.40 | **Current default understudy.** Cheapest OpenAI option with strict schema enforcement. Cheaper input than 4.1 nano, same output price. |
+| GPT-4.1 nano | Tool calling `strict: true` | $0.10 / $0.40 ($0.025 cached input) | Lowest cached-input price |
+| GPT-4.1 Mini | Tool calling `strict: true` | $0.40 / $1.60 | Stronger reasoning, 4x more expensive |
+| Gemini 2.5 Flash | Native schema enforcement | $0.15 / $0.60 | Cheapest viable non-OpenAI option |
+| Claude Haiku 3.5 | No strict schema | $0.80 / $4.00 | 41% schema pass rate in initial shadow run (invents relation types outside enum). Not viable without fuzzy mapping. |
+
+**Implementation note:** OpenAI models use tool calling with `strict: true` via an
+`emit_extraction` tool. This enforces the exact JSON Schema at the API level —
+the model literally cannot produce invalid enum values. The extraction prompt is
+split into a static system message (cacheable) and per-document user message to
+maximize OpenAI's automatic prompt caching (kicks in at >= 1024 tokens).
 
 ### Tier 3 — Future consideration (self-hosted)
 
@@ -120,6 +128,8 @@ Relevant only if eliminating API costs becomes a goal.
 
 | Model | Daily | Monthly |
 |-------|-------|---------|
+| GPT-5 nano | ~$0.01 | ~$0.30 |
+| GPT-4.1 nano | ~$0.01 | ~$0.30 |
 | Gemini 2.5 Flash | ~$0.04 | ~$1.10 |
 | GPT-4.1 Mini | ~$0.10 | ~$2.90 |
 | Claude Haiku 3.5 | ~$0.22 | ~$6.80 |

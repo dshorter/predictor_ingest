@@ -208,6 +208,227 @@ Return valid JSON with this structure:
     return prompt
 
 
+def build_extraction_system_prompt(
+    extractor_version: Optional[str] = None,
+) -> str:
+    """Build the static system prompt for extraction (cacheable prefix).
+
+    This contains all instructions, schema rules, and enums. It stays
+    identical across documents so OpenAI can cache it.
+
+    Args:
+        extractor_version: Version string to include in output
+
+    Returns:
+        System prompt string
+    """
+    version = extractor_version or EXTRACTOR_VERSION
+
+    return f"""You are an entity/relation extraction system for AI-domain articles.
+Your job is to extract structured data and return it via the emit_extraction tool.
+
+## Extractor Version
+{version}
+
+## Entity Types (use exactly these values)
+{', '.join(ENTITY_TYPES)}
+
+## Relation Types (use exactly these values)
+{', '.join(RELATION_TYPES)}
+
+## Extraction Rules
+
+1. **entities**: Extract all notable entities (organizations, people, models, tools, etc.)
+   - name: Surface form as it appears in the text
+   - type: Must be one of the entity types listed above
+   - aliases: Optional alternative names
+   - idHint: Optional canonical ID suggestion (e.g., "org:openai")
+
+2. **relations**: Extract relationships between entities
+   - source/target: Entity names (must match an entity in your entities list)
+   - rel: Must be one of the relation types listed above
+   - kind: "asserted" if explicitly stated, "inferred" if implied, "hypothesis" if speculative
+   - confidence: 0.0 to 1.0
+   - evidence: REQUIRED for asserted relations — include docId, url, published, and a short snippet (≤200 chars) from the source text
+
+3. **techTerms**: List of technical terms, technologies, or concepts mentioned
+
+4. **dates**: Important dates mentioned
+   - text: Raw date text as it appears (e.g., "this fall", "Q3 2025")
+   - start/end: ISO dates if determinable
+   - resolution: "exact", "range", "anchored_to_published", or "unknown"
+
+5. **notes**: Any ambiguities or extraction warnings
+
+## Critical Rules
+- Asserted relations MUST include evidence with a snippet from the document
+- Do NOT fabricate entities, dates, or relations not supported by the text
+- Mark uncertain relations as "inferred" or "hypothesis"
+- Keep evidence snippets short (≤200 chars)
+- Prefer MENTIONS as the base relation; only use semantic relations when evidence supports them
+"""
+
+
+def build_extraction_user_prompt(doc: dict[str, Any]) -> str:
+    """Build the per-document user prompt (variable part).
+
+    This is the part that changes per document. It goes after the
+    cached system prompt.
+
+    Args:
+        doc: Document dict with docId, title, text, url, published
+
+    Returns:
+        User prompt string
+    """
+    return f"""Extract entities, relations, and tech terms from this document.
+
+## Document Metadata
+- docId: {doc['docId']}
+- Title: {doc.get('title', 'Unknown')}
+- URL: {doc.get('url', 'Unknown')}
+- Published: {doc.get('published', 'Unknown')}
+
+## Document Text
+{doc['text']}
+
+Call the emit_extraction tool with the complete extraction results."""
+
+
+# OpenAI strict tool schema for extraction.
+# All objects have additionalProperties: false and all properties in required,
+# as mandated by OpenAI's strict mode.
+OPENAI_EXTRACTION_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "emit_extraction",
+        "description": "Emit the structured extraction results for this document.",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "required": [
+                "docId", "extractorVersion", "entities", "relations",
+                "techTerms", "dates", "notes",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "docId": {"type": "string", "description": "Document identifier"},
+                "extractorVersion": {"type": "string", "description": "Extractor version"},
+                "entities": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "type", "aliases", "idHint"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "name": {"type": "string", "description": "Surface form of entity name"},
+                            "type": {
+                                "type": "string",
+                                "enum": ENTITY_TYPES,
+                            },
+                            "aliases": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "Alternative names",
+                            },
+                            "idHint": {
+                                "type": ["string", "null"],
+                                "description": "Suggested canonical ID (e.g. org:openai), or null",
+                            },
+                        },
+                    },
+                },
+                "relations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "source", "rel", "target", "kind",
+                            "confidence", "verbRaw", "evidence",
+                        ],
+                        "additionalProperties": False,
+                        "properties": {
+                            "source": {"type": "string", "description": "Source entity name"},
+                            "rel": {
+                                "type": "string",
+                                "enum": RELATION_TYPES,
+                            },
+                            "target": {"type": "string", "description": "Target entity name"},
+                            "kind": {
+                                "type": "string",
+                                "enum": ["asserted", "inferred", "hypothesis"],
+                            },
+                            "confidence": {"type": "number", "description": "0.0 to 1.0"},
+                            "verbRaw": {
+                                "type": ["string", "null"],
+                                "description": "Original verb from text, or null",
+                            },
+                            "evidence": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["docId", "url", "published", "snippet"],
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "docId": {"type": "string"},
+                                        "url": {"type": "string"},
+                                        "published": {
+                                            "type": ["string", "null"],
+                                            "description": "ISO date or null",
+                                        },
+                                        "snippet": {
+                                            "type": "string",
+                                            "description": "Short quote ≤200 chars",
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                "techTerms": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+                "dates": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["text"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "text": {"type": "string", "description": "Raw date text"},
+                            "start": {
+                                "type": ["string", "null"],
+                                "description": "ISO date start, or null",
+                            },
+                            "end": {
+                                "type": ["string", "null"],
+                                "description": "ISO date end, or null",
+                            },
+                            "resolution": {
+                                "type": ["string", "null"],
+                                "enum": ["exact", "range", "anchored_to_published", "unknown", None],
+                                "description": "Date resolution type, or null",
+                            },
+                            "anchor": {
+                                "type": ["string", "null"],
+                                "description": "Reference date for anchoring, or null",
+                            },
+                        },
+                    },
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Warnings, ambiguity flags",
+                },
+            },
+        },
+    },
+}
+
+
 def parse_extraction_response(
     response: str,
     doc_id: str,

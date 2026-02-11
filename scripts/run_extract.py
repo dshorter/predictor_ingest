@@ -41,11 +41,14 @@ load_dotenv()
 
 from extract import (
     build_extraction_prompt,
+    build_extraction_system_prompt,
+    build_extraction_user_prompt,
     parse_extraction_response,
     save_extraction,
     compare_extractions,
     ExtractionError,
     EXTRACTOR_VERSION,
+    OPENAI_EXTRACTION_TOOL,
 )
 from db import init_db, insert_extraction_comparison
 
@@ -78,6 +81,12 @@ def get_understudy_model() -> str | None:
     """Get understudy model from environment."""
     model = os.environ.get("UNDERSTUDY_MODEL", "").strip()
     return model if model else None
+
+
+def is_openai_model(model: str) -> bool:
+    """Check if a model ID is an OpenAI model."""
+    openai_prefixes = ("gpt-", "o1", "o3", "o4")
+    return any(model.startswith(p) for p in openai_prefixes)
 
 
 def extract_with_anthropic(
@@ -121,6 +130,81 @@ def extract_with_anthropic(
     duration_ms = int((time.time() - start_time) * 1000)
 
     return response.content[0].text, duration_ms
+
+
+def extract_with_openai(
+    doc: dict[str, Any],
+    model: str = "gpt-5-nano",
+) -> tuple[str, int]:
+    """Call OpenAI API using tool calling with strict schema enforcement.
+
+    Uses a split prompt (system + user) for prompt caching, and the
+    emit_extraction tool with strict: true to guarantee schema compliance.
+
+    Args:
+        doc: Document dict with docId, title, text, etc.
+        model: OpenAI model ID
+
+    Returns:
+        Tuple of (JSON response text, duration in ms)
+    """
+    try:
+        from openai import OpenAI
+    except ImportError:
+        print("ERROR: openai package not installed. Run: pip install openai")
+        sys.exit(1)
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print("ERROR: OPENAI_API_KEY environment variable not set")
+        sys.exit(1)
+
+    client = OpenAI(api_key=api_key)
+
+    system_prompt = build_extraction_system_prompt()
+    user_prompt = build_extraction_user_prompt(doc)
+
+    start_time = time.time()
+    response = client.chat.completions.create(
+        model=model,
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        tools=[OPENAI_EXTRACTION_TOOL],
+        tool_choice={"type": "function", "function": {"name": "emit_extraction"}},
+    )
+    duration_ms = int((time.time() - start_time) * 1000)
+
+    # Extract the tool call arguments (this IS the JSON extraction)
+    choice = response.choices[0]
+    if choice.message.tool_calls:
+        json_str = choice.message.tool_calls[0].function.arguments
+    else:
+        # Fallback: model returned content instead of tool call
+        json_str = choice.message.content or "{}"
+
+    return json_str, duration_ms
+
+
+def extract_document(
+    doc: dict[str, Any],
+    model: str,
+) -> tuple[str, int]:
+    """Route extraction to the correct provider based on model ID.
+
+    Args:
+        doc: Document dict
+        model: Model ID (auto-detects provider)
+
+    Returns:
+        Tuple of (response text, duration in ms)
+    """
+    if is_openai_model(model):
+        return extract_with_openai(doc, model=model)
+    else:
+        return extract_with_anthropic(doc, model=model)
 
 
 def run_shadow_only(
@@ -177,7 +261,7 @@ def run_shadow_only(
         processed += 1
 
         try:
-            us_response, us_duration = extract_with_anthropic(doc, model=understudy_model)
+            us_response, us_duration = extract_document(doc, model=understudy_model)
             us_extraction = parse_extraction_response(us_response, doc_id)
             us_valid = True
             us_error = None
@@ -310,8 +394,8 @@ def run_extraction(
             if shadow_mode and understudy_model and parallel:
                 # Run both extractions in parallel
                 with ThreadPoolExecutor(max_workers=2) as executor:
-                    primary_future = executor.submit(extract_with_anthropic, doc, model)
-                    understudy_future = executor.submit(extract_with_anthropic, doc, understudy_model)
+                    primary_future = executor.submit(extract_document, doc, model)
+                    understudy_future = executor.submit(extract_document, doc, understudy_model)
 
                     # Get primary result
                     response_text, duration_ms = primary_future.result()
@@ -342,7 +426,7 @@ def run_extraction(
 
             else:
                 # Sequential: Call primary API first
-                response_text, duration_ms = extract_with_anthropic(doc, model=model)
+                response_text, duration_ms = extract_document(doc, model=model)
                 extraction = parse_extraction_response(response_text, doc_id)
                 save_extraction(extraction, output_dir)
 
@@ -354,7 +438,7 @@ def run_extraction(
                 # Shadow mode: run understudy sequentially
                 if shadow_mode and understudy_model:
                     try:
-                        us_response, us_duration = extract_with_anthropic(doc, model=understudy_model)
+                        us_response, us_duration = extract_document(doc, model=understudy_model)
                         us_extraction = parse_extraction_response(us_response, doc_id)
                         us_valid = True
                         us_error = None
