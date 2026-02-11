@@ -46,8 +46,10 @@ from extract import (
     parse_extraction_response,
     save_extraction,
     compare_extractions,
+    score_extraction_quality,
     ExtractionError,
     EXTRACTOR_VERSION,
+    ESCALATION_THRESHOLD,
     OPENAI_EXTRACTION_TOOL,
 )
 from db import init_db, insert_extraction_comparison
@@ -321,6 +323,148 @@ def run_shadow_only(
     return processed, succeeded, failed
 
 
+def run_escalation(
+    docpack_path: Path,
+    output_dir: Path,
+    cheap_model: str,
+    specialist_model: str,
+    max_docs: Optional[int] = None,
+    skip_existing: bool = True,
+    db_path: Path | None = None,
+) -> tuple[int, int, int, int]:
+    """Run extraction with escalation: cheap model first, specialist on demand.
+
+    For each document:
+    1. Run cheap model (e.g. gpt-5-nano with strict schema)
+    2. Score extraction quality
+    3. If quality is below threshold, re-run with specialist model (e.g. Sonnet)
+    4. Save the best result; log which model was used
+
+    Args:
+        docpack_path: Path to JSONL docpack file
+        output_dir: Directory to save extractions
+        cheap_model: Budget model ID (tried first)
+        specialist_model: Specialist model ID (escalation target)
+        max_docs: Maximum documents to process
+        skip_existing: Skip documents that already have extractions
+        db_path: Path to SQLite database for logging
+
+    Returns:
+        Tuple of (processed, succeeded, failed, escalated) counts
+    """
+    conn = None
+    if db_path:
+        conn = init_db(db_path)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    docs = load_docpack(docpack_path)
+    print(f"Loaded {len(docs)} documents from {docpack_path}")
+    print(f"Escalation mode: {cheap_model} -> {specialist_model} (threshold: {ESCALATION_THRESHOLD})")
+
+    if max_docs:
+        docs = docs[:max_docs]
+        print(f"Limiting to first {max_docs} documents")
+
+    processed = 0
+    succeeded = 0
+    failed = 0
+    escalated = 0
+
+    for i, doc in enumerate(docs, 1):
+        doc_id = doc.get("docId", f"unknown_{i}")
+        source_text = doc.get("text", "")
+
+        if skip_existing:
+            existing_path = output_dir / f"{doc_id}.json"
+            if existing_path.exists():
+                print(f"  [{i}/{len(docs)}] {doc_id}: SKIPPED (exists)")
+                continue
+
+        print(f"  [{i}/{len(docs)}] {doc_id}: ", end="", flush=True)
+        processed += 1
+
+        # Step 1: Try cheap model
+        try:
+            response_text, duration_ms = extract_document(doc, model=cheap_model)
+            extraction = parse_extraction_response(response_text, doc_id)
+        except (ExtractionError, Exception) as e:
+            # Cheap model failed entirely — escalate immediately
+            print(f"cheap FAILED ({e}), escalating... ", end="", flush=True)
+            try:
+                response_text, duration_ms = extract_document(doc, model=specialist_model)
+                extraction = parse_extraction_response(response_text, doc_id)
+                extraction["_extractedBy"] = specialist_model
+                extraction["_escalationReason"] = f"cheap_failed: {e}"
+                save_extraction(extraction, output_dir)
+
+                entity_count = len(extraction.get("entities", []))
+                relation_count = len(extraction.get("relations", []))
+                print(f"specialist OK ({entity_count}e, {relation_count}r, {duration_ms}ms)")
+                succeeded += 1
+                escalated += 1
+            except (ExtractionError, Exception) as e2:
+                print(f"specialist also FAILED: {e2}")
+                failed += 1
+                error_path = output_dir / f"{doc_id}.error"
+                error_path.write_text(f"Both models failed.\nCheap: {e}\nSpecialist: {e2}\n")
+            if i < len(docs):
+                time.sleep(0.5)
+            continue
+
+        # Step 2: Score the cheap extraction
+        quality = score_extraction_quality(extraction, len(source_text))
+        score = quality["combined_score"]
+
+        if not quality["escalate"]:
+            # Good enough — keep the cheap result
+            extraction["_extractedBy"] = cheap_model
+            extraction["_qualityScore"] = score
+            save_extraction(extraction, output_dir)
+
+            entity_count = len(extraction.get("entities", []))
+            relation_count = len(extraction.get("relations", []))
+            print(f"cheap OK (q={score:.2f}, {entity_count}e, {relation_count}r, {duration_ms}ms)")
+            succeeded += 1
+        else:
+            # Quality too low — escalate to specialist
+            print(f"cheap q={score:.2f} < {ESCALATION_THRESHOLD}, escalating... ", end="", flush=True)
+            try:
+                spec_response, spec_duration = extract_document(doc, model=specialist_model)
+                spec_extraction = parse_extraction_response(spec_response, doc_id)
+                spec_extraction["_extractedBy"] = specialist_model
+                spec_extraction["_escalationReason"] = (
+                    f"quality_low: score={score:.2f}, "
+                    f"density={quality['entity_density']:.1f}, "
+                    f"evidence={quality['evidence_coverage']:.0%}, "
+                    f"confidence={quality['avg_confidence']:.2f}"
+                )
+                spec_extraction["_qualityScore"] = score_extraction_quality(
+                    spec_extraction, len(source_text)
+                )["combined_score"]
+                save_extraction(spec_extraction, output_dir)
+
+                entity_count = len(spec_extraction.get("entities", []))
+                relation_count = len(spec_extraction.get("relations", []))
+                print(f"specialist OK ({entity_count}e, {relation_count}r, {spec_duration}ms)")
+                succeeded += 1
+                escalated += 1
+            except (ExtractionError, Exception) as e2:
+                # Specialist also failed — save the cheap result anyway
+                extraction["_extractedBy"] = cheap_model
+                extraction["_qualityScore"] = score
+                extraction["_escalationFailed"] = str(e2)
+                save_extraction(extraction, output_dir)
+                print(f"specialist FAILED ({e2}), keeping cheap result")
+                succeeded += 1
+                escalated += 1
+
+        if i < len(docs):
+            time.sleep(0.5)
+
+    return processed, succeeded, failed, escalated
+
+
 def run_extraction(
     docpack_path: Path,
     output_dir: Path,
@@ -557,6 +701,11 @@ def main() -> int:
         help="Run only the understudy model against existing primary extractions (no primary API calls)",
     )
     parser.add_argument(
+        "--escalate",
+        action="store_true",
+        help="Escalation mode: run cheap model first, escalate to specialist if quality is low",
+    )
+    parser.add_argument(
         "--parallel",
         action="store_true",
         help="Run primary and understudy extractions in parallel (requires --shadow)",
@@ -583,6 +732,8 @@ def main() -> int:
 
     print(f"Extraction runner v{EXTRACTOR_VERSION}")
 
+    escalated = 0
+
     if args.shadow_only:
         if not understudy:
             print("ERROR: --shadow-only requires UNDERSTUDY_MODEL env var or --understudy-model")
@@ -599,6 +750,28 @@ def main() -> int:
             db_path=Path(args.db),
             max_docs=args.max_docs,
         )
+
+    elif args.escalate:
+        if not understudy:
+            print("ERROR: --escalate requires UNDERSTUDY_MODEL env var or --understudy-model")
+            return 1
+        cheap = understudy
+        specialist = model
+        print(f"Escalation mode: {cheap} -> {specialist} (threshold: {ESCALATION_THRESHOLD})")
+        print(f"Docpack: {docpack_path}")
+        print(f"Output: {args.output_dir}")
+        print()
+
+        processed, succeeded, failed, escalated = run_escalation(
+            docpack_path=docpack_path,
+            output_dir=Path(args.output_dir),
+            cheap_model=cheap,
+            specialist_model=specialist,
+            max_docs=args.max_docs,
+            skip_existing=not args.no_skip,
+            db_path=Path(args.db),
+        )
+
     else:
         print(f"Model: {model}")
         if args.shadow:
@@ -621,7 +794,11 @@ def main() -> int:
         )
 
     print()
-    print(f"Done. Processed: {processed}, Succeeded: {succeeded}, Failed: {failed}")
+    summary = f"Done. Processed: {processed}, Succeeded: {succeeded}, Failed: {failed}"
+    if escalated:
+        pct = (escalated / processed * 100) if processed else 0
+        summary += f", Escalated: {escalated}/{processed} ({pct:.0f}%)"
+    print(summary)
 
     return 0 if failed == 0 else 1
 

@@ -94,11 +94,76 @@ def run_source_freshness(conn: sqlite3.Connection) -> None:
     print()
 
 
+def run_escalation_stats(extractions_dir: Path) -> None:
+    """Report escalation mode stats from extraction JSON files."""
+    if not extractions_dir.exists():
+        return
+
+    json_files = list(extractions_dir.glob("*.json"))
+    if not json_files:
+        return
+
+    import json as _json
+
+    by_model: dict[str, int] = {}
+    escalated_count = 0
+    total = 0
+    quality_scores: list[float] = []
+
+    for f in json_files:
+        try:
+            data = _json.loads(f.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+
+        model = data.get("_extractedBy")
+        if model is None:
+            continue  # Pre-escalation extraction, skip
+
+        total += 1
+        by_model[model] = by_model.get(model, 0) + 1
+        if data.get("_escalationReason"):
+            escalated_count += 1
+        qs = data.get("_qualityScore")
+        if qs is not None:
+            quality_scores.append(qs)
+
+    if total == 0:
+        return
+
+    print("Escalation Stats")
+    print("=" * 80)
+    print(f"  Total extractions with model tracking: {total}")
+    for model, count in sorted(by_model.items(), key=lambda x: -x[1]):
+        pct = count / total * 100
+        print(f"  {model:<45} {count:>5} ({pct:.0f}%)")
+
+    if escalated_count > 0:
+        esc_pct = escalated_count / total * 100
+        print(f"\n  Escalated to specialist: {escalated_count}/{total} ({esc_pct:.0f}%)")
+        cheap_count = total - escalated_count
+        if cheap_count > 0:
+            # Rough cost savings estimate
+            print(f"  Kept cheap result:       {cheap_count}/{total} ({100-esc_pct:.0f}%)")
+
+    if quality_scores:
+        avg_q = sum(quality_scores) / len(quality_scores)
+        min_q = min(quality_scores)
+        max_q = max(quality_scores)
+        print(f"\n  Quality scores: avg={avg_q:.2f}, min={min_q:.2f}, max={max_q:.2f}")
+
+    print()
+
+
 def run_report(db_path: Path, days: int | None) -> int:
     conn = init_db(db_path)
 
     # Source freshness first — always useful
     run_source_freshness(conn)
+
+    # Escalation stats from extraction files
+    extractions_dir = db_path.parent.parent / "extractions"
+    run_escalation_stats(extractions_dir)
 
     models = list_understudy_models(conn)
 

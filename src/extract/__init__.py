@@ -508,6 +508,107 @@ def save_extraction(
     return output_path
 
 
+# ---------------------------------------------------------------------------
+# Extraction quality scoring (for escalation mode)
+# ---------------------------------------------------------------------------
+
+# Thresholds for "good enough" extraction from a cheap model
+QUALITY_THRESHOLDS = {
+    "entity_density_min": 3.0,    # entities per 1000 chars of source text
+    "evidence_coverage_min": 0.8, # fraction of asserted relations with evidence
+    "avg_confidence_min": 0.6,    # mean confidence across all relations
+    "relation_entity_ratio_min": 0.3,  # relations / entities (finding connections)
+    "tech_terms_min": 1,          # at least 1 tech term for AI articles
+}
+
+# Combined score below this triggers escalation
+ESCALATION_THRESHOLD = 0.6
+
+
+def score_extraction_quality(
+    extraction: dict[str, Any],
+    source_text_length: int,
+) -> dict[str, Any]:
+    """Score the quality of an extraction to decide if escalation is needed.
+
+    Returns a dict with individual signal scores (0-1), a combined score,
+    and whether escalation is recommended.
+
+    Args:
+        extraction: Validated extraction dict
+        source_text_length: Length of the source document text in chars
+
+    Returns:
+        Dict with scores and escalation recommendation
+    """
+    entities = extraction.get("entities", [])
+    relations = extraction.get("relations", [])
+    tech_terms = extraction.get("techTerms", [])
+
+    n_entities = len(entities)
+    n_relations = len(relations)
+    n_tech = len(tech_terms)
+
+    # 1. Entity density: entities per 1000 chars
+    text_k = max(source_text_length / 1000, 0.1)
+    entity_density = n_entities / text_k
+    density_score = min(entity_density / QUALITY_THRESHOLDS["entity_density_min"], 1.0)
+
+    # 2. Evidence coverage: fraction of asserted relations that have evidence
+    asserted = [r for r in relations if r.get("kind") == "asserted"]
+    if asserted:
+        with_evidence = sum(1 for r in asserted if r.get("evidence"))
+        evidence_coverage = with_evidence / len(asserted)
+    else:
+        # No asserted relations — could be fine (all inferred) or empty
+        evidence_coverage = 1.0 if n_relations > 0 else 0.0
+    evidence_score = min(evidence_coverage / QUALITY_THRESHOLDS["evidence_coverage_min"], 1.0)
+
+    # 3. Average confidence across all relations
+    if relations:
+        confidences = [r.get("confidence", 0) for r in relations]
+        avg_confidence = sum(confidences) / len(confidences)
+    else:
+        avg_confidence = 0.0
+    confidence_score = min(avg_confidence / QUALITY_THRESHOLDS["avg_confidence_min"], 1.0)
+
+    # 4. Relation-to-entity ratio
+    if n_entities > 0:
+        rel_entity_ratio = n_relations / n_entities
+    else:
+        rel_entity_ratio = 0.0
+    connectivity_score = min(
+        rel_entity_ratio / QUALITY_THRESHOLDS["relation_entity_ratio_min"], 1.0
+    )
+
+    # 5. Tech terms presence
+    tech_score = 1.0 if n_tech >= QUALITY_THRESHOLDS["tech_terms_min"] else 0.5
+
+    # Combined score (weighted)
+    combined = (
+        0.30 * density_score
+        + 0.25 * evidence_score
+        + 0.20 * confidence_score
+        + 0.15 * connectivity_score
+        + 0.10 * tech_score
+    )
+
+    return {
+        "entity_density": round(entity_density, 2),
+        "density_score": round(density_score, 2),
+        "evidence_coverage": round(evidence_coverage, 2),
+        "evidence_score": round(evidence_score, 2),
+        "avg_confidence": round(avg_confidence, 2),
+        "confidence_score": round(confidence_score, 2),
+        "rel_entity_ratio": round(rel_entity_ratio, 2),
+        "connectivity_score": round(connectivity_score, 2),
+        "n_tech_terms": n_tech,
+        "tech_score": round(tech_score, 2),
+        "combined_score": round(combined, 2),
+        "escalate": combined < ESCALATION_THRESHOLD,
+    }
+
+
 def load_extraction(
     doc_id: str,
     extractions_dir: Path,

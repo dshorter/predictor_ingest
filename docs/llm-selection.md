@@ -210,6 +210,43 @@ When comparison data shows an understudy consistently achieving:
 
 Until then, Sonnet remains primary with zero quality risk.
 
+### Escalation Mode (Post-Shadow Alternative)
+
+Instead of a binary "promote or don't" decision, escalation mode lets the cheap
+model handle most articles while Sonnet steps in only when quality is low.
+
+**Architecture:**
+
+```
+Article → nano (cheap, strict schema) → score quality
+                                            │
+                                     quality >= 0.6 → keep nano result
+                                            │
+                                     quality <  0.6 → Sonnet → keep Sonnet result
+```
+
+**Quality signals scored (0-1 each, weighted):**
+
+| Signal | Weight | What it catches |
+|--------|--------|-----------------|
+| Entity density (per 1K chars) | 30% | Missed entities |
+| Evidence coverage (asserted with evidence) | 25% | Hallucinated relations |
+| Average confidence | 20% | Model was guessing |
+| Relation/entity ratio | 15% | Found entities but no connections |
+| Tech terms present | 10% | Missed domain content |
+
+**Cost impact:** If 80% of articles pass nano's quality check, monthly cost drops
+from ~$25 (Sonnet on everything) to ~$5.30 (nano on 80% + Sonnet on 20%).
+
+**Usage:**
+```bash
+make extract-escalate    # Run with escalation
+make shadow-report       # See escalation stats in dashboard
+```
+
+Each extraction JSON includes `_extractedBy` (which model was used),
+`_qualityScore` (combined score), and `_escalationReason` (if escalated).
+
 ---
 
 ## Initial Evaluation (Before Shadow Mode)
