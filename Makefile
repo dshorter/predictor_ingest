@@ -23,7 +23,7 @@ docpack:
 	python scripts/build_docpack.py --db $(DB) --date $(DATE)
 
 extract:
-	python scripts/run_extract.py --docpack $(DOCPACK) --parallel
+	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB)
 
 shadow-only:
 	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB)
