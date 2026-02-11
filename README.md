@@ -1,7 +1,8 @@
 # Predictor Ingest
 
+[![Deploy to VPS](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)  
+  
 A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends to produce Cytoscape.js-ready visualizations.
-[![Deploy to VPS](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)
 ## Overview
 
 ```
