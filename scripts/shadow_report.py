@@ -1,7 +1,8 @@
-"""Shadow mode comparison report.
+"""Pipeline dashboard: shadow mode tracking + source freshness.
 
 Shows understudy model performance vs Sonnet primary, with promotion
-criteria tracking per docs/llm-selection.md.
+criteria tracking per docs/llm-selection.md. Also reports per-source
+content freshness to flag stale feeds.
 
 Usage:
     python scripts/shadow_report.py [--db data/db/predictor.db] [--days 7]
@@ -25,6 +26,10 @@ PROMOTE_ENTITY_OVERLAP = 85.0
 PROMOTE_RELATION_OVERLAP = 80.0
 PROMOTE_MIN_DOCS = 100
 
+# Source freshness: warn if no new content in this many days
+STALE_WARN_DAYS = 14
+STALE_CRITICAL_DAYS = 30
+
 
 def grade(value: float | None, threshold: float) -> str:
     """Return a pass/fail marker for a metric."""
@@ -33,8 +38,68 @@ def grade(value: float | None, threshold: float) -> str:
     return " OK " if value >= threshold else "MISS"
 
 
+def run_source_freshness(conn: sqlite3.Connection) -> None:
+    """Report per-source content freshness from the documents table."""
+    cursor = conn.execute(
+        """
+        SELECT source,
+               COUNT(*) as total_docs,
+               MAX(published_at) as latest_published,
+               MAX(fetched_at) as latest_fetched,
+               MIN(published_at) as earliest_published
+        FROM documents
+        WHERE status != 'error'
+        GROUP BY source
+        ORDER BY latest_published DESC
+        """
+    )
+    rows = cursor.fetchall()
+
+    if not rows:
+        print("\nSource Freshness: no documents found")
+        return
+
+    today = date.today().isoformat()
+    print("\nSource Freshness")
+    print("=" * 80)
+    print(f"  {'Source':<30} {'Docs':>5} {'Latest Published':<18} {'Status'}")
+    print(f"  {'─' * 72}")
+
+    for row in rows:
+        source = row["source"] or "unknown"
+        total = row["total_docs"]
+        latest = row["latest_published"] or row["latest_fetched"] or ""
+        latest_date = latest[:10] if latest else "--"
+
+        # Compute staleness
+        status = ""
+        if latest_date and latest_date != "--":
+            try:
+                days_ago = (date.fromisoformat(today) - date.fromisoformat(latest_date)).days
+                if days_ago > STALE_CRITICAL_DAYS:
+                    status = f"STALE ({days_ago}d ago)"
+                elif days_ago > STALE_WARN_DAYS:
+                    status = f"WARN ({days_ago}d ago)"
+                else:
+                    status = f"active ({days_ago}d ago)"
+            except ValueError:
+                status = "unknown date"
+        else:
+            status = "no dates"
+
+        # Truncate long source names
+        display_source = source[:28] + ".." if len(source) > 30 else source
+        print(f"  {display_source:<30} {total:>5} {latest_date:<18} {status}")
+
+    print()
+
+
 def run_report(db_path: Path, days: int | None) -> int:
     conn = init_db(db_path)
+
+    # Source freshness first — always useful
+    run_source_freshness(conn)
+
     models = list_understudy_models(conn)
 
     if not models:
