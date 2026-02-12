@@ -12,7 +12,7 @@
 ![jsonschema](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.jsonschema&label=jsonschema)  
 
 A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends to produce Cytoscape.js-ready visualizations.
-## Overview 
+## Overview   
 
 ```
 RSS Feeds → Ingest → Clean → Extract → Resolve → Graph/Trend → Cytoscape.js
