@@ -12,6 +12,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: scripts
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,8 +32,6 @@ jobs:
           pip install pytest
 
       - name: Run pytest
-        env:
-          PYTHONPATH: scripts
         run: |
           pytest -q
 
