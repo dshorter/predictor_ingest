@@ -477,3 +477,132 @@ class TestCytoscapeFormat:
         assert parsed == result
 
         conn.close()
+
+
+class TestDateFiltering:
+    """Test date-range filtering in graph exports.
+
+    All dates are article publication dates, not fetch dates.
+    """
+
+    def _setup_dated_data(self, conn):
+        """Insert entities and relations spanning different date ranges."""
+        # Entities with different date windows
+        insert_entity(conn, "org:old", "Old Org", "Org",
+                      first_seen="2025-06-01", last_seen="2025-09-01")
+        insert_entity(conn, "org:recent", "Recent Org", "Org",
+                      first_seen="2026-01-01", last_seen="2026-02-10")
+        insert_entity(conn, "model:new", "New Model", "Model",
+                      first_seen="2026-01-20", last_seen="2026-02-10")
+
+        # Documents with different published_at dates
+        for doc_id, pub_date in [
+            ("doc_old", "2025-07-01"),
+            ("doc_recent", "2026-01-15"),
+            ("doc_new", "2026-02-01"),
+        ]:
+            conn.execute(
+                "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (doc_id, f"https://example.com/{doc_id}", "Test", f"Doc {doc_id}",
+                 pub_date, "2026-02-12T00:00:00Z", "extracted"),
+            )
+        conn.commit()
+
+        # Relations tied to different documents
+        insert_relation(conn, "org:old", "CREATED", "org:recent",
+                        "asserted", 0.9, "doc_old", "1.0.0")
+        insert_relation(conn, "org:recent", "CREATED", "model:new",
+                        "asserted", 0.95, "doc_recent", "1.0.0")
+        insert_relation(conn, "model:new", "USES_TECH", "org:recent",
+                        "inferred", 0.7, "doc_new", "1.0.0")
+
+    def test_export_all_no_date_filter(self, tmp_path: Path):
+        """Without date filter, all entities are included."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_dated_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_all()
+        assert len(result["elements"]["nodes"]) == 3
+        conn.close()
+
+    def test_export_all_with_start_date(self, tmp_path: Path):
+        """Start date excludes old entities."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_dated_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_all(start_date="2026-01-01")
+
+        node_ids = {n["data"]["id"] for n in result["elements"]["nodes"]}
+        assert "org:old" not in node_ids  # last_seen 2025-09-01 < 2026-01-01
+        assert "org:recent" in node_ids
+        assert "model:new" in node_ids
+        conn.close()
+
+    def test_export_claims_with_date_range(self, tmp_path: Path):
+        """Date range filters relations by document published_at."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_dated_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_claims(
+            start_date="2026-01-01", end_date="2026-01-31"
+        )
+
+        # Only doc_recent (2026-01-15) is in range
+        edge_count = len(result["elements"]["edges"])
+        assert edge_count == 1
+        assert result["elements"]["edges"][0]["data"]["rel"] == "CREATED"
+        conn.close()
+
+    def test_export_to_file_includes_meta(self, tmp_path: Path):
+        """export_to_file should include meta with dateRange."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        insert_entity(conn, "org:test", "Test", "Org",
+                      first_seen="2026-01-01", last_seen="2026-02-01")
+
+        exporter = graph.GraphExporter(conn)
+        output_dir = tmp_path / "graphs" / "2026-02-12"
+        path = exporter.export_to_file(
+            output_dir, "claims",
+            start_date="2026-01-01", end_date="2026-02-12",
+        )
+
+        with open(path) as f:
+            data = json.load(f)
+
+        assert "meta" in data
+        assert data["meta"]["view"] == "claims"
+        assert data["meta"]["dateRange"]["start"] == "2026-01-01"
+        assert data["meta"]["dateRange"]["end"] == "2026-02-12"
+        assert "exportedAt" in data["meta"]
+        assert "nodeCount" in data["meta"]
+        assert "edgeCount" in data["meta"]
+        conn.close()
+
+    def test_export_all_views_with_date_range(self, tmp_path: Path):
+        """export_all_views passes date range to each view."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_dated_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        output_dir = tmp_path / "graphs" / "2026-02-12"
+        paths = exporter.export_all_views(
+            output_dir,
+            start_date="2026-01-01", end_date="2026-02-12",
+        )
+
+        # All views should have meta with dateRange
+        for path in paths:
+            with open(path) as f:
+                data = json.load(f)
+            assert data["meta"]["dateRange"]["start"] == "2026-01-01"
+            assert data["meta"]["dateRange"]["end"] == "2026-02-12"
+        conn.close()

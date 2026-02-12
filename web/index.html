@@ -54,8 +54,9 @@
         <div class="toolbar-group">
           <label for="date-selector">Date:</label>
           <select id="date-selector">
-            <!-- Populated dynamically -->
+            <!-- Populated dynamically by app.js -->
           </select>
+          <span id="date-range-info" class="toolbar-date-range" title="Article publication date range"></span>
         </div>
       </div>
 
@@ -105,9 +106,9 @@
             <h3>Date Range</h3>
             <div class="date-presets">
               <button class="btn-sm" data-days="7">7d</button>
-              <button class="btn-sm" data-days="30">30d</button>
+              <button class="btn-sm active" data-days="30">30d</button>
               <button class="btn-sm" data-days="90">90d</button>
-              <button class="btn-sm active" data-days="all">All</button>
+              <button class="btn-sm" data-days="all">All</button>
             </div>
           </section>
 
@@ -244,9 +245,9 @@
   <script src="js/panels.js?v=6"></script>
   <script src="js/tooltips.js?v=2"></script>
   <script src="js/layout.js?v=4"></script>
-  <script src="js/graph.js?v=2"></script>
+  <script src="js/graph.js?v=3"></script>
   <script src="help/content.js?v=1"></script>
   <script src="js/help.js?v=1"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

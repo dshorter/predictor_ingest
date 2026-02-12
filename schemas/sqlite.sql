@@ -23,8 +23,13 @@ CREATE TABLE IF NOT EXISTS entities (
   type TEXT NOT NULL,
   aliases TEXT,  -- JSON array of alias strings
   external_ids TEXT,  -- JSON object e.g. {"wikidata": "Q123"}
-  first_seen TEXT,
-  last_seen TEXT
+  -- first_seen and last_seen are derived from the PUBLISHED DATE of the
+  -- source article, NOT the date our pipeline fetched it. This means:
+  --   - Retroactive imports of older articles correctly backdate entities
+  --   - Trend scores reflect real-world publication velocity
+  --   - Client date filtering matches actual article age
+  first_seen TEXT,  -- Earliest article published_at that mentions this entity (ISO date)
+  last_seen TEXT    -- Latest article published_at that mentions this entity (ISO date)
 );
 
 CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name);
@@ -46,7 +51,7 @@ CREATE TABLE IF NOT EXISTS relations (
   time_text TEXT,
   time_start TEXT,
   time_end TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,  -- Pipeline insertion time (not article date)
   FOREIGN KEY (source_id) REFERENCES entities(entity_id),
   FOREIGN KEY (target_id) REFERENCES entities(entity_id),
   FOREIGN KEY (doc_id) REFERENCES documents(doc_id)

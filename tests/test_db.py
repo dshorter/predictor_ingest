@@ -19,6 +19,8 @@ from db import (
     add_alias,
     resolve_alias,
     list_entities,
+    list_entities_in_date_range,
+    list_relations_in_date_range,
 )
 
 
@@ -336,3 +338,121 @@ class TestListEntities:
 
         models = list_entities(db_conn, entity_type="Model")
         assert len(models) == 1
+
+
+class TestDateRangeQueries:
+    """Test date range filtering for entities and relations.
+
+    All dates here are article publication dates, not fetch dates.
+    """
+
+    def _insert_dated_entities(self, db_conn):
+        """Insert entities with various first_seen/last_seen dates."""
+        insert_entity(db_conn, "org:old", "Old Org", "Org",
+                      first_seen="2025-06-01", last_seen="2025-09-01")
+        insert_entity(db_conn, "org:mid", "Mid Org", "Org",
+                      first_seen="2025-10-01", last_seen="2026-01-15")
+        insert_entity(db_conn, "org:new", "New Org", "Org",
+                      first_seen="2026-01-20", last_seen="2026-02-10")
+        insert_entity(db_conn, "org:nodates", "No Dates Org", "Org")
+
+    def _insert_dated_relations(self, db_conn):
+        """Insert documents and relations with different published_at dates."""
+        self._insert_dated_entities(db_conn)
+
+        # Documents with different publication dates
+        for doc_id, pub_date in [
+            ("doc_old", "2025-07-01"),
+            ("doc_mid", "2025-12-01"),
+            ("doc_new", "2026-02-01"),
+        ]:
+            db_conn.execute(
+                "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (doc_id, f"https://example.com/{doc_id}", "Test", f"Doc {doc_id}",
+                 pub_date, "2026-02-12T00:00:00Z", "extracted"),
+            )
+        db_conn.commit()
+
+        insert_relation(db_conn, "org:old", "CREATED", "org:mid",
+                        "asserted", 0.9, "doc_old", "1.0.0")
+        insert_relation(db_conn, "org:mid", "PARTNERED_WITH", "org:new",
+                        "asserted", 0.8, "doc_mid", "1.0.0")
+        insert_relation(db_conn, "org:new", "LAUNCHED", "org:mid",
+                        "asserted", 0.95, "doc_new", "1.0.0")
+
+    def test_entities_no_filter(self, db_conn):
+        """No date filter returns all entities."""
+        self._insert_dated_entities(db_conn)
+        result = list_entities_in_date_range(db_conn)
+        assert len(result) == 4
+
+    def test_entities_start_date_only(self, db_conn):
+        """Start date filters out entities whose last_seen is before it."""
+        self._insert_dated_entities(db_conn)
+        result = list_entities_in_date_range(db_conn, start_date="2026-01-01")
+        ids = {e["entity_id"] for e in result}
+        assert "org:old" not in ids  # last_seen 2025-09-01 < 2026-01-01
+        assert "org:mid" in ids
+        assert "org:new" in ids
+        assert "org:nodates" in ids  # NULL last_seen is included
+
+    def test_entities_end_date_only(self, db_conn):
+        """End date filters out entities whose first_seen is after it."""
+        self._insert_dated_entities(db_conn)
+        result = list_entities_in_date_range(db_conn, end_date="2025-12-31")
+        ids = {e["entity_id"] for e in result}
+        assert "org:old" in ids
+        assert "org:mid" in ids
+        assert "org:new" not in ids  # first_seen 2026-01-20 > 2025-12-31
+        assert "org:nodates" in ids  # NULL first_seen is included
+
+    def test_entities_full_range(self, db_conn):
+        """Both start and end date narrow to entities active in window."""
+        self._insert_dated_entities(db_conn)
+        result = list_entities_in_date_range(
+            db_conn, start_date="2025-11-01", end_date="2026-01-31"
+        )
+        ids = {e["entity_id"] for e in result}
+        assert "org:old" not in ids
+        assert "org:mid" in ids
+        assert "org:new" in ids
+        assert "org:nodates" in ids
+
+    def test_entities_with_type_filter(self, db_conn):
+        """Date range + type filter combined."""
+        self._insert_dated_entities(db_conn)
+        insert_entity(db_conn, "model:recent", "Recent Model", "Model",
+                      first_seen="2026-01-01", last_seen="2026-02-10")
+        result = list_entities_in_date_range(
+            db_conn, start_date="2026-01-01", entity_type="Org"
+        )
+        ids = {e["entity_id"] for e in result}
+        assert "model:recent" not in ids
+        assert "org:mid" in ids
+
+    def test_relations_no_filter(self, db_conn):
+        """No date filter returns all relations."""
+        self._insert_dated_relations(db_conn)
+        result = list_relations_in_date_range(db_conn)
+        assert len(result) == 3
+
+    def test_relations_start_date(self, db_conn):
+        """Start date filters relations by document published_at."""
+        self._insert_dated_relations(db_conn)
+        result = list_relations_in_date_range(db_conn, start_date="2025-11-01")
+        assert len(result) == 2  # doc_mid and doc_new
+
+    def test_relations_end_date(self, db_conn):
+        """End date filters relations by document published_at."""
+        self._insert_dated_relations(db_conn)
+        result = list_relations_in_date_range(db_conn, end_date="2025-12-31")
+        assert len(result) == 2  # doc_old and doc_mid
+
+    def test_relations_full_range(self, db_conn):
+        """Full date range narrows to relations in window."""
+        self._insert_dated_relations(db_conn)
+        result = list_relations_in_date_range(
+            db_conn, start_date="2025-11-01", end_date="2025-12-31"
+        )
+        assert len(result) == 1  # only doc_mid

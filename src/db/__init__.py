@@ -181,6 +181,91 @@ def list_entities(
     return entities
 
 
+def list_entities_in_date_range(
+    conn: sqlite3.Connection,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    entity_type: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    """List entities active within a date range.
+
+    An entity is "active" if its last_seen >= start_date AND first_seen <= end_date.
+    Dates here are article publication dates (see schemas/sqlite.sql).
+
+    Args:
+        conn: Database connection
+        start_date: Earliest date (ISO), inclusive. None = no lower bound.
+        end_date: Latest date (ISO), inclusive. None = no upper bound.
+        entity_type: Optional type filter
+
+    Returns:
+        List of entity dicts
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+
+    if start_date:
+        clauses.append("(last_seen IS NULL OR last_seen >= ?)")
+        params.append(start_date)
+    if end_date:
+        clauses.append("(first_seen IS NULL OR first_seen <= ?)")
+        params.append(end_date)
+    if entity_type:
+        clauses.append("type = ?")
+        params.append(entity_type)
+
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    cursor = conn.execute(f"SELECT * FROM entities{where}", params)
+
+    entities = []
+    for row in cursor.fetchall():
+        entity = dict(row)
+        if entity.get("aliases"):
+            entity["aliases"] = json.loads(entity["aliases"])
+        if entity.get("external_ids"):
+            entity["external_ids"] = json.loads(entity["external_ids"])
+        entities.append(entity)
+    return entities
+
+
+def list_relations_in_date_range(
+    conn: sqlite3.Connection,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    """List relations whose source document was published within a date range.
+
+    Joins on documents.published_at (the article publication date).
+
+    Args:
+        conn: Database connection
+        start_date: Earliest published date (ISO), inclusive. None = no lower bound.
+        end_date: Latest published date (ISO), inclusive. None = no upper bound.
+
+    Returns:
+        List of relation dicts
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+
+    if start_date:
+        clauses.append("d.published_at >= ?")
+        params.append(start_date)
+    if end_date:
+        clauses.append("d.published_at <= ?")
+        params.append(end_date)
+
+    where = (" AND " + " AND ".join(clauses)) if clauses else ""
+    query = f"""
+        SELECT r.*
+        FROM relations r
+        JOIN documents d ON r.doc_id = d.doc_id
+        WHERE 1=1{where}
+    """
+    cursor = conn.execute(query, params)
+    return [dict(row) for row in cursor.fetchall()]
+
+
 def insert_relation(
     conn: sqlite3.Connection,
     source_id: str,

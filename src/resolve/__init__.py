@@ -422,7 +422,10 @@ class EntityResolver:
 
         Args:
             extraction: Extraction dict with entities list
-            observed_date: Document published date (ISO) for first_seen/last_seen
+            observed_date: The article's PUBLISHED date (ISO), used for entity
+                first_seen/last_seen. Must be the publication date, not the
+                pipeline fetch date, so that trend scoring and date filtering
+                reflect real-world timing rather than crawl timing.
 
         Returns:
             Mapping of entity names to resolved IDs

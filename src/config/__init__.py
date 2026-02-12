@@ -1,6 +1,6 @@
 """Configuration loading for predictor_ingest.
 
-Loads feed configuration from YAML files.
+Loads feed configuration and export settings from YAML files.
 """
 
 from __future__ import annotations
@@ -10,6 +10,15 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
+
+
+# --------------------------------------------------------------------------- #
+# Export / UI defaults
+# --------------------------------------------------------------------------- #
+
+# Default number of days shown when the UI first loads.
+# Exposed as a config variable so it can be tuned as the dataset grows.
+DEFAULT_DATE_WINDOW_DAYS: int = 30
 
 
 @dataclass
