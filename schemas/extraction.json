@@ -66,7 +66,7 @@
           "description": "e.g. {\"wikidata\": \"Q123\"}"
         },
         "idHint": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "Suggested canonical ID"
         }
       }
@@ -144,14 +144,20 @@
           "maximum": 1
         },
         "verbRaw": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "Original verb as in text"
         },
         "polarity": {
-          "$ref": "#/$defs/polarity"
+          "oneOf": [
+            { "$ref": "#/$defs/polarity" },
+            { "type": "null" }
+          ]
         },
         "modality": {
-          "$ref": "#/$defs/modality"
+          "oneOf": [
+            { "$ref": "#/$defs/modality" },
+            { "type": "null" }
+          ]
         },
         "time": {
           "$ref": "#/$defs/dateModel"
@@ -180,19 +186,19 @@
           "description": "Raw date text (e.g. 'this fall')"
         },
         "start": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "ISO date for start of range"
         },
         "end": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "ISO date for end of range"
         },
         "resolution": {
-          "type": "string",
-          "enum": ["exact", "range", "anchored_to_published", "unknown"]
+          "type": ["string", "null"],
+          "enum": ["exact", "range", "anchored_to_published", "unknown", null]
         },
         "anchor": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "Reference date used for anchoring"
         }
       }
