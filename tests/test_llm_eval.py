@@ -329,7 +329,6 @@ class OpenAIProvider(LLMProvider):
         user_prompt = build_extraction_user_prompt(doc)
         response = client.chat.completions.create(
             model=self.model,
-            temperature=0.0,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
