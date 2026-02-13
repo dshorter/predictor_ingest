@@ -2,6 +2,26 @@
 
 Search box, filter panel, and the GraphFilter class implementation.
 
+## Date Filtering Overview
+
+Date filtering operates on **article publication dates** (`published_at`),
+not pipeline fetch timestamps. This ensures that retroactive imports of older
+articles land in the correct time window, and that trend scores match
+real-world publication velocity. See
+[docs/architecture/date-filtering.md](../architecture/date-filtering.md) for
+the full rationale.
+
+**Default window:** 30 days (`DEFAULT_DATE_WINDOW_DAYS` in
+`src/config/__init__.py` and `web/js/app.js`). The UI activates this
+automatically on load via `applyDefaultDateFilter()`. Users can switch to
+7d / 90d / All using the preset buttons in the filter panel.
+
+**Server-side vs. client-side:** The export pipeline applies date filtering
+at the SQL level (backend). The web client applies a second pass via
+`GraphFilter.apply()` on `firstSeen` / `lastSeen` node attributes. Both
+layers use the same semantic: an entity is "active" if its observation range
+overlaps the selected window.
+
 ---
 
 ## Search Box (Always Visible)

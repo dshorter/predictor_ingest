@@ -104,10 +104,30 @@ Adjust threshold: `python scripts/run_resolve.py --threshold 0.90`
 make export
 # Writes Cytoscape JSON to data/graphs/YYYY-MM-DD/
 #   mentions.json, claims.json, dependencies.json
+# Default: last 30 days of articles (by published date)
 
 make trending
 # Computes trend scores, writes trending.json (Cytoscape format)
 ```
+
+### Date range options
+
+By default, exports include only articles published in the last 30 days
+(`DEFAULT_DATE_WINDOW_DAYS` in `src/config/__init__.py`). Override with:
+
+```bash
+# Custom day window
+python scripts/run_export.py --days 90
+
+# No date filter (all data)
+python scripts/run_export.py --days 0
+
+# Explicit date range
+python scripts/run_export.py --start-date 2025-12-01 --end-date 2026-01-31
+```
+
+See [docs/architecture/date-filtering.md](../architecture/date-filtering.md)
+for the full architecture and rationale.
 
 ## 8. View in Browser
 
@@ -150,6 +170,7 @@ make trending GRAPHS_DIR=/var/www/graphs
 |----------|---------|-------------|
 | `DB` | `data/db/predictor.db` | SQLite database path |
 | `DATE` | today | Date for filtering and output directories |
+| `DAYS` | `30` | Date window in days (0 = all data) |
 | `GRAPHS_DIR` | `data/graphs` | Base directory for graph exports |
 
 ## Troubleshooting
