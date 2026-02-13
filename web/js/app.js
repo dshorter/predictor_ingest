@@ -382,9 +382,15 @@ function initializeToolbar(cy) {
     toggleHelpPanel();
   });
 
-  // Tier selector (data size)
+  // Tier selector (data size) — reset date to "Live" since test tiers
+  // don't have date-based subdirectories
   document.getElementById('tier-selector')?.addEventListener('change', async (e) => {
     AppState.currentTier = e.target.value;
+    AppState.currentDate = null;
+    const dateSelect = document.getElementById('date-selector');
+    if (dateSelect) dateSelect.value = '';
+    const dateInfo = document.getElementById('date-range-info');
+    if (dateInfo) dateInfo.textContent = '';
     await switchView(AppState.currentView);
   });
 
@@ -518,6 +524,7 @@ async function switchView(view) {
   const dataUrl = getDataUrl(view, AppState.currentDate);
 
   try {
+    showLoading('Switching view...');
     const data = await loadGraphData(dataUrl);
 
     // Clear and reload
@@ -533,20 +540,35 @@ async function switchView(view) {
     // Update stats
     updateStatsDisplay(AppState.cy);
 
+    hideLoading();
+
     // Announce
     const stats = getGraphStats(AppState.cy);
     announceToScreenReader(`Switched to ${view} view. ${stats.nodeCount} nodes.`);
 
   } catch (error) {
     console.error('Failed to switch view:', error);
+    hideLoading();
+    // Show a non-fatal error — don't crash the UI
+    showWarning(
+      `Could not load "${view}" view from ${dataUrl}. The file may not exist for this data source.`
+    );
   }
 }
 
 /**
- * Switch to a different date
+ * Switch to a different date.
+ * Passing '' (empty string) clears date override, falling back to tier.
  */
 async function switchDate(date) {
-  AppState.currentDate = date;
+  AppState.currentDate = date || null;
+
+  // Clear date range display when switching away from a dated export
+  if (!date) {
+    const dateInfo = document.getElementById('date-range-info');
+    if (dateInfo) dateInfo.textContent = '';
+  }
+
   await switchView(AppState.currentView);
 }
 
@@ -555,8 +577,9 @@ async function switchDate(date) {
  */
 function getDataUrl(view, date) {
   const basePath = 'data/graphs';
-  // Tier overrides date; for 'latest' tier use 'latest' folder,
-  // for generated tiers use tier name as folder
+  // If a date is explicitly selected (e.g. "2026-02-12"), use that folder.
+  // Otherwise fall back to the tier folder (small/medium/large/…).
+  // The date selector value '' means "use tier" (the "Live" option).
   const folder = date || AppState.currentTier || 'latest';
   return `${basePath}/${folder}/${view}.json`;
 }

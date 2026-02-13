@@ -17,35 +17,25 @@ const SCALE_THRESHOLDS = {
  * Load graph data from JSON file
  */
 async function loadGraphData(url) {
-  showLoading('Loading graph data...');
+  const response = await fetch(url);
 
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Failed to load graph: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    // Validate required structure
-    if (!data.elements) {
-      throw new Error('Invalid graph format: missing elements');
-    }
-
-    // Process meta information if present
-    if (data.meta) {
-      handleGraphMeta(data.meta);
-    }
-
-    hideLoading();
-    return data;
-
-  } catch (error) {
-    hideLoading();
-    showError(`Error loading graph: ${error.message}`);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} loading ${url}`);
   }
+
+  const data = await response.json();
+
+  // Validate required structure
+  if (!data.elements) {
+    throw new Error('Invalid graph format: missing elements');
+  }
+
+  // Process meta information if present
+  if (data.meta) {
+    handleGraphMeta(data.meta);
+  }
+
+  return data;
 }
 
 /**
