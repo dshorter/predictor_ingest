@@ -57,6 +57,28 @@ function handleGraphMeta(meta) {
     dateInfo.title = `Articles published ${dateRange.start} to ${dateRange.end}`;
   }
 
+  // Handle empty graph
+  const emptyState = document.getElementById('empty-state');
+  if (nodeCount === 0) {
+    if (emptyState) {
+      const note = meta.note || '';
+      const isPlaceholder = note.toLowerCase().includes('placeholder');
+      const msg = document.getElementById('empty-state-message');
+      if (msg) {
+        msg.textContent = isPlaceholder
+          ? 'No data yet. Run the ingestion pipeline to populate this graph.'
+          : 'This view has no data. Try switching to a different view or data source.';
+      }
+      emptyState.classList.remove('hidden');
+    }
+    return true;
+  }
+
+  // Hide empty state if previously shown
+  if (emptyState) {
+    emptyState.classList.add('hidden');
+  }
+
   if (nodeCount > SCALE_THRESHOLDS.DANGER) {
     showError(
       `Graph too large for client rendering (${nodeCount} nodes). ` +
