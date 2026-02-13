@@ -11,13 +11,16 @@ const DEFAULT_DATE_WINDOW_DAYS = 30;
 // Application state
 const AppState = {
   currentView: 'trending',
-  currentTier: 'medium',
-  currentDate: null,
-  dateRange: null,       // { start, end } from meta — article publication dates
+  dataSource: 'live',       // 'live' | 'sample'
+  currentTier: 'medium',    // sample tier (only used when dataSource === 'sample')
+  anchorDate: null,          // ISO date string — the "as of" anchor for filtering
+  activePresetDays: 30,      // which preset is active (7, 30, 90, or null for All)
+  dateRange: null,           // { start, end } from meta — article publication dates
   isLoading: false,
   cy: null,
   navigator: null,
-  navigatorVisible: true
+  navigatorVisible: true,
+  filter: null               // GraphFilter instance, set during init
 };
 
 /**
@@ -102,15 +105,11 @@ function initNavigator(cy) {
       rerenderDelay: 100
     });
 
-    console.log('Navigator object:', AppState.navigator);
-    console.log('Container children after init:', container.children.length);
-
     // Force resize and update after initialization
     setTimeout(() => {
       if (AppState.navigator) {
         cy.resize();
         cy.fit();
-        console.log('Navigator container HTML:', container.innerHTML.substring(0, 200));
       }
     }, 200);
 
@@ -147,6 +146,28 @@ function toggleNavigator() {
 }
 
 /**
+ * Get data URL for a view, based on current data source.
+ * Live → data/graphs/live/{view}.json
+ * Sample → data/graphs/{tier}/{view}.json
+ */
+function getDataUrl(view) {
+  const basePath = 'data/graphs';
+  const folder = AppState.dataSource === 'sample'
+    ? (AppState.currentTier || 'medium')
+    : 'live';
+  return `${basePath}/${folder}/${view}.json`;
+}
+
+/**
+ * Switch to a different data source or tier. Reloads graph data.
+ */
+async function switchDataSource(source, tier) {
+  AppState.dataSource = source;
+  if (tier) AppState.currentTier = tier;
+  await switchView(AppState.currentView);
+}
+
+/**
  * Initialize the application
  */
 async function initializeApp() {
@@ -165,14 +186,26 @@ async function initializeApp() {
       throw new Error('Graph container not found');
     }
 
-    // Read initial tier from selector
-    const tierSelect = document.getElementById('tier-selector');
-    if (tierSelect) {
-      AppState.currentTier = tierSelect.value;
+    // Set anchor date to today
+    AppState.anchorDate = today();
+    const dateInput = document.getElementById('date-anchor');
+    if (dateInput) {
+      dateInput.value = AppState.anchorDate;
     }
 
+    // Default to sample data so users see something on first load
+    // (live data is empty until pipeline runs)
+    AppState.dataSource = 'sample';
+    AppState.currentTier = 'medium';
+
+    // Sync the radio buttons to match
+    const sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
+    if (sampleRadio) sampleRadio.checked = true;
+    const sampleList = document.getElementById('sample-tier-list');
+    if (sampleList) sampleList.classList.remove('hidden');
+
     // Load default data
-    const dataUrl = getDataUrl(AppState.currentView, AppState.currentDate);
+    const dataUrl = getDataUrl(AppState.currentView);
     const data = await loadGraphData(dataUrl);
 
     // Initialize Cytoscape
@@ -181,18 +214,15 @@ async function initializeApp() {
     // Expose cy globally for panel functions
     window.cy = AppState.cy;
 
-    // Populate the date selector from available export directories
-    await populateDateSelector();
-
     // Initialize all components
     initializeEventHandlers(AppState.cy);
     initializePanels(AppState.cy);
     initializeTooltips(AppState.cy);
     initializeSearch(AppState.cy);
-    const filter = initializeFilters(AppState.cy);
+    AppState.filter = initializeFilters(AppState.cy);
 
-    // Apply default 30-day filter based on data's date range
-    applyDefaultDateFilter(filter);
+    // Apply default 30-day filter based on anchor date
+    applyDateFilterFromAnchor();
 
     initializeHelp();
     initializeToolbar(AppState.cy);
@@ -369,12 +399,8 @@ function initializeToolbar(cy) {
     filterBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Filter button clicked');
       toggleFilterPanel();
     });
-    console.log('Filter button handler attached');
-  } else {
-    console.error('Filter button not found in DOM');
   }
 
   // Help button
@@ -382,26 +408,15 @@ function initializeToolbar(cy) {
     toggleHelpPanel();
   });
 
-  // Tier selector (data size) — reset date to "Live" since test tiers
-  // don't have date-based subdirectories
-  document.getElementById('tier-selector')?.addEventListener('change', async (e) => {
-    AppState.currentTier = e.target.value;
-    AppState.currentDate = null;
-    const dateSelect = document.getElementById('date-selector');
-    if (dateSelect) dateSelect.value = '';
-    const dateInfo = document.getElementById('date-range-info');
-    if (dateInfo) dateInfo.textContent = '';
-    await switchView(AppState.currentView);
-  });
-
   // View selector
   document.getElementById('view-selector')?.addEventListener('change', async (e) => {
     await switchView(e.target.value);
   });
 
-  // Date selector
-  document.getElementById('date-selector')?.addEventListener('change', async (e) => {
-    await switchDate(e.target.value);
+  // Anchor date picker
+  document.getElementById('date-anchor')?.addEventListener('change', (e) => {
+    AppState.anchorDate = e.target.value || today();
+    applyDateFilterFromAnchor();
   });
 }
 
@@ -521,7 +536,7 @@ function handleArrowNavigation(e, cy) {
  */
 async function switchView(view) {
   AppState.currentView = view;
-  const dataUrl = getDataUrl(view, AppState.currentDate);
+  const dataUrl = getDataUrl(view);
 
   try {
     showLoading('Switching view...');
@@ -536,6 +551,11 @@ async function switchView(view) {
     layout.on('layoutstop', () => {
       initNavigator(AppState.cy);
     });
+
+    // Reapply current date filter to newly loaded data
+    if (AppState.filter) {
+      applyDateFilterFromAnchor();
+    }
 
     // Update stats
     updateStatsDisplay(AppState.cy);
@@ -553,46 +573,7 @@ async function switchView(view) {
     showWarning(
       `Could not load "${view}" view. The data may not exist for this selection.`
     );
-    // Re-throw so callers (e.g. switchDate) can revert state
-    throw error;
   }
-}
-
-/**
- * Switch to a different date.
- * Passing '' (empty string) clears date override, falling back to tier.
- * If the dated data doesn't exist, reverts to the previous state.
- */
-async function switchDate(date) {
-  const previousDate = AppState.currentDate;
-  AppState.currentDate = date || null;
-
-  // Clear date range display when switching away from a dated export
-  if (!date) {
-    const dateInfo = document.getElementById('date-range-info');
-    if (dateInfo) dateInfo.textContent = '';
-  }
-
-  try {
-    await switchView(AppState.currentView);
-  } catch {
-    // switchView already shows a warning; revert date state
-    AppState.currentDate = previousDate;
-    const selector = document.getElementById('date-selector');
-    if (selector) selector.value = previousDate || '';
-  }
-}
-
-/**
- * Get data URL for a view, using current tier
- */
-function getDataUrl(view, date) {
-  const basePath = 'data/graphs';
-  // If a date is explicitly selected (e.g. "2026-02-12"), use that folder.
-  // Otherwise fall back to the tier folder (small/medium/large/…).
-  // The date selector value '' means "use tier" (the "Live" option).
-  const folder = date || AppState.currentTier || 'latest';
-  return `${basePath}/${folder}/${view}.json`;
 }
 
 /**
@@ -611,12 +592,10 @@ function updateStatsDisplay(cy) {
  * Toggle filter panel
  */
 function toggleFilterPanel() {
-  console.log('toggleFilterPanel called');
   const panel = document.getElementById('filter-panel');
   if (panel) {
     const wasCollapsed = panel.classList.contains('collapsed');
     panel.classList.toggle('collapsed');
-    console.log('Filter panel toggled:', wasCollapsed ? 'opening' : 'closing');
 
     // Update cy container if function exists
     if (typeof updateCyContainer === 'function') {
@@ -631,83 +610,66 @@ function toggleFilterPanel() {
         }
       }
     }
-  } else {
-    console.error('Filter panel element not found');
   }
 }
 
 /**
- * Populate the date selector dropdown with available export dates.
- * Tries to discover directories under data/graphs/ via a manifest.
- * Only shows dates that actually have data; hides selector if none exist.
+ * Apply date filter computed from the anchor date and active preset.
+ * Called when anchor date changes or when a preset button is clicked.
  */
-async function populateDateSelector() {
-  const selector = document.getElementById('date-selector');
-  if (!selector) return;
-
-  // Try loading a date manifest (generated by the export pipeline)
-  let dates = [];
-  try {
-    const resp = await fetch('data/graphs/dates.json');
-    if (resp.ok) {
-      dates = await resp.json();  // Expected: ["2026-02-12", "2026-02-11", ...]
-    }
-  } catch {
-    // No manifest available — that's fine
-  }
-
-  // Build options (most recent first)
-  selector.innerHTML = '';
-
-  // Always add a "Live" option that uses the tier-based path
-  const liveOpt = document.createElement('option');
-  liveOpt.value = '';
-  liveOpt.textContent = 'Live (current)';
-  selector.appendChild(liveOpt);
-
-  // Only add date options if the manifest provided valid dates
-  if (dates.length) {
-    dates.sort().reverse();
-    for (const d of dates) {
-      const opt = document.createElement('option');
-      opt.value = d;
-      opt.textContent = formatDate(d);
-      selector.appendChild(opt);
-    }
-  }
-
-  // Hide the date selector group if there are no dated exports
-  const selectorGroup = selector.closest('.toolbar-group');
-  if (selectorGroup) {
-    selectorGroup.style.display = dates.length ? '' : 'none';
-  }
-}
-
-/**
- * Apply the default date filter (DEFAULT_DATE_WINDOW_DAYS) on initial load.
- * Uses the graph's date range from meta when available, otherwise
- * computes from today.
- */
-function applyDefaultDateFilter(filter) {
+function applyDateFilterFromAnchor() {
+  const filter = AppState.filter;
   if (!filter) return;
 
-  const endDate = (AppState.dateRange && AppState.dateRange.end) || today();
-  const startMs = new Date(endDate).getTime() - DEFAULT_DATE_WINDOW_DAYS * 86400000;
-  const startDate = new Date(startMs).toISOString().split('T')[0];
+  const anchor = AppState.anchorDate || today();
+  const days = AppState.activePresetDays;
 
-  filter.setDateRange(startDate, endDate);
+  if (days === null) {
+    // "All" preset — no date filtering
+    filter.setDateRange(null, null);
+  } else {
+    const endDate = anchor;
+    const startMs = new Date(anchor).getTime() - days * 86400000;
+    const startDate = new Date(startMs).toISOString().split('T')[0];
+    filter.setDateRange(startDate, endDate);
+  }
+
   filter.apply();
 
-  // Highlight the 30d preset button as active
+  // Update the date range info display
+  updateDateRangeDisplay();
+
+  // Sync preset button active states
   const presetBtns = document.querySelectorAll('.date-presets button');
   presetBtns.forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.days === '30') {
-      btn.classList.add('active');
-    }
+    const btnDays = btn.dataset.days;
+    const isActive = (days === null && btnDays === 'all') ||
+                     (days !== null && btnDays === String(days));
+    btn.classList.toggle('active', isActive);
   });
 
-  console.log(`Default date filter applied: ${startDate} to ${endDate} (${DEFAULT_DATE_WINDOW_DAYS} days)`);
+  console.log(`Date filter applied: anchor=${anchor}, preset=${days}d`);
+}
+
+/**
+ * Update the date range info text next to the anchor date picker.
+ */
+function updateDateRangeDisplay() {
+  const dateInfo = document.getElementById('date-range-info');
+  if (!dateInfo) return;
+
+  const anchor = AppState.anchorDate || today();
+  const days = AppState.activePresetDays;
+
+  if (days === null) {
+    dateInfo.textContent = 'All dates';
+    dateInfo.title = 'Showing all dates';
+  } else {
+    const startMs = new Date(anchor).getTime() - days * 86400000;
+    const startDate = new Date(startMs).toISOString().split('T')[0];
+    dateInfo.textContent = `${formatDate(startDate)} – ${formatDate(anchor)}`;
+    dateInfo.title = `Showing ${days} days ending ${anchor}`;
+  }
 }
 
 // updateCyContainer and closeAllPanels are defined in panels.js

@@ -6,7 +6,7 @@
   <title>AI Trend Graph</title>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=8">
+  <link rel="stylesheet" href="css/main.css?v=9">
   <!-- Cytoscape Navigator styles -->
   <link rel="stylesheet" href="https://unpkg.com/cytoscape-navigator@2.0.1/cytoscape-navigator.css">
 </head>
@@ -37,26 +37,9 @@
         </div>
 
         <div class="toolbar-group">
-          <label for="tier-selector">Data:</label>
-          <select id="tier-selector">
-            <optgroup label="Live Data">
-              <option value="live">Today's Graph</option>
-            </optgroup>
-            <optgroup label="Test Data">
-              <option value="small">Small (~15)</option>
-              <option value="medium" selected>Medium (~150)</option>
-              <option value="large">Large (~500)</option>
-              <option value="stress">Stress (~2000)</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <div class="toolbar-group">
-          <label for="date-selector">Date:</label>
-          <select id="date-selector">
-            <!-- Populated dynamically by app.js -->
-          </select>
-          <span id="date-range-info" class="toolbar-date-range" title="Article publication date range"></span>
+          <label for="date-anchor">As of:</label>
+          <input type="date" id="date-anchor" title="Anchor date for time-based filtering" />
+          <span id="date-range-info" class="toolbar-date-range" title="Current filter window"></span>
         </div>
       </div>
 
@@ -101,6 +84,39 @@
       <!-- Filter panel (right sidebar) -->
       <aside id="filter-panel" class="panel panel-right collapsed">
         <div class="panel-content">
+          <!-- Data Source -->
+          <section class="filter-section">
+            <h3>Data Source</h3>
+            <div class="data-source-radios">
+              <label class="radio-label">
+                <input type="radio" name="data-source" value="live" checked />
+                Live data
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="data-source" value="sample" />
+                Sample data
+              </label>
+            </div>
+            <div id="sample-tier-list" class="sample-tier-list hidden">
+              <label class="radio-label">
+                <input type="radio" name="sample-tier" value="small" />
+                Small (~15 nodes)
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="sample-tier" value="medium" checked />
+                Medium (~150 nodes)
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="sample-tier" value="large" />
+                Large (~500 nodes)
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="sample-tier" value="stress" />
+                Stress (~2000 nodes)
+              </label>
+            </div>
+          </section>
+
           <!-- Date Range -->
           <section class="filter-section">
             <h3>Date Range</h3>
@@ -218,7 +234,7 @@
         <div class="empty-state-icon" aria-hidden="true">&#x2205;</div>
         <h2>No Graph Data</h2>
         <p id="empty-state-message">This view has no data. Try switching to a different view or data source.</p>
-        <p class="empty-state-hint">Select a different <strong>Data</strong> source or <strong>View</strong> from the toolbar above.</p>
+        <p class="empty-state-hint">Switch to <strong>Sample data</strong> in the filter panel, or try a different <strong>View</strong>.</p>
       </div>
     </div>
 
@@ -250,7 +266,7 @@
   <!-- Application scripts -->
   <script src="js/utils.js?v=2"></script>
   <script src="js/styles.js?v=2"></script>
-  <script src="js/filter.js?v=3"></script>
+  <script src="js/filter.js?v=4"></script>
   <script src="js/search.js?v=2"></script>
   <script src="js/panels.js?v=6"></script>
   <script src="js/tooltips.js?v=2"></script>
@@ -258,6 +274,6 @@
   <script src="js/graph.js?v=5"></script>
   <script src="help/content.js?v=1"></script>
   <script src="js/help.js?v=1"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>
