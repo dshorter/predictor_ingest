@@ -212,6 +212,16 @@
     <!-- Tooltip (positioned absolutely) -->
     <div id="tooltip" role="tooltip"></div>
 
+    <!-- Empty state overlay (shown when graph has 0 nodes) -->
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-state-content">
+        <div class="empty-state-icon" aria-hidden="true">&#x2205;</div>
+        <h2>No Graph Data</h2>
+        <p id="empty-state-message">This view has no data. Try switching to a different view or data source.</p>
+        <p class="empty-state-hint">Select a different <strong>Data</strong> source or <strong>View</strong> from the toolbar above.</p>
+      </div>
+    </div>
+
     <!-- Loading overlay -->
     <div id="loading-overlay" class="overlay hidden">
       <div class="loading-spinner"></div>
@@ -245,7 +255,7 @@
   <script src="js/panels.js?v=6"></script>
   <script src="js/tooltips.js?v=2"></script>
   <script src="js/layout.js?v=4"></script>
-  <script src="js/graph.js?v=4"></script>
+  <script src="js/graph.js?v=5"></script>
   <script src="help/content.js?v=1"></script>
   <script src="js/help.js?v=1"></script>
   <script src="js/app.js?v=10"></script>
