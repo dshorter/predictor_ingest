@@ -58,7 +58,8 @@
   color: var(--gray-900);
 }
 
-.toolbar-group select {
+.toolbar-group select,
+.toolbar-group input[type="date"] {
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-xs);
   color: var(--gray-800);
@@ -66,26 +67,28 @@
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-md);
   cursor: pointer;
-  max-width: 140px;
+  max-width: 160px;
 }
 
-.toolbar-group select:hover {
+.toolbar-group select:hover,
+.toolbar-group input[type="date"]:hover {
   border-color: var(--border-color-hover);
 }
 
-.toolbar-group select:focus {
+.toolbar-group select:focus,
+.toolbar-group input[type="date"]:focus {
   outline: none;
   border-color: var(--blue-500);
 }
 
-/* Date range info text next to date selector */
+/* Date range info text next to date picker */
 .toolbar-date-range {
   font-size: var(--text-xs);
   color: var(--gray-500);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 200px;
 }
 
 /* Search container */

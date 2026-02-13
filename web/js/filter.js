@@ -213,8 +213,8 @@ function populateTypeFilters(cy) {
 
   // All 15 entity types from the specification
   const allTypes = [
-    'Org', 'Person', 'Model', 'Tool', 'Dataset', 
-    'Benchmark', 'Paper', 'Repo', 'Tech', 'Topic', 
+    'Org', 'Person', 'Model', 'Tool', 'Dataset',
+    'Benchmark', 'Paper', 'Repo', 'Tech', 'Topic',
     'Event', 'Program', 'Location', 'Document', 'Other'
   ];
 
@@ -228,12 +228,12 @@ function populateTypeFilters(cy) {
   typeFiltersContainer.innerHTML = allTypes.map(type => {
     const disabled = !existingTypes.has(type);
     const count = disabled ? 0 : cy.nodes(`[type="${type}"]`).length;
-    
+
     return `
       <label class="checkbox-label ${disabled ? 'text-gray-400' : ''}">
-        <input 
-          type="checkbox" 
-          data-type="${type}" 
+        <input
+          type="checkbox"
+          data-type="${type}"
           ${disabled ? 'disabled' : 'checked'}
         />
         ${type} ${count > 0 ? `(${count})` : ''}
@@ -249,22 +249,40 @@ function initializeFilterPanel(filter) {
   // Populate type filters dynamically
   populateTypeFilters(filter.cy);
 
-  // Date presets
+  // --- Data source radios ---
+  const dataSourceRadios = document.querySelectorAll('input[name="data-source"]');
+  const sampleTierList = document.getElementById('sample-tier-list');
+
+  dataSourceRadios.forEach(radio => {
+    radio.addEventListener('change', async () => {
+      const isSample = radio.value === 'sample';
+
+      // Show/hide sample tier list
+      if (sampleTierList) {
+        sampleTierList.classList.toggle('hidden', !isSample);
+      }
+
+      // Switch data source
+      const tier = isSample ? AppState.currentTier : null;
+      await switchDataSource(radio.value, tier);
+    });
+  });
+
+  // --- Sample tier radios ---
+  const tierRadios = document.querySelectorAll('input[name="sample-tier"]');
+  tierRadios.forEach(radio => {
+    radio.addEventListener('change', async () => {
+      await switchDataSource('sample', radio.value);
+    });
+  });
+
+  // --- Date presets (calculate from anchor) ---
   const datePresets = document.querySelectorAll('.date-presets button');
   datePresets.forEach(btn => {
     btn.addEventListener('click', () => {
-      datePresets.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
       const days = btn.dataset.days;
-      if (days === 'all') {
-        filter.setDateRange(null, null);
-      } else {
-        const end = today();
-        const start = new Date();
-        start.setDate(start.getDate() - parseInt(days));
-        filter.setDateRange(start.toISOString().split('T')[0], end);
-      }
+      AppState.activePresetDays = (days === 'all') ? null : parseInt(days);
+      applyDateFilterFromAnchor();
     });
   });
 
@@ -320,6 +338,14 @@ function initializeFilterPanel(filter) {
   // Reset button
   document.getElementById('reset-filters')?.addEventListener('click', () => {
     filter.reset();
+
+    // Reset anchor to today and preset to 30d
+    AppState.anchorDate = today();
+    AppState.activePresetDays = 30;
+    const dateInput = document.getElementById('date-anchor');
+    if (dateInput) dateInput.value = AppState.anchorDate;
+    applyDateFilterFromAnchor();
+
     // Repopulate type filters after reset
     populateTypeFilters(filter.cy);
     syncFilterUI(filter);
