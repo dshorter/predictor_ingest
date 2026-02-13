@@ -49,10 +49,23 @@ async function loadGraphData(url) {
 }
 
 /**
- * Handle meta information for scale decisions
+ * Handle meta information for scale decisions and date range display.
+ * Stores dateRange in AppState so filters can use it.
  */
 function handleGraphMeta(meta) {
-  const { nodeCount, view } = meta;
+  const { nodeCount, view, dateRange } = meta;
+
+  // Store date range so filter panel and other UI can reference it
+  if (dateRange) {
+    AppState.dateRange = dateRange;
+  }
+
+  // Update date range display in toolbar if present
+  const dateInfo = document.getElementById('date-range-info');
+  if (dateInfo && dateRange && dateRange.start) {
+    dateInfo.textContent = `${formatDate(dateRange.start)} – ${formatDate(dateRange.end)}`;
+    dateInfo.title = `Articles published ${dateRange.start} to ${dateRange.end}`;
+  }
 
   if (nodeCount > SCALE_THRESHOLDS.DANGER) {
     showError(

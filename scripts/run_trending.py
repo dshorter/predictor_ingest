@@ -15,6 +15,7 @@ from pathlib import Path
 # Add src/ to import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from config import DEFAULT_DATE_WINDOW_DAYS
 from db import init_db
 from graph import GraphExporter, build_node, build_edge
 from trend import TrendScorer
@@ -144,6 +145,11 @@ def main() -> int:
     parser.add_argument(
         "--top-n", type=int, default=50,
         help="Maximum trending entities (default: 50)",
+    )
+    parser.add_argument(
+        "--days", type=int, default=DEFAULT_DATE_WINDOW_DAYS,
+        help=f"Date window for meta.dateRange (default: {DEFAULT_DATE_WINDOW_DAYS}). "
+             "0 = compute range from entity dates.",
     )
     args = parser.parse_args()
 
