@@ -382,9 +382,15 @@ function initializeToolbar(cy) {
     toggleHelpPanel();
   });
 
-  // Tier selector (data size)
+  // Tier selector (data size) — reset date to "Live" since test tiers
+  // don't have date-based subdirectories
   document.getElementById('tier-selector')?.addEventListener('change', async (e) => {
     AppState.currentTier = e.target.value;
+    AppState.currentDate = null;
+    const dateSelect = document.getElementById('date-selector');
+    if (dateSelect) dateSelect.value = '';
+    const dateInfo = document.getElementById('date-range-info');
+    if (dateInfo) dateInfo.textContent = '';
     await switchView(AppState.currentView);
   });
 
@@ -518,6 +524,7 @@ async function switchView(view) {
   const dataUrl = getDataUrl(view, AppState.currentDate);
 
   try {
+    showLoading('Switching view...');
     const data = await loadGraphData(dataUrl);
 
     // Clear and reload
@@ -533,21 +540,47 @@ async function switchView(view) {
     // Update stats
     updateStatsDisplay(AppState.cy);
 
+    hideLoading();
+
     // Announce
     const stats = getGraphStats(AppState.cy);
     announceToScreenReader(`Switched to ${view} view. ${stats.nodeCount} nodes.`);
 
   } catch (error) {
     console.error('Failed to switch view:', error);
+    hideLoading();
+    // Show a non-fatal warning — don't crash the UI
+    showWarning(
+      `Could not load "${view}" view. The data may not exist for this selection.`
+    );
+    // Re-throw so callers (e.g. switchDate) can revert state
+    throw error;
   }
 }
 
 /**
- * Switch to a different date
+ * Switch to a different date.
+ * Passing '' (empty string) clears date override, falling back to tier.
+ * If the dated data doesn't exist, reverts to the previous state.
  */
 async function switchDate(date) {
-  AppState.currentDate = date;
-  await switchView(AppState.currentView);
+  const previousDate = AppState.currentDate;
+  AppState.currentDate = date || null;
+
+  // Clear date range display when switching away from a dated export
+  if (!date) {
+    const dateInfo = document.getElementById('date-range-info');
+    if (dateInfo) dateInfo.textContent = '';
+  }
+
+  try {
+    await switchView(AppState.currentView);
+  } catch {
+    // switchView already shows a warning; revert date state
+    AppState.currentDate = previousDate;
+    const selector = document.getElementById('date-selector');
+    if (selector) selector.value = previousDate || '';
+  }
 }
 
 /**
@@ -555,8 +588,9 @@ async function switchDate(date) {
  */
 function getDataUrl(view, date) {
   const basePath = 'data/graphs';
-  // Tier overrides date; for 'latest' tier use 'latest' folder,
-  // for generated tiers use tier name as folder
+  // If a date is explicitly selected (e.g. "2026-02-12"), use that folder.
+  // Otherwise fall back to the tier folder (small/medium/large/…).
+  // The date selector value '' means "use tier" (the "Live" option).
   const folder = date || AppState.currentTier || 'latest';
   return `${basePath}/${folder}/${view}.json`;
 }
@@ -604,8 +638,8 @@ function toggleFilterPanel() {
 
 /**
  * Populate the date selector dropdown with available export dates.
- * Tries to discover directories under data/graphs/ via a manifest or
- * falls back to showing just 'latest' and today's date.
+ * Tries to discover directories under data/graphs/ via a manifest.
+ * Only shows dates that actually have data; hides selector if none exist.
  */
 async function populateDateSelector() {
   const selector = document.getElementById('date-selector');
@@ -622,27 +656,30 @@ async function populateDateSelector() {
     // No manifest available — that's fine
   }
 
-  // If no manifest, provide sensible defaults
-  if (!dates.length) {
-    const todayStr = today();
-    dates = [todayStr];
-  }
-
   // Build options (most recent first)
-  dates.sort().reverse();
   selector.innerHTML = '';
 
-  // Add a "Live" option that uses the tier-based path
+  // Always add a "Live" option that uses the tier-based path
   const liveOpt = document.createElement('option');
   liveOpt.value = '';
   liveOpt.textContent = 'Live (current)';
   selector.appendChild(liveOpt);
 
-  for (const d of dates) {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = formatDate(d);
-    selector.appendChild(opt);
+  // Only add date options if the manifest provided valid dates
+  if (dates.length) {
+    dates.sort().reverse();
+    for (const d of dates) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = formatDate(d);
+      selector.appendChild(opt);
+    }
+  }
+
+  // Hide the date selector group if there are no dated exports
+  const selectorGroup = selector.closest('.toolbar-group');
+  if (selectorGroup) {
+    selectorGroup.style.display = dates.length ? '' : 'none';
   }
 }
 

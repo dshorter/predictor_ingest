@@ -17,19 +17,22 @@
   background-color: var(--color-bg-primary);
   border-bottom: var(--border-width) solid var(--border-color);
   z-index: var(--z-sticky);
+  gap: var(--space-3);
 }
 
 .toolbar-left,
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  flex-shrink: 0;
 }
 
 .toolbar-center {
   flex: 1;
+  min-width: 120px;
   max-width: 400px;
-  margin: 0 var(--space-6);
+  margin: 0 var(--space-3);
 }
 
 /* App title */
@@ -38,13 +41,15 @@
   font-weight: var(--weight-semibold);
   color: var(--gray-900);
   margin: 0;
+  white-space: nowrap;
 }
 
 /* Toolbar groups (label + control) */
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  white-space: nowrap;
 }
 
 .toolbar-group label {
@@ -54,13 +59,14 @@
 }
 
 .toolbar-group select {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
   color: var(--gray-800);
   background-color: var(--color-bg-primary);
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-md);
   cursor: pointer;
+  max-width: 140px;
 }
 
 .toolbar-group select:hover {
@@ -70,6 +76,16 @@
 .toolbar-group select:focus {
   outline: none;
   border-color: var(--blue-500);
+}
+
+/* Date range info text next to date selector */
+.toolbar-date-range {
+  font-size: var(--text-xs);
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 /* Search container */
