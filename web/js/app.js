@@ -549,18 +549,22 @@ async function switchView(view) {
   } catch (error) {
     console.error('Failed to switch view:', error);
     hideLoading();
-    // Show a non-fatal error — don't crash the UI
+    // Show a non-fatal warning — don't crash the UI
     showWarning(
-      `Could not load "${view}" view from ${dataUrl}. The file may not exist for this data source.`
+      `Could not load "${view}" view. The data may not exist for this selection.`
     );
+    // Re-throw so callers (e.g. switchDate) can revert state
+    throw error;
   }
 }
 
 /**
  * Switch to a different date.
  * Passing '' (empty string) clears date override, falling back to tier.
+ * If the dated data doesn't exist, reverts to the previous state.
  */
 async function switchDate(date) {
+  const previousDate = AppState.currentDate;
   AppState.currentDate = date || null;
 
   // Clear date range display when switching away from a dated export
@@ -569,7 +573,14 @@ async function switchDate(date) {
     if (dateInfo) dateInfo.textContent = '';
   }
 
-  await switchView(AppState.currentView);
+  try {
+    await switchView(AppState.currentView);
+  } catch {
+    // switchView already shows a warning; revert date state
+    AppState.currentDate = previousDate;
+    const selector = document.getElementById('date-selector');
+    if (selector) selector.value = previousDate || '';
+  }
 }
 
 /**
@@ -627,8 +638,8 @@ function toggleFilterPanel() {
 
 /**
  * Populate the date selector dropdown with available export dates.
- * Tries to discover directories under data/graphs/ via a manifest or
- * falls back to showing just 'latest' and today's date.
+ * Tries to discover directories under data/graphs/ via a manifest.
+ * Only shows dates that actually have data; hides selector if none exist.
  */
 async function populateDateSelector() {
   const selector = document.getElementById('date-selector');
@@ -645,27 +656,30 @@ async function populateDateSelector() {
     // No manifest available — that's fine
   }
 
-  // If no manifest, provide sensible defaults
-  if (!dates.length) {
-    const todayStr = today();
-    dates = [todayStr];
-  }
-
   // Build options (most recent first)
-  dates.sort().reverse();
   selector.innerHTML = '';
 
-  // Add a "Live" option that uses the tier-based path
+  // Always add a "Live" option that uses the tier-based path
   const liveOpt = document.createElement('option');
   liveOpt.value = '';
   liveOpt.textContent = 'Live (current)';
   selector.appendChild(liveOpt);
 
-  for (const d of dates) {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = formatDate(d);
-    selector.appendChild(opt);
+  // Only add date options if the manifest provided valid dates
+  if (dates.length) {
+    dates.sort().reverse();
+    for (const d of dates) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = formatDate(d);
+      selector.appendChild(opt);
+    }
+  }
+
+  // Hide the date selector group if there are no dated exports
+  const selectorGroup = selector.closest('.toolbar-group');
+  if (selectorGroup) {
+    selectorGroup.style.display = dates.length ? '' : 'none';
   }
 }
 
