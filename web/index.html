@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="https://unpkg.com/cytoscape-navigator@2.0.1/cytoscape-navigator.css">
 </head>
 <body>
+  <!-- Mobile detection — redirect to mobile UI -->
+  <script>
+  (function() {
+    if (location.search.includes('desktop=1')) return;
+    if (location.pathname.includes('/mobile')) return;
+    var isMobile = window.matchMedia('(max-width: 768px)').matches
+      || /Mobi|Android|iPhone|iPad/.test(navigator.userAgent);
+    if (isMobile) {
+      location.href = './mobile/' + location.search;
+    }
+  })();
+  </script>
+
   <!-- Screen reader announcements -->
   <div
     id="sr-announcer"

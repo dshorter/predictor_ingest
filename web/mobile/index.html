@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI Trend Graph</title>
+
+  <!-- Shared design tokens and reset -->
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components/badge.css">
+
+  <!-- Mobile-specific styles -->
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <!-- Screen reader announcements -->
+  <div
+    id="sr-announcer"
+    aria-live="polite"
+    aria-atomic="true"
+    class="sr-only"
+  ></div>
+
+  <!-- Main application container -->
+  <div id="app">
+    <!-- Compact toolbar -->
+    <header id="toolbar">
+      <button id="btn-menu" class="btn-icon" title="Menu" aria-label="Open menu">
+        <span aria-hidden="true">&#x2630;</span>
+      </button>
+      <h1 class="app-title">AI Trends</h1>
+      <div class="toolbar-right">
+        <button id="btn-search" class="btn-icon" title="Search" aria-label="Search nodes">
+          <span aria-hidden="true">&#x1F50D;</span>
+        </button>
+        <button id="btn-filter" class="btn-icon" title="Filters" aria-label="Open filters">
+          <span aria-hidden="true">&#x2699;</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search overlay (expands from icon) -->
+    <div id="search-overlay" class="search-overlay hidden">
+      <div class="search-bar">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search nodes..."
+          autocomplete="off"
+        />
+        <span id="search-results-count"></span>
+        <button id="search-close" class="btn-icon" title="Close search" aria-label="Close search">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hamburger menu -->
+    <div id="menu-overlay" class="menu-overlay hidden">
+      <nav class="menu-content">
+        <section class="menu-section">
+          <h3>View</h3>
+          <div class="menu-options">
+            <button class="menu-option active" data-view="trending">Trending</button>
+            <button class="menu-option" data-view="claims">Claims</button>
+            <button class="menu-option" data-view="mentions">Mentions</button>
+            <button class="menu-option" data-view="dependencies">Dependencies</button>
+          </div>
+        </section>
+
+        <section class="menu-section">
+          <h3>Date</h3>
+          <input type="date" id="date-anchor" />
+          <div class="date-presets">
+            <button class="btn-sm" data-days="7">7d</button>
+            <button class="btn-sm active" data-days="30">30d</button>
+            <button class="btn-sm" data-days="90">90d</button>
+            <button class="btn-sm" data-days="all">All</button>
+          </div>
+        </section>
+
+        <section class="menu-section">
+          <h3>Actions</h3>
+          <button id="btn-layout-menu" class="menu-action">Re-run layout</button>
+          <button id="btn-fit-menu" class="menu-action">Fit to screen</button>
+          <button id="theme-toggle" class="menu-action">
+            <span id="theme-icon">&#x2600;</span> Toggle theme
+          </button>
+        </section>
+
+        <section class="menu-section">
+          <div class="menu-footer">
+            <span id="graph-stats" class="text-sm text-muted"></span>
+            <a href="../index.html?desktop=1" class="text-sm">Desktop version</a>
+          </div>
+        </section>
+      </nav>
+    </div>
+
+    <!-- Main content area -->
+    <main id="main-content">
+      <!-- Cytoscape container (full screen) -->
+      <div id="cy" tabindex="0" role="application" aria-label="AI Trend Graph visualization"></div>
+    </main>
+
+    <!-- Bottom sheet (node/edge detail) -->
+    <div id="bottom-sheet" class="bottom-sheet">
+      <div class="bottom-sheet-handle" aria-hidden="true">
+        <div class="handle-bar"></div>
+      </div>
+      <div id="bottom-sheet-content" class="bottom-sheet-content">
+        <!-- Populated dynamically on node/edge tap -->
+      </div>
+    </div>
+
+    <!-- Filter modal (full-screen overlay) -->
+    <div id="filter-modal" class="filter-modal hidden">
+      <header class="filter-modal-header">
+        <h2>Filters</h2>
+        <button id="filter-modal-close" class="btn-icon" aria-label="Close filters">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </header>
+      <div class="filter-modal-body">
+        <!-- Data Source -->
+        <section class="filter-section">
+          <h3>Data Source</h3>
+          <div class="data-source-radios">
+            <label class="radio-label">
+              <input type="radio" name="data-source" value="live" checked />
+              Live data
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="data-source" value="sample" />
+              Sample data
+            </label>
+          </div>
+          <div id="sample-tier-list" class="sample-tier-list hidden">
+            <label class="radio-label">
+              <input type="radio" name="sample-tier" value="small" />
+              Small (~15 nodes)
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="sample-tier" value="medium" checked />
+              Medium (~150 nodes)
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="sample-tier" value="large" />
+              Large (~500 nodes)
+            </label>
+          </div>
+        </section>
+
+        <!-- Date Range -->
+        <section class="filter-section">
+          <h3>Date Range</h3>
+          <div class="date-presets">
+            <button class="btn-sm" data-days="7">7d</button>
+            <button class="btn-sm active" data-days="30">30d</button>
+            <button class="btn-sm" data-days="90">90d</button>
+            <button class="btn-sm" data-days="all">All</button>
+          </div>
+        </section>
+
+        <!-- Entity Types -->
+        <section class="filter-section">
+          <h3>Entity Types</h3>
+          <div class="checkbox-grid" id="type-filters">
+            <!-- Populated dynamically -->
+          </div>
+          <div class="filter-actions-small">
+            <button id="select-all-types" class="btn-link">All</button>
+            <button id="select-no-types" class="btn-link">None</button>
+          </div>
+        </section>
+
+        <!-- Relationship Kind -->
+        <section class="filter-section">
+          <h3>Relationship Kind</h3>
+          <label class="checkbox-label">
+            <input type="checkbox" data-kind="asserted" checked /> Asserted
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" data-kind="inferred" checked /> Inferred
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" data-kind="hypothesis" /> Hypothesis
+          </label>
+        </section>
+
+        <!-- Confidence Threshold -->
+        <section class="filter-section">
+          <h3>Min Confidence</h3>
+          <div class="range-container">
+            <input
+              type="range"
+              id="filter-confidence"
+              min="0"
+              max="100"
+              value="30"
+            />
+            <span id="confidence-value">30%</span>
+          </div>
+        </section>
+      </div>
+      <footer class="filter-modal-footer">
+        <button id="reset-filters" class="btn">Reset</button>
+        <button id="apply-filters" class="btn btn-primary">Apply</button>
+      </footer>
+    </div>
+
+    <!-- Tooltip (hidden on mobile, use bottom sheet instead) -->
+    <div id="tooltip" role="tooltip"></div>
+
+    <!-- Empty state overlay -->
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-state-content">
+        <div class="empty-state-icon" aria-hidden="true">&#x2205;</div>
+        <h2>No Graph Data</h2>
+        <p id="empty-state-message">This view has no data. Try switching to a different view or data source.</p>
+        <p class="empty-state-hint">Open the menu to switch to <strong>Sample data</strong>, or try a different <strong>View</strong>.</p>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="overlay hidden">
+      <div class="loading-spinner"></div>
+      <p>Loading graph...</p>
+    </div>
+
+    <!-- Error overlay -->
+    <div id="error-overlay" class="overlay hidden">
+      <div class="error-content">
+        <h2>Error</h2>
+        <p id="error-message"></p>
+        <button id="error-dismiss" class="btn">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries (same CDNs as desktop) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <!-- fcose dependencies: layout-base -> cose-base -> fcose (order matters) -->
+  <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
+  <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"></script>
+  <script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
+
+  <!-- Shared application scripts -->
+  <script src="../js/utils.js?v=2"></script>
+  <script src="../js/styles.js?v=2"></script>
+  <script src="../js/filter.js?v=4"></script>
+  <script src="../js/search.js?v=2"></script>
+  <script src="../js/layout.js?v=4"></script>
+  <script src="../js/graph.js?v=5"></script>
+
+  <!-- Mobile-specific scripts -->
+  <script src="js/touch.js?v=1"></script>
+  <script src="js/panels-mobile.js?v=1"></script>
+  <script src="js/app-mobile.js?v=1"></script>
+</body>
+</html>
