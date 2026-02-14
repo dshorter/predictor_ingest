@@ -56,8 +56,8 @@ RUN mkdir -p data/db data/raw data/text data/docpacks \
 # Initialize database
 RUN python scripts/init_db.py --db data/db/predictor.db
 
-# Cron job: daily pipeline at 6:00 AM ET
-RUN echo "0 6 * * * cd /app && make ingest >> /var/log/predictor-pipeline.log 2>&1" \
+# Cron job: daily pipeline at 6:00 AM ET (full orchestrator with structured logging)
+RUN echo "0 6 * * * cd /app && python scripts/run_pipeline.py --copy-to-live >> /var/log/predictor-pipeline.log 2>&1" \
     > /etc/cron.d/predictor-pipeline \
     && chmod 0644 /etc/cron.d/predictor-pipeline \
     && crontab /etc/cron.d/predictor-pipeline
