@@ -3,7 +3,7 @@
 ## Approach
 Create a standalone mobile UI at `web/mobile/` that shares data files and reusable JS modules with the existing desktop UI. The desktop UI remains completely untouched.
 
-## Best Practices Alignment (Feb 2025)
+## Best Practices Alignment (Feb 2026)
 
 | Practice | How we apply it |
 |----------|----------------|
