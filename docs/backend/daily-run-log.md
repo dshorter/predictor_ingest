@@ -102,7 +102,7 @@ OK 2026-02-08: 12 docs, 87 entities, 134 relations | 7/7 feeds | 142.3s
 | `ingest.feedsReachable` | = `feedsChecked` (7) | Any less means source down |
 | `ingest.newDocsFound` | 5-30 typical | 0 = stale or broken feeds |
 | `extract.validationErrors` | 0 | > 0 = schema or prompt drift |
-| `extract.escalated` | < 30% of docs | > 50% = cheap model underperforming |
+| `extract.escalated` | < 30% of docs (typical) | > 50% = cheap model underperforming |
 | `import.filesImported` | > 0 | 0 = extraction produced no valid output |
 | `durationSec` | < 600 (10 min) | Longer = investigate bottleneck |
 | `failedStages` | absent | Present = check stage errors |
@@ -188,19 +188,19 @@ The pipeline orchestrator (`scripts/run_pipeline.py`):
 ### Usage
 
 ```bash
-# Full pipeline (all 7 stages)
+# Full pipeline (all 7 stages, escalation mode by default)
 python scripts/run_pipeline.py --copy-to-live
 
 # Skip extraction (Mode B manual workflow)
 python scripts/run_pipeline.py --skip-extract --copy-to-live
 
-# Use escalation mode
-python scripts/run_pipeline.py --escalate --copy-to-live
+# Disable escalation (run primary model on all docs with shadow comparison)
+python scripts/run_pipeline.py --no-escalate --copy-to-live
 
 # Dry run (show what would execute)
 python scripts/run_pipeline.py --dry-run
 
 # Via Makefile
-make daily          # full pipeline with --copy-to-live
+make daily          # full pipeline with --copy-to-live (escalation default)
 make daily-manual   # skip extraction, --copy-to-live
 ```

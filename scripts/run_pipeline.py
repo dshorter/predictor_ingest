@@ -328,8 +328,8 @@ def main() -> int:
         help="Skip extraction stage (Mode B: manual extraction workflow)",
     )
     parser.add_argument(
-        "--escalate", action="store_true",
-        help="Use escalation mode for extraction (cheap model first, specialist on demand)",
+        "--no-escalate", action="store_true",
+        help="Disable escalation mode; run primary model on all docs with shadow comparison instead",
     )
     parser.add_argument(
         "--copy-to-live", action="store_true",
@@ -389,7 +389,7 @@ def main() -> int:
                 sys.executable, "scripts/run_extract.py",
                 "--docpack", docpack_path,
                 "--db", db_path,
-            ] + (["--escalate"] if args.escalate else ["--shadow", "--parallel"]),
+            ] + (["--shadow", "--parallel"] if args.no_escalate else ["--escalate"]),
             "parse": parse_extract_output,
             "fatal": False,
             "skip": args.skip_extract,

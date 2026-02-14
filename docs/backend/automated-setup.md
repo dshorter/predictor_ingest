@@ -255,17 +255,17 @@ For a detailed report:
 make shadow-report
 ```
 
-### Escalation Mode
+### Escalation Mode (Default)
 
-Escalation mode uses a cheap model first, then escalates to the specialist
-(Sonnet) only when quality is below threshold:
+The daily orchestrator uses escalation by default: cheap model (understudy) runs
+first, and only escalates to the specialist (Sonnet) when quality heuristics fail.
+This saves API cost on straightforward articles.
+
+To disable escalation and run the primary model on every document with shadow
+comparison instead:
 
 ```bash
-# One-off run
-make extract-escalate
-
-# Or via the daily orchestrator
-python scripts/run_pipeline.py --escalate --copy-to-live
+python scripts/run_pipeline.py --no-escalate --copy-to-live
 ```
 
 ---
