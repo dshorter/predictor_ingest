@@ -1,6 +1,6 @@
 # Automated Pipeline Setup
 
-One-time setup to get the automated extraction pipeline running with Sonnet as primary.
+One-time setup to get the automated daily pipeline running.
 
 ---
 
@@ -8,8 +8,8 @@ One-time setup to get the automated extraction pipeline running with Sonnet as p
 
 - Python 3.10+
 - Server with internet access (for RSS fetching and API calls)
-- Anthropic API key (for Sonnet)
-- Optional: Second API key for understudy (Gemini, OpenAI, or Haiku)
+- Anthropic API key (for Sonnet extraction) OR OpenAI API key
+- Optional: Second API key for understudy/escalation mode
 
 ---
 
@@ -47,12 +47,15 @@ Create a `.env` file in the repo root:
 
 ```bash
 cat > .env << 'EOF'
-# Primary model (Sonnet)
+# Primary model (Sonnet) — used for Mode A automated extraction
 ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
 
-# Understudy model (pick one or more)
+# Optional: Override primary model (default: claude-sonnet-4-20250514)
+# PRIMARY_MODEL=claude-sonnet-4-20250514
+
+# Optional: Understudy model for shadow/escalation mode
+# UNDERSTUDY_MODEL=gpt-5-nano
 # OPENAI_API_KEY=sk-your-openai-key
-# GOOGLE_API_KEY=your-google-api-key
 EOF
 
 # Secure the file
@@ -72,7 +75,7 @@ set -a; source /opt/predictor_ingest/.env; set +a
 
 ```bash
 make init-db
-# Creates data/db/predictor.db with all tables including extraction_comparison
+# Creates data/db/predictor.db with all tables
 ```
 
 Verify:
@@ -119,10 +122,14 @@ Review `config/feeds.yaml`:
 cat config/feeds.yaml
 ```
 
-Default feeds:
-- arXiv CS.AI
+Default feeds (7 sources):
+- arXiv CS.AI (limit 20)
 - Hugging Face Blog
 - OpenAI Blog
+- Anthropic Blog
+- Google AI Blog
+- MIT Technology Review
+- The Gradient
 
 Add or modify feeds as needed. Each feed needs:
 
@@ -138,41 +145,45 @@ feeds:
 
 ## 7. First Manual Run
 
-Run each stage to verify everything works:
+Run the full pipeline with the orchestrator to verify everything works:
 
 ```bash
-# Stage 1: Ingest RSS feeds
-make ingest
-# Check: data/raw/ and data/text/ should have new files
+# Full automated pipeline (all 7 stages)
+make daily
 
-# Stage 2: Build document pack
-make docpack
-# Check: data/docpacks/daily_bundle_YYYY-MM-DD.jsonl exists
-
-# Stage 3: Run extraction (this calls the API)
-make extract
-# Check: data/extractions/*.json files created
-
-# Stage 4: Import to database
-make import
-# Check: entities and relations populated
-
-# Stage 5: Resolve duplicates
-make resolve
-
-# Stage 6: Export graph views
-make export
-
-# Stage 7: Compute trending
-make trending
-# Check: data/graphs/YYYY-MM-DD/*.json files exist
+# Or if no API key — skip extraction (Mode B manual workflow)
+make daily-manual
 ```
 
-Or run the full pipeline:
+This runs all stages in order:
+1. **ingest** — fetch RSS feeds, store raw HTML + cleaned text
+2. **docpack** — bundle cleaned docs for extraction
+3. **extract** — LLM extraction via API (skipped in `daily-manual`)
+4. **import** — import extraction JSON into database
+5. **resolve** — entity resolution / deduplication
+6. **export** — export Cytoscape.js graph views (mentions, claims, dependencies)
+7. **trending** — compute and export trending view
+
+The orchestrator writes a structured JSON log to `data/logs/pipeline_YYYY-MM-DD.json`
+and prints a one-liner summary.
+
+You can also run individual stages via Make targets:
 
 ```bash
-make pipeline      # ingest + docpack + extract
-make post-extract  # import + resolve + export + trending
+make ingest          # Stage 1
+make docpack         # Stage 2
+make extract         # Stage 3 (API mode with shadow)
+make import          # Stage 4
+make resolve         # Stage 5
+make export          # Stage 6
+make trending        # Stage 7
+```
+
+Or the legacy composite targets:
+
+```bash
+make pipeline        # ingest + docpack (with lock file)
+make post-extract    # import + resolve + export + trending (with lock file)
 ```
 
 ---
@@ -196,10 +207,16 @@ ls -la data/graphs/$(date +%Y-%m-%d)/
 # Should have: claims.json, dependencies.json, mentions.json, trending.json
 ```
 
+Check run log:
+
+```bash
+cat data/logs/pipeline_$(date +%Y-%m-%d).json | python -m json.tool
+```
+
 Copy to web client and test:
 
 ```bash
-# Copy to the "live" folder (shown as "Today's Graph" in the UI)
+# If not using --copy-to-live flag, manually copy:
 cp -r data/graphs/$(date +%Y-%m-%d)/* web/data/graphs/live/
 
 python -m http.server 8000 --directory web
@@ -210,14 +227,12 @@ python -m http.server 8000 --directory web
 
 ## 9. Configure Shadow Mode (Optional)
 
-To run an understudy model alongside Sonnet for comparison:
+To run an understudy model alongside the primary model for comparison:
 
-Edit your extraction config to enable shadow mode:
-
-```python
-# In the extraction runner, configure:
-PRIMARY_MODEL = "claude-sonnet-4-20250514"
-UNDERSTUDY_MODELS = ["gemini-2.5-flash"]  # or ["claude-haiku-4-5-20250901"]
+```bash
+# Add to .env
+UNDERSTUDY_MODEL=gpt-5-nano
+OPENAI_API_KEY=sk-your-openai-key
 ```
 
 Shadow results go to `extraction_comparison` table. Query them:
@@ -234,19 +249,37 @@ GROUP BY understudy_model;
 "
 ```
 
+For a detailed report:
+
+```bash
+make shadow-report
+```
+
+### Escalation Mode (Default)
+
+The daily orchestrator uses escalation by default: cheap model (understudy) runs
+first, and only escalates to the specialist (Sonnet) when quality heuristics fail.
+This saves API cost on straightforward articles.
+
+To disable escalation and run the primary model on every document with shadow
+comparison instead:
+
+```bash
+python scripts/run_pipeline.py --no-escalate --copy-to-live
+```
+
 ---
 
 ## 10. Set Up Daily Cron
 
-Create a cron job for daily automated runs:
+Create a cron job for daily automated runs using the pipeline orchestrator:
 
 ```bash
 # Edit crontab
 crontab -e
 
 # Add this line (runs at 6 AM daily)
-# Runs pipeline, then copies output to web/data/graphs/live/ for the UI
-0 6 * * * cd /opt/predictor_ingest && source venv/bin/activate && source .env && make pipeline && make post-extract && cp -r data/graphs/$(date +\%Y-\%m-\%d)/* web/data/graphs/live/ >> data/logs/cron.log 2>&1
+0 6 * * * cd /opt/predictor_ingest && source venv/bin/activate && source .env && python scripts/run_pipeline.py --copy-to-live >> data/logs/cron.log 2>&1
 ```
 
 Create the logs directory:
@@ -254,6 +287,13 @@ Create the logs directory:
 ```bash
 mkdir -p data/logs
 ```
+
+The orchestrator handles:
+- Running all 7 pipeline stages in order
+- Lock file management for safe-reboot awareness
+- Structured JSON run log (`data/logs/pipeline_YYYY-MM-DD.json`)
+- Copying graphs to `web/data/graphs/live/` for the UI
+- One-liner summary printed to stdout (captured by cron)
 
 ---
 
@@ -265,8 +305,8 @@ After the first automated run, check:
 # Cron output
 tail -50 data/logs/cron.log
 
-# Pipeline run summary (once implemented)
-cat data/logs/pipeline_$(date +%Y-%m-%d).json
+# Structured pipeline log
+cat data/logs/pipeline_$(date +%Y-%m-%d).json | python -m json.tool
 ```
 
 See `docs/backend/daily-run-log.md` for the log format and health check thresholds.
@@ -280,14 +320,14 @@ See `docs/backend/daily-run-log.md` for the log format and health check threshol
 | Error | Cause | Fix |
 |-------|-------|-----|
 | `AuthenticationError` | Bad API key | Check `.env` file |
-| `RateLimitError` | Too many requests | Add retry logic or slow down |
+| `RateLimitError` | Too many requests | Extraction script has built-in delays |
 | `InvalidRequestError` | Prompt too long | Article may be too large; check cleaning |
 
 ### No new documents after ingest
 
 ```bash
-# Check feed status
-python -m ingest.rss --config config/feeds.yaml --dry-run
+# Check feed connectivity
+python -m ingest.rss --config config/feeds.yaml --limit 1
 
 # Check for duplicates (same URL already fetched)
 sqlite3 data/db/predictor.db "SELECT url, status FROM documents ORDER BY fetched_at DESC LIMIT 10;"
@@ -299,7 +339,8 @@ sqlite3 data/db/predictor.db "SELECT url, status FROM documents ORDER BY fetched
 # Check specific extraction
 python -c "
 from schema import validate_extraction
-import json
+import json, sys
+sys.path.insert(0, 'src')
 data = json.load(open('data/extractions/DOCID.json'))
 validate_extraction(data)
 print('Valid')
@@ -308,7 +349,23 @@ print('Valid')
 
 ### Database locked
 
-SQLite can only handle one writer at a time. Don't run multiple pipeline instances simultaneously.
+SQLite can only handle one writer at a time. The pipeline orchestrator uses a lock
+file (`data/pipeline.lock`) to prevent concurrent runs. Don't run multiple pipeline
+instances simultaneously.
+
+### Pipeline run log shows failures
+
+```bash
+# Check which stages failed
+python -c "
+import json
+log = json.load(open('data/logs/pipeline_$(date +%Y-%m-%d).json'))
+print('Status:', log['status'])
+for name, stage in log['stages'].items():
+    if stage.get('status') not in ('ok', 'skipped'):
+        print(f'  {name}: {stage}')
+"
+```
 
 ---
 
@@ -320,7 +377,7 @@ After setup, you should have:
 /opt/predictor_ingest/
 ├── .env                          # API keys (chmod 600)
 ├── venv/                         # Python virtual environment
-├── config/feeds.yaml             # RSS feed configuration
+├── config/feeds.yaml             # RSS feed configuration (7 sources)
 ├── data/
 │   ├── db/predictor.db          # SQLite database
 │   ├── raw/                      # Raw HTML files
@@ -328,7 +385,7 @@ After setup, you should have:
 │   ├── docpacks/                 # Daily JSONL bundles
 │   ├── extractions/              # Per-document extraction JSON
 │   ├── graphs/                   # Cytoscape export files
-│   └── logs/                     # Pipeline run logs
+│   └── logs/                     # Pipeline run logs (JSON + cron.log)
 ```
 
 ---
