@@ -426,36 +426,18 @@ async function initializeApp() {
     var dateInput = document.getElementById('date-anchor');
     if (dateInput) dateInput.value = AppState.anchorDate;
 
-    // Try loading data: live first, then sample fallback
-    var data = null;
-    try {
-      AppState.dataSource = 'live';
-      var liveUrl = getDataUrl(AppState.currentView);
-      data = await loadGraphData(liveUrl);
-      // Sync radio to live
-      var liveRadio = document.querySelector('input[name="data-source"][value="live"]');
-      if (liveRadio) liveRadio.checked = true;
-    } catch (liveErr) {
-      console.warn('Live data not available, trying sample:', liveErr.message);
-      try {
-        AppState.dataSource = 'sample';
-        AppState.currentTier = 'medium';
-        var sampleUrl = getDataUrl(AppState.currentView);
-        data = await loadGraphData(sampleUrl);
-        // Sync radio to sample
-        var sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
-        if (sampleRadio) sampleRadio.checked = true;
-        var sampleList = document.getElementById('sample-tier-list');
-        if (sampleList) sampleList.classList.remove('hidden');
-      } catch (sampleErr) {
-        console.warn('Sample data also not available:', sampleErr.message);
-        throw new Error(
-          'No graph data found. Tried live (' + liveErr.message +
-          ') and sample (' + sampleErr.message + '). ' +
-          'Make sure data files exist at web/data/graphs/live/ or web/data/graphs/medium/'
-        );
-      }
-    }
+    // Default to sample data so users see something on first load
+    // (live data is empty until pipeline runs)
+    AppState.dataSource = 'sample';
+    AppState.currentTier = 'medium';
+    var sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
+    if (sampleRadio) sampleRadio.checked = true;
+    var sampleList = document.getElementById('sample-tier-list');
+    if (sampleList) sampleList.classList.remove('hidden');
+
+    // Load data
+    var dataUrl = getDataUrl(AppState.currentView);
+    var data = await loadGraphData(dataUrl);
 
     // Initialize Cytoscape (no minimap, no navigator)
     AppState.cy = initializeGraph(container, data, getCytoscapeStyles());
