@@ -12,8 +12,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      PYTHONPATH: scripts
 
     steps:
       - name: Checkout
@@ -28,12 +26,11 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+          pip install -e .[dev]
 
-      #- name: Run pytest
-      #  run: |
-      #    pytest -q
+      - name: Run pytest
+        run: |
+          pytest -q -m "not network and not llm_live"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
