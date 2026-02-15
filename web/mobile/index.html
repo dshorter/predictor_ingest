@@ -39,6 +39,9 @@
         <button id="btn-filter" class="btn-icon" title="Filters" aria-label="Open filters">
           <span aria-hidden="true">&#x2699;</span>
         </button>
+        <button id="btn-help" class="btn-icon btn-help-mobile" title="Help" aria-label="Open help">
+          <span aria-hidden="true">?</span>
+        </button>
       </div>
     </header>
 
@@ -89,6 +92,16 @@
           <button id="theme-toggle" class="menu-action">
             <span id="theme-icon">&#x2600;</span> Toggle theme
           </button>
+        </section>
+
+        <section class="menu-section">
+          <h3>Help</h3>
+          <button id="btn-help-menu" class="menu-action">
+            <span aria-hidden="true">&#x1F4D6;</span> How to Use This Graph
+          </button>
+          <a href="../help/glossary.html" class="menu-action">
+            <span aria-hidden="true">&#x1F4DA;</span> Project Glossary
+          </a>
         </section>
 
         <section class="menu-section">
@@ -225,6 +238,37 @@
       </div>
     </div>
 
+    <!-- Help sheet -->
+    <div id="help-sheet" class="help-sheet hidden">
+      <header class="help-sheet-header">
+        <h2>Help</h2>
+        <button id="help-sheet-close" class="btn-icon" aria-label="Close help">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </header>
+      <div class="help-sheet-body">
+        <a href="#" id="help-card-guide" class="help-card">
+          <div class="help-card-icon" aria-hidden="true">&#x1F4D6;</div>
+          <div class="help-card-text">
+            <strong>How to Use This Graph</strong>
+            <span>Navigation, interactions, views, and filters</span>
+          </div>
+          <span class="help-card-arrow" aria-hidden="true">&#x203A;</span>
+        </a>
+        <a href="../help/glossary.html" class="help-card">
+          <div class="help-card-icon" aria-hidden="true">&#x1F4DA;</div>
+          <div class="help-card-text">
+            <strong>Project Glossary</strong>
+            <span>Entity types, relationships, metrics, and pipeline</span>
+          </div>
+          <span class="help-card-arrow" aria-hidden="true">&#x203A;</span>
+        </a>
+      </div>
+      <div id="help-guide-content" class="help-guide-content hidden">
+        <!-- Populated dynamically from help content -->
+      </div>
+    </div>
+
     <!-- Loading overlay -->
     <div id="loading-overlay" class="overlay hidden">
       <div class="loading-spinner"></div>
@@ -255,6 +299,9 @@
   <script src="../js/search.js?v=2"></script>
   <script src="../js/layout.js?v=4"></script>
   <script src="../js/graph.js?v=5"></script>
+
+  <!-- Help content -->
+  <script src="../help/content.js?v=1"></script>
 
   <!-- Mobile-specific scripts -->
   <script src="js/touch.js?v=1"></script>
