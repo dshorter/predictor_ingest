@@ -335,6 +335,9 @@ function initializeMobileToolbar(cy) {
   if (errorDismiss) {
     errorDismiss.addEventListener('click', hideError);
   }
+
+  // Help button → open help sheet
+  initializeMobileHelp();
 }
 
 /* ============================================================
@@ -404,6 +407,117 @@ async function switchView(view) {
     hideLoading();
     showWarning('Could not load "' + view + '" view.');
   }
+}
+
+/* ============================================================
+   Help Sheet
+   ============================================================ */
+
+function initializeMobileHelp() {
+  var helpBtn = document.getElementById('btn-help');
+  var helpSheet = document.getElementById('help-sheet');
+  var helpClose = document.getElementById('help-sheet-close');
+  var helpGuideCard = document.getElementById('help-card-guide');
+  var helpBody = document.getElementById('help-sheet').querySelector('.help-sheet-body');
+  var helpGuideContent = document.getElementById('help-guide-content');
+
+  if (!helpBtn || !helpSheet) return;
+
+  // Open help sheet from toolbar button
+  helpBtn.addEventListener('click', function() {
+    openHelpSheet();
+  });
+
+  // Open help guide from hamburger menu
+  var helpMenuBtn = document.getElementById('btn-help-menu');
+  var menuOverlay = document.getElementById('menu-overlay');
+  if (helpMenuBtn) {
+    helpMenuBtn.addEventListener('click', function() {
+      // Close menu first
+      if (menuOverlay) {
+        menuOverlay.classList.remove('visible');
+        setTimeout(function() { menuOverlay.classList.add('hidden'); }, 300);
+      }
+      openHelpSheet();
+      // Go directly to guide content
+      setTimeout(showHelpGuide, 100);
+    });
+  }
+
+  // Close help sheet
+  if (helpClose) {
+    helpClose.addEventListener('click', function() {
+      closeHelpSheet();
+    });
+  }
+
+  // "How to Use" card → show inline guide content
+  if (helpGuideCard) {
+    helpGuideCard.addEventListener('click', function(e) {
+      e.preventDefault();
+      showHelpGuide();
+    });
+  }
+
+  // Populate guide content from shared HelpContent (if available)
+  if (helpGuideContent && typeof HelpContent !== 'undefined') {
+    // Build mobile-adapted quick start content
+    var mobileGuide = '<button class="help-back-btn" id="help-back">&larr; Back</button>';
+    mobileGuide += HelpContent.quickStart;
+
+    // Adapt navigation table for touch
+    mobileGuide = mobileGuide.replace('Click + drag on background', 'Drag with one finger');
+    mobileGuide = mobileGuide.replace('Scroll wheel', 'Pinch to zoom');
+    mobileGuide = mobileGuide.replace('Click any node', 'Tap any node');
+    mobileGuide = mobileGuide.replace('Click background or press <kbd>Escape</kbd>', 'Tap background');
+    mobileGuide = mobileGuide.replace('Click ⊡ button or double-click background', 'Double-tap background');
+
+    helpGuideContent.innerHTML = mobileGuide;
+
+    // Back button in guide view
+    var backBtn = document.getElementById('help-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', function() {
+        hideHelpGuide();
+      });
+    }
+  }
+}
+
+function openHelpSheet() {
+  var helpSheet = document.getElementById('help-sheet');
+  if (!helpSheet) return;
+
+  // Reset to card view (not guide view)
+  hideHelpGuide();
+
+  helpSheet.classList.remove('hidden');
+  helpSheet.offsetHeight; // force reflow
+  helpSheet.classList.add('visible');
+  announceToScreenReader('Help opened');
+}
+
+function closeHelpSheet() {
+  var helpSheet = document.getElementById('help-sheet');
+  if (!helpSheet) return;
+
+  helpSheet.classList.remove('visible');
+  setTimeout(function() { helpSheet.classList.add('hidden'); }, 300);
+  announceToScreenReader('Help closed');
+}
+
+function showHelpGuide() {
+  var body = document.querySelector('.help-sheet-body');
+  var guide = document.getElementById('help-guide-content');
+  if (body) body.classList.add('hidden');
+  if (guide) guide.classList.remove('hidden');
+}
+
+function hideHelpGuide() {
+  var body = document.querySelector('.help-sheet-body');
+  var guide = document.getElementById('help-guide-content');
+  if (body) body.classList.remove('hidden');
+  if (guide) guide.classList.add('hidden');
 }
 
 /* ============================================================
