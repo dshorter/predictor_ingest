@@ -552,8 +552,10 @@ async function switchView(view) {
       initNavigator(AppState.cy);
     });
 
-    // Reapply current date filter to newly loaded data
+    // Refresh filter panel counts and re-bind event handlers for new data
     if (AppState.filter) {
+      populateTypeFilters(AppState.cy, AppState.filter);
+      syncFilterUI(AppState.filter);
       applyDateFilterFromAnchor();
     }
 

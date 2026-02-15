@@ -204,10 +204,14 @@ class GraphFilter {
 }
 
 /**
- * Populate type filter checkboxes dynamically
+ * Populate type filter checkboxes dynamically.
+ * Re-generates the HTML and re-attaches change listeners so counts
+ * stay in sync whenever the underlying graph data changes.
+ *
  * @param {Object} cy - Cytoscape instance
+ * @param {GraphFilter} [filter] - optional filter instance for re-binding
  */
-function populateTypeFilters(cy) {
+function populateTypeFilters(cy, filter) {
   const typeFiltersContainer = document.getElementById('type-filters');
   if (!typeFiltersContainer) return;
 
@@ -240,14 +244,23 @@ function populateTypeFilters(cy) {
       </label>
     `;
   }).join('');
+
+  // Re-attach change listeners after regenerating the HTML
+  if (filter) {
+    typeFiltersContainer.querySelectorAll('[data-type]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        filter.toggleType(cb.dataset.type, cb.checked);
+      });
+    });
+  }
 }
 
 /**
  * Initialize filter panel UI
  */
 function initializeFilterPanel(filter) {
-  // Populate type filters dynamically
-  populateTypeFilters(filter.cy);
+  // Populate type filters dynamically (pass filter for event binding)
+  populateTypeFilters(filter.cy, filter);
 
   // --- Data source radios ---
   const dataSourceRadios = document.querySelectorAll('input[name="data-source"]');
@@ -286,13 +299,8 @@ function initializeFilterPanel(filter) {
     });
   });
 
-  // Entity type checkboxes
-  const typeCheckboxes = document.querySelectorAll('[data-type]');
-  typeCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      filter.toggleType(checkbox.dataset.type, checkbox.checked);
-    });
-  });
+  // Entity type checkbox change listeners are now attached inside
+  // populateTypeFilters() so they survive HTML regeneration.
 
   // Select all/none types
   document.getElementById('select-all-types')?.addEventListener('click', () => {
@@ -346,8 +354,8 @@ function initializeFilterPanel(filter) {
     if (dateInput) dateInput.value = AppState.anchorDate;
     applyDateFilterFromAnchor();
 
-    // Repopulate type filters after reset
-    populateTypeFilters(filter.cy);
+    // Repopulate type filters after reset (pass filter for event re-binding)
+    populateTypeFilters(filter.cy, filter);
     syncFilterUI(filter);
   });
 
