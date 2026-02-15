@@ -92,7 +92,11 @@
 <li><a href="#entity-types-node-types">Entity Types (Node Types)</a></li>
 <li><a href="#relationship-types-edge-types">Relationship Types (Edge Types)</a></li>
 <li><a href="#data-structures">Data Structures</a></li>
-<li><a href="#extraction-and-processing">Extraction and Processing</a></li>
+<li><a href="#extraction-and-processing">Extraction and Processing</a>
+  <ul>
+    <li><a href="#llm-escalation-strategy">LLM Escalation Strategy</a></li>
+  </ul>
+</li>
 <li><a href="#graph-visualization">Graph Visualization</a></li>
 <li><a href="#scoring-and-metrics">Scoring and Metrics</a></li>
 <li><a href="#technical-infrastructure">Technical Infrastructure</a></li>
@@ -709,6 +713,90 @@
 - Evidence quality: Multiple corroborating sources vs single mention
 - Extraction quality: LLM returned high vs low confidence</p>
 <p><strong>Usage</strong>: Low-confidence claims can be filtered out in the UI or marked as "hypothesis."</p>
+<h3 id="llm-escalation-strategy">LLM Escalation Strategy</h3>
+<p>The <strong>LLM escalation strategy</strong> is a cost-optimization approach that balances extraction quality with API costs by using different LLM models based on quality assessment.</p>
+<p><strong>How It Works</strong>:</p>
+<ol>
+<li><strong>Specialist Models (Tiers)</strong>:
+  <ul>
+    <li><strong>Tier 1 (Primary)</strong>: High-capability models (Claude Sonnet 4, GPT-4.1) — used for complex extractions or when quality matters most (~$3-8 per 1M tokens)</li>
+    <li><strong>Tier 2 (Understudy)</strong>: Efficient models (GPT-5 nano, GPT-4.1 nano, Gemini 2.5 Flash) — cheaper but still capable (~$0.10-0.60 per 1M tokens)</li>
+  </ul>
+</li>
+<li><strong>Shadow Mode</strong> (continuous validation):
+  <ul>
+    <li>Primary model (Sonnet) processes all articles and produces actual extractions</li>
+    <li>Understudy model runs in parallel on the same inputs</li>
+    <li>Results are compared automatically (entity overlap, relation overlap, schema compliance)</li>
+    <li>Understudy failures are logged as data, not errors — zero production risk</li>
+    <li>Accumulate real-world comparison stats over time</li>
+  </ul>
+</li>
+<li><strong>Escalation Mode</strong> (cost optimization):
+  <ul>
+    <li>Start with cheap model (e.g., GPT-5 nano with strict schema enforcement)</li>
+    <li>Score extraction quality automatically using signals like entity density, evidence coverage, confidence, relation/entity ratio</li>
+    <li>If quality score ≥ 0.6 → keep cheap model's result</li>
+    <li>If quality score &lt; 0.6 → escalate to Sonnet and use its result instead</li>
+  </ul>
+</li>
+</ol>
+<p><strong>Cost Impact</strong>:</p>
+<ul>
+<li><strong>Sonnet only</strong>: ~$25/month for 20 docs/day</li>
+<li><strong>Shadow mode</strong>: ~$26-32/month (Sonnet + understudy for continuous validation)</li>
+<li><strong>Escalation mode</strong>: ~$5-7/month if 80% of articles pass cheap model's quality check</li>
+</ul>
+<p><strong>Quality Signals</strong> (used in escalation scoring):</p>
+<table class="help-table">
+<thead>
+<tr>
+<th>Signal</th>
+<th>Weight</th>
+<th>What It Catches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entity density (per 1K chars)</td>
+<td>30%</td>
+<td>Missed entities</td>
+</tr>
+<tr>
+<td>Evidence coverage</td>
+<td>25%</td>
+<td>Hallucinated relations</td>
+</tr>
+<tr>
+<td>Average confidence</td>
+<td>20%</td>
+<td>Model uncertainty/guessing</td>
+</tr>
+<tr>
+<td>Relation/entity ratio</td>
+<td>15%</td>
+<td>Entities found but no connections</td>
+</tr>
+<tr>
+<td>Tech terms present</td>
+<td>10%</td>
+<td>Missed domain-specific content</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metadata Tracking</strong>: Each extraction JSON includes:</p>
+<ul>
+<li><code>_extractedBy</code>: Which model was used (e.g., "gpt-5-nano", "claude-sonnet-4")</li>
+<li><code>_qualityScore</code>: Combined quality score (0.0-1.0)</li>
+<li><code>_escalationReason</code>: Why it was escalated (if applicable)</li>
+</ul>
+<p><strong>Why This Approach</strong>:</p>
+<ul>
+<li><strong>Safety</strong>: Primary model guarantees quality; understudy failures don't affect production</li>
+<li><strong>Learning</strong>: Continuous comparison data shows when cheaper models become viable</li>
+<li><strong>Flexibility</strong>: Can promote understudy to primary when stats show consistent quality (≥95% schema pass rate, ≥85% entity overlap, ≥80% relation overlap over 100+ docs)</li>
+<li><strong>Cost Control</strong>: Escalation mode dramatically reduces costs while maintaining quality thresholds</li>
+</ul>
 <hr />
 <h2 id="graph-visualization">Graph Visualization</h2>
 <h3 id="node">Node</h3>
