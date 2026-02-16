@@ -31,6 +31,8 @@ class FeedConfig:
         type: Feed type ('rss' or 'atom'), defaults to 'rss'
         enabled: Whether to include this feed in ingestion, defaults to True
         limit: Max items per ingestion run (0 = unlimited), defaults to 0
+        tier: Source tier (1=primary/original, 2=secondary/aggregator, 3=echo/mainstream)
+        signal: Signal type hint (e.g. 'primary', 'echo', 'commentary', 'community')
     """
 
     name: str
@@ -38,6 +40,8 @@ class FeedConfig:
     type: str = "rss"
     enabled: bool = True
     limit: int = 0
+    tier: int = 1
+    signal: str = "primary"
 
 
 def load_feeds(
@@ -80,6 +84,8 @@ def load_feeds(
             type=feed_dict.get("type", "rss"),
             enabled=feed_dict.get("enabled", True),
             limit=feed_dict.get("limit", 0),
+            tier=feed_dict.get("tier", 1),
+            signal=feed_dict.get("signal", "primary"),
         )
         if include_disabled or feed.enabled:
             feeds.append(feed)

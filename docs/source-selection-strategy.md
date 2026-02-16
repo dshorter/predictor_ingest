@@ -33,7 +33,24 @@ covering those topics deeply.
 when a story crosses from insider to mainstream awareness. This is a V2 feature
 requiring explicit echo-detection logic, not simple ingestion.
 
-### 2. Structural diversity over volume
+### 2. Secondary sources are essential for entity overlap
+
+**Update (Feb 2026):** While primary sources remain the foundation, operating
+experience shows that 7 Tier 1 sources producing ~25 docs/day yields
+insufficient entity overlap for meaningful trend detection. Entities need to
+appear in **multiple independent documents** for velocity signals to work.
+
+Secondary sources (TechCrunch, VentureBeat, Ars Technica, etc.) naturally
+create this overlap by re-reporting the same entities from primary announcements.
+A TechCrunch article about an OpenAI release creates a second mention of the
+same entities — which is exactly what drives velocity scoring.
+
+**Key insight:** secondary sources are lagging for *discovery* but essential for
+*corroboration*. The tier/signal metadata in `feeds.yaml` lets us distinguish
+between "first seen in a primary source" vs "confirmed across secondary sources"
+without conflating the two.
+
+### 3. Structural diversity over volume
 
 A good source list covers distinct **vantage points**, not just distinct topics:
 
@@ -43,12 +60,14 @@ A good source list covers distinct **vantage points**, not just distinct topics:
 | Open-source ecosystem | Hugging Face | Model releases, community momentum |
 | Major labs (industry) | OpenAI, Anthropic, Google AI | Product launches, partnerships, policy |
 | Journalism | MIT Technology Review | Policy, societal impact, cross-domain |
-| Technical analysis | The Gradient | Deep dives bridging academia and industry |
+| Technical analysis | The Gradient, Interconnects | Deep dives bridging academia and industry |
+| Tech press (secondary) | TechCrunch, VentureBeat, Ars Technica | Entity overlap, deployment coverage |
+| Practitioner blogs | Simon Willison | Early adoption signals, tool evaluation |
 
 Each vantage point catches signals the others miss. Adding a second journalism
 source adds less value than filling a missing vantage point.
 
-### 3. The "small columnist" problem
+### 4. The "small columnist" problem
 
 The most valuable early signal often comes from a source nobody is watching yet —
 the researcher, blogger, or small publication doing original work before it gets
@@ -69,19 +88,50 @@ mainstream attention. This is the hardest source selection problem.
 
 ## Tier Model
 
-### Tier 1 — Curated Feeds (current)
+### Source quality metadata
+
+Each feed in `feeds.yaml` carries two metadata fields:
+
+- **`tier`** (1, 2, or 3): How original is the content?
+- **`signal`** (primary, commentary, echo, community): What kind of signal does
+  it provide?
+
+These are tracked in `health_report.py` output so we can measure per-tier
+contribution to entity overlap and graph density.
+
+### Tier 1 — Primary/Original Sources (current)
 
 Hand-picked, high signal-to-noise sources ingested daily with full extraction.
+These are the first-mover sources: they publish original content, not re-reports.
 
-| Source | Vantage Point | Volume | Limit |
+| Source | Signal | Volume | Limit |
 |---|---|---|---|
-| arXiv CS.AI | Academic | High (~50-100/day) | 20/run |
-| Hugging Face Blog | Open-source | Low (few/week) | Unlimited |
-| OpenAI Blog | Major lab | Low (few/week) | Unlimited |
-| Anthropic Blog | Major lab | Low (few/week) | Unlimited |
-| Google AI Blog | Major lab | Low-medium | Unlimited |
-| MIT Technology Review | Journalism | Medium | Unlimited |
-| The Gradient | Technical analysis | Low (few/month) | Unlimited |
+| arXiv CS.AI | primary | High (~50-100/day) | 20/run |
+| Hugging Face Blog | primary | Low (few/week) | Unlimited |
+| OpenAI Blog | primary | Low (few/week) | Unlimited |
+| Anthropic Blog | primary | Low (few/week) | Unlimited |
+| Google AI Blog | primary | Low-medium | Unlimited |
+| MIT Technology Review | commentary | Medium | Unlimited |
+| The Gradient | commentary | Low (few/month) | Unlimited |
+
+### Tier 2 — Secondary Sources (expanding)
+
+Secondary sources that re-report, analyze, or contextualize primary source
+content. Essential for **entity overlap** — the same entities appearing across
+multiple documents is what enables velocity scoring.
+
+| Source | Signal | Why |
+|---|---|---|
+| TechCrunch AI | echo | High-volume; re-reports with enterprise context |
+| VentureBeat AI | echo | Enterprise/funding angle; deployment coverage |
+| Ars Technica AI | echo | Technical detail; slightly less lag than mainstream |
+| The Verge AI | echo | Consumer/product angle; deployment announcements |
+| Simon Willison | community | Practitioner blog; early adoption signal |
+| Interconnects (Nathan Lambert) | commentary | RLHF/alignment expert; research-practice bridge |
+
+**Rollout plan:** Enable Tier 2 sources incrementally (2-3 at a time), monitor
+entity overlap rate in `health_report.py` to confirm they're adding signal not
+just volume. If overlap rate doesn't improve after adding a source, reconsider.
 
 ### Tier 2 — Entity Watchlist (planned)
 
@@ -97,7 +147,7 @@ other articles, not the entity's own publications).
 
 A small set of general-audience tech outlets used **only** to measure when AI
 stories cross into mainstream awareness. Not used for entity extraction; only for
-"echo delay" scoring. Candidates: TLDR, Sherwood's Snacks, Ars Technica.
+"echo delay" scoring. Candidates: TLDR, Sherwood's Snacks.
 
 ---
 
@@ -135,13 +185,6 @@ introduce novel ones?
 scored above a threshold in Phase 1. This concentrates token spend on documents
 most likely to enrich the graph.
 
-This pattern generalizes to any high-volume source with a summary/abstract/
-headline layer. The implementation requires:
-- A `preview_text` field in the document record (populated from feed metadata)
-- A lightweight scoring function that checks entity overlap with the graph
-- A `triage_status` field (`preview_extracted`, `promoted`, `skipped`)
-- A second extraction pass that runs only on promoted documents
-
 ---
 
 ## Token Cost Considerations
@@ -161,10 +204,6 @@ extraction cost.
 The cost-per-useful-extraction is worst for multi-topic newsletters (many topics
 covered shallowly) and best for focused blog posts or abstracts (one topic
 covered with clear entity relationships).
-
-Non-RSS sources require custom scraping or API integration instead of
-`feedparser`, which adds code complexity but negligible compute cost on a
-self-hosted server.
 
 ---
 
@@ -190,21 +229,41 @@ talked about, and the human decides *whether* to follow that thread.
 
 ---
 
+## Monitoring Source Effectiveness
+
+Use `make health-report` to track whether sources are contributing to critical
+mass. Key metrics to watch per source:
+
+| Metric | What it tells you |
+|---|---|
+| Docs/day | Is the feed producing content? |
+| Relations/doc | Is the content entity-rich enough to extract? |
+| Entity overlap contribution | Does this source mention entities also seen elsewhere? |
+| Last published date | Is the feed stale? |
+
+If a source produces many docs but low relations/doc, it may be too shallow
+for extraction. If it has high relations/doc but zero entity overlap with other
+sources, it's covering a unique niche (valuable) or an irrelevant one (drop it).
+
+---
+
 ## Evolution Strategy
 
-### Short-term (V1)
-- Enable all 7 Tier 1 feeds
+### Short-term (current)
+- All 7 Tier 1 feeds enabled
 - Apply per-feed limit to arXiv (20/run)
-- Manually review graph entity tables periodically for watchlist candidates
+- Enable 2-3 Tier 2 sources (start with TechCrunch AI, Ars Technica)
+- Monitor entity overlap rate via `make health-report`
+- Extract the ingestion backlog to build initial graph density
 
 ### Medium-term (V1.5)
-- Implement entity watchlist query (Tier 2)
-- Consider 1-2 additional vantage points if gaps emerge (e.g., government/policy:
-  NIST, EU AI Act sources)
+- Enable remaining Tier 2 sources based on overlap contribution
+- Implement entity watchlist query
+- Add 1-2 policy/regulatory feeds (NIST, EU AI Act)
+- Consider GitHub Trending (ML) for code-level adoption signal
 
 ### Long-term (V2)
-- Two-pass triage for high-volume sources (arXiv first, then generalize to any
-  source with a cheap preview layer — news headlines, GitHub release notes, etc.)
+- Two-pass triage for high-volume sources
 - Mainstream echo scoring (Tier 3)
-- Source quality scoring based on extraction yield (entities per token)
+- Automated source quality scoring based on extraction yield
 - Automated watchlist surfacing in the Cytoscape UI

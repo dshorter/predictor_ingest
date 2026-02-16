@@ -3,54 +3,130 @@
 #
 # Per-feed `limit` caps items ingested per run (0 = unlimited).
 # The CLI --limit flag overrides per-feed limits when set.
+#
+# tier: 1 = primary/original source, 2 = secondary/aggregator, 3 = echo/mainstream
+# signal: what kind of signal this source provides
+#   primary    — original announcements, papers, releases
+#   commentary — analysis, synthesis, interpretation
+#   echo       — re-reports primary source content (creates overlap for velocity)
+#   community  — practitioner attention, adoption signals
 
 feeds:
-  # --- Tier 1: Core sources (high signal, direct coverage) ---
+  # --- Tier 1: Primary sources (original content, high signal) ---
 
   - name: "arXiv CS.AI"
     url: "https://rss.arxiv.org/rss/cs.AI"
     type: rss
     enabled: true
     limit: 20
+    tier: 1
+    signal: primary
     # Academic papers; structured metadata (authors, affiliations)
-    # High volume (~50-100/day); limit keeps it proportional to other sources.
-    # RSS includes title + abstract — cheap triage before full-paper fetch.
+    # High volume (~50-100/day); limit keeps it proportional.
 
   - name: "Hugging Face Blog"
     url: "https://huggingface.co/blog/feed.xml"
     type: rss
     enabled: true
+    tier: 1
+    signal: primary
     # Model releases, dataset announcements, open-source ecosystem
-    # Low volume (few posts/week); no limit needed
 
   - name: "OpenAI Blog"
     url: "https://openai.com/blog/rss.xml"
     type: rss
     enabled: true
+    tier: 1
+    signal: primary
     # Major industry announcements, model launches
 
   - name: "Anthropic Blog"
     url: "https://www.anthropic.com/news/rss.xml"
     type: rss
     enabled: true
+    tier: 1
+    signal: primary
     # Safety research, model releases, policy positions
-    # Fills major-lab gap — without this we only see OpenAI's perspective
 
   - name: "Google AI Blog"
     url: "https://blog.google/technology/ai/rss/"
     type: rss
     enabled: true
+    tier: 1
+    signal: primary
     # Gemini, DeepMind research, infra announcements
+
+  # --- Tier 1: Journalism/analysis (original reporting, different vantage) ---
 
   - name: "MIT Technology Review"
     url: "https://www.technologyreview.com/feed/"
     type: rss
     enabled: true
+    tier: 1
+    signal: commentary
     # Journalistic lens: policy, societal impact, cross-domain angles
-    # Surfaces stories that lab blogs won't cover
 
   - name: "The Gradient"
     url: "https://thegradient.pub/rss/"
     type: rss
     enabled: true
+    tier: 1
+    signal: commentary
     # In-depth technical analysis bridging academia and industry
+    # NOTE: appears stale as of Feb 2026 — monitor for removal
+
+  # --- Tier 2: Secondary sources (creates entity overlap for velocity) ---
+  # These lag primary sources by 1-3 days but are essential for:
+  #   - Corroborating entities across multiple sources
+  #   - Measuring entity velocity (mentions over time)
+  #   - Catching stories that lab blogs don't cover
+
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    type: rss
+    enabled: false
+    tier: 2
+    signal: echo
+    # High-volume tech news; re-reports lab announcements with added context
+
+  - name: "VentureBeat AI"
+    url: "https://venturebeat.com/category/ai/feed/"
+    type: rss
+    enabled: false
+    tier: 2
+    signal: echo
+    # Enterprise AI coverage; funding, partnerships, deployments
+
+  - name: "Ars Technica AI"
+    url: "https://arstechnica.com/tag/artificial-intelligence/feed/"
+    type: rss
+    enabled: false
+    tier: 2
+    signal: echo
+    # Technical reporting with good detail; slightly less lag than mainstream
+
+  - name: "The Verge AI"
+    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+    type: rss
+    enabled: false
+    tier: 2
+    signal: echo
+    # Consumer/product angle on AI; catches deployment announcements
+
+  # --- Tier 2: Community/practitioner signals ---
+
+  - name: "Simon Willison"
+    url: "https://simonwillison.net/atom/everything/"
+    type: rss
+    enabled: false
+    tier: 2
+    signal: community
+    # Practitioner blog; early adopter signal for tools and models
+
+  - name: "Interconnects (Nathan Lambert)"
+    url: "https://www.interconnects.ai/feed"
+    type: rss
+    enabled: false
+    tier: 2
+    signal: commentary
+    # RLHF/alignment expert; bridges research and practice
