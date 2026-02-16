@@ -1,7 +1,7 @@
 # Predictor Ingest
 
 [![Deploy to VPS](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)  
-
+ 
 ![project](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.project.name&label=project)
 ![version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.project.version&label=version&prefix=v)
 ![python](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.python&label=python)
