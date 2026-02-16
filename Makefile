@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack extract extract-escalate shadow-only shadow-report health-report import resolve export trending copy-to-live pipeline post-extract daily test test-network test-all
+.PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live pipeline post-extract daily test test-network test-all
 
 # Configurable paths (override with: make export DATE=2026-01-15)
 DB ?= data/db/predictor.db
@@ -23,10 +23,10 @@ docpack:
 	python scripts/build_docpack.py --db $(DB) --date $(DATE)
 
 extract:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB)
-
-extract-escalate:
 	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB)
+
+extract-shadow:
+	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB)
 
 shadow-only:
 	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB)
