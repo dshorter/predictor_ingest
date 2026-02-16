@@ -393,6 +393,8 @@ async function switchView(view) {
     runLayout(AppState.cy);
 
     if (AppState.filter) {
+      populateTypeFilters(AppState.cy, AppState.filter);
+      syncFilterUI(AppState.filter);
       applyDateFilterFromAnchor();
     }
 
