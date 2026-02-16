@@ -19,6 +19,9 @@ git reset --hard origin/main
 
 log "Pull complete: $(git log --oneline -1)"
 
+# Ensure the live graphs directory exists (gitignored, created by pipeline)
+mkdir -p "$REPO_DIR/web/data/graphs/live"
+
 # If running inside docker compose (alongside ai-agent-platform),
 # rebuild and restart the predictor container
 COMPOSE_DIR="/opt/ai-agent-platform"
