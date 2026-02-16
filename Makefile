@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack extract extract-escalate shadow-only shadow-report import resolve export trending pipeline post-extract daily test test-network test-all
+.PHONY: setup init-db ingest docpack extract extract-escalate shadow-only shadow-report import resolve export trending copy-to-live pipeline post-extract daily test test-network test-all
 
 # Configurable paths (override with: make export DATE=2026-01-15)
 DB ?= data/db/predictor.db
@@ -46,6 +46,11 @@ export:
 trending:
 	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE)
 
+copy-to-live:
+	@mkdir -p web/data/graphs/live
+	cp $(GRAPHS_DIR)/$(DATE)/*.json web/data/graphs/live/
+	@echo "Copied $(GRAPHS_DIR)/$(DATE)/ → web/data/graphs/live/"
+
 # ── Composites ─────────────────────────────────────────────────────────
 
 pipeline:
@@ -55,7 +60,7 @@ pipeline:
 
 post-extract:
 	@touch data/pipeline.lock
-	$(MAKE) import resolve export trending
+	$(MAKE) import resolve export trending copy-to-live
 	@rm -f data/pipeline.lock
 
 daily:

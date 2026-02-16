@@ -332,8 +332,12 @@ def main() -> int:
         help="Disable escalation mode; run primary model on all docs with shadow comparison instead",
     )
     parser.add_argument(
-        "--copy-to-live", action="store_true",
-        help="Copy graph output to web/data/graphs/live/ after export",
+        "--copy-to-live", action="store_true", default=True,
+        help="Copy graph output to web/data/graphs/live/ after export (default: True)",
+    )
+    parser.add_argument(
+        "--no-copy-to-live", action="store_false", dest="copy_to_live",
+        help="Do NOT copy graph output to web/data/graphs/live/ after export",
     )
     parser.add_argument(
         "--dry-run", action="store_true",
