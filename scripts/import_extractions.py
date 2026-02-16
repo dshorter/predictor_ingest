@@ -74,13 +74,15 @@ def import_extractions(
             stats["files_processed"] += 1
             continue
 
-        # Look up document's published date for entity timestamps
+        # Look up document's published date and URL for entity timestamps
+        # and evidence URL override (LLMs often corrupt URLs)
         cursor = conn.execute(
-            "SELECT published_at FROM documents WHERE doc_id = ?",
+            "SELECT published_at, url FROM documents WHERE doc_id = ?",
             (doc_id,)
         )
         row = cursor.fetchone()
         doc_published = row[0] if row else None
+        doc_url = row[1] if row else None
 
         # Resolve entities — get name-to-ID mapping
         # Track which are new vs resolved to existing
@@ -132,13 +134,26 @@ def import_extractions(
             stats["relations"] += 1
 
             # Insert evidence for this relation
+            # Use the known-good URL from documents table instead of
+            # the LLM-returned URL, which is often truncated or mangled
             for ev in rel.get("evidence", []):
+                ev_doc_id = ev.get("docId", doc_id)
+                if ev_doc_id == doc_id and doc_url:
+                    ev_url = doc_url
+                else:
+                    # Evidence references a different doc — look up its URL
+                    cur = conn.execute(
+                        "SELECT url FROM documents WHERE doc_id = ?",
+                        (ev_doc_id,),
+                    )
+                    r = cur.fetchone()
+                    ev_url = r[0] if r else ev.get("url", "")
                 char_span = ev.get("charSpan", {})
                 insert_evidence(
                     conn,
                     relation_id=relation_id,
-                    doc_id=ev["docId"],
-                    url=ev["url"],
+                    doc_id=ev_doc_id,
+                    url=ev_url,
                     published=ev.get("published"),
                     snippet=ev["snippet"],
                     char_start=char_span.get("start"),

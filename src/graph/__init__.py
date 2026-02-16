@@ -258,9 +258,16 @@ class GraphExporter:
         return relations
 
     def _get_evidence_for_relation(self, relation_id: int) -> list[dict[str, Any]]:
-        """Get evidence records for a relation."""
+        """Get evidence records for a relation.
+
+        Uses the document URL from the documents table rather than the
+        evidence URL, which may have been corrupted by the LLM.
+        """
         cursor = self.conn.execute(
-            "SELECT * FROM evidence WHERE relation_id = ?",
+            """SELECT e.*, COALESCE(d.url, e.url) AS url
+               FROM evidence e
+               LEFT JOIN documents d ON e.doc_id = d.doc_id
+               WHERE e.relation_id = ?""",
             (relation_id,)
         )
         return [dict(row) for row in cursor.fetchall()]
