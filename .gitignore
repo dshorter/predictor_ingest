@@ -29,6 +29,9 @@ htmlcov/
 # Project data and outputs (pipeline artifacts)
 data/
 
+# Diagnostic snapshots (collected on VPS, analyzed locally)
+diagnostics/
+
 # Exception: web sample data is small test JSON, belongs in repo
 !web/data/
 web/data/**/*.zip

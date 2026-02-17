@@ -283,6 +283,7 @@ def parse_import_output(stdout: str) -> dict:
         "entitiesNew": 0,
         "entitiesResolved": 0,
         "relations": 0,
+        "mentionsGenerated": 0,
         "evidenceRecords": 0,
     }
     import re
@@ -299,11 +300,17 @@ def parse_import_output(stdout: str) -> dict:
         resolved_match = re.search(r"(\d+)\s+resolved", line.lower())
         if resolved_match:
             stats["entitiesResolved"] = int(resolved_match.group(1))
-        # "- 12 relations" (but not lines containing "evidence")
-        if "relations" in line.lower() and "evidence" not in line.lower() and line.strip().startswith("-"):
+        # "- 12 relations" (but not lines containing "evidence" or "mentions")
+        if "relations" in line.lower() and "evidence" not in line.lower() and "mentions" not in line.lower() and line.strip().startswith("-"):
             for word in line.split():
                 if word.isdigit():
                     stats["relations"] = int(word)
+                    break
+        # "- 28 mentions (doc→entity)"
+        if "mentions" in line.lower() and line.strip().startswith("-"):
+            for word in line.split():
+                if word.isdigit():
+                    stats["mentionsGenerated"] = int(word)
                     break
         if "evidence" in line.lower() and line.strip().startswith("-"):
             for word in line.split():
@@ -447,6 +454,16 @@ def main() -> int:
 
     # Define pipeline stages
     stages = [
+        {
+            "name": "repair",
+            "cmd": [
+                sys.executable, "scripts/repair_data.py",
+                "--db", db_path,
+                "--fix",
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
+        },
         {
             "name": "ingest",
             "cmd": [
