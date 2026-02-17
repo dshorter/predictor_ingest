@@ -86,6 +86,21 @@ Fetched 5 items, skipped 0, errors 0. Feeds reachable: 1/3.
         assert stats["feedsUnreachable"] == 2
         assert stats["newDocsFound"] == 5
 
+    def test_crashed_feeds(self):
+        output = """Processing feed: arXiv CS.AI
+    Feed OK: 5 new documents, 0 duplicates skipped
+Processing feed: Buggy Feed
+    Feed CRASHED: Buggy Feed
+Processing feed: OpenAI Blog
+    Feed OK: 2 new documents, 0 duplicates skipped
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 3
+        assert stats["feedsReachable"] == 2
+        assert stats["feedsUnreachable"] == 1
+        assert stats["fetchErrors"] == 1
+        assert stats["newDocsFound"] == 7
+
 
 class TestParseDocpackOutput:
     def test_empty_output(self):
