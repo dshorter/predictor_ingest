@@ -430,6 +430,7 @@ def main() -> int:
     db_path = args.db
     graphs_dir = args.graphs_dir
     docpack_path = f"data/docpacks/daily_bundle_{run_date}.jsonl"
+    docpack_label = run_date
 
     # Initialize run log
     run_log: dict = {
@@ -462,7 +463,8 @@ def main() -> int:
             "cmd": [
                 sys.executable, "scripts/build_docpack.py",
                 "--db", db_path,
-                "--date", run_date,
+                "--all",
+                "--label", docpack_label,
             ],
             "parse": parse_docpack_output,
             "fatal": False,
@@ -536,6 +538,28 @@ def main() -> int:
     failed_stages = []
 
     print(f"=== Pipeline run {run_id} ({run_date}) ===")
+
+    # Show DB document status summary for diagnostics
+    try:
+        import sqlite3
+        db_full = project_root / db_path
+        if db_full.exists():
+            diag_conn = sqlite3.connect(db_full)
+            diag_conn.row_factory = sqlite3.Row
+            rows = diag_conn.execute(
+                "SELECT status, COUNT(*) as cnt FROM documents GROUP BY status"
+            ).fetchall()
+            if rows:
+                status_parts = [f"{r['status']}={r['cnt']}" for r in rows]
+                print(f"  DB docs: {', '.join(status_parts)}")
+            else:
+                print("  DB docs: (empty)")
+            diag_conn.close()
+        else:
+            print(f"  DB: {db_path} (new)")
+    except Exception:
+        pass  # diagnostics should never block the pipeline
+
     print()
 
     try:
