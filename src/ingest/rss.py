@@ -325,13 +325,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     validate_args(args)
 
     repo = repo_root()
-    raw_dir = Path(args.raw_dir) if args.raw_dir else repo / "data" / "raw"
-    text_dir = Path(args.text_dir) if args.text_dir else repo / "data" / "text"
+    # Use CWD-relative paths for data dirs (consistent with --db which is also
+    # CWD-relative when passed from Makefile/pipeline). This avoids a mismatch
+    # when pip install -e was done from a different directory than the deployment.
+    raw_dir = Path(args.raw_dir) if args.raw_dir else Path("data") / "raw"
+    text_dir = Path(args.text_dir) if args.text_dir else Path("data") / "text"
     raw_dir.mkdir(parents=True, exist_ok=True)
     text_dir.mkdir(parents=True, exist_ok=True)
 
     if args.db is None:
-        db_path = repo / "data" / "db" / "predictor.db"
+        db_path = Path("data") / "db" / "predictor.db"
     elif args.db == "-":
         db_path = None
     else:
