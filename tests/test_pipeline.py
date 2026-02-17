@@ -46,28 +46,28 @@ class TestParseIngestOutput:
 
     def test_typical_output(self):
         output = """Processing feed: arXiv CS.AI
-Feed OK: 20 items
+    Feed OK: 8 new documents, 12 duplicates skipped
 Processing feed: Hugging Face Blog
-Feed OK: 3 items
+    Feed OK: 3 new documents, 0 duplicates skipped
 Processing feed: OpenAI Blog
-Feed OK: 1 items
-Saved 12 new documents
-Skipping 4 existing duplicates
+    Feed OK: 1 new documents, 0 duplicates skipped
+Fetched 12 items, skipped 12, errors 0.
 """
         stats = parse_ingest_output(output)
         assert stats["feedsChecked"] == 3
         assert stats["feedsReachable"] == 3
         assert stats["newDocsFound"] == 12
-        assert stats["duplicatesSkipped"] == 4
+        assert stats["duplicatesSkipped"] == 12
 
     def test_fetch_errors(self):
         output = """Processing feed: arXiv CS.AI
-Feed OK: 20 items
+    Feed OK: 20 new documents, 0 duplicates skipped
 Processing feed: Broken Feed
-Error fetching feed: Connection refused
+    Feed errors: 1 fetch errors, 0 saved, 0 duplicates skipped
 """
         stats = parse_ingest_output(output)
         assert stats["feedsChecked"] == 2
+        assert stats["feedsReachable"] == 1
         assert stats["fetchErrors"] == 1
 
 
