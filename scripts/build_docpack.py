@@ -43,13 +43,14 @@ def build_docpack(
     conn = init_db(db_path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Query documents - optionally filter by date
+    # Query documents - only select docs that have text files recorded
     if all_docs:
         cursor = conn.execute(
             """
             SELECT doc_id, url, source, title, published_at, fetched_at, text_path
             FROM documents
-            WHERE status IN ('fetched', 'cleaned')
+            WHERE status = 'cleaned'
+              AND text_path IS NOT NULL
             ORDER BY fetched_at DESC
             LIMIT ?
             """,
@@ -64,7 +65,8 @@ def build_docpack(
             """
             SELECT doc_id, url, source, title, published_at, fetched_at, text_path
             FROM documents
-            WHERE status IN ('fetched', 'cleaned')
+            WHERE status = 'cleaned'
+              AND text_path IS NOT NULL
               AND substr(fetched_at, 1, 10) = ?
             ORDER BY fetched_at DESC
             LIMIT ?
@@ -163,8 +165,8 @@ def main() -> int:
         help="Date to filter by, YYYY-MM-DD (default: today)",
     )
     parser.add_argument(
-        "--max-docs", type=int, default=20,
-        help="Maximum documents per bundle (default: 20)",
+        "--max-docs", type=int, default=500,
+        help="Maximum documents per bundle (default: 500)",
     )
     parser.add_argument(
         "--output-dir", default="data/docpacks",
