@@ -455,6 +455,16 @@ def main() -> int:
     # Define pipeline stages
     stages = [
         {
+            "name": "repair",
+            "cmd": [
+                sys.executable, "scripts/repair_data.py",
+                "--db", db_path,
+                "--fix",
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
+        },
+        {
             "name": "ingest",
             "cmd": [
                 sys.executable, "-m", "ingest.rss",
