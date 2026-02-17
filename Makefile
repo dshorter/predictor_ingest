@@ -20,7 +20,7 @@ ingest:
 	python -m ingest.rss --config config/feeds.yaml --db $(DB)
 
 docpack:
-	python scripts/build_docpack.py --db $(DB) --date $(DATE)
+	python scripts/build_docpack.py --db $(DB) --all --label $(DATE)
 
 extract:
 	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB)
