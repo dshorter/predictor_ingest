@@ -84,7 +84,7 @@ feeds:
   - name: "TechCrunch AI"
     url: "https://techcrunch.com/category/artificial-intelligence/feed/"
     type: rss
-    enabled: false
+    enabled: true
     tier: 2
     signal: echo
     # High-volume tech news; re-reports lab announcements with added context
@@ -92,7 +92,7 @@ feeds:
   - name: "VentureBeat AI"
     url: "https://venturebeat.com/category/ai/feed/"
     type: rss
-    enabled: false
+    enabled: true
     tier: 2
     signal: echo
     # Enterprise AI coverage; funding, partnerships, deployments
@@ -100,7 +100,7 @@ feeds:
   - name: "Ars Technica AI"
     url: "https://arstechnica.com/tag/artificial-intelligence/feed/"
     type: rss
-    enabled: false
+    enabled: true
     tier: 2
     signal: echo
     # Technical reporting with good detail; slightly less lag than mainstream
@@ -108,7 +108,7 @@ feeds:
   - name: "The Verge AI"
     url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
     type: rss
-    enabled: false
+    enabled: true
     tier: 2
     signal: echo
     # Consumer/product angle on AI; catches deployment announcements
@@ -118,7 +118,7 @@ feeds:
   - name: "Simon Willison"
     url: "https://simonwillison.net/atom/everything/"
     type: rss
-    enabled: false
+    enabled: true
     tier: 2
     signal: community
     # Practitioner blog; early adopter signal for tools and models
@@ -126,7 +126,7 @@ feeds:
   - name: "Interconnects (Nathan Lambert)"
     url: "https://www.interconnects.ai/feed"
     type: rss
-    enabled: false
+    enabled: true
     tier: 2
     signal: commentary
     # RLHF/alignment expert; bridges research and practice
