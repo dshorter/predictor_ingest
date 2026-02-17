@@ -51,7 +51,7 @@ Processing feed: Hugging Face Blog
     Feed OK: 3 new documents, 0 duplicates skipped
 Processing feed: OpenAI Blog
     Feed OK: 1 new documents, 0 duplicates skipped
-Fetched 12 items, skipped 12, errors 0.
+Fetched 12 items, skipped 12, errors 0. Feeds reachable: 3/3.
 """
         stats = parse_ingest_output(output)
         assert stats["feedsChecked"] == 3
@@ -63,12 +63,28 @@ Fetched 12 items, skipped 12, errors 0.
         output = """Processing feed: arXiv CS.AI
     Feed OK: 20 new documents, 0 duplicates skipped
 Processing feed: Broken Feed
-    Feed errors: 1 fetch errors, 0 saved, 0 duplicates skipped
+    Feed errors: 3 fetch errors, 2 saved, 0 duplicates skipped
 """
         stats = parse_ingest_output(output)
         assert stats["feedsChecked"] == 2
+        assert stats["feedsReachable"] == 2  # both reachable; one had article errors
+        assert stats["fetchErrors"] == 3
+        assert stats["newDocsFound"] == 22  # 20 + 2
+
+    def test_unreachable_feeds(self):
+        output = """Processing feed: arXiv CS.AI
+    Feed OK: 5 new documents, 0 duplicates skipped
+Processing feed: Dead Feed
+    Feed UNREACHABLE: Dead Feed
+Processing feed: Another Dead
+    Feed UNREACHABLE: Another Dead
+Fetched 5 items, skipped 0, errors 0. Feeds reachable: 1/3.
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 3
         assert stats["feedsReachable"] == 1
-        assert stats["fetchErrors"] == 1
+        assert stats["feedsUnreachable"] == 2
+        assert stats["newDocsFound"] == 5
 
 
 class TestParseDocpackOutput:

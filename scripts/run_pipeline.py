@@ -114,6 +114,7 @@ def parse_ingest_output(stdout: str) -> dict:
     stats = {
         "feedsChecked": 0,
         "feedsReachable": 0,
+        "feedsUnreachable": 0,
         "newDocsFound": 0,
         "duplicatesSkipped": 0,
         "fetchErrors": 0,
@@ -128,28 +129,39 @@ def parse_ingest_output(stdout: str) -> dict:
             stats["feedsReachable"] += 1
             _extract_int_before(lower, "new documents", stats, "newDocsFound")
             _extract_int_before(lower, "duplicates skipped", stats, "duplicatesSkipped")
+        # Per-feed unreachable: "Feed UNREACHABLE: ..."
+        if "feed unreachable" in lower:
+            stats["feedsUnreachable"] += 1
         # Per-feed errors: "Feed errors: N fetch errors, ..."
         if "feed errors:" in lower:
-            stats["fetchErrors"] += 1
+            stats["feedsReachable"] += 1  # feed was reachable but had article fetch errors
+            _extract_int_before(lower, "fetch errors", stats, "fetchErrors")
+            _extract_int_before(lower, "saved", stats, "newDocsFound")
+            _extract_int_before(lower, "duplicates skipped", stats, "duplicatesSkipped")
+        # Summary line: "Feeds reachable: N/M."
+        if "feeds reachable:" in lower:
+            import re
+            m = re.search(r"feeds reachable:\s*(\d+)/(\d+)", lower)
+            if m:
+                # Use summary as authoritative if per-feed parsing missed something
+                summary_reachable = int(m.group(1))
+                if stats["feedsReachable"] == 0 and summary_reachable > 0:
+                    stats["feedsReachable"] = summary_reachable
         # Legacy: "Saved N new documents"
-        elif ("new documents" in lower or "saved" in lower) and "feed ok" not in lower:
+        if ("new documents" in lower or "saved" in lower) and "feed ok" not in lower and "feed errors:" not in lower:
             for word in line.split():
                 if word.isdigit():
                     stats["newDocsFound"] += int(word)
                     break
         # Legacy: "Skipping N existing duplicates"
-        if "skip" in lower and ("exist" in lower or "duplicate" in lower) and "feed ok" not in lower:
+        if "skip" in lower and ("exist" in lower or "duplicate" in lower) and "feed ok" not in lower and "feed errors:" not in lower:
             for word in line.split():
                 if word.isdigit():
                     stats["duplicatesSkipped"] += int(word)
                     break
         # Generic error detection (for messages not using "Feed errors:" format)
-        if "error" in lower and ("fetch" in lower or "feed" in lower) and "feed ok" not in lower and "feed errors:" not in lower:
+        if "error" in lower and ("fetch" in lower or "feed" in lower) and "feed ok" not in lower and "feed errors:" not in lower and "feed unreachable" not in lower:
             stats["fetchErrors"] += 1
-    # If we checked feeds but couldn't parse reachable, assume all reachable
-    # if no errors were logged
-    if stats["feedsChecked"] > 0 and stats["feedsReachable"] == 0 and stats["fetchErrors"] == 0:
-        stats["feedsReachable"] = stats["feedsChecked"]
     return stats
 
 
@@ -393,6 +405,7 @@ def main() -> int:
                 sys.executable, "-m", "ingest.rss",
                 "--config", "config/feeds.yaml",
                 "--db", db_path,
+                "--skip-existing",
             ],
             "parse": parse_ingest_output,
             "fatal": True,
@@ -555,7 +568,10 @@ def main() -> int:
     new_docs = ingest.get("newDocsFound", "?")
     entities = extract.get("entitiesFound", "?")
     relations = extract.get("relationsFound", "?")
+    unreachable = ingest.get("feedsUnreachable", 0)
     feeds = f"{ingest.get('feedsReachable', '?')}/{ingest.get('feedsChecked', '?')}"
+    if unreachable:
+        feeds += f" ({unreachable} unreachable)"
 
     status_icon = {"success": "OK", "partial": "PARTIAL", "failed": "FAILED"}.get(
         overall_status, overall_status
