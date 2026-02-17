@@ -109,8 +109,18 @@ def _extract_int_before(text: str, label: str, stats: dict, key: str) -> None:
         stats[key] += int(before[-1])
 
 
-def parse_ingest_output(stdout: str) -> dict:
-    """Parse ingest stage stdout for stats."""
+def parse_ingest_output(stdout: str, stderr: str = "") -> dict:
+    """Parse ingest stage stdout (and optionally stderr) for stats.
+
+    Args:
+        stdout: Captured stdout from ingest subprocess
+        stderr: Captured stderr from ingest subprocess (for diagnostics)
+
+    Returns:
+        Dict with feed-level stats and per-feed error details.
+    """
+    import re
+
     stats = {
         "feedsChecked": 0,
         "feedsReachable": 0,
@@ -119,11 +129,18 @@ def parse_ingest_output(stdout: str) -> dict:
         "duplicatesSkipped": 0,
         "fetchErrors": 0,
     }
+    errored_feeds: list[str] = []
+    current_feed: str = ""
+
     for line in stdout.splitlines():
         lower = line.lower().strip()
         # Count feeds checked: "Processing feed: ..." or legacy "Processing: ..."
         if lower.startswith("processing feed:") or lower.startswith("processing:"):
             stats["feedsChecked"] += 1
+            # Track current feed name for error association
+            current_feed = line.strip().split(":", 1)[-1].strip()
+            # Strip limit suffix like " (limit 50)"
+            current_feed = re.sub(r"\s*\(limit \d+\)\s*$", "", current_feed)
         # Per-feed success: "Feed OK: N new documents, M duplicates skipped"
         if "feed ok" in lower:
             stats["feedsReachable"] += 1
@@ -132,25 +149,41 @@ def parse_ingest_output(stdout: str) -> dict:
         # Per-feed unreachable: "Feed UNREACHABLE: ..."
         if "feed unreachable" in lower:
             stats["feedsUnreachable"] += 1
+            feed_name = line.strip().split(":", 1)[-1].strip() if ":" in line else current_feed
+            errored_feeds.append(f"{feed_name} (unreachable)")
         # Per-feed crash: "Feed CRASHED: ..."
         if "feed crashed" in lower:
             stats["feedsUnreachable"] += 1
             stats["fetchErrors"] += 1
+            feed_name = line.strip().split(":", 1)[-1].strip() if ":" in line else current_feed
+            errored_feeds.append(f"{feed_name} (crashed)")
         # Per-feed errors: "Feed errors: N fetch errors, ..."
         if "feed errors:" in lower:
             stats["feedsReachable"] += 1  # feed was reachable but had article fetch errors
             _extract_int_before(lower, "fetch errors", stats, "fetchErrors")
             _extract_int_before(lower, "saved", stats, "newDocsFound")
             _extract_int_before(lower, "duplicates skipped", stats, "duplicatesSkipped")
-        # Summary line: "Feeds reachable: N/M."
+            errored_feeds.append(f"{current_feed} (fetch errors)")
+        # Summary line: "Fetched N items, skipped M, errors E. Feeds reachable: R/T."
         if "feeds reachable:" in lower:
-            import re
             m = re.search(r"feeds reachable:\s*(\d+)/(\d+)", lower)
             if m:
-                # Use summary as authoritative if per-feed parsing missed something
                 summary_reachable = int(m.group(1))
-                if stats["feedsReachable"] == 0 and summary_reachable > 0:
+                summary_total = int(m.group(2))
+                # Always use summary as authoritative for reachable count
+                if summary_reachable > stats["feedsReachable"]:
                     stats["feedsReachable"] = summary_reachable
+                # Derive unreachable from summary if not counted per-feed
+                summary_unreachable = summary_total - summary_reachable
+                if summary_unreachable > stats["feedsUnreachable"]:
+                    stats["feedsUnreachable"] = summary_unreachable
+            # Extract fetch errors from summary: "errors N"
+            err_match = re.search(r"errors\s+(\d+)", lower)
+            if err_match:
+                summary_errors = int(err_match.group(1))
+                if summary_errors > stats["fetchErrors"]:
+                    stats["fetchErrors"] = summary_errors
+            continue  # Don't process summary line further (avoid false positives)
         # Legacy: "Saved N new documents"
         if ("new documents" in lower or "saved" in lower) and "feed ok" not in lower and "feed errors:" not in lower:
             for word in line.split():
@@ -163,9 +196,19 @@ def parse_ingest_output(stdout: str) -> dict:
                 if word.isdigit():
                     stats["duplicatesSkipped"] += int(word)
                     break
-        # Generic error detection (for messages not using "Feed errors:" format)
-        if "error" in lower and ("fetch" in lower or "feed" in lower) and "feed ok" not in lower and "feed errors:" not in lower and "feed unreachable" not in lower and "feed crashed" not in lower:
-            stats["fetchErrors"] += 1
+
+    # Parse stderr for feed-specific diagnostic errors
+    for line in stderr.splitlines():
+        lower = line.lower().strip()
+        # Collect bozo exceptions as feed warnings
+        if "bozo_exception=" in lower and "diag" in lower:
+            # Extract feed URL from preceding [diag] line for context
+            exc_part = line.strip().split("bozo_exception=")[-1] if "bozo_exception=" in line else ""
+            if exc_part:
+                errored_feeds.append(f"bozo: {exc_part[:80]}")
+
+    if errored_feeds:
+        stats["erroredFeeds"] = errored_feeds
     return stats
 
 
@@ -387,6 +430,7 @@ def main() -> int:
     db_path = args.db
     graphs_dir = args.graphs_dir
     docpack_path = f"data/docpacks/daily_bundle_{run_date}.jsonl"
+    docpack_label = run_date
 
     # Initialize run log
     run_log: dict = {
@@ -419,7 +463,8 @@ def main() -> int:
             "cmd": [
                 sys.executable, "scripts/build_docpack.py",
                 "--db", db_path,
-                "--date", run_date,
+                "--all",
+                "--label", docpack_label,
             ],
             "parse": parse_docpack_output,
             "fatal": False,
@@ -493,6 +538,28 @@ def main() -> int:
     failed_stages = []
 
     print(f"=== Pipeline run {run_id} ({run_date}) ===")
+
+    # Show DB document status summary for diagnostics
+    try:
+        import sqlite3
+        db_full = project_root / db_path
+        if db_full.exists():
+            diag_conn = sqlite3.connect(db_full)
+            diag_conn.row_factory = sqlite3.Row
+            rows = diag_conn.execute(
+                "SELECT status, COUNT(*) as cnt FROM documents GROUP BY status"
+            ).fetchall()
+            if rows:
+                status_parts = [f"{r['status']}={r['cnt']}" for r in rows]
+                print(f"  DB docs: {', '.join(status_parts)}")
+            else:
+                print("  DB docs: (empty)")
+            diag_conn.close()
+        else:
+            print(f"  DB: {db_path} (new)")
+    except Exception:
+        pass  # diagnostics should never block the pipeline
+
     print()
 
     try:
@@ -507,8 +574,11 @@ def main() -> int:
             print(f"[{name}] Running...", flush=True)
             result = run_stage(name, stage["cmd"], cwd=project_root)
 
-            # Parse stage-specific stats
-            stage_stats = stage["parse"](result["stdout"])
+            # Parse stage-specific stats (ingest parser also uses stderr)
+            if name == "ingest":
+                stage_stats = stage["parse"](result["stdout"], result["stderr"])
+            else:
+                stage_stats = stage["parse"](result["stdout"])
 
             run_log["stages"][name] = {
                 "status": result["status"],
@@ -523,11 +593,42 @@ def main() -> int:
                 run_log["stages"][name]["stderr"] = result["stderr"][-2000:]
 
             if result["status"] == "ok":
-                stats_str = ", ".join(f"{k}={v}" for k, v in stage_stats.items() if v) or "ok"
-                print(f"[{name}] OK ({result['duration_sec']}s) — {stats_str}")
-                # Print stderr warnings even on success
+                # For ingest: always show key feed stats even when 0
+                if name == "ingest":
+                    errored = stage_stats.pop("erroredFeeds", [])
+                    key_stats = ["feedsChecked", "feedsReachable", "feedsUnreachable",
+                                 "newDocsFound", "fetchErrors"]
+                    parts = []
+                    for k in key_stats:
+                        v = stage_stats.get(k, 0)
+                        parts.append(f"{k}={v}")
+                    # Add non-zero secondary stats
+                    for k, v in stage_stats.items():
+                        if v and k not in key_stats:
+                            parts.append(f"{k}={v}")
+                    stats_str = ", ".join(parts)
+                    print(f"[{name}] OK ({result['duration_sec']}s) — {stats_str}")
+                    # Print errored feed names
+                    for feed_err in errored:
+                        print(f"  ERR: {feed_err}")
+                else:
+                    stats_str = ", ".join(f"{k}={v}" for k, v in stage_stats.items() if v) or "ok"
+                    print(f"[{name}] OK ({result['duration_sec']}s) — {stats_str}")
+                # Print stderr warnings even on success (more lines for ingest)
                 if result["stderr"].strip():
-                    for line in result["stderr"].strip().splitlines()[-5:]:
+                    max_warn = 10 if name == "ingest" else 5
+                    stderr_lines = result["stderr"].strip().splitlines()
+                    # For ingest, show error-related lines first, then last N
+                    if name == "ingest":
+                        err_lines = [l for l in stderr_lines
+                                     if any(kw in l.lower() for kw in
+                                            ["bozo", "unreachable", "error", "crash", "fail"])]
+                        other_lines = [l for l in stderr_lines[-max_warn:]
+                                       if l not in err_lines]
+                        warn_lines = err_lines + other_lines
+                    else:
+                        warn_lines = stderr_lines[-max_warn:]
+                    for line in warn_lines[:max_warn]:
                         print(f"  WARN: {line.strip()}")
             else:
                 error_msg = result["stderr"][-200:] if result["stderr"] else "unknown error"

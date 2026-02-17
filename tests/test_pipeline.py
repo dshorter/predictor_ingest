@@ -101,6 +101,120 @@ Processing feed: OpenAI Blog
         assert stats["fetchErrors"] == 1
         assert stats["newDocsFound"] == 7
 
+    def test_summary_line_no_false_positive(self):
+        """Summary line must not trigger the generic error detector."""
+        output = """Ingesting 3 feed(s)...
+  Processing feed: arXiv CS.AI (limit 50)
+    Feed OK: 0 new documents, 25 duplicates skipped
+  Processing feed: Hugging Face Blog (limit 15)
+    Feed OK: 0 new documents, 10 duplicates skipped
+  Processing feed: OpenAI Blog (limit 15)
+    Feed OK: 0 new documents, 8 duplicates skipped
+Fetched 0 items, skipped 43, errors 0. Feeds reachable: 3/3.
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 3
+        assert stats["feedsReachable"] == 3
+        assert stats["fetchErrors"] == 0  # Was 1 before fix (false positive)
+        assert stats["newDocsFound"] == 0
+        assert stats["duplicatesSkipped"] == 43
+
+    def test_skip_existing_all_skipped(self):
+        """When --skip-existing skips everything, stats should still be correct."""
+        output = """Ingesting 13 feed(s)...
+  Processing feed: arXiv CS.AI (limit 50)
+    Feed OK: 0 new documents, 25 duplicates skipped
+  Processing feed: Hugging Face Blog (limit 15)
+    Feed OK: 0 new documents, 10 duplicates skipped
+  Processing feed: OpenAI Blog (limit 15)
+    Feed OK: 0 new documents, 8 duplicates skipped
+  Processing feed: Google DeepMind Blog (limit 15)
+    Feed OK: 0 new documents, 12 duplicates skipped
+  Processing feed: NIST AI (limit 10)
+    Feed OK: 0 new documents, 5 duplicates skipped
+  Processing feed: Nextgov AI (limit 10)
+    Feed OK: 0 new documents, 7 duplicates skipped
+  Processing feed: Ars Technica AI (limit 15)
+    Feed OK: 0 new documents, 10 duplicates skipped
+  Processing feed: VentureBeat AI (limit 10)
+    Feed OK: 0 new documents, 6 duplicates skipped
+  Processing feed: MIT Tech Review AI (limit 10)
+    Feed OK: 0 new documents, 8 duplicates skipped
+  Processing feed: The Verge AI (limit 10)
+    Feed OK: 0 new documents, 4 duplicates skipped
+  Processing feed: TechCrunch AI (limit 10)
+    Feed OK: 0 new documents, 7 duplicates skipped
+  Processing feed: Wired AI (limit 10)
+    Feed OK: 0 new documents, 3 duplicates skipped
+  Processing feed: Anthropic Research Blog (limit 15)
+    Feed UNREACHABLE: Anthropic Research Blog
+Fetched 0 items, skipped 105, errors 0. Feeds reachable: 12/13.
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 13
+        assert stats["feedsReachable"] == 12
+        assert stats["feedsUnreachable"] == 1
+        assert stats["fetchErrors"] == 0
+        assert stats["newDocsFound"] == 0
+        assert stats["duplicatesSkipped"] == 105
+        assert "erroredFeeds" in stats
+        assert len(stats["erroredFeeds"]) == 1
+        assert "Anthropic" in stats["erroredFeeds"][0]
+
+    def test_errored_feeds_collected(self):
+        """Errored feed names should be collected in erroredFeeds list."""
+        output = """Processing feed: arXiv CS.AI
+    Feed OK: 5 new documents, 0 duplicates skipped
+Processing feed: Dead Feed
+    Feed UNREACHABLE: Dead Feed
+Processing feed: Buggy Feed
+    Feed CRASHED: Buggy Feed
+Processing feed: Flaky Feed
+    Feed errors: 2 fetch errors, 1 saved, 0 duplicates skipped
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 4
+        assert stats["feedsReachable"] == 2  # OK + errors
+        assert stats["feedsUnreachable"] == 2  # unreachable + crashed
+        errored = stats["erroredFeeds"]
+        assert len(errored) == 3
+        assert any("Dead Feed" in e for e in errored)
+        assert any("Buggy Feed" in e for e in errored)
+        assert any("Flaky Feed" in e for e in errored)
+
+    def test_summary_authoritative_for_reachable(self):
+        """Summary 'Feeds reachable: N/M' should be used authoritatively."""
+        output = """Ingesting 3 feed(s)...
+  Processing feed: Feed A
+  Processing feed: Feed B
+  Processing feed: Feed C
+Fetched 10 items, skipped 5, errors 1. Feeds reachable: 2/3.
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 3
+        assert stats["feedsReachable"] == 2
+        assert stats["feedsUnreachable"] == 1
+        assert stats["fetchErrors"] == 1
+
+    def test_stderr_bozo_exceptions(self):
+        """Bozo exceptions from stderr should be collected as errors."""
+        stdout = """Ingesting 1 feed(s)...
+  Processing feed: Anthropic Research Blog (limit 15)
+    Feed UNREACHABLE: Anthropic Research Blog
+Fetched 0 items, skipped 0, errors 0. Feeds reachable: 0/1.
+"""
+        stderr = """    [diag] url=https://www.anthropic.com/feed.xml status=None bozo=True entries=0
+    [diag] bozo_exception=SAXParseException: not well-formed (invalid token)
+    Feed unreachable: SAXParseException: not well-formed (invalid token)
+"""
+        stats = parse_ingest_output(stdout, stderr)
+        assert stats["feedsChecked"] == 1
+        assert stats["feedsReachable"] == 0
+        assert stats["feedsUnreachable"] == 1
+        errored = stats["erroredFeeds"]
+        assert any("unreachable" in e.lower() for e in errored)
+        assert any("SAXParseException" in e for e in errored)
+
 
 class TestParseDocpackOutput:
     def test_empty_output(self):

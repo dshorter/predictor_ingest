@@ -723,8 +723,10 @@ def main() -> int:
 
     docpack_path = Path(args.docpack)
     if not docpack_path.exists():
-        print(f"ERROR: Docpack not found: {docpack_path}")
-        return 1
+        print(f"No docpack found: {docpack_path} (no documents to extract)")
+        print()
+        print("Done. Processed: 0, Succeeded: 0, Failed: 0")
+        return 0
 
     model = args.model or get_default_model()
     understudy = args.understudy_model or get_understudy_model()

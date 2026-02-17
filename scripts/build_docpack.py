@@ -25,6 +25,7 @@ def build_docpack(
     max_docs: int,
     output_dir: Path,
     all_docs: bool = False,
+    label: str | None = None,
 ) -> int:
     """Build JSONL and markdown bundles from cleaned documents.
 
@@ -34,6 +35,7 @@ def build_docpack(
         max_docs: Maximum documents per bundle
         output_dir: Directory to write bundles
         all_docs: If True, ignore date filter and grab all cleaned documents
+        label: Override the bundle filename label (default: date or "all")
 
     Returns:
         Number of documents bundled
@@ -53,7 +55,7 @@ def build_docpack(
             """,
             (max_docs,),
         )
-        bundle_label = "all"
+        bundle_label = label or "all"
     else:
         cursor = conn.execute(
             """
@@ -66,11 +68,19 @@ def build_docpack(
             """,
             (target_date, max_docs),
         )
-        bundle_label = target_date
+        bundle_label = label or target_date
     rows = [dict(row) for row in cursor.fetchall()]
 
     if not rows:
-        print(f"No documents found for {bundle_label}")
+        # Diagnostic: show total docs by status so user knows why nothing was bundled
+        status_rows = conn.execute(
+            "SELECT status, COUNT(*) as cnt FROM documents GROUP BY status"
+        ).fetchall()
+        if status_rows:
+            status_info = ", ".join(f"{r[0]}={r[1]}" for r in status_rows)
+            print(f"No unextracted documents found (DB status: {status_info})")
+        else:
+            print(f"No documents found for {bundle_label} (database is empty)")
         conn.close()
         return 0
 
@@ -161,6 +171,10 @@ def main() -> int:
         "--all", action="store_true",
         help="Ignore date filter, bundle all cleaned documents",
     )
+    parser.add_argument(
+        "--label", default=None,
+        help="Override bundle filename label (default: date or 'all')",
+    )
     args = parser.parse_args()
 
     count = build_docpack(
@@ -169,6 +183,7 @@ def main() -> int:
         max_docs=args.max_docs,
         output_dir=Path(args.output_dir),
         all_docs=args.all,
+        label=args.label,
     )
 
     return 0 if count >= 0 else 1
