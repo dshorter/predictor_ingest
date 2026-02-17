@@ -132,6 +132,10 @@ def parse_ingest_output(stdout: str) -> dict:
         # Per-feed unreachable: "Feed UNREACHABLE: ..."
         if "feed unreachable" in lower:
             stats["feedsUnreachable"] += 1
+        # Per-feed crash: "Feed CRASHED: ..."
+        if "feed crashed" in lower:
+            stats["feedsUnreachable"] += 1
+            stats["fetchErrors"] += 1
         # Per-feed errors: "Feed errors: N fetch errors, ..."
         if "feed errors:" in lower:
             stats["feedsReachable"] += 1  # feed was reachable but had article fetch errors
@@ -160,7 +164,7 @@ def parse_ingest_output(stdout: str) -> dict:
                     stats["duplicatesSkipped"] += int(word)
                     break
         # Generic error detection (for messages not using "Feed errors:" format)
-        if "error" in lower and ("fetch" in lower or "feed" in lower) and "feed ok" not in lower and "feed errors:" not in lower and "feed unreachable" not in lower:
+        if "error" in lower and ("fetch" in lower or "feed" in lower) and "feed ok" not in lower and "feed errors:" not in lower and "feed unreachable" not in lower and "feed crashed" not in lower:
             stats["fetchErrors"] += 1
     return stats
 
@@ -512,9 +516,19 @@ def main() -> int:
                 **stage_stats,
             }
 
+            # Always save raw stdout/stderr for diagnostics
+            if result["stdout"].strip():
+                run_log["stages"][name]["stdout"] = result["stdout"][-2000:]
+            if result["stderr"].strip():
+                run_log["stages"][name]["stderr"] = result["stderr"][-2000:]
+
             if result["status"] == "ok":
                 stats_str = ", ".join(f"{k}={v}" for k, v in stage_stats.items() if v) or "ok"
                 print(f"[{name}] OK ({result['duration_sec']}s) — {stats_str}")
+                # Print stderr warnings even on success
+                if result["stderr"].strip():
+                    for line in result["stderr"].strip().splitlines()[-5:]:
+                        print(f"  WARN: {line.strip()}")
             else:
                 error_msg = result["stderr"][-200:] if result["stderr"] else "unknown error"
                 print(f"[{name}] FAILED (rc={result['returncode']}): {error_msg}")

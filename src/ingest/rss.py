@@ -111,17 +111,24 @@ def ingest_feed(
     """
     feed = feedparser.parse(feed_url)
 
-    # Determine if the feed was actually reachable
-    # feedparser sets bozo=True for any parse issue, but also sets status
-    # for HTTP responses. A missing status or a 4xx/5xx means unreachable.
+    # Diagnostic info for every feed
     feed_status = getattr(feed, "status", None)
     bozo = getattr(feed, "bozo", False)
     bozo_exc = getattr(feed, "bozo_exception", None)
+    n_entries = len(feed.entries)
+    print(
+        f"    [diag] url={feed_url} status={feed_status} bozo={bozo} entries={n_entries}",
+        file=sys.stderr,
+    )
+    if bozo and bozo_exc:
+        print(
+            f"    [diag] bozo_exception={type(bozo_exc).__name__}: {bozo_exc}",
+            file=sys.stderr,
+        )
 
-    # Feed is reachable if we got entries OR got a valid HTTP status
+    # Determine if the feed was actually reachable
     reachable = True
     if bozo and not feed.entries:
-        # Bozo with no entries likely means network/parse failure
         exc_name = type(bozo_exc).__name__ if bozo_exc else "unknown"
         print(f"    Feed unreachable: {exc_name}: {bozo_exc}", file=sys.stderr)
         reachable = False
@@ -362,18 +369,25 @@ def main(argv: Optional[list[str]] = None) -> int:
         limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
         print(f"  Processing feed: {feed_name or feed_url}{limit_info}")
 
-        fetched, skipped, errors, reachable = ingest_feed(
-            feed_url=feed_url,
-            session=session,
-            raw_dir=raw_dir,
-            text_dir=text_dir,
-            conn=conn,
-            repo=repo,
-            source_override=source,
-            limit=effective_limit,
-            timeout=args.timeout,
-            skip_existing=args.skip_existing,
-        )
+        try:
+            fetched, skipped, errors, reachable = ingest_feed(
+                feed_url=feed_url,
+                session=session,
+                raw_dir=raw_dir,
+                text_dir=text_dir,
+                conn=conn,
+                repo=repo,
+                source_override=source,
+                limit=effective_limit,
+                timeout=args.timeout,
+                skip_existing=args.skip_existing,
+            )
+        except Exception as exc:
+            print(f"    Feed CRASHED: {type(exc).__name__}: {exc}", file=sys.stderr)
+            print(f"    Feed CRASHED: {feed_name or feed_url}")
+            total_errors += 1
+            continue
+
         total_fetched += fetched
         total_skipped += skipped
         total_errors += errors
