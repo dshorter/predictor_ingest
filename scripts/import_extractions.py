@@ -44,6 +44,7 @@ def import_extractions(
         "entities_new": 0,
         "entities_resolved": 0,
         "relations": 0,
+        "mentions_generated": 0,
         "evidence_records": 0,
         "errors": 0,
     }
@@ -161,6 +162,30 @@ def import_extractions(
                 )
                 stats["evidence_records"] += 1
 
+        # Generate MENTIONS relations from document to each resolved entity.
+        # These populate the mentions view (Document ↔ Entity graph).
+        doc_node_id = f"doc:{doc_id}"
+        for entity_name, entity_id in name_to_id.items():
+            # Skip if a MENTIONS edge already exists for this doc+entity pair
+            existing = conn.execute(
+                "SELECT 1 FROM relations WHERE source_id = ? AND target_id = ? AND rel = 'MENTIONS'",
+                (doc_node_id, entity_id),
+            ).fetchone()
+            if existing:
+                continue
+
+            insert_relation(
+                conn,
+                source_id=doc_node_id,
+                rel="MENTIONS",
+                target_id=entity_id,
+                kind="asserted",
+                confidence=1.0,
+                doc_id=doc_id,
+                extractor_version=extraction.get("extractorVersion", EXTRACTOR_VERSION),
+            )
+            stats["mentions_generated"] += 1
+
         # Update document status
         conn.execute(
             "UPDATE documents SET status = 'extracted' WHERE doc_id = ?",
@@ -170,7 +195,8 @@ def import_extractions(
 
         stats["files_processed"] += 1
         print(f"  Imported: {len(name_to_id)} entities, "
-              f"{sum(1 for r in extraction.get('relations', []) if name_to_id.get(r.get('source')) and name_to_id.get(r.get('target')))} relations")
+              f"{sum(1 for r in extraction.get('relations', []) if name_to_id.get(r.get('source')) and name_to_id.get(r.get('target')))} relations, "
+              f"{stats['mentions_generated']} mentions")
 
     conn.close()
     return stats
@@ -207,6 +233,7 @@ def main() -> int:
         print(f"  - {stats['entities_total']} entities "
               f"({stats['entities_new']} new, {stats['entities_resolved']} resolved to existing)")
         print(f"  - {stats['relations']} relations")
+        print(f"  - {stats['mentions_generated']} mentions (doc→entity)")
         print(f"  - {stats['evidence_records']} evidence records")
 
     if stats["errors"] > 0:
