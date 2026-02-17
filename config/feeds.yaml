@@ -98,7 +98,7 @@ feeds:
     # Enterprise AI coverage; funding, partnerships, deployments
 
   - name: "Ars Technica AI"
-    url: "https://arstechnica.com/tag/artificial-intelligence/feed/"
+    url: "https://arstechnica.com/ai/feed/"
     type: rss
     enabled: true
     tier: 2
@@ -117,7 +117,7 @@ feeds:
 
   - name: "Simon Willison"
     url: "https://simonwillison.net/atom/everything/"
-    type: rss
+    type: atom
     enabled: true
     tier: 2
     signal: community
