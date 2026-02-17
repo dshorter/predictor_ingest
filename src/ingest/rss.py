@@ -337,7 +337,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         effective_limit = args.limit if args.limit > 0 else feed_limit
 
         limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
-        print(f"  Processing: {feed_name or feed_url}{limit_info}")
+        print(f"  Processing feed: {feed_name or feed_url}{limit_info}")
 
         fetched, skipped, errors = ingest_feed(
             feed_url=feed_url,
@@ -354,6 +354,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         total_fetched += fetched
         total_skipped += skipped
         total_errors += errors
+
+        if errors == 0:
+            print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped")
+        else:
+            print(f"    Feed errors: {errors} fetch errors, {fetched} saved, {skipped} duplicates skipped")
 
     if conn is not None:
         conn.close()

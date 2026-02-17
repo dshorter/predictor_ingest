@@ -99,6 +99,16 @@ def run_stage(
         }
 
 
+def _extract_int_before(text: str, label: str, stats: dict, key: str) -> None:
+    """Find the integer immediately before `label` in text and add it to stats[key]."""
+    idx = text.find(label)
+    if idx < 0:
+        return
+    before = text[:idx].strip().split()
+    if before and before[-1].isdigit():
+        stats[key] += int(before[-1])
+
+
 def parse_ingest_output(stdout: str) -> dict:
     """Parse ingest stage stdout for stats."""
     stats = {
@@ -109,23 +119,33 @@ def parse_ingest_output(stdout: str) -> dict:
         "fetchErrors": 0,
     }
     for line in stdout.splitlines():
-        lower = line.lower()
-        if "processing feed" in lower:
+        lower = line.lower().strip()
+        # Count feeds checked: "Processing feed: ..." or legacy "Processing: ..."
+        if lower.startswith("processing feed:") or lower.startswith("processing:"):
             stats["feedsChecked"] += 1
-        if "new documents" in lower or "saved" in lower:
+        # Per-feed success: "Feed OK: N new documents, M duplicates skipped"
+        if "feed ok" in lower:
+            stats["feedsReachable"] += 1
+            _extract_int_before(lower, "new documents", stats, "newDocsFound")
+            _extract_int_before(lower, "duplicates skipped", stats, "duplicatesSkipped")
+        # Per-feed errors: "Feed errors: N fetch errors, ..."
+        if "feed errors:" in lower:
+            stats["fetchErrors"] += 1
+        # Legacy: "Saved N new documents"
+        elif ("new documents" in lower or "saved" in lower) and "feed ok" not in lower:
             for word in line.split():
                 if word.isdigit():
                     stats["newDocsFound"] += int(word)
                     break
-        if "skip" in lower and ("exist" in lower or "duplicate" in lower):
+        # Legacy: "Skipping N existing duplicates"
+        if "skip" in lower and ("exist" in lower or "duplicate" in lower) and "feed ok" not in lower:
             for word in line.split():
                 if word.isdigit():
                     stats["duplicatesSkipped"] += int(word)
                     break
-        if "error" in lower and ("fetch" in lower or "feed" in lower):
+        # Generic error detection (for messages not using "Feed errors:" format)
+        if "error" in lower and ("fetch" in lower or "feed" in lower) and "feed ok" not in lower and "feed errors:" not in lower:
             stats["fetchErrors"] += 1
-        if "feed ok" in lower or "items" in lower:
-            stats["feedsReachable"] += 1
     # If we checked feeds but couldn't parse reachable, assume all reachable
     # if no errors were logged
     if stats["feedsChecked"] > 0 and stats["feedsReachable"] == 0 and stats["fetchErrors"] == 0:
