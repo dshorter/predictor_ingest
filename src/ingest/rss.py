@@ -102,10 +102,32 @@ def ingest_feed(
     limit: int,
     timeout: int,
     skip_existing: bool,
-) -> tuple[int, int, int]:
+) -> tuple[int, int, int, bool]:
+    """Ingest a single RSS/Atom feed.
+
+    Returns:
+        Tuple of (fetched, skipped, errors, reachable).
+        reachable is True if the feed XML was successfully fetched and parsed.
+    """
     feed = feedparser.parse(feed_url)
-    if getattr(feed, "bozo", False):
-        print(f"Warning: feed parse issue for {feed_url}: {feed.bozo_exception}", file=sys.stderr)
+
+    # Determine if the feed was actually reachable
+    # feedparser sets bozo=True for any parse issue, but also sets status
+    # for HTTP responses. A missing status or a 4xx/5xx means unreachable.
+    feed_status = getattr(feed, "status", None)
+    bozo = getattr(feed, "bozo", False)
+    bozo_exc = getattr(feed, "bozo_exception", None)
+
+    # Feed is reachable if we got entries OR got a valid HTTP status
+    reachable = True
+    if bozo and not feed.entries:
+        # Bozo with no entries likely means network/parse failure
+        exc_name = type(bozo_exc).__name__ if bozo_exc else "unknown"
+        print(f"    Feed unreachable: {exc_name}: {bozo_exc}", file=sys.stderr)
+        reachable = False
+    if feed_status and feed_status >= 400:
+        print(f"    Feed HTTP {feed_status}: {feed_url}", file=sys.stderr)
+        reachable = False
 
     source = source_override or feed.feed.get("title") or feed_url
     entries = feed.entries[:limit] if limit > 0 else feed.entries
@@ -175,7 +197,7 @@ def ingest_feed(
     if conn is not None:
         conn.commit()
 
-    return fetched, skipped, errors
+    return fetched, skipped, errors, reachable
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -328,6 +350,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     total_fetched = 0
     total_skipped = 0
     total_errors = 0
+    total_reachable = 0
 
     for feed_url, feed_name, feed_limit in feeds:
         # Use feed name from config, or CLI --source override, or let ingest_feed detect
@@ -339,7 +362,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
         print(f"  Processing feed: {feed_name or feed_url}{limit_info}")
 
-        fetched, skipped, errors = ingest_feed(
+        fetched, skipped, errors, reachable = ingest_feed(
             feed_url=feed_url,
             session=session,
             raw_dir=raw_dir,
@@ -354,8 +377,12 @@ def main(argv: Optional[list[str]] = None) -> int:
         total_fetched += fetched
         total_skipped += skipped
         total_errors += errors
+        if reachable:
+            total_reachable += 1
 
-        if errors == 0:
+        if not reachable:
+            print(f"    Feed UNREACHABLE: {feed_name or feed_url}")
+        elif errors == 0:
             print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped")
         else:
             print(f"    Feed errors: {errors} fetch errors, {fetched} saved, {skipped} duplicates skipped")
@@ -364,7 +391,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         conn.close()
 
     print(
-        f"Fetched {total_fetched} items, skipped {total_skipped}, errors {total_errors}."
+        f"Fetched {total_fetched} items, skipped {total_skipped}, errors {total_errors}. "
+        f"Feeds reachable: {total_reachable}/{len(feeds)}."
     )
     return 0
 
