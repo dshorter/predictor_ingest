@@ -57,12 +57,15 @@ def build_docpack(
         )
         bundle_label = label or "all"
     else:
+        # Compare using substr to avoid UTC vs local date mismatch:
+        # fetched_at is stored as UTC ISO-8601 ("2026-02-17T03:49:21Z")
+        # so substr extracts the date portion reliably regardless of timezone
         cursor = conn.execute(
             """
             SELECT doc_id, url, source, title, published_at, fetched_at, text_path
             FROM documents
             WHERE status IN ('fetched', 'cleaned')
-              AND date(fetched_at) = ?
+              AND substr(fetched_at, 1, 10) = ?
             ORDER BY fetched_at DESC
             LIMIT ?
             """,
