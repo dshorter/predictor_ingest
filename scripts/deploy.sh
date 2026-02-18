@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Deploy script — called by GitHub Actions after push to main
 # Pulls latest code and restarts the predictor container if running
+#
+# IMPORTANT: data/ is gitignored and must NEVER be touched by deploys.
+# We use `git checkout` on tracked files only — NOT `git reset --hard`
+# which can interfere with untracked runtime data.
 set -euo pipefail
 
 REPO_DIR="/opt/predictor_ingest"
@@ -13,13 +17,32 @@ log() {
 
 cd "$REPO_DIR"
 
+# Abort if pipeline is currently running
+if [ -f "$REPO_DIR/data/pipeline.lock" ]; then
+    log "WARNING: pipeline.lock exists — pipeline may be running. Deploying anyway but skipping restart."
+fi
+
 log "Pulling latest from origin/main..."
 git fetch origin main
-git reset --hard origin/main
+
+# Safe update: only update tracked files, never touch untracked data/
+# This replaces the old `git reset --hard origin/main` which could
+# interfere with gitignored runtime data like data/, .env, etc.
+git checkout origin/main -- .
+# Update HEAD to match (so `git log` shows current state)
+git reset origin/main
 
 log "Pull complete: $(git log --oneline -1)"
 
-# Ensure the live graphs directory exists (gitignored, created by pipeline)
+# Ensure runtime directories exist (gitignored, created by pipeline)
+mkdir -p "$REPO_DIR/data/raw"
+mkdir -p "$REPO_DIR/data/text"
+mkdir -p "$REPO_DIR/data/db"
+mkdir -p "$REPO_DIR/data/docpacks"
+mkdir -p "$REPO_DIR/data/extractions"
+mkdir -p "$REPO_DIR/data/graphs"
+mkdir -p "$REPO_DIR/data/logs"
+mkdir -p "$REPO_DIR/data/reports"
 mkdir -p "$REPO_DIR/web/data/graphs/live"
 
 # If running inside docker compose (alongside ai-agent-platform),
