@@ -1,4 +1,4 @@
-"""Tests for retry logic in ingest and the repair_data script."""
+"""Tests for fetch logic in ingest and the repair_data script."""
 
 import sqlite3
 from pathlib import Path
@@ -13,145 +13,69 @@ def _get_ingest_module():
     return rss
 
 
-class TestFetchWithRetry:
-    """Test the fetch_with_retry function."""
+class TestFetchOnce:
+    """Test the fetch_once function (single attempt, no retries)."""
 
-    def test_success_no_retry(self):
-        """Successful request should not retry."""
+    def test_success(self):
+        """Successful request returns response."""
         rss = _get_ingest_module()
         session = MagicMock()
         resp = MagicMock()
-        resp.ok = True
         resp.status_code = 200
+        resp.raise_for_status.return_value = None
         session.get.return_value = resp
 
-        result = rss.fetch_with_retry(session, "https://example.com", timeout=10)
+        result = rss.fetch_once(session, "https://example.com", timeout=10)
         assert result == resp
         assert session.get.call_count == 1
 
-    def test_403_no_retry(self):
-        """403 is not retryable — should fail immediately."""
+    def test_403_raises(self):
+        """403 should raise immediately — no retries."""
         rss = _get_ingest_module()
         session = MagicMock()
         resp = MagicMock()
-        resp.ok = False
         resp.status_code = 403
         resp.raise_for_status.side_effect = requests.HTTPError("403 Forbidden")
         session.get.return_value = resp
 
         with pytest.raises(requests.HTTPError):
-            rss.fetch_with_retry(session, "https://example.com", timeout=10)
-        # Should NOT retry on 403
+            rss.fetch_once(session, "https://example.com", timeout=10)
         assert session.get.call_count == 1
 
-    @patch("ingest.rss.time.sleep")
-    def test_429_retries_then_succeeds(self, mock_sleep):
-        """429 should retry with backoff, then succeed."""
+    def test_429_raises(self):
+        """429 should raise immediately — no retries, try again tomorrow."""
         rss = _get_ingest_module()
         session = MagicMock()
-
-        fail_resp = MagicMock()
-        fail_resp.ok = False
-        fail_resp.status_code = 429
-        fail_resp.headers = {}
-        fail_resp.raise_for_status.side_effect = requests.HTTPError("429 Too Many Requests")
-
-        ok_resp = MagicMock()
-        ok_resp.ok = True
-        ok_resp.status_code = 200
-
-        session.get.side_effect = [fail_resp, ok_resp]
-
-        result = rss.fetch_with_retry(
-            session, "https://example.com", timeout=10,
-            max_retries=3, backoff_base=1,
-        )
-        assert result == ok_resp
-        assert session.get.call_count == 2
-        mock_sleep.assert_called_once()
-
-    @patch("ingest.rss.time.sleep")
-    def test_429_respects_retry_after(self, mock_sleep):
-        """429 with Retry-After header should use that value."""
-        rss = _get_ingest_module()
-        session = MagicMock()
-
-        fail_resp = MagicMock()
-        fail_resp.ok = False
-        fail_resp.status_code = 429
-        fail_resp.headers = {"Retry-After": "30"}
-        fail_resp.raise_for_status.side_effect = requests.HTTPError("429")
-
-        ok_resp = MagicMock()
-        ok_resp.ok = True
-        ok_resp.status_code = 200
-
-        session.get.side_effect = [fail_resp, ok_resp]
-
-        rss.fetch_with_retry(
-            session, "https://example.com", timeout=10,
-            max_retries=3, backoff_base=2,
-        )
-        # Should have slept for 30s (from Retry-After), not 2s (from backoff)
-        mock_sleep.assert_called_once_with(30.0)
-
-    @patch("ingest.rss.time.sleep")
-    def test_all_retries_exhausted(self, mock_sleep):
-        """Should raise after all retries exhausted."""
-        rss = _get_ingest_module()
-        session = MagicMock()
-
-        fail_resp = MagicMock()
-        fail_resp.ok = False
-        fail_resp.status_code = 429
-        fail_resp.headers = {}
-        fail_resp.raise_for_status.side_effect = requests.HTTPError("429")
-
-        session.get.return_value = fail_resp
+        resp = MagicMock()
+        resp.status_code = 429
+        resp.raise_for_status.side_effect = requests.HTTPError("429 Too Many Requests")
+        session.get.return_value = resp
 
         with pytest.raises(requests.HTTPError):
-            rss.fetch_with_retry(
-                session, "https://example.com", timeout=10,
-                max_retries=2, backoff_base=1,
-            )
-        # 1 initial + 2 retries = 3 total
-        assert session.get.call_count == 3
+            rss.fetch_once(session, "https://example.com", timeout=10)
+        assert session.get.call_count == 1
 
-    @patch("ingest.rss.time.sleep")
-    def test_500_is_retryable(self, mock_sleep):
-        """500 server error should be retried."""
+    def test_connection_error_raises(self):
+        """Connection errors should raise immediately."""
         rss = _get_ingest_module()
         session = MagicMock()
+        session.get.side_effect = requests.ConnectionError("Connection refused")
 
-        fail_resp = MagicMock()
-        fail_resp.ok = False
-        fail_resp.status_code = 500
-        fail_resp.headers = {}
-        fail_resp.raise_for_status.side_effect = requests.HTTPError("500")
-
-        ok_resp = MagicMock()
-        ok_resp.ok = True
-        ok_resp.status_code = 200
-
-        session.get.side_effect = [fail_resp, ok_resp]
-
-        result = rss.fetch_with_retry(
-            session, "https://example.com", timeout=10,
-            max_retries=3, backoff_base=1,
-        )
-        assert result == ok_resp
+        with pytest.raises(requests.ConnectionError):
+            rss.fetch_once(session, "https://example.com", timeout=10)
+        assert session.get.call_count == 1
 
 
-class TestConsecutiveErrorBail:
-    """Test that ingest bails early after too many consecutive errors."""
+class TestIngestFeedErrorIsolation:
+    """Test that individual article errors don't stop the rest of the feed."""
 
     @patch("ingest.rss.time.sleep")
     @patch("ingest.rss.feedparser")
-    def test_bails_after_consecutive_errors(self, mock_feedparser, mock_sleep):
-        """Should bail after 5 consecutive errors."""
+    def test_errors_logged_and_skipped(self, mock_feedparser, mock_sleep):
+        """Errors on individual articles should not stop the feed."""
         rss = _get_ingest_module()
 
-        # Create mock feed with 10 entries
+        # Create mock feed with 5 entries
         mock_feed = MagicMock()
         mock_feed.bozo = False
         mock_feed.status = 200
@@ -160,7 +84,7 @@ class TestConsecutiveErrorBail:
                 "link": f"https://example.com/{_i}",
                 "title": f"Article {_i}",
             }.get(key))
-            for i in range(10)
+            for i in range(5)
         ]
         mock_feed.feed = MagicMock()
         mock_feed.feed.get = MagicMock(return_value="Test Feed")
@@ -169,13 +93,12 @@ class TestConsecutiveErrorBail:
         session = MagicMock()
         # All requests fail with 403
         resp = MagicMock()
-        resp.ok = False
         resp.status_code = 403
         resp.raise_for_status.side_effect = requests.HTTPError("403 Forbidden")
         session.get.return_value = resp
 
-        raw_dir = Path("/tmp/test_bail_raw")
-        text_dir = Path("/tmp/test_bail_text")
+        raw_dir = Path("/tmp/test_skip_raw")
+        text_dir = Path("/tmp/test_skip_text")
         raw_dir.mkdir(parents=True, exist_ok=True)
         text_dir.mkdir(parents=True, exist_ok=True)
 
@@ -187,16 +110,15 @@ class TestConsecutiveErrorBail:
             conn=None,
             repo=Path("/tmp"),
             source_override="Test",
-            limit=10,
+            limit=5,
             timeout=10,
             skip_existing=False,
             delay=0,
         )
 
-        # Should have bailed before trying all 10
-        assert errors > 0
-        # Total attempts should be less than 10 (bailed after 5 consecutive)
-        assert session.get.call_count <= 6  # 5 fails + bail
+        # All 5 should have been attempted (no early bail)
+        assert session.get.call_count == 5
+        assert errors == 5
 
 
 class TestRepairData:

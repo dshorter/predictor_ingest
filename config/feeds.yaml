@@ -35,10 +35,12 @@ feeds:
   - name: "OpenAI Blog"
     url: "https://openai.com/blog/rss.xml"
     type: rss
-    enabled: true
+    enabled: false
     tier: 1
     signal: primary
     # Major industry announcements, model launches
+    # DISABLED 2026-02-18: persistent 403 (Cloudflare block).
+    # Keep for future web-scraping experiments.
 
   - name: "Anthropic Blog"
     url: "https://www.anthropic.com/news/rss.xml"
