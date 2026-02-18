@@ -222,13 +222,17 @@ def parse_ingest_output(stdout: str, stderr: str = "") -> dict:
 
     for line in stdout.splitlines():
         lower = line.lower().strip()
-        # Count feeds checked: "Processing feed: ..." or legacy "Processing: ..."
-        if lower.startswith("processing feed:") or lower.startswith("processing:"):
+        # Count feeds checked: "[N/M] Processing feed: ..." or legacy "Processing feed: ..."
+        # Strip optional "[N/M] " prefix before matching
+        check_lower = re.sub(r"^\[\d+/\d+\]\s*", "", lower)
+        if check_lower.startswith("processing feed:") or check_lower.startswith("processing:"):
             stats["feedsChecked"] += 1
             # Track current feed name for error association
-            current_feed = line.strip().split(":", 1)[-1].strip()
-            # Strip limit suffix like " (limit 50)"
-            current_feed = re.sub(r"\s*\(limit \d+\)\s*$", "", current_feed)
+            # Split on "Processing feed:" (or "Processing:") to get the feed name
+            feed_part = re.split(r"processing(?:\s+feed)?:", line.strip(), flags=re.IGNORECASE)
+            current_feed = feed_part[-1].strip() if len(feed_part) > 1 else ""
+            # Strip limit suffix like " (limit 50)" and elapsed time like " (elapsed 42s)"
+            current_feed = re.sub(r"\s*\((?:limit \d+|elapsed [^)]+)\)\s*", "", current_feed).strip()
         # Per-feed success: "Feed OK: N new documents, M duplicates skipped"
         if "feed ok" in lower:
             stats["feedsReachable"] += 1
@@ -570,7 +574,7 @@ def main() -> int:
             "cmd": [
                 sys.executable, "scripts/build_docpack.py",
                 "--db", db_path,
-                "--all",
+                "--date", run_date,
                 "--label", docpack_label,
             ],
             "parse": parse_docpack_output,
@@ -586,6 +590,8 @@ def main() -> int:
             "parse": parse_extract_output,
             "fatal": False,
             "skip": args.skip_extract,
+            "timeout": 1800,  # 30 min — extraction calls LLM per doc
+            "stream": True,   # show per-doc progress in real-time
         },
         {
             "name": "import",
