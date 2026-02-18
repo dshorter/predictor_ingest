@@ -474,7 +474,7 @@ def main() -> int:
             ],
             "parse": parse_ingest_output,
             "fatal": True,
-            "timeout": 1800,  # 30 min — 12 feeds × 10s polite delay per article
+            "timeout": 2700,  # 45 min — 12 feeds × 5s delay; extra buffer for slow networks
         },
         {
             "name": "docpack",

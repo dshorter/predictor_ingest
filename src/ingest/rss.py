@@ -21,9 +21,9 @@ from util import (
 )
 
 # Default inter-request delay (seconds).
-# 10s mimics human browsing pace — avoids CDN rate-limiting and keeps
-# total run time reasonable for a once-daily batch of ~20 articles.
-DEFAULT_DELAY = 10.0
+# 5s is polite (each feed hits a different server) while keeping
+# total run time within the pipeline timeout for 12+ feeds.
+DEFAULT_DELAY = 5.0
 
 
 def repo_root() -> Path:
