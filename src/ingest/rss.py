@@ -20,12 +20,10 @@ from util import (
     utc_now_iso,
 )
 
-# Default inter-request delay (seconds) to avoid rate-limiting
-DEFAULT_DELAY = 1.0
-
-# Retry config for transient HTTP errors (429, 5xx)
-MAX_RETRIES = 3
-RETRY_BACKOFF_BASE = 2  # seconds; doubles each retry
+# Default inter-request delay (seconds).
+# 10s mimics human browsing pace — avoids CDN rate-limiting and keeps
+# total run time reasonable for a once-daily batch of ~20 articles.
+DEFAULT_DELAY = 10.0
 
 
 def repo_root() -> Path:
@@ -99,78 +97,20 @@ def upsert_document(
     )
 
 
-def _is_retryable(status_code: int) -> bool:
-    """Return True for HTTP status codes that should be retried."""
-    return status_code == 429 or status_code >= 500
-
-
-def _get_retry_after(resp: requests.Response) -> Optional[float]:
-    """Extract Retry-After header value in seconds, or None."""
-    val = resp.headers.get("Retry-After")
-    if val is None:
-        return None
-    try:
-        return float(val)
-    except ValueError:
-        return None
-
-
-def fetch_with_retry(
+def fetch_once(
     session: requests.Session,
     url: str,
     timeout: int,
-    max_retries: int = MAX_RETRIES,
-    backoff_base: int = RETRY_BACKOFF_BASE,
 ) -> requests.Response:
-    """Fetch a URL with retry + exponential backoff for 429/5xx errors.
+    """Fetch a URL once.  No retries — if it fails, log and move on.
 
-    Non-retryable errors (403, 404, etc.) raise immediately without retry.
-    Raises requests.RequestException on permanent failure.
+    This is a daily batch job processing ~20 articles.  Retries add
+    complexity and can trigger CDN-level throttling that cascades to
+    other feeds.  A failed article can be retried tomorrow.
     """
-    last_exc: Optional[Exception] = None
-    for attempt in range(max_retries + 1):
-        try:
-            resp = session.get(url, timeout=timeout)
-        except requests.RequestException as exc:
-            # Connection/timeout errors — retryable
-            last_exc = exc
-            if attempt < max_retries:
-                wait = backoff_base * (2 ** attempt)
-                print(
-                    f"    [retry] {type(exc).__name__} for {url[:80]}... "
-                    f"waiting {wait:.0f}s (attempt {attempt + 1}/{max_retries})",
-                    file=sys.stderr,
-                )
-                time.sleep(wait)
-                continue
-            raise
-
-        if resp.ok:
-            return resp
-
-        # Non-retryable HTTP error — raise immediately
-        if not _is_retryable(resp.status_code):
-            resp.raise_for_status()
-
-        # Retryable error (429, 5xx) — backoff and retry
-        if attempt < max_retries:
-            retry_after = _get_retry_after(resp)
-            wait = retry_after if retry_after else backoff_base * (2 ** attempt)
-            # Cap wait at 120s to avoid blocking the pipeline forever
-            wait = min(wait, 120.0)
-            print(
-                f"    [retry] HTTP {resp.status_code} for {url[:80]}... "
-                f"waiting {wait:.0f}s (attempt {attempt + 1}/{max_retries})",
-                file=sys.stderr,
-            )
-            time.sleep(wait)
-        else:
-            resp.raise_for_status()
-
-    # Should not reach here, but just in case
-    if last_exc:
-        raise last_exc
-    raise requests.HTTPError("Max retries exhausted")
+    resp = session.get(url, timeout=timeout)
+    resp.raise_for_status()
+    return resp
 
 
 def ingest_feed(
@@ -225,9 +165,8 @@ def ingest_feed(
     fetched = 0
     skipped = 0
     errors = 0
-    consecutive_errors = 0  # Track consecutive 429s to bail early
 
-    for entry in entries:
+    for i, entry in enumerate(entries):
         url = entry.get("link")
         if not url:
             errors += 1
@@ -247,37 +186,30 @@ def ingest_feed(
             skipped += 1
             continue
 
-        # Bail early if we're getting rate-limited on every request
-        if consecutive_errors >= 5:
-            print(
-                f"    [bail] {consecutive_errors} consecutive errors, "
-                f"skipping remaining entries for {source}",
-                file=sys.stderr,
-            )
-            errors += len(entries) - (fetched + skipped + errors)
-            break
+        # Polite delay before each request (skip before the very first)
+        if delay > 0 and i > 0:
+            time.sleep(delay)
 
         status = "error"
         error = None
         content_hash = None
 
         try:
-            resp = fetch_with_retry(session, url, timeout)
+            resp = fetch_once(session, url, timeout)
             raw_path.write_bytes(resp.content)
 
             text = clean_html(resp.text)
             text_path.write_text(text + "\n", encoding="utf-8")
             content_hash = sha256_text(text)
             status = "cleaned"
-            consecutive_errors = 0  # Reset on success
         except requests.RequestException as exc:
             error = f"request_error: {exc}"
             errors += 1
-            consecutive_errors += 1
+            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr)
         except OSError as exc:
             error = f"io_error: {exc}"
             errors += 1
-            consecutive_errors += 1
+            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr)
 
         if conn is not None:
             upsert_document(
@@ -296,10 +228,6 @@ def ingest_feed(
             )
 
         fetched += 1
-
-        # Polite delay between requests to avoid rate-limiting
-        if delay > 0 and status == "cleaned":
-            time.sleep(delay)
 
     if conn is not None:
         conn.commit()
@@ -468,12 +396,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     total_errors = 0
     total_reachable = 0
 
-    for feed_url, feed_name, feed_limit in feeds:
+    for feed_idx, (feed_url, feed_name, feed_limit) in enumerate(feeds):
         # Use feed name from config, or CLI --source override, or let ingest_feed detect
         source = args.source or feed_name
 
         # CLI --limit overrides per-feed config limit; otherwise use per-feed limit
         effective_limit = args.limit if args.limit > 0 else feed_limit
+
+        # Polite delay between feeds (skip before the very first)
+        if args.delay > 0 and feed_idx > 0:
+            time.sleep(args.delay)
 
         limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
         print(f"  Processing feed: {feed_name or feed_url}{limit_info}")
