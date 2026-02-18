@@ -161,6 +161,24 @@ Fetched 0 items, skipped 105, errors 0. Feeds reachable: 12/13.
         assert len(stats["erroredFeeds"]) == 1
         assert "Anthropic" in stats["erroredFeeds"][0]
 
+    def test_numbered_prefix_format(self):
+        """New format with [N/M] prefix should be parsed correctly."""
+        output = """Ingesting 3 feed(s)...
+  [1/3] Processing feed: arXiv CS.AI (limit 50)  (elapsed 0s)
+    Feed OK: 8 new documents, 12 duplicates skipped
+  [2/3] Processing feed: Hugging Face Blog (limit 15)  (elapsed 45s)
+    Feed OK: 3 new documents, 0 duplicates skipped
+  [3/3] Processing feed: OpenAI Blog (limit 15)  (elapsed 90s)
+    Feed UNREACHABLE: OpenAI Blog
+Fetched 11 items, skipped 12, errors 0. Feeds reachable: 2/3.
+"""
+        stats = parse_ingest_output(output)
+        assert stats["feedsChecked"] == 3
+        assert stats["feedsReachable"] == 2
+        assert stats["feedsUnreachable"] == 1
+        assert stats["newDocsFound"] == 11
+        assert stats["duplicatesSkipped"] == 12
+
     def test_errored_feeds_collected(self):
         """Errored feed names should be collected in erroredFeeds list."""
         output = """Processing feed: arXiv CS.AI
