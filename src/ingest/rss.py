@@ -403,9 +403,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         # CLI --limit overrides per-feed config limit; otherwise use per-feed limit
         effective_limit = args.limit if args.limit > 0 else feed_limit
 
-        # Polite delay between feeds (skip before the very first)
-        if args.delay > 0 and feed_idx > 0:
-            time.sleep(args.delay)
+        # No inter-feed delay: each feed is a different server, so the
+        # per-article delay within ingest_feed() is sufficient for politeness.
 
         limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
         print(f"  Processing feed: {feed_name or feed_url}{limit_info}")

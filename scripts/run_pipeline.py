@@ -474,6 +474,7 @@ def main() -> int:
             ],
             "parse": parse_ingest_output,
             "fatal": True,
+            "timeout": 1800,  # 30 min — 12 feeds × 10s polite delay per article
         },
         {
             "name": "docpack",
@@ -588,8 +589,10 @@ def main() -> int:
                 run_log["stages"][name] = {"status": "skipped"}
                 continue
 
+            stage_timeout = stage.get("timeout", 600)
             print(f"[{name}] Running...", flush=True)
-            result = run_stage(name, stage["cmd"], cwd=project_root)
+            result = run_stage(name, stage["cmd"], cwd=project_root,
+                               timeout=stage_timeout)
 
             # Parse stage-specific stats (ingest parser also uses stderr)
             if name == "ingest":
