@@ -125,6 +125,8 @@ def ingest_feed(
     timeout: int,
     skip_existing: bool,
     delay: float = DEFAULT_DELAY,
+    feed_index: int = 0,
+    feed_total: int = 0,
 ) -> tuple[int, int, int, bool]:
     """Ingest a single RSS/Atom feed.
 
@@ -132,7 +134,12 @@ def ingest_feed(
         Tuple of (fetched, skipped, errors, reachable).
         reachable is True if the feed XML was successfully fetched and parsed.
     """
+    feed_label = f"[feed {feed_index}/{feed_total}]" if feed_total else ""
+
+    t0 = time.monotonic()
+    print(f"    {feed_label} Parsing feed XML: {feed_url}", flush=True)
     feed = feedparser.parse(feed_url)
+    parse_sec = time.monotonic() - t0
 
     # Diagnostic info for every feed
     feed_status = getattr(feed, "status", None)
@@ -140,27 +147,34 @@ def ingest_feed(
     bozo_exc = getattr(feed, "bozo_exception", None)
     n_entries = len(feed.entries)
     print(
-        f"    [diag] url={feed_url} status={feed_status} bozo={bozo} entries={n_entries}",
-        file=sys.stderr,
+        f"    {feed_label} [diag] status={feed_status} bozo={bozo} "
+        f"entries={n_entries} parse={parse_sec:.1f}s",
+        file=sys.stderr, flush=True,
     )
     if bozo and bozo_exc:
         print(
-            f"    [diag] bozo_exception={type(bozo_exc).__name__}: {bozo_exc}",
-            file=sys.stderr,
+            f"    {feed_label} [diag] bozo_exception={type(bozo_exc).__name__}: {bozo_exc}",
+            file=sys.stderr, flush=True,
         )
 
     # Determine if the feed was actually reachable
     reachable = True
     if bozo and not feed.entries:
         exc_name = type(bozo_exc).__name__ if bozo_exc else "unknown"
-        print(f"    Feed unreachable: {exc_name}: {bozo_exc}", file=sys.stderr)
+        print(f"    {feed_label} Feed unreachable: {exc_name}: {bozo_exc}",
+              file=sys.stderr, flush=True)
         reachable = False
     if feed_status and feed_status >= 400:
-        print(f"    Feed HTTP {feed_status}: {feed_url}", file=sys.stderr)
+        print(f"    {feed_label} Feed HTTP {feed_status}: {feed_url}",
+              file=sys.stderr, flush=True)
         reachable = False
 
     source = source_override or feed.feed.get("title") or feed_url
     entries = feed.entries[:limit] if limit > 0 else feed.entries
+    n_total = len(entries)
+
+    print(f"    {feed_label} {n_total} entries to process (parse took {parse_sec:.1f}s)",
+          flush=True)
 
     fetched = 0
     skipped = 0
@@ -170,7 +184,8 @@ def ingest_feed(
         url = entry.get("link")
         if not url:
             errors += 1
-            print(f"Warning: missing link in feed entry from {feed_url}", file=sys.stderr)
+            print(f"    {feed_label} [{i+1}/{n_total}] SKIP: missing link",
+                  file=sys.stderr, flush=True)
             continue
 
         title = entry.get("title") or ""
@@ -190,9 +205,13 @@ def ingest_feed(
         if delay > 0 and i > 0:
             time.sleep(delay)
 
+        short_title = (title[:60] + "...") if len(title) > 63 else title
+        print(f"    {feed_label} [{i+1}/{n_total}] Fetching: {short_title}", flush=True)
+
         status = "error"
         error = None
         content_hash = None
+        art_t0 = time.monotonic()
 
         try:
             resp = fetch_once(session, url, timeout)
@@ -202,14 +221,30 @@ def ingest_feed(
             text_path.write_text(text + "\n", encoding="utf-8")
             content_hash = sha256_text(text)
             status = "cleaned"
+            art_sec = time.monotonic() - art_t0
+            print(f"    {feed_label} [{i+1}/{n_total}] OK ({art_sec:.1f}s, "
+                  f"{len(resp.content)} bytes)", flush=True)
         except requests.RequestException as exc:
             error = f"request_error: {exc}"
             errors += 1
-            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr)
+            art_sec = time.monotonic() - art_t0
+            print(f"    {feed_label} [{i+1}/{n_total}] FAIL ({art_sec:.1f}s): "
+                  f"{error[:90]}", flush=True)
+            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr, flush=True)
         except OSError as exc:
             error = f"io_error: {exc}"
             errors += 1
-            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr)
+            art_sec = time.monotonic() - art_t0
+            print(f"    {feed_label} [{i+1}/{n_total}] FAIL ({art_sec:.1f}s): "
+                  f"{error[:90]}", flush=True)
+            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr, flush=True)
+        except Exception as exc:
+            error = f"unexpected_error: {type(exc).__name__}: {exc}"
+            errors += 1
+            art_sec = time.monotonic() - art_t0
+            print(f"    {feed_label} [{i+1}/{n_total}] FAIL ({art_sec:.1f}s): "
+                  f"{error[:90]}", flush=True)
+            print(f"    [skip] {error[:90]}  url={url[:80]}", file=sys.stderr, flush=True)
 
         if conn is not None:
             upsert_document(
@@ -231,6 +266,10 @@ def ingest_feed(
 
     if conn is not None:
         conn.commit()
+
+    feed_sec = time.monotonic() - t0
+    print(f"    {feed_label} Done: {fetched} fetched, {skipped} skipped, "
+          f"{errors} errors ({feed_sec:.1f}s total)", flush=True)
 
     return fetched, skipped, errors, reachable
 
@@ -389,7 +428,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         print("No feeds to ingest.", file=sys.stderr)
         return 1
 
-    print(f"Ingesting {len(feeds)} feed(s)...")
+    n_feeds = len(feeds)
+    print(f"Ingesting {n_feeds} feed(s)...", flush=True)
+    ingest_start = time.monotonic()
 
     total_fetched = 0
     total_skipped = 0
@@ -407,7 +448,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         # per-article delay within ingest_feed() is sufficient for politeness.
 
         limit_info = f" (limit {effective_limit})" if effective_limit > 0 else ""
-        print(f"  Processing feed: {feed_name or feed_url}{limit_info}")
+        elapsed = time.monotonic() - ingest_start
+        print(f"  [{feed_idx+1}/{n_feeds}] Processing feed: "
+              f"{feed_name or feed_url}{limit_info}  (elapsed {elapsed:.0f}s)", flush=True)
 
         try:
             fetched, skipped, errors, reachable = ingest_feed(
@@ -422,10 +465,13 @@ def main(argv: Optional[list[str]] = None) -> int:
                 timeout=args.timeout,
                 skip_existing=args.skip_existing,
                 delay=args.delay,
+                feed_index=feed_idx + 1,
+                feed_total=n_feeds,
             )
         except Exception as exc:
-            print(f"    Feed CRASHED: {type(exc).__name__}: {exc}", file=sys.stderr)
-            print(f"    Feed CRASHED: {feed_name or feed_url}")
+            print(f"    Feed CRASHED: {type(exc).__name__}: {exc}", file=sys.stderr,
+                  flush=True)
+            print(f"    Feed CRASHED: {feed_name or feed_url}", flush=True)
             total_errors += 1
             continue
 
@@ -436,18 +482,22 @@ def main(argv: Optional[list[str]] = None) -> int:
             total_reachable += 1
 
         if not reachable:
-            print(f"    Feed UNREACHABLE: {feed_name or feed_url}")
+            print(f"    Feed UNREACHABLE: {feed_name or feed_url}", flush=True)
         elif errors == 0:
-            print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped")
+            print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped",
+                  flush=True)
         else:
-            print(f"    Feed errors: {errors} fetch errors, {fetched} saved, {skipped} duplicates skipped")
+            print(f"    Feed errors: {errors} fetch errors, {fetched} saved, "
+                  f"{skipped} duplicates skipped", flush=True)
 
     if conn is not None:
         conn.close()
 
+    total_sec = time.monotonic() - ingest_start
     print(
         f"Fetched {total_fetched} items, skipped {total_skipped}, errors {total_errors}. "
-        f"Feeds reachable: {total_reachable}/{len(feeds)}."
+        f"Feeds reachable: {total_reachable}/{n_feeds}. Total time: {total_sec:.1f}s.",
+        flush=True,
     )
     return 0
 

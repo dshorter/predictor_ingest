@@ -41,6 +41,7 @@ def run_stage(
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
     timeout: int = 600,
+    stream: bool = False,
 ) -> dict:
     """Run a pipeline stage as a subprocess.
 
@@ -50,43 +51,130 @@ def run_stage(
         cwd: Working directory
         env: Environment variables (merged with os.environ)
         timeout: Maximum seconds before killing
+        stream: If True, print stdout/stderr lines in real-time
+                (prefixed with stage name) while still capturing them.
 
     Returns:
         Dict with status, duration, output, and returncode
     """
+    import select
+    import io
+
     merged_env = {**os.environ}
     if env:
         merged_env.update(env)
 
     start = time.monotonic()
+
+    if not stream:
+        # Original captured mode for quick stages
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=cwd,
+                env=merged_env,
+                timeout=timeout,
+            )
+            duration = time.monotonic() - start
+            return {
+                "stage": name,
+                "status": "ok" if result.returncode == 0 else "error",
+                "returncode": result.returncode,
+                "duration_sec": round(duration, 1),
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+            }
+        except subprocess.TimeoutExpired:
+            duration = time.monotonic() - start
+            return {
+                "stage": name,
+                "status": "timeout",
+                "returncode": -1,
+                "duration_sec": round(duration, 1),
+                "stdout": "",
+                "stderr": f"Stage {name} timed out after {timeout}s",
+            }
+        except Exception as e:
+            duration = time.monotonic() - start
+            return {
+                "stage": name,
+                "status": "error",
+                "returncode": -1,
+                "duration_sec": round(duration, 1),
+                "stdout": "",
+                "stderr": str(e),
+            }
+
+    # Streaming mode: show output in real-time while capturing it
+    stdout_lines: list[str] = []
+    stderr_lines: list[str] = []
     try:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
             cwd=cwd,
             env=merged_env,
-            timeout=timeout,
         )
+
+        # Read both streams without blocking using select()
+        streams = {proc.stdout: stdout_lines, proc.stderr: stderr_lines}
+        while streams:
+            # Check timeout
+            elapsed = time.monotonic() - start
+            if elapsed > timeout:
+                proc.kill()
+                proc.wait()
+                captured_out = "".join(stdout_lines)
+                captured_err = "".join(stderr_lines)
+                captured_err += f"\nStage {name} timed out after {timeout}s"
+                duration = time.monotonic() - start
+                return {
+                    "stage": name,
+                    "status": "timeout",
+                    "returncode": -1,
+                    "duration_sec": round(duration, 1),
+                    "stdout": captured_out,
+                    "stderr": captured_err,
+                }
+
+            remaining = max(0.1, timeout - elapsed)
+            try:
+                readable, _, _ = select.select(
+                    list(streams.keys()), [], [], min(1.0, remaining)
+                )
+            except (ValueError, OSError):
+                break
+
+            for stream_obj in readable:
+                line = stream_obj.readline()
+                if not line:
+                    # EOF on this stream
+                    streams.pop(stream_obj, None)
+                    continue
+                buf = streams.get(stream_obj)
+                if buf is not None:
+                    buf.append(line)
+                # Print with stage prefix — stdout gets "  " indent, stderr gets "  WARN:"
+                if stream_obj is proc.stdout:
+                    print(f"  {line.rstrip()}", flush=True)
+                else:
+                    print(f"  WARN: {line.rstrip()}", flush=True)
+
+        proc.wait(timeout=10)
         duration = time.monotonic() - start
         return {
             "stage": name,
-            "status": "ok" if result.returncode == 0 else "error",
-            "returncode": result.returncode,
+            "status": "ok" if proc.returncode == 0 else "error",
+            "returncode": proc.returncode,
             "duration_sec": round(duration, 1),
-            "stdout": result.stdout,
-            "stderr": result.stderr,
+            "stdout": "".join(stdout_lines),
+            "stderr": "".join(stderr_lines),
         }
-    except subprocess.TimeoutExpired:
-        duration = time.monotonic() - start
-        return {
-            "stage": name,
-            "status": "timeout",
-            "returncode": -1,
-            "duration_sec": round(duration, 1),
-            "stdout": "",
-            "stderr": f"Stage {name} timed out after {timeout}s",
-        }
+
     except Exception as e:
         duration = time.monotonic() - start
         return {
@@ -94,8 +182,8 @@ def run_stage(
             "status": "error",
             "returncode": -1,
             "duration_sec": round(duration, 1),
-            "stdout": "",
-            "stderr": str(e),
+            "stdout": "".join(stdout_lines),
+            "stderr": "".join(stderr_lines) + f"\n{e}",
         }
 
 
@@ -475,6 +563,7 @@ def main() -> int:
             "parse": parse_ingest_output,
             "fatal": True,
             "timeout": 2700,  # 45 min — 12 feeds × 5s delay; extra buffer for slow networks
+            "stream": True,  # show per-article progress in real-time
         },
         {
             "name": "docpack",
@@ -590,9 +679,10 @@ def main() -> int:
                 continue
 
             stage_timeout = stage.get("timeout", 600)
+            stage_stream = stage.get("stream", False)
             print(f"[{name}] Running...", flush=True)
             result = run_stage(name, stage["cmd"], cwd=project_root,
-                               timeout=stage_timeout)
+                               timeout=stage_timeout, stream=stage_stream)
 
             # Parse stage-specific stats (ingest parser also uses stderr)
             if name == "ingest":
