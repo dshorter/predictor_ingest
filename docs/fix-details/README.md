@@ -67,3 +67,24 @@ This folder contains detailed documentation of issues encountered and resolved d
 ---
 
 **Status:** RESOLVED - fcose working with parameter tuning in progress
+
+---
+
+## Stale `__pycache__` on VPS Deployment (February 2026)
+
+**Problem:** After updating `DEFAULT_DELAY` from `1.0` to `10.0` in
+`src/ingest/rss.py`, the VPS kept using the old value. Import raised
+`AttributeError: module 'ingest.rss' has no attribute 'DEFAULT_DELAY'`.
+
+**Root Cause:** Python loaded a stale `.pyc` from `__pycache__/` compiled from
+an older revision (before `DEFAULT_DELAY` existed at module level). The
+editable install (`pip install -e .`) didn't invalidate the cache.
+
+**Resolution:** Nuke `__pycache__` dirs + re-run `pip install -e .`.
+
+**Document:** [STALE_PYCACHE_FIX.md](STALE_PYCACHE_FIX.md)
+
+**Key Takeaway:** When a module attribute that exists in the `.py` file raises
+`AttributeError`, the first suspect is stale bytecode cache, not the source.
+
+**Status:** RESOLVED — 2026-02-18
