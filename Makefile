@@ -67,10 +67,10 @@ post-extract:
 	@rm -f data/pipeline.lock
 
 daily:
-	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live $(PIPELINE_FLAGS)
 
 daily-manual:
-	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(PIPELINE_FLAGS)
 
 # ── Testing ────────────────────────────────────────────────────────────
 
