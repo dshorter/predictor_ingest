@@ -19,6 +19,9 @@ def _schema_path() -> Path:
 def init_db(db_path: Path) -> sqlite3.Connection:
     """Initialize database with schema.
 
+    On existing databases, runs a one-time migration to remove duplicate
+    relations and add the dedup unique index if it doesn't exist yet.
+
     Args:
         db_path: Path to SQLite database file
 
@@ -26,8 +29,26 @@ def init_db(db_path: Path) -> sqlite3.Connection:
         Database connection
     """
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    is_existing = db_path.exists() and db_path.stat().st_size > 0
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
+
+    # For existing DBs, clean duplicates before applying schema (which
+    # includes the UNIQUE INDEX that would fail if dupes exist).
+    if is_existing:
+        # Check if the dedup index already exists
+        idx = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='index' AND name='idx_relations_dedup'"
+        ).fetchone()
+        if not idx:
+            # Check if the relations table exists (it should for any existing DB)
+            tbl = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='relations'"
+            ).fetchone()
+            if tbl:
+                removed = deduplicate_relations(conn)
+                if removed:
+                    print(f"[db] Removed {removed} duplicate relation(s) during migration")
 
     schema = _schema_path().read_text(encoding="utf-8")
     conn.executescript(schema)
@@ -282,7 +303,11 @@ def insert_relation(
     time_start: Optional[str] = None,
     time_end: Optional[str] = None,
 ) -> int:
-    """Insert a relation between entities.
+    """Insert a relation between entities, skipping duplicates.
+
+    A relation is considered duplicate if (source_id, rel, target_id, kind,
+    doc_id) already exists.  When a duplicate is found the existing
+    relation_id is returned and no new row is created.
 
     Args:
         conn: Database connection
@@ -301,8 +326,17 @@ def insert_relation(
         time_end: ISO date for time range end
 
     Returns:
-        The relation_id
+        The relation_id (existing if duplicate, new otherwise)
     """
+    # Check for existing duplicate
+    existing = conn.execute(
+        """SELECT relation_id FROM relations
+           WHERE source_id = ? AND rel = ? AND target_id = ? AND kind = ? AND doc_id = ?""",
+        (source_id, rel, target_id, kind, doc_id),
+    ).fetchone()
+    if existing:
+        return existing["relation_id"] if isinstance(existing, sqlite3.Row) else existing[0]
+
     cursor = conn.execute(
         """
         INSERT INTO relations (
@@ -319,6 +353,66 @@ def insert_relation(
     )
     conn.commit()
     return cursor.lastrowid
+
+
+def deduplicate_relations(conn: sqlite3.Connection) -> int:
+    """Remove duplicate relations from the database.
+
+    Keeps the row with the lowest relation_id for each
+    (source_id, rel, target_id, kind, doc_id) group.  Also reassigns
+    evidence rows from deleted duplicates to the surviving relation.
+
+    Args:
+        conn: Database connection
+
+    Returns:
+        Number of duplicate rows removed
+    """
+    # Find relation_ids to keep (one per unique group)
+    keep_ids = conn.execute(
+        """
+        SELECT MIN(relation_id) AS keep_id
+        FROM relations
+        GROUP BY source_id, rel, target_id, kind, COALESCE(doc_id, '')
+        """
+    ).fetchall()
+    keep_set = {row[0] for row in keep_ids}
+
+    # Find all duplicates (relation_ids NOT in the keep set)
+    all_ids = conn.execute("SELECT relation_id FROM relations").fetchall()
+    dup_ids = [row[0] for row in all_ids if row[0] not in keep_set]
+
+    if not dup_ids:
+        return 0
+
+    # For each duplicate, reassign its evidence to the surviving relation
+    for dup_id in dup_ids:
+        # Find the group key for this dup
+        dup_row = conn.execute(
+            "SELECT source_id, rel, target_id, kind, doc_id FROM relations WHERE relation_id = ?",
+            (dup_id,),
+        ).fetchone()
+        if not dup_row:
+            continue
+
+        # Find the keep_id for this group
+        survivor = conn.execute(
+            """SELECT MIN(relation_id) AS keep_id FROM relations
+               WHERE source_id = ? AND rel = ? AND target_id = ? AND kind = ?
+                     AND COALESCE(doc_id, '') = COALESCE(?, '')""",
+            (dup_row[0], dup_row[1], dup_row[2], dup_row[3], dup_row[4]),
+        ).fetchone()
+        if survivor and survivor[0] != dup_id:
+            conn.execute(
+                "UPDATE evidence SET relation_id = ? WHERE relation_id = ?",
+                (survivor[0], dup_id),
+            )
+
+    # Delete duplicates
+    placeholders = ",".join("?" for _ in dup_ids)
+    conn.execute(f"DELETE FROM relations WHERE relation_id IN ({placeholders})", dup_ids)
+    conn.commit()
+    return len(dup_ids)
 
 
 def get_relations_for_entity(

@@ -216,6 +216,11 @@ class GraphExporter:
     ) -> list[dict[str, Any]]:
         """Get relations from database with optional filtering.
 
+        Deduplicates by (source_id, rel, target_id, kind, doc_id), keeping
+        only the first (lowest relation_id) row for each group.  This
+        prevents duplicate edges in the Cytoscape export even when the
+        database contains legacy duplicates.
+
         Args:
             relation_filter: If set, only include these relation types
             exclude_relations: If set, exclude these relation types
@@ -224,8 +229,15 @@ class GraphExporter:
             end_date: Latest published date of source doc (ISO). None = no upper bound.
 
         Returns:
-            List of relation dicts
+            List of relation dicts (deduplicated)
         """
+        # Dedup subquery: keep the row with the lowest relation_id per group
+        dedup_sub = """
+            SELECT MIN(relation_id) AS relation_id
+            FROM relations
+            GROUP BY source_id, rel, target_id, kind, COALESCE(doc_id, '')
+        """
+
         # When date filtering, join against documents.published_at
         if start_date or end_date:
             clauses: list[str] = []
@@ -238,11 +250,15 @@ class GraphExporter:
                 params.append(end_date)
             where = " AND " + " AND ".join(clauses)
             cursor = self.conn.execute(
-                f"SELECT r.* FROM relations r JOIN documents d ON r.doc_id = d.doc_id WHERE 1=1{where}",
+                f"""SELECT r.* FROM relations r
+                    JOIN documents d ON r.doc_id = d.doc_id
+                    WHERE r.relation_id IN ({dedup_sub}){where}""",
                 params,
             )
         else:
-            cursor = self.conn.execute("SELECT * FROM relations")
+            cursor = self.conn.execute(
+                f"SELECT * FROM relations WHERE relation_id IN ({dedup_sub})"
+            )
 
         relations = []
         for row in cursor.fetchall():

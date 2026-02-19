@@ -62,6 +62,12 @@ CREATE INDEX IF NOT EXISTS idx_relations_target ON relations(target_id);
 CREATE INDEX IF NOT EXISTS idx_relations_rel ON relations(rel);
 CREATE INDEX IF NOT EXISTS idx_relations_doc ON relations(doc_id);
 
+-- Prevent duplicate relations from re-imports.  A relation is uniquely
+-- identified by (source_id, rel, target_id, kind, doc_id).  The
+-- COALESCE wrapper handles NULL doc_id values so the index still works.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_relations_dedup
+    ON relations(source_id, rel, target_id, kind, COALESCE(doc_id, ''));
+
 -- Evidence table (provenance for relations)
 CREATE TABLE IF NOT EXISTS evidence (
   evidence_id INTEGER PRIMARY KEY AUTOINCREMENT,
