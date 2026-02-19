@@ -40,7 +40,7 @@ def run_stage(
     *,
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
-    timeout: int = 600,
+    timeout: int | None = 600,
     stream: bool = False,
 ) -> dict:
     """Run a pipeline stage as a subprocess.
@@ -50,7 +50,7 @@ def run_stage(
         cmd: Command and arguments
         cwd: Working directory
         env: Environment variables (merged with os.environ)
-        timeout: Maximum seconds before killing
+        timeout: Maximum seconds before killing (None = no timeout)
         stream: If True, print stdout/stderr lines in real-time
                 (prefixed with stage name) while still capturing them.
 
@@ -123,9 +123,9 @@ def run_stage(
         # Read both streams without blocking using select()
         streams = {proc.stdout: stdout_lines, proc.stderr: stderr_lines}
         while streams:
-            # Check timeout
+            # Check timeout (skip if timeout is None)
             elapsed = time.monotonic() - start
-            if elapsed > timeout:
+            if timeout is not None and elapsed > timeout:
                 proc.kill()
                 proc.wait()
                 captured_out = "".join(stdout_lines)
@@ -141,10 +141,14 @@ def run_stage(
                     "stderr": captured_err,
                 }
 
-            remaining = max(0.1, timeout - elapsed)
+            if timeout is not None:
+                remaining = max(0.1, timeout - elapsed)
+                poll_interval = min(1.0, remaining)
+            else:
+                poll_interval = 1.0
             try:
                 readable, _, _ = select.select(
-                    list(streams.keys()), [], [], min(1.0, remaining)
+                    list(streams.keys()), [], [], poll_interval
                 )
             except (ValueError, OSError):
                 break
@@ -518,6 +522,10 @@ def main() -> int:
         help="Do NOT copy graph output to web/data/graphs/live/ after export",
     )
     parser.add_argument(
+        "--no-timeout", action="store_true",
+        help="Disable all stage timeouts (useful for self-hosted servers)",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
         help="Print what would be run without executing",
     )
@@ -651,6 +659,8 @@ def main() -> int:
     failed_stages = []
 
     print(f"=== Pipeline run {run_id} ({run_date}) ===")
+    if args.no_timeout:
+        print("  Stage timeouts: DISABLED")
 
     # Show DB document status summary for diagnostics
     try:
@@ -684,7 +694,7 @@ def main() -> int:
                 run_log["stages"][name] = {"status": "skipped"}
                 continue
 
-            stage_timeout = stage.get("timeout", 600)
+            stage_timeout = None if args.no_timeout else stage.get("timeout", 600)
             stage_stream = stage.get("stream", False)
             print(f"[{name}] Running...", flush=True)
             result = run_stage(name, stage["cmd"], cwd=project_root,
