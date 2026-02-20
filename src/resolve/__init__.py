@@ -275,25 +275,50 @@ def merge_entities(
         (json.dumps(new_aliases), first_seen, last_seen, canonical_id)
     )
 
-    # Update relations: change source_id
-    conn.execute(
-        """
-        UPDATE relations
-        SET source_id = ?
-        WHERE source_id = ?
-        """,
-        (canonical_id, duplicate_id)
-    )
+    # Update relations: repoint source_id and target_id from duplicate to
+    # canonical.  When the repoint would create a duplicate row (same
+    # source_id, rel, target_id, kind, doc_id as an existing relation),
+    # we reassign evidence from the colliding row to the survivor and
+    # delete the collision instead of crashing on the UNIQUE index.
+    for col in ("source_id", "target_id"):
+        # Find relations that reference the duplicate entity
+        dup_rels = conn.execute(
+            f"SELECT relation_id, source_id, rel, target_id, kind, doc_id "
+            f"FROM relations WHERE {col} = ?",
+            (duplicate_id,),
+        ).fetchall()
 
-    # Update relations: change target_id
-    conn.execute(
-        """
-        UPDATE relations
-        SET target_id = ?
-        WHERE target_id = ?
-        """,
-        (canonical_id, duplicate_id)
-    )
+        for dr in dup_rels:
+            # Compute what the row would look like after the repoint
+            new_source = canonical_id if col == "source_id" else dr["source_id"]
+            new_target = canonical_id if col == "target_id" else dr["target_id"]
+
+            # Check if a relation with those values already exists
+            existing = conn.execute(
+                """SELECT relation_id FROM relations
+                   WHERE source_id = ? AND rel = ? AND target_id = ?
+                         AND kind = ? AND COALESCE(doc_id, '') = COALESCE(?, '')
+                         AND relation_id != ?""",
+                (new_source, dr["rel"], new_target, dr["kind"], dr["doc_id"],
+                 dr["relation_id"]),
+            ).fetchone()
+
+            if existing:
+                # Collision: reassign evidence to the surviving relation, then delete
+                conn.execute(
+                    "UPDATE evidence SET relation_id = ? WHERE relation_id = ?",
+                    (existing["relation_id"], dr["relation_id"]),
+                )
+                conn.execute(
+                    "DELETE FROM relations WHERE relation_id = ?",
+                    (dr["relation_id"],),
+                )
+            else:
+                # Safe to repoint
+                conn.execute(
+                    f"UPDATE relations SET {col} = ? WHERE relation_id = ?",
+                    (canonical_id, dr["relation_id"]),
+                )
 
     # Add alias mapping for the duplicate's name
     conn.execute(

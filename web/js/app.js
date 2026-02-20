@@ -554,6 +554,10 @@ async function switchView(view) {
 
     // Refresh filter panel counts and re-bind event handlers for new data
     if (AppState.filter) {
+      // Sync viewPreset to match the active view — the trending
+      // velocity filter should only apply in the trending view;
+      // claims/mentions/dependencies should show all matching nodes.
+      AppState.filter.setViewPreset(view === 'trending' ? 'trending' : 'all');
       populateTypeFilters(AppState.cy, AppState.filter);
       syncFilterUI(AppState.filter);
       applyDateFilterFromAnchor();

@@ -282,6 +282,77 @@ class TestMergeEntities:
         conn.close()
 
 
+class TestMergeRelationCollisions:
+    """Test that merge_entities handles relation collisions safely.
+
+    When two entities are merged, their relations can collide (same
+    source, rel, target, kind, doc_id). The merge must handle this
+    without crashing on the UNIQUE index or leaving duplicate edges.
+    """
+
+    def test_merge_handles_same_doc_collision(self, tmp_path: Path):
+        """Merging entities with relations to the same target from the same doc."""
+        resolve = _get_resolve_module()
+        conn = init_db(tmp_path / "test.db")
+
+        insert_entity(conn, "org:openai", "OpenAI", "Org")
+        insert_entity(conn, "org:open_ai", "Open AI", "Org")
+        insert_entity(conn, "model:gpt4", "GPT-4", "Model")
+
+        # Both entities assert CREATED model:gpt4 from the SAME doc
+        from db import insert_evidence
+        r1 = insert_relation(conn, "org:openai", "CREATED", "model:gpt4",
+                             "asserted", 0.9, "doc_1", "1.0.0")
+        r2 = insert_relation(conn, "org:open_ai", "CREATED", "model:gpt4",
+                             "asserted", 0.95, "doc_1", "1.0.0")
+        insert_evidence(conn, r1, "doc_1", "https://example.com", "2026-01-01", "evidence A")
+        insert_evidence(conn, r2, "doc_1", "https://example.com", "2026-01-01", "evidence B")
+
+        # This should NOT crash on unique index violation
+        resolve.merge_entities(conn, "org:open_ai", "org:openai")
+
+        # Should have exactly 1 CREATED relation (not 2)
+        rels = conn.execute(
+            "SELECT * FROM relations WHERE rel = 'CREATED'"
+        ).fetchall()
+        assert len(rels) == 1
+        assert rels[0]["source_id"] == "org:openai"
+
+        # Evidence from the duplicate should have been reassigned
+        ev = conn.execute(
+            "SELECT * FROM evidence WHERE relation_id = ?", (rels[0]["relation_id"],)
+        ).fetchall()
+        assert len(ev) == 2  # both evidence records preserved
+
+        conn.close()
+
+    def test_merge_handles_cross_doc_relations(self, tmp_path: Path):
+        """Merging entities with relations to the same target from different docs."""
+        resolve = _get_resolve_module()
+        conn = init_db(tmp_path / "test.db")
+
+        insert_entity(conn, "org:openai", "OpenAI", "Org")
+        insert_entity(conn, "org:open_ai", "Open AI", "Org")
+        insert_entity(conn, "model:gpt4", "GPT-4", "Model")
+
+        # Relations from different docs
+        insert_relation(conn, "org:openai", "CREATED", "model:gpt4",
+                        "asserted", 0.9, "doc_1", "1.0.0")
+        insert_relation(conn, "org:open_ai", "CREATED", "model:gpt4",
+                        "asserted", 0.95, "doc_2", "1.0.0")
+
+        resolve.merge_entities(conn, "org:open_ai", "org:openai")
+
+        # Both relations should survive (different doc_ids)
+        rels = conn.execute(
+            "SELECT * FROM relations WHERE rel = 'CREATED' ORDER BY doc_id"
+        ).fetchall()
+        assert len(rels) == 2
+        assert all(r["source_id"] == "org:openai" for r in rels)
+
+        conn.close()
+
+
 class TestEntityResolver:
     """Test the EntityResolver class."""
 

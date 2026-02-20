@@ -297,6 +297,89 @@ class GraphExporter:
             edges.append(build_edge(rel, evidence))
         return edges
 
+    def _aggregate_relations(self, relations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Aggregate per-document relations into single logical edges.
+
+        Groups relations by (source_id, rel, target_id) and merges them
+        so that the same claim asserted by multiple documents produces
+        one edge with all evidence combined.
+
+        For each group:
+        - confidence = max across all documents
+        - kind = strongest (asserted > inferred > hypothesis)
+        - evidence = union of all evidence from all per-doc relations
+
+        Args:
+            relations: List of relation dicts (may contain duplicates
+                       across different doc_ids)
+
+        Returns:
+            Deduplicated list of relation dicts with merged evidence
+        """
+        KIND_RANK = {"asserted": 0, "inferred": 1, "hypothesis": 2}
+
+        groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+        for rel in relations:
+            key = (rel["source_id"], rel["rel"], rel["target_id"])
+            groups.setdefault(key, []).append(rel)
+
+        merged: list[dict[str, Any]] = []
+        for (source_id, rel_type, target_id), rels in groups.items():
+            # Pick the best representative row
+            best = min(rels, key=lambda r: (KIND_RANK.get(r["kind"], 9), -r["confidence"]))
+
+            # Collect evidence from ALL per-doc relations
+            all_evidence: list[dict[str, Any]] = []
+            seen_snippets: set[str] = set()
+            for r in rels:
+                rid = r.get("relation_id")
+                if rid:
+                    for ev in self._get_evidence_for_relation(rid):
+                        snippet = ev.get("snippet", "")
+                        if snippet not in seen_snippets:
+                            seen_snippets.add(snippet)
+                            all_evidence.append(ev)
+
+            # Build a synthetic merged relation
+            merged_rel = dict(best)
+            merged_rel["confidence"] = max(r["confidence"] for r in rels)
+            merged_rel["kind"] = min(
+                (r["kind"] for r in rels), key=lambda k: KIND_RANK.get(k, 9)
+            )
+            # Use a stable edge ID that doesn't depend on relation_id
+            merged_rel["_edge_id"] = f"e:{source_id}:{rel_type}:{target_id}"
+            merged_rel["_evidence"] = all_evidence
+            merged_rel["_doc_count"] = len(rels)
+            merged.append(merged_rel)
+
+        return merged
+
+    def _build_aggregated_edges(self, merged_relations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Build Cytoscape edges from aggregated relation data.
+
+        Args:
+            merged_relations: Output of _aggregate_relations()
+
+        Returns:
+            List of Cytoscape edge dicts
+        """
+        edges = []
+        for rel in merged_relations:
+            evidence = rel.pop("_evidence", [])
+            edge_id = rel.pop("_edge_id", None)
+            doc_count = rel.pop("_doc_count", 1)
+
+            edge = build_edge(rel, evidence)
+            if edge_id:
+                edge["data"]["id"] = edge_id
+            if doc_count > 1:
+                edge["data"]["docCount"] = doc_count
+            # Remove single-doc docId since this edge spans multiple docs
+            if doc_count > 1:
+                edge["data"].pop("docId", None)
+            edges.append(edge)
+        return edges
+
     def _get_referenced_entity_ids(
         self,
         relations: list[dict[str, Any]]
@@ -407,7 +490,9 @@ class GraphExporter:
     ) -> dict[str, Any]:
         """Export claims view (semantic entity-to-entity relations).
 
-        Excludes document relations like MENTIONS.
+        Excludes document relations like MENTIONS.  Relations from
+        different documents that share the same (source, rel, target)
+        are aggregated into a single edge with combined evidence.
 
         Args:
             kinds: Optional filter for relation kinds
@@ -425,6 +510,9 @@ class GraphExporter:
             end_date=end_date,
         )
 
+        # Aggregate cross-document relations into single edges
+        merged = self._aggregate_relations(relations)
+
         # Get entities
         entities = self._get_entities(start_date=start_date, end_date=end_date)
         entity_nodes = [build_node(e) for e in entities]
@@ -433,7 +521,7 @@ class GraphExporter:
         referenced_ids = self._get_referenced_entity_ids(relations)
         nodes = self._filter_nodes_by_ids(entity_nodes, referenced_ids)
 
-        edges = self._build_edges_with_evidence(relations)
+        edges = self._build_aggregated_edges(merged)
 
         return {
             "elements": {
@@ -449,6 +537,9 @@ class GraphExporter:
         end_date: Optional[str] = None,
     ) -> dict[str, Any]:
         """Export dependencies view (USES_*, DEPENDS_ON, REQUIRES, etc.).
+
+        Relations from different documents that share the same
+        (source, rel, target) are aggregated into a single edge.
 
         Args:
             kinds: Optional filter for relation kinds
@@ -466,6 +557,9 @@ class GraphExporter:
             end_date=end_date,
         )
 
+        # Aggregate cross-document relations into single edges
+        merged = self._aggregate_relations(relations)
+
         # Get entities
         entities = self._get_entities(start_date=start_date, end_date=end_date)
         entity_nodes = [build_node(e) for e in entities]
@@ -474,7 +568,7 @@ class GraphExporter:
         referenced_ids = self._get_referenced_entity_ids(relations)
         nodes = self._filter_nodes_by_ids(entity_nodes, referenced_ids)
 
-        edges = self._build_edges_with_evidence(relations)
+        edges = self._build_aggregated_edges(merged)
 
         return {
             "elements": {
