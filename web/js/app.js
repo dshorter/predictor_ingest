@@ -193,16 +193,15 @@ async function initializeApp() {
       dateInput.value = AppState.anchorDate;
     }
 
-    // Default to sample data so users see something on first load
-    // (live data is empty until pipeline runs)
-    AppState.dataSource = 'sample';
-    AppState.currentTier = 'medium';
+    // Default to live data — pipeline produces live graphs daily.
+    // Users can switch to sample data via the filter panel if needed.
+    AppState.dataSource = 'live';
 
     // Sync the radio buttons to match
-    const sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
-    if (sampleRadio) sampleRadio.checked = true;
+    const liveRadio = document.querySelector('input[name="data-source"][value="live"]');
+    if (liveRadio) liveRadio.checked = true;
     const sampleList = document.getElementById('sample-tier-list');
-    if (sampleList) sampleList.classList.remove('hidden');
+    if (sampleList) sampleList.classList.add('hidden');
 
     // Load default data
     const dataUrl = getDataUrl(AppState.currentView);

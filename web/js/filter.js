@@ -8,6 +8,9 @@
 class GraphFilter {
   constructor(cy) {
     this.cy = cy;
+    // Derive initial viewPreset from the active view so the velocity
+    // filter is only applied when actually on the trending view.
+    const initialView = (typeof AppState !== 'undefined' && AppState.currentView) || 'trending';
     this.filters = {
       dateStart: null,
       dateEnd: null,
@@ -17,7 +20,7 @@ class GraphFilter {
       ]),
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
-      viewPreset: 'trending'
+      viewPreset: initialView === 'trending' ? 'trending' : 'all'
     };
   }
 
@@ -177,7 +180,7 @@ class GraphFilter {
       ]),
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
-      viewPreset: 'trending'
+      viewPreset: 'all'  // safe default; caller sets view-specific preset
     };
     this.apply();
   }
@@ -346,6 +349,11 @@ function initializeFilterPanel(filter) {
   // Reset button
   document.getElementById('reset-filters')?.addEventListener('click', () => {
     filter.reset();
+
+    // Restore view-appropriate preset so trending velocity filter
+    // only applies on the trending view, not on claims/mentions/etc.
+    const currentView = AppState.currentView || 'trending';
+    filter.setViewPreset(currentView === 'trending' ? 'trending' : 'all');
 
     // Reset anchor to today and preset to 30d
     AppState.anchorDate = today();
