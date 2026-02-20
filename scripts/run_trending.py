@@ -65,12 +65,14 @@ def export_trending(
             json.dump(empty, f, indent=2, ensure_ascii=False)
         return output_path
 
-    # Step 2: Get relations where BOTH source and target are trending
+    # Step 2: Get relations where BOTH source and target are trending,
+    # then aggregate cross-document edges into single logical edges
     all_relations = exporter._get_relations()
     filtered_relations = [
         r for r in all_relations
         if r["source_id"] in trending_ids and r["target_id"] in trending_ids
     ]
+    merged_relations = exporter._aggregate_relations(filtered_relations)
 
     # Step 3: Build Cytoscape nodes with trend scores
     all_entities = exporter._get_entities()
@@ -97,7 +99,7 @@ def export_trending(
         if entity.get("last_seen"):
             last_seen_dates.append(entity["last_seen"][:10])
 
-    edges = [build_edge(r) for r in filtered_relations]
+    edges = exporter._build_aggregated_edges(merged_relations)
 
     # Step 4: Compute date range
     date_start = min(first_seen_dates) if first_seen_dates else None

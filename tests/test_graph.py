@@ -352,6 +352,179 @@ class TestViewExports:
         conn.close()
 
 
+class TestEdgeAggregation:
+    """Test that claims/dependencies views aggregate cross-document edges.
+
+    When the same (source, rel, target) is asserted by multiple documents,
+    the claims/dependencies views should produce a single edge with all
+    evidence combined rather than N parallel edges.
+    """
+
+    def _setup_multi_doc_data(self, conn):
+        """Insert data where multiple docs assert the same relation."""
+        insert_entity(conn, "org:openai", "OpenAI", "Org", first_seen="2026-01-01")
+        insert_entity(conn, "model:gpt4", "GPT-4", "Model", first_seen="2026-01-01")
+        insert_entity(conn, "tech:transformer", "Transformer", "Tech", first_seen="2026-01-01")
+
+        # Three documents
+        for i, (doc_id, pub_date) in enumerate([
+            ("doc_a", "2026-01-10"),
+            ("doc_b", "2026-01-15"),
+            ("doc_c", "2026-01-20"),
+        ]):
+            conn.execute(
+                "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (doc_id, f"https://example.com/{doc_id}", "Test", f"Doc {doc_id}",
+                 pub_date, "2026-01-21T00:00:00Z", "extracted"),
+            )
+        conn.commit()
+
+        # All three docs assert the same CREATED relation
+        insert_relation(conn, "org:openai", "CREATED", "model:gpt4",
+                        "asserted", 0.9, "doc_a", "1.0.0")
+        insert_relation(conn, "org:openai", "CREATED", "model:gpt4",
+                        "asserted", 0.95, "doc_b", "1.0.0")
+        insert_relation(conn, "org:openai", "CREATED", "model:gpt4",
+                        "inferred", 0.7, "doc_c", "1.0.0")
+
+        # Two docs assert the same USES_TECH dependency
+        insert_relation(conn, "model:gpt4", "USES_TECH", "tech:transformer",
+                        "asserted", 0.85, "doc_a", "1.0.0")
+        insert_relation(conn, "model:gpt4", "USES_TECH", "tech:transformer",
+                        "inferred", 0.75, "doc_b", "1.0.0")
+
+        # Add evidence for some relations
+        from db import insert_evidence
+        # Evidence for doc_a's CREATED relation (relation_id depends on insert order)
+        rels = conn.execute(
+            "SELECT relation_id, doc_id FROM relations WHERE rel = 'CREATED'"
+        ).fetchall()
+        for r in rels:
+            insert_evidence(conn, r[0], r[1], f"https://example.com/{r[1]}",
+                            "2026-01-10", f"Evidence from {r[1]}")
+
+    def test_claims_aggregates_cross_doc_edges(self, tmp_path: Path):
+        """Claims view should produce one edge per (source, rel, target)."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_multi_doc_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_claims()
+
+        edges = result["elements"]["edges"]
+        created_edges = [e for e in edges if e["data"]["rel"] == "CREATED"]
+
+        # Should be exactly 1 edge, not 3
+        assert len(created_edges) == 1, (
+            f"Expected 1 aggregated CREATED edge, got {len(created_edges)}"
+        )
+
+        edge = created_edges[0]
+        # Confidence should be the max across all docs
+        assert edge["data"]["confidence"] == 0.95
+        # Kind should be the strongest (asserted beats inferred)
+        assert edge["data"]["kind"] == "asserted"
+        # Evidence should be combined from all docs
+        assert len(edge["data"]["evidence"]) == 3
+        # docCount indicates multiple source documents
+        assert edge["data"]["docCount"] == 3
+
+        conn.close()
+
+    def test_dependencies_aggregates_cross_doc_edges(self, tmp_path: Path):
+        """Dependencies view should produce one edge per (source, rel, target)."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_multi_doc_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_dependencies()
+
+        edges = result["elements"]["edges"]
+        uses_edges = [e for e in edges if e["data"]["rel"] == "USES_TECH"]
+
+        assert len(uses_edges) == 1, (
+            f"Expected 1 aggregated USES_TECH edge, got {len(uses_edges)}"
+        )
+
+        edge = uses_edges[0]
+        assert edge["data"]["confidence"] == 0.85
+        assert edge["data"]["kind"] == "asserted"
+
+        conn.close()
+
+    def test_mentions_not_aggregated(self, tmp_path: Path):
+        """Mentions view should NOT aggregate — each doc→entity is distinct."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_multi_doc_data(conn)
+
+        # Add MENTIONS from each doc to OpenAI
+        insert_relation(conn, "doc:doc_a", "MENTIONS", "org:openai",
+                        "asserted", 1.0, "doc_a", "1.0.0")
+        insert_relation(conn, "doc:doc_b", "MENTIONS", "org:openai",
+                        "asserted", 1.0, "doc_b", "1.0.0")
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_mentions()
+
+        mention_edges = [e for e in result["elements"]["edges"]
+                         if e["data"]["rel"] == "MENTIONS"]
+        # Each doc→entity MENTIONS should stay separate
+        assert len(mention_edges) == 2
+
+        conn.close()
+
+    def test_aggregated_edge_id_is_stable(self, tmp_path: Path):
+        """Aggregated edges should have stable IDs independent of relation_id."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        self._setup_multi_doc_data(conn)
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_claims()
+
+        created_edges = [e for e in result["elements"]["edges"]
+                         if e["data"]["rel"] == "CREATED"]
+        assert len(created_edges) == 1
+        edge_id = created_edges[0]["data"]["id"]
+        # Should use source:rel:target format, not relation_id
+        assert edge_id == "e:org:openai:CREATED:model:gpt4"
+
+        conn.close()
+
+    def test_single_doc_relation_not_affected(self, tmp_path: Path):
+        """A relation from a single doc should still work (no docCount)."""
+        graph = _get_graph_module()
+        conn = init_db(tmp_path / "test.db")
+        insert_entity(conn, "org:test", "Test", "Org", first_seen="2026-01-01")
+        insert_entity(conn, "model:m1", "M1", "Model", first_seen="2026-01-01")
+
+        conn.execute(
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            ("doc_x", "https://example.com/x", "Test", "Doc X",
+             "2026-01-15", "2026-01-15T00:00:00Z", "extracted"),
+        )
+        conn.commit()
+
+        insert_relation(conn, "org:test", "CREATED", "model:m1",
+                        "asserted", 0.9, "doc_x", "1.0.0")
+
+        exporter = graph.GraphExporter(conn)
+        result = exporter.export_claims()
+
+        edges = result["elements"]["edges"]
+        assert len(edges) == 1
+        # Single-doc edges should keep docId and not have docCount
+        assert "docCount" not in edges[0]["data"]
+        assert edges[0]["data"].get("docId") == "doc_x"
+
+        conn.close()
+
+
 class TestFileExport:
     """Test file export functionality."""
 
