@@ -393,6 +393,9 @@ async function switchView(view) {
     runLayout(AppState.cy);
 
     if (AppState.filter) {
+      // Reset viewPreset so trending velocity filter only applies
+      // on the trending view, not on claims/mentions/dependencies.
+      AppState.filter.setViewPreset(view === 'trending' ? 'trending' : 'all');
       populateTypeFilters(AppState.cy, AppState.filter);
       syncFilterUI(AppState.filter);
       applyDateFilterFromAnchor();
@@ -542,14 +545,13 @@ async function initializeApp() {
     var dateInput = document.getElementById('date-anchor');
     if (dateInput) dateInput.value = AppState.anchorDate;
 
-    // Default to sample data so users see something on first load
-    // (live data is empty until pipeline runs)
-    AppState.dataSource = 'sample';
-    AppState.currentTier = 'medium';
-    var sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
-    if (sampleRadio) sampleRadio.checked = true;
+    // Default to live data — pipeline produces live graphs daily.
+    // Users can switch to sample data via the filter modal if needed.
+    AppState.dataSource = 'live';
+    var liveRadio = document.querySelector('input[name="data-source"][value="live"]');
+    if (liveRadio) liveRadio.checked = true;
     var sampleList = document.getElementById('sample-tier-list');
-    if (sampleList) sampleList.classList.remove('hidden');
+    if (sampleList) sampleList.classList.add('hidden');
 
     // Load data
     var dataUrl = getDataUrl(AppState.currentView);

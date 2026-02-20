@@ -363,6 +363,10 @@ function initializeMobileFilterPanel(filter) {
   if (resetBtn) {
     resetBtn.addEventListener('click', function() {
       filter.reset();
+      // Restore view-appropriate preset so trending velocity filter
+      // only applies on the trending view, not on claims/mentions/etc.
+      var currentView = AppState.currentView || 'trending';
+      filter.setViewPreset(currentView === 'trending' ? 'trending' : 'all');
       AppState.anchorDate = today();
       AppState.activePresetDays = 30;
       var dateInput = document.getElementById('date-anchor');
