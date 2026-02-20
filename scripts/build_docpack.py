@@ -58,16 +58,18 @@ def build_docpack(
         )
         bundle_label = label or "all"
     else:
-        # Compare using substr to avoid UTC vs local date mismatch:
-        # fetched_at is stored as UTC ISO-8601 ("2026-02-17T03:49:21Z")
-        # so substr extracts the date portion reliably regardless of timezone
+        # Filter by published_at so daily runs only extract articles
+        # actually published on the target date (not the full RSS backlog).
+        # published_at is stored as ISO-8601 date or datetime; substr
+        # extracts the date portion for comparison.
         cursor = conn.execute(
             """
             SELECT doc_id, url, source, title, published_at, fetched_at, text_path
             FROM documents
             WHERE status = 'cleaned'
               AND text_path IS NOT NULL
-              AND substr(fetched_at, 1, 10) = ?
+              AND published_at IS NOT NULL
+              AND substr(published_at, 1, 10) = ?
             ORDER BY fetched_at DESC
             LIMIT ?
             """,
