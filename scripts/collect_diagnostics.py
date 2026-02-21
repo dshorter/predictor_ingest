@@ -1,12 +1,12 @@
-"""Collect pipeline diagnostics into a snapshot for debugging.
+"""Collect pipeline diagnostics into a snapshot for sharing.
 
 Gathers logs, graph JSON, database summary, and extractions into
-diagnostics/snapshot_YYYY-MM-DD_HHMMSS/ for analysis.
+a tar.gz that can be shared via gist for analysis.
 
 Usage:
-    python scripts/collect_diagnostics.py
-    python scripts/collect_diagnostics.py --tar    # also create .tar.gz
-    python scripts/collect_diagnostics.py --date 2026-02-19  # specific date
+    python scripts/collect_diagnostics.py                # tar.gz to diagnostics/
+    python scripts/collect_diagnostics.py --gist         # tar + upload as GitHub gist
+    python scripts/collect_diagnostics.py --date 2026-02-19  # specific date only
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ import argparse
 import json
 import shutil
 import sqlite3
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,7 +35,7 @@ def collect_file(src: Path, dest_dir: Path, label: str) -> bool:
     dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest_dir / src.name)
     size_kb = src.stat().st_size / 1024
-    print(f"  [{label}] {src.name} ({size_kb:.0f} KB)")
+    print(f"  [{label}] {src.name} ({size_kb:.1f} KB)")
     return True
 
 
@@ -51,12 +52,12 @@ def collect_glob(src_dir: Path, pattern: str, dest_dir: Path, label: str) -> int
     for f in files:
         shutil.copy2(f, dest_dir / f.name)
     total_kb = sum(f.stat().st_size for f in files) / 1024
-    print(f"  [{label}] {len(files)} files ({total_kb:.0f} KB)")
+    print(f"  [{label}] {len(files)} files ({total_kb:.1f} KB)")
     return len(files)
 
 
 def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
-    """Extract key stats from the database into a JSON summary."""
+    """Extract key stats and full entity/relation dump from the database."""
     if not db_path.exists():
         print(f"  [db] not found: {db_path}")
         return False
@@ -123,6 +124,14 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
         ).fetchall()
         summary["all_relations"] = [dict(r) for r in rows]
 
+        # Full evidence dump (snippets are the key debugging info)
+        rows = conn.execute(
+            "SELECT e.id, e.relation_id, e.doc_id, e.url, e.published, "
+            "e.snippet, e.char_span "
+            "FROM evidence e ORDER BY e.relation_id"
+        ).fetchall()
+        summary["all_evidence"] = [dict(r) for r in rows]
+
         conn.close()
 
     except Exception as e:
@@ -132,10 +141,43 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
     out_path = dest_dir / "db_summary.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
-    print(f"  [db] summary written ({summary.get('documents_total', '?')} docs, "
+    print(f"  [db] summary: {summary.get('documents_total', '?')} docs, "
           f"{summary.get('entities_total', '?')} entities, "
-          f"{summary.get('relations_total', '?')} relations)")
+          f"{summary.get('relations_total', '?')} relations, "
+          f"{summary.get('evidence_total', '?')} evidence")
     return True
+
+
+def create_gist(tar_path: Path) -> str | None:
+    """Upload tar.gz as a GitHub gist. Returns gist URL or None."""
+    # Check gh is available and authenticated
+    try:
+        subprocess.run(
+            ["gh", "auth", "status"],
+            capture_output=True, check=True, timeout=10,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        print("  [gist] 'gh' CLI not found or not authenticated.")
+        print("         Install: https://cli.github.com/")
+        print("         Auth:    gh auth login")
+        return None
+
+    print(f"  [gist] uploading {tar_path.name}...")
+    try:
+        result = subprocess.run(
+            [
+                "gh", "gist", "create",
+                str(tar_path),
+                "--desc", f"predictor_ingest diagnostics {tar_path.stem}",
+            ],
+            capture_output=True, text=True, check=True, timeout=60,
+        )
+        url = result.stdout.strip()
+        print(f"  [gist] uploaded: {url}")
+        return url
+    except subprocess.CalledProcessError as e:
+        print(f"  [gist] upload failed: {e.stderr.strip()}")
+        return None
 
 
 def main() -> int:
@@ -145,8 +187,8 @@ def main() -> int:
         help="Collect for specific date (YYYY-MM-DD). Default: all available.",
     )
     parser.add_argument(
-        "--tar", action="store_true",
-        help="Also create a .tar.gz archive of the snapshot.",
+        "--gist", action="store_true",
+        help="Upload snapshot as a GitHub gist (requires 'gh' CLI).",
     )
     parser.add_argument(
         "--db", default="data/db/predictor.db",
@@ -156,9 +198,10 @@ def main() -> int:
 
     timestamp = utc_now_compact()
     snapshot_name = f"snapshot_{timestamp}"
-    snapshot_dir = PROJECT_ROOT / "diagnostics" / snapshot_name
+    diag_dir = PROJECT_ROOT / "diagnostics"
+    snapshot_dir = diag_dir / snapshot_name
 
-    print(f"Collecting diagnostics → {snapshot_dir.relative_to(PROJECT_ROOT)}/")
+    print(f"Collecting diagnostics → diagnostics/{snapshot_name}/")
     print()
 
     # 1. Pipeline logs
@@ -175,13 +218,16 @@ def main() -> int:
     # 3. Dated graph output (pipeline export)
     graphs_dir = PROJECT_ROOT / "data" / "graphs"
     if args.date:
-        collect_glob(graphs_dir / args.date, "*.json", snapshot_dir / f"graphs_{args.date}", "dated graphs")
+        collect_glob(
+            graphs_dir / args.date, "*.json",
+            snapshot_dir / f"graphs_{args.date}", "dated graphs",
+        )
     elif graphs_dir.exists():
         dated_dirs = sorted([d for d in graphs_dir.iterdir() if d.is_dir()])
         for d in dated_dirs[-3:]:  # last 3 dates
             collect_glob(d, "*.json", snapshot_dir / f"graphs_{d.name}", f"graphs/{d.name}")
 
-    # 4. Database summary
+    # 4. Database summary (full entity/relation/evidence dump as JSON)
     db_path = PROJECT_ROOT / args.db
     dump_db_summary(db_path, snapshot_dir)
 
@@ -192,8 +238,14 @@ def main() -> int:
     # 6. Docpacks (bundled docs)
     docpack_dir = PROJECT_ROOT / "data" / "docpacks"
     if args.date:
-        collect_file(docpack_dir / f"daily_bundle_{args.date}.jsonl", snapshot_dir / "docpacks", "docpacks")
-        collect_file(docpack_dir / f"daily_bundle_{args.date}.md", snapshot_dir / "docpacks", "docpacks")
+        collect_file(
+            docpack_dir / f"daily_bundle_{args.date}.jsonl",
+            snapshot_dir / "docpacks", "docpacks",
+        )
+        collect_file(
+            docpack_dir / f"daily_bundle_{args.date}.md",
+            snapshot_dir / "docpacks", "docpacks",
+        )
     else:
         collect_glob(docpack_dir, "*.jsonl", snapshot_dir / "docpacks", "docpacks")
 
@@ -205,27 +257,39 @@ def main() -> int:
         "snapshot": snapshot_name,
         "collected_at": datetime.now(timezone.utc).isoformat(),
         "date_filter": args.date,
-        "project_root": str(PROJECT_ROOT),
     }
     with open(snapshot_dir / "manifest.json", "w") as f:
         json.dump(manifest, f, indent=2)
 
     print()
 
-    # Optional tar
-    if args.tar:
-        tar_path = snapshot_dir.with_suffix(".tar.gz")
-        shutil.make_archive(
-            str(snapshot_dir), "gztar",
-            root_dir=str(snapshot_dir.parent),
-            base_dir=snapshot_name,
-        )
-        tar_size = tar_path.stat().st_size / 1024
-        print(f"Archive: {tar_path.relative_to(PROJECT_ROOT)} ({tar_size:.0f} KB)")
+    # Always create tar.gz
+    tar_path = diag_dir / f"{snapshot_name}.tar.gz"
+    shutil.make_archive(
+        str(diag_dir / snapshot_name), "gztar",
+        root_dir=str(diag_dir),
+        base_dir=snapshot_name,
+    )
+    tar_size = tar_path.stat().st_size / 1024
+    print(f"Archive: diagnostics/{snapshot_name}.tar.gz ({tar_size:.1f} KB)")
 
-    print(f"Done. Snapshot: diagnostics/{snapshot_name}/")
+    # Clean up the uncompressed directory
+    shutil.rmtree(snapshot_dir)
+
+    # Upload gist if requested
+    gist_url = None
+    if args.gist:
+        print()
+        gist_url = create_gist(tar_path)
+
     print()
-    print("To analyze, tell Claude: 'check the snapshot in diagnostics/'")
+    if gist_url:
+        print(f"Share this URL with Claude: {gist_url}")
+    else:
+        print(f"Snapshot: diagnostics/{snapshot_name}.tar.gz")
+        if not args.gist:
+            print("Upload with:  gh gist create diagnostics/" + snapshot_name + ".tar.gz")
+        print("Or share the file directly.")
 
     return 0
 
