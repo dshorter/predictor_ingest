@@ -12,7 +12,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import base64
 import json
 import shutil
 import sqlite3
@@ -118,17 +117,17 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
 
         # All relations with evidence counts
         rows = conn.execute(
-            "SELECT r.id, r.source_id, r.rel, r.target_id, r.kind, "
+            "SELECT r.relation_id, r.source_id, r.rel, r.target_id, r.kind, "
             "r.confidence, r.doc_id, "
-            "(SELECT COUNT(*) FROM evidence e WHERE e.relation_id = r.id) as evidence_count "
-            "FROM relations r ORDER BY r.id"
+            "(SELECT COUNT(*) FROM evidence e WHERE e.relation_id = r.relation_id) as evidence_count "
+            "FROM relations r ORDER BY r.relation_id"
         ).fetchall()
         summary["all_relations"] = [dict(r) for r in rows]
 
         # Full evidence dump (snippets are the key debugging info)
         rows = conn.execute(
-            "SELECT e.id, e.relation_id, e.doc_id, e.url, e.published, "
-            "e.snippet, e.char_span "
+            "SELECT e.evidence_id, e.relation_id, e.doc_id, e.url, e.published, "
+            "e.snippet, e.char_start, e.char_end "
             "FROM evidence e ORDER BY e.relation_id"
         ).fetchall()
         summary["all_evidence"] = [dict(r) for r in rows]
@@ -149,12 +148,12 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
     return True
 
 
-def create_gist(tar_path: Path) -> str | None:
-    """Base64-encode tar.gz and upload as a GitHub gist. Returns gist URL or None.
+def create_gist(snapshot_dir: Path, snapshot_name: str) -> str | None:
+    """Upload snapshot text files directly as a multi-file GitHub gist.
 
-    GitHub gists only support text files, so we encode the binary archive
-    to base64 first. The recipient can decode with:
-        base64 -d snapshot_*.tar.gz.b64 > snapshot.tar.gz
+    GitHub gists don't support binary files, so we upload the individual
+    JSON/YAML/JSONL files directly. This is more useful anyway since the
+    contents are readable right in the browser.
     """
     # Check gh is available and authenticated
     try:
@@ -168,34 +167,48 @@ def create_gist(tar_path: Path) -> str | None:
         print("         Auth:    gh auth login")
         return None
 
-    # Base64-encode the tar.gz so gist can handle it as text
-    b64_path = tar_path.parent / f"{tar_path.name}.b64"
-    raw_bytes = tar_path.read_bytes()
-    b64_text = base64.b64encode(raw_bytes).decode("ascii")
-    b64_path.write_text(b64_text, encoding="ascii")
-    b64_kb = b64_path.stat().st_size / 1024
-    print(f"  [gist] encoded {tar_path.name} → {b64_path.name} ({b64_kb:.1f} KB)")
+    # Collect all text files from the snapshot directory tree
+    text_extensions = {".json", ".jsonl", ".yaml", ".yml", ".md", ".txt"}
+    gist_files: list[Path] = []
+    for f in sorted(snapshot_dir.rglob("*")):
+        if f.is_file() and f.suffix.lower() in text_extensions:
+            gist_files.append(f)
 
-    print(f"  [gist] uploading {b64_path.name}...")
+    if not gist_files:
+        print("  [gist] no text files found in snapshot to upload")
+        return None
+
+    # Flatten names: subdir/file.json → subdir_file.json to avoid collisions
+    # gh gist create takes multiple file args
+    flat_dir = snapshot_dir / "_gist_flat"
+    flat_dir.mkdir(exist_ok=True)
+    flat_paths: list[Path] = []
+    for f in gist_files:
+        rel = f.relative_to(snapshot_dir)
+        flat_name = str(rel).replace("/", "_").replace("\\", "_")
+        flat_path = flat_dir / flat_name
+        shutil.copy2(f, flat_path)
+        flat_paths.append(flat_path)
+
+    total_kb = sum(p.stat().st_size for p in flat_paths) / 1024
+    print(f"  [gist] uploading {len(flat_paths)} files ({total_kb:.1f} KB)...")
+
     try:
+        cmd = [
+            "gh", "gist", "create",
+            "--desc", f"predictor_ingest diagnostics {snapshot_name}",
+        ] + [str(p) for p in flat_paths]
         result = subprocess.run(
-            [
-                "gh", "gist", "create",
-                str(b64_path),
-                "--desc", f"predictor_ingest diagnostics {tar_path.stem}",
-            ],
-            capture_output=True, text=True, check=True, timeout=60,
+            cmd, capture_output=True, text=True, check=True, timeout=120,
         )
         url = result.stdout.strip()
         print(f"  [gist] uploaded: {url}")
-        print(f"  [gist] to decode: base64 -d {b64_path.name} > {tar_path.name}")
-        # Clean up the .b64 file
-        b64_path.unlink(missing_ok=True)
         return url
     except subprocess.CalledProcessError as e:
         print(f"  [gist] upload failed: {e.stderr.strip()}")
-        b64_path.unlink(missing_ok=True)
         return None
+    finally:
+        shutil.rmtree(flat_dir, ignore_errors=True)
 
 
 def main() -> int:
@@ -281,7 +294,13 @@ def main() -> int:
 
     print()
 
-    # Always create tar.gz
+    # Upload gist if requested (before archiving, needs the raw files)
+    gist_url = None
+    if args.gist:
+        gist_url = create_gist(snapshot_dir, snapshot_name)
+        print()
+
+    # Always create tar.gz (for local sharing / backup)
     tar_path = diag_dir / f"{snapshot_name}.tar.gz"
     shutil.make_archive(
         str(diag_dir / snapshot_name), "gztar",
@@ -294,19 +313,11 @@ def main() -> int:
     # Clean up the uncompressed directory
     shutil.rmtree(snapshot_dir)
 
-    # Upload gist if requested
-    gist_url = None
-    if args.gist:
-        print()
-        gist_url = create_gist(tar_path)
-
     print()
     if gist_url:
         print(f"Share this URL with Claude: {gist_url}")
     else:
         print(f"Snapshot: diagnostics/{snapshot_name}.tar.gz")
-        if not args.gist:
-            print("Upload with:  gh gist create diagnostics/" + snapshot_name + ".tar.gz")
         print("Or share the file directly.")
 
     return 0
