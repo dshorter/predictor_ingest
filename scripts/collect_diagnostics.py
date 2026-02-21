@@ -12,6 +12,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import shutil
 import sqlite3
@@ -78,9 +79,9 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
 
         # Entity counts by type
         rows = conn.execute(
-            "SELECT entity_type, COUNT(*) as cnt FROM entities GROUP BY entity_type"
+            "SELECT type, COUNT(*) as cnt FROM entities GROUP BY type"
         ).fetchall()
-        summary["entities_by_type"] = {r["entity_type"]: r["cnt"] for r in rows}
+        summary["entities_by_type"] = {r["type"]: r["cnt"] for r in rows}
         summary["entities_total"] = sum(r["cnt"] for r in rows)
 
         # Relation counts by rel type
@@ -110,7 +111,7 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
 
         # All entities with their types
         rows = conn.execute(
-            "SELECT entity_id, name, entity_type, first_seen, last_seen "
+            "SELECT entity_id, name, type, first_seen, last_seen "
             "FROM entities ORDER BY last_seen DESC"
         ).fetchall()
         summary["all_entities"] = [dict(r) for r in rows]
@@ -149,7 +150,12 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
 
 
 def create_gist(tar_path: Path) -> str | None:
-    """Upload tar.gz as a GitHub gist. Returns gist URL or None."""
+    """Base64-encode tar.gz and upload as a GitHub gist. Returns gist URL or None.
+
+    GitHub gists only support text files, so we encode the binary archive
+    to base64 first. The recipient can decode with:
+        base64 -d snapshot_*.tar.gz.b64 > snapshot.tar.gz
+    """
     # Check gh is available and authenticated
     try:
         subprocess.run(
@@ -162,21 +168,33 @@ def create_gist(tar_path: Path) -> str | None:
         print("         Auth:    gh auth login")
         return None
 
-    print(f"  [gist] uploading {tar_path.name}...")
+    # Base64-encode the tar.gz so gist can handle it as text
+    b64_path = tar_path.parent / f"{tar_path.name}.b64"
+    raw_bytes = tar_path.read_bytes()
+    b64_text = base64.b64encode(raw_bytes).decode("ascii")
+    b64_path.write_text(b64_text, encoding="ascii")
+    b64_kb = b64_path.stat().st_size / 1024
+    print(f"  [gist] encoded {tar_path.name} → {b64_path.name} ({b64_kb:.1f} KB)")
+
+    print(f"  [gist] uploading {b64_path.name}...")
     try:
         result = subprocess.run(
             [
                 "gh", "gist", "create",
-                str(tar_path),
+                str(b64_path),
                 "--desc", f"predictor_ingest diagnostics {tar_path.stem}",
             ],
             capture_output=True, text=True, check=True, timeout=60,
         )
         url = result.stdout.strip()
         print(f"  [gist] uploaded: {url}")
+        print(f"  [gist] to decode: base64 -d {b64_path.name} > {tar_path.name}")
+        # Clean up the .b64 file
+        b64_path.unlink(missing_ok=True)
         return url
     except subprocess.CalledProcessError as e:
         print(f"  [gist] upload failed: {e.stderr.strip()}")
+        b64_path.unlink(missing_ok=True)
         return None
 
 
