@@ -56,14 +56,28 @@ def collect_glob(src_dir: Path, pattern: str, dest_dir: Path, label: str) -> int
     return len(files)
 
 
-def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
-    """Extract key stats and full entity/relation dump from the database."""
+def dump_db_summary(db_path: Path, dest_dir: Path, *, compact: bool = False) -> bool:
+    """Extract stats and entity/relation dump from the database.
+
+    Args:
+        compact: If True, cap sample sizes to keep output small enough for
+                 gist upload (~1-2 MB).  Full dump goes in the tar.gz.
+    """
     if not db_path.exists():
         print(f"  [db] not found: {db_path}")
         return False
 
+    # Limits: compact caps rows for gist; full dump gets everything
+    entity_limit = 200 if compact else None
+    relation_limit = 500 if compact else None
+    evidence_limit = 500 if compact else None
+
     dest_dir.mkdir(parents=True, exist_ok=True)
-    summary: dict = {"db_path": str(db_path), "collected_at": utc_now_compact()}
+    summary: dict = {
+        "db_path": str(db_path),
+        "collected_at": utc_now_compact(),
+        "compact": compact,
+    }
 
     try:
         conn = sqlite3.connect(db_path)
@@ -108,29 +122,35 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
         ).fetchall()
         summary["recent_documents"] = [dict(r) for r in rows]
 
-        # All entities with their types
+        # Entities (capped in compact mode)
+        limit_clause = f" LIMIT {entity_limit}" if entity_limit else ""
         rows = conn.execute(
             "SELECT entity_id, name, type, first_seen, last_seen "
-            "FROM entities ORDER BY last_seen DESC"
+            f"FROM entities ORDER BY last_seen DESC{limit_clause}"
         ).fetchall()
-        summary["all_entities"] = [dict(r) for r in rows]
+        key = "sample_entities" if compact else "all_entities"
+        summary[key] = [dict(r) for r in rows]
 
-        # All relations with evidence counts
+        # Relations with evidence counts (capped in compact mode)
+        limit_clause = f" LIMIT {relation_limit}" if relation_limit else ""
         rows = conn.execute(
             "SELECT r.relation_id, r.source_id, r.rel, r.target_id, r.kind, "
             "r.confidence, r.doc_id, "
             "(SELECT COUNT(*) FROM evidence e WHERE e.relation_id = r.relation_id) as evidence_count "
-            "FROM relations r ORDER BY r.relation_id"
+            f"FROM relations r ORDER BY r.relation_id DESC{limit_clause}"
         ).fetchall()
-        summary["all_relations"] = [dict(r) for r in rows]
+        key = "sample_relations" if compact else "all_relations"
+        summary[key] = [dict(r) for r in rows]
 
-        # Full evidence dump (snippets are the key debugging info)
+        # Evidence dump (capped in compact mode)
+        limit_clause = f" LIMIT {evidence_limit}" if evidence_limit else ""
         rows = conn.execute(
             "SELECT e.evidence_id, e.relation_id, e.doc_id, e.url, e.published, "
             "e.snippet, e.char_start, e.char_end "
-            "FROM evidence e ORDER BY e.relation_id"
+            f"FROM evidence e ORDER BY e.relation_id DESC{limit_clause}"
         ).fetchall()
-        summary["all_evidence"] = [dict(r) for r in rows]
+        key = "sample_evidence" if compact else "all_evidence"
+        summary[key] = [dict(r) for r in rows]
 
         conn.close()
 
@@ -141,7 +161,10 @@ def dump_db_summary(db_path: Path, dest_dir: Path) -> bool:
     out_path = dest_dir / "db_summary.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
-    print(f"  [db] summary: {summary.get('documents_total', '?')} docs, "
+    size_kb = out_path.stat().st_size / 1024
+    mode_label = "compact" if compact else "full"
+    print(f"  [db] {mode_label} summary ({size_kb:.1f} KB): "
+          f"{summary.get('documents_total', '?')} docs, "
           f"{summary.get('entities_total', '?')} entities, "
           f"{summary.get('relations_total', '?')} relations, "
           f"{summary.get('evidence_total', '?')} evidence")
@@ -235,10 +258,19 @@ def main() -> int:
     print(f"Collecting diagnostics → diagnostics/{snapshot_name}/")
     print()
 
-    # 1. Pipeline logs
+    is_gist = args.gist
+
+    # 1. Pipeline logs (gist: latest only; full: all)
     log_dir = PROJECT_ROOT / "data" / "logs"
     if args.date:
         collect_file(log_dir / f"pipeline_{args.date}.json", snapshot_dir / "logs", "logs")
+    elif is_gist:
+        # Only the most recent log for gist to save space
+        log_files = sorted(log_dir.glob("pipeline_*.json")) if log_dir.exists() else []
+        if log_files:
+            collect_file(log_files[-1], snapshot_dir / "logs", "logs (latest)")
+        else:
+            print("  [logs] no pipeline logs found")
     else:
         collect_glob(log_dir, "pipeline_*.json", snapshot_dir / "logs", "logs")
 
@@ -246,39 +278,46 @@ def main() -> int:
     live_dir = PROJECT_ROOT / "web" / "data" / "graphs" / "live"
     collect_glob(live_dir, "*.json", snapshot_dir / "graphs_live", "live graphs")
 
-    # 3. Dated graph output (pipeline export)
-    graphs_dir = PROJECT_ROOT / "data" / "graphs"
-    if args.date:
-        collect_glob(
-            graphs_dir / args.date, "*.json",
-            snapshot_dir / f"graphs_{args.date}", "dated graphs",
-        )
-    elif graphs_dir.exists():
-        dated_dirs = sorted([d for d in graphs_dir.iterdir() if d.is_dir()])
-        for d in dated_dirs[-3:]:  # last 3 dates
-            collect_glob(d, "*.json", snapshot_dir / f"graphs_{d.name}", f"graphs/{d.name}")
+    # 3. Dated graph output (gist: skip; full: last 3 dates)
+    if not is_gist:
+        graphs_dir = PROJECT_ROOT / "data" / "graphs"
+        if args.date:
+            collect_glob(
+                graphs_dir / args.date, "*.json",
+                snapshot_dir / f"graphs_{args.date}", "dated graphs",
+            )
+        elif graphs_dir.exists():
+            dated_dirs = sorted([d for d in graphs_dir.iterdir() if d.is_dir()])
+            for d in dated_dirs[-3:]:  # last 3 dates
+                collect_glob(d, "*.json", snapshot_dir / f"graphs_{d.name}", f"graphs/{d.name}")
 
-    # 4. Database summary (full entity/relation/evidence dump as JSON)
+    # 4. Database summary (gist: compact with capped samples; full: everything)
     db_path = PROJECT_ROOT / args.db
-    dump_db_summary(db_path, snapshot_dir)
+    dump_db_summary(db_path, snapshot_dir, compact=is_gist)
 
-    # 5. Extractions (per-doc JSON)
-    ext_dir = PROJECT_ROOT / "data" / "extractions"
-    collect_glob(ext_dir, "*.json", snapshot_dir / "extractions", "extractions")
-
-    # 6. Docpacks (bundled docs)
-    docpack_dir = PROJECT_ROOT / "data" / "docpacks"
-    if args.date:
-        collect_file(
-            docpack_dir / f"daily_bundle_{args.date}.jsonl",
-            snapshot_dir / "docpacks", "docpacks",
-        )
-        collect_file(
-            docpack_dir / f"daily_bundle_{args.date}.md",
-            snapshot_dir / "docpacks", "docpacks",
-        )
+    # 5. Extractions (gist: skip — these are huge; full: all)
+    if not is_gist:
+        ext_dir = PROJECT_ROOT / "data" / "extractions"
+        collect_glob(ext_dir, "*.json", snapshot_dir / "extractions", "extractions")
     else:
-        collect_glob(docpack_dir, "*.jsonl", snapshot_dir / "docpacks", "docpacks")
+        print("  [extractions] skipped (gist mode)")
+
+    # 6. Docpacks (gist: skip; full: included)
+    if not is_gist:
+        docpack_dir = PROJECT_ROOT / "data" / "docpacks"
+        if args.date:
+            collect_file(
+                docpack_dir / f"daily_bundle_{args.date}.jsonl",
+                snapshot_dir / "docpacks", "docpacks",
+            )
+            collect_file(
+                docpack_dir / f"daily_bundle_{args.date}.md",
+                snapshot_dir / "docpacks", "docpacks",
+            )
+        else:
+            collect_glob(docpack_dir, "*.jsonl", snapshot_dir / "docpacks", "docpacks")
+    else:
+        print("  [docpacks] skipped (gist mode)")
 
     # 7. Feed config (for context)
     collect_file(PROJECT_ROOT / "config" / "feeds.yaml", snapshot_dir, "config")
