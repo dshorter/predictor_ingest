@@ -43,10 +43,53 @@ misclassifications before tuning.
 
 ## Pipeline & Infrastructure
 
-*(items will accumulate here)*
+### PIPE-1: Extract stage timeout on large backlog
+
+**Observed:** 2026-02-22 | **Priority:** Medium
+
+When 358 backlog docs are bundled, the extract stage hits the 1800s (30 min)
+timeout after processing only ~13 documents. Each cheap-model extraction
+takes 80–150s, so the timeout caps throughput at ~12–20 docs per run.
+
+**Options:**
+- Raise extract timeout (but pipeline total time grows proportionally)
+- Limit backlog batch size in `build_docpack.py` (e.g., 50 per run)
+- Process backlog in chunks across multiple daily runs (self-draining)
+
+**Current workaround:** The pipeline continues to import/resolve/export after
+the timeout, and subsequent runs pick up where the backlog left off since
+`--skip-existing` prevents re-extracting completed docs.
+
+### PIPE-2: VentureBeat persistent 429 rate limiting
+
+**Observed:** 2026-02-22 | **Priority:** Low
+
+All 7 VentureBeat articles returned HTTP 429 (Too Many Requests). The ingest
+stage makes no retry attempt by design (see `fetch_once()`). VentureBeat
+articles remain in `status='error'` and are never retried on subsequent runs.
+
+**Possible fix:** Add a `repair_data.py` option to reset retryable errors
+(429, 5xx) back to a state that allows re-fetching on the next run.
 
 ---
 
 ## Sources & Ingestion
 
-*(items will accumulate here)*
+### SRC-1: Anthropic Blog feed unreachable
+
+**Observed:** 2026-02-22 | **Priority:** Low
+
+The Anthropic Blog RSS feed (`https://www.anthropic.com/news/rss.xml`) was
+unreachable during the pipeline run. This is intermittent — the feed has
+worked in previous runs. Monitor for persistent failure.
+
+### SRC-2: Verify feed freshness mid-day
+
+**Observed:** 2026-02-22 | **Priority:** Medium
+
+The 03:51 UTC pipeline run found 0 new articles across 11 feeds. This may
+be correct (early morning, feeds hadn't rotated) but needs verification.
+
+**Diagnostic:** Run `python scripts/diagnose_feeds.py` during business hours
+to confirm feeds are returning new entries. If consistently showing 0 new,
+investigate whether feed caching or the dedup mechanism is too aggressive.

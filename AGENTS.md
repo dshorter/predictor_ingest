@@ -531,14 +531,38 @@ for the boundary definition and enforcement rules.
 
 ### Key Documentation
 
+#### Methodology & Architecture
+
 | Document | Purpose |
 |----------|---------|
 | [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal distillation formulas, source requirements, validation framework, weight tuning protocol |
 | [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Boundary between framework and domain config; rules for what goes where |
 | [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 vision for applying the framework to other domains |
+| [docs/architecture/date-filtering.md](docs/architecture/date-filtering.md) | Why published_at (not fetched_at) is used for filtering; 30-day default window; NULL handling |
+
+#### Pipeline & Backend
+
+| Document | Purpose |
+|----------|---------|
+| [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step guide for running the full pipeline (Mode A and Mode B) |
+| [docs/backend/daily-run-log.md](docs/backend/daily-run-log.md) | Pipeline health monitoring: JSON log format, per-stage metrics, healthy thresholds |
+| [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs (build_docpack, import, resolve, export, trending) |
+| [docs/llm-selection.md](docs/llm-selection.md) | LLM model tiers, escalation mode architecture, shadow mode, cost model, quality scoring weights |
+| [docs/source-selection-strategy.md](docs/source-selection-strategy.md) | Feed tier model (primary/secondary/echo), entity overlap strategy, coverage targets |
+
+#### UX & Visualization
+
+| Document | Purpose |
+|----------|---------|
 | [docs/ux/README.md](docs/ux/README.md) | Cytoscape client implementation guidelines |
 | [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
-| [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs and workflow guide |
+
+#### Operational History
+
+| Document | Purpose |
+|----------|---------|
+| [docs/fix-details/README.md](docs/fix-details/README.md) | Index of resolved production issues with root causes and lessons learned |
+| [docs/backlog.md](docs/backlog.md) | Known issues and prompt-tuning observations awaiting action |
 
 ---
 

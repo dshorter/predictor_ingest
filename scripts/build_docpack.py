@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 # Add src/ to import path
@@ -82,9 +82,11 @@ def build_docpack(
     # today's docs), also pick up any cleaned docs from other dates that
     # have never been extracted.  This prevents docs from being stranded
     # when their published_at doesn't match the daily run date.
+    # Skip anything older than 6 months — stale content isn't worth extracting.
     if not all_docs:
         already_ids = {r["doc_id"] for r in rows}
         remaining = max_docs - len(rows)
+        cutoff_date = (date.fromisoformat(target_date) - timedelta(days=180)).isoformat()
         if remaining > 0:
             backlog_cursor = conn.execute(
                 """
@@ -93,15 +95,18 @@ def build_docpack(
                 WHERE status = 'cleaned'
                   AND text_path IS NOT NULL
                   AND (published_at IS NULL OR substr(published_at, 1, 10) != ?)
+                  AND COALESCE(substr(published_at, 1, 10),
+                               substr(fetched_at, 1, 10)) >= ?
                 ORDER BY fetched_at DESC
                 LIMIT ?
                 """,
-                (target_date, remaining),
+                (target_date, cutoff_date, remaining),
             )
             backlog_rows = [dict(r) for r in backlog_cursor.fetchall()
                            if r["doc_id"] not in already_ids]
             if backlog_rows:
-                print(f"Backlog: adding {len(backlog_rows)} cleaned docs from other dates")
+                print(f"Backlog: adding {len(backlog_rows)} cleaned docs from other dates "
+                      f"(cutoff: {cutoff_date})")
                 rows.extend(backlog_rows)
 
     if not rows:

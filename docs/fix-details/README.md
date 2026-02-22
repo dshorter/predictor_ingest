@@ -88,3 +88,33 @@ editable install (`pip install -e .`) didn't invalidate the cache.
 `AttributeError`, the first suspect is stale bytecode cache, not the source.
 
 **Status:** RESOLVED — 2026-02-18
+
+---
+
+## Daily Pipeline Stall & Quality Scoring Overhaul (February 2026)
+
+**Problem:** Pipeline processed the same 3 TechCrunch articles on every run.
+368 cleaned documents were permanently stranded. The cheap model (gpt-5-nano)
+scored q=0.82–1.00 on every extraction, triggering zero escalations to the
+specialist model.
+
+**Root Causes:**
+1. Docpack builder filtered by exact `published_at` date — backlog docs with
+   older dates never matched any daily run
+2. Extract stage loaded stale docpack files from previous runs
+3. Quality scoring thresholds were trivially easy for any model to max out
+
+**Resolution:**
+1. Backlog fallback in `build_docpack.py` with 6-month cutoff
+2. Pipeline tracks docpack output count; skips extract on empty docpack
+3. Quality scoring overhauled: raised thresholds, added relation type diversity
+   signal (25% weight), added confidence variance penalty
+
+**Document:** [pipeline-stall-scoring-overhaul.md](pipeline-stall-scoring-overhaul.md)
+
+**Key Takeaway:** When a scoring function produces scores that cluster near the
+maximum, the thresholds are set to "minimum acceptable" rather than "target."
+Proportional scoring against meaningful targets is more discriminating than
+binary pass/fail against low floors.
+
+**Status:** RESOLVED — 2026-02-22

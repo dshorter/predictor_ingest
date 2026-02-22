@@ -512,13 +512,16 @@ def save_extraction(
 # Extraction quality scoring (for escalation mode)
 # ---------------------------------------------------------------------------
 
-# Thresholds for "good enough" extraction from a cheap model
+# Thresholds represent "good extraction" targets — scores are proportional
+# to how close the extraction is to these targets.  A cheap model that
+# merely produces plausible-looking output shouldn't max out every signal.
 QUALITY_THRESHOLDS = {
-    "entity_density_min": 3.0,    # entities per 1000 chars of source text
-    "evidence_coverage_min": 0.8, # fraction of asserted relations with evidence
-    "avg_confidence_min": 0.6,    # mean confidence across all relations
-    "relation_entity_ratio_min": 0.1,  # relations / entities (finding connections)
-    "tech_terms_min": 1,          # at least 1 tech term for AI articles
+    "entity_density_target": 5.0,     # entities per 1000 chars — target, not floor
+    "evidence_coverage_min": 0.8,     # fraction of asserted relations with evidence
+    "avg_confidence_target": 0.85,    # cheap models output ~0.8; good ones are calibrated
+    "relation_entity_ratio_target": 0.5,  # semantic relations / entities — 1:2 is solid
+    "tech_terms_min": 2,              # AI articles should have ≥2 tech terms
+    "relation_type_diversity_target": 6,  # distinct semantic relation types used
 }
 
 # Combined score below this triggers escalation
@@ -549,10 +552,14 @@ def score_extraction_quality(
     n_relations = len(relations)
     n_tech = len(tech_terms)
 
-    # 1. Entity density: entities per 1000 chars
+    # Semantic relations = everything except MENTIONS
+    semantic_relations = [r for r in relations if r.get("rel") != "MENTIONS"]
+    n_semantic = len(semantic_relations)
+
+    # 1. Entity density: entities per 1000 chars (proportional, not binary)
     text_k = max(source_text_length / 1000, 0.1)
     entity_density = n_entities / text_k
-    density_score = min(entity_density / QUALITY_THRESHOLDS["entity_density_min"], 1.0)
+    density_score = min(entity_density / QUALITY_THRESHOLDS["entity_density_target"], 1.0)
 
     # 2. Evidence coverage: fraction of asserted relations that have evidence
     asserted = [r for r in relations if r.get("kind") == "asserted"]
@@ -564,38 +571,52 @@ def score_extraction_quality(
         evidence_coverage = 1.0 if n_relations > 0 else 0.0
     evidence_score = min(evidence_coverage / QUALITY_THRESHOLDS["evidence_coverage_min"], 1.0)
 
-    # 3. Average confidence across all relations
+    # 3. Average confidence — penalise suspiciously uniform high confidence.
+    #    A well-calibrated model shouldn't output 0.9 for everything.
     if relations:
         confidences = [r.get("confidence", 0) for r in relations]
         avg_confidence = sum(confidences) / len(confidences)
+        # Variance penalty: if stddev < 0.05 and avg > 0.8, model isn't
+        # differentiating confidence — apply a 30% penalty.
+        if len(confidences) > 2:
+            mean_c = avg_confidence
+            variance = sum((c - mean_c) ** 2 for c in confidences) / len(confidences)
+            stddev = variance ** 0.5
+            if stddev < 0.05 and avg_confidence > 0.8:
+                avg_confidence *= 0.7  # penalise flat-high confidence
     else:
         avg_confidence = 0.0
-    confidence_score = min(avg_confidence / QUALITY_THRESHOLDS["avg_confidence_min"], 1.0)
+    confidence_score = min(avg_confidence / QUALITY_THRESHOLDS["avg_confidence_target"], 1.0)
 
-    # 4. Semantic Relation-to-entity ratio
-    # Filter out MENTIONS to ensure the model found actual structural connections
-    semantic_relations = [r for r in relations if r.get("rel") != "MENTIONS"]
-    n_semantic_relations = len(semantic_relations)
-
+    # 4. Semantic relation-to-entity ratio (MENTIONS excluded)
     if n_entities > 0:
-        rel_entity_ratio = n_semantic_relations / n_entities
+        rel_entity_ratio = n_semantic / n_entities
     else:
         rel_entity_ratio = 0.0
-        
     connectivity_score = min(
-        rel_entity_ratio / QUALITY_THRESHOLDS["relation_entity_ratio_min"], 1.0
+        rel_entity_ratio / QUALITY_THRESHOLDS["relation_entity_ratio_target"], 1.0
     )
 
-    # 5. Tech terms presence
-    tech_score = 1.0 if n_tech >= QUALITY_THRESHOLDS["tech_terms_min"] else 0.5
+    # 5. Relation type diversity: how many distinct semantic relation types?
+    #    Cheap models tend to emit only 2-3 types (USES_TECH, CREATED, etc.)
+    #    while good extractions use 5+ distinct types.
+    rel_types = {r.get("rel") for r in semantic_relations if r.get("rel")}
+    n_rel_types = len(rel_types)
+    diversity_target = QUALITY_THRESHOLDS["relation_type_diversity_target"]
+    diversity_score = min(n_rel_types / diversity_target, 1.0)
 
-    # Combined score (weighted)
+    # 6. Tech terms presence
+    tech_score = min(n_tech / QUALITY_THRESHOLDS["tech_terms_min"], 1.0)
+
+    # Combined score (weighted — diversity and connectivity are the hardest
+    # for cheap models to game, so they get the most weight)
     combined = (
-        0.30 * density_score
-        + 0.25 * evidence_score
-        + 0.20 * confidence_score
-        + 0.15 * connectivity_score
-        + 0.10 * tech_score
+        0.15 * density_score
+        + 0.15 * evidence_score
+        + 0.10 * confidence_score
+        + 0.20 * connectivity_score
+        + 0.25 * diversity_score
+        + 0.15 * tech_score
     )
 
     return {
@@ -607,6 +628,8 @@ def score_extraction_quality(
         "confidence_score": round(confidence_score, 2),
         "rel_entity_ratio": round(rel_entity_ratio, 2),
         "connectivity_score": round(connectivity_score, 2),
+        "n_rel_types": n_rel_types,
+        "diversity_score": round(diversity_score, 2),
         "n_tech_terms": n_tech,
         "tech_score": round(tech_score, 2),
         "combined_score": round(combined, 2),
