@@ -517,7 +517,7 @@ QUALITY_THRESHOLDS = {
     "entity_density_min": 3.0,    # entities per 1000 chars of source text
     "evidence_coverage_min": 0.8, # fraction of asserted relations with evidence
     "avg_confidence_min": 0.6,    # mean confidence across all relations
-    "relation_entity_ratio_min": 0.3,  # relations / entities (finding connections)
+    "relation_entity_ratio_min": 0.1,  # relations / entities (finding connections)
     "tech_terms_min": 1,          # at least 1 tech term for AI articles
 }
 
@@ -572,11 +572,16 @@ def score_extraction_quality(
         avg_confidence = 0.0
     confidence_score = min(avg_confidence / QUALITY_THRESHOLDS["avg_confidence_min"], 1.0)
 
-    # 4. Relation-to-entity ratio
+    # 4. Semantic Relation-to-entity ratio
+    # Filter out MENTIONS to ensure the model found actual structural connections
+    semantic_relations = [r for r in relations if r.get("rel") != "MENTIONS"]
+    n_semantic_relations = len(semantic_relations)
+
     if n_entities > 0:
-        rel_entity_ratio = n_relations / n_entities
+        rel_entity_ratio = n_semantic_relations / n_entities
     else:
         rel_entity_ratio = 0.0
+        
     connectivity_score = min(
         rel_entity_ratio / QUALITY_THRESHOLDS["relation_entity_ratio_min"], 1.0
     )
