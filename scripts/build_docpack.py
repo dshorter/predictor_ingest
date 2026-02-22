@@ -58,8 +58,8 @@ def build_docpack(
         )
         bundle_label = label or "all"
     else:
-        # Filter by published_at so daily runs only extract articles
-        # actually published on the target date (not the full RSS backlog).
+        # Filter by published_at so daily runs prioritise articles
+        # actually published on the target date.
         # published_at is stored as ISO-8601 date or datetime; substr
         # extracts the date portion for comparison.
         cursor = conn.execute(
@@ -77,6 +77,32 @@ def build_docpack(
         )
         bundle_label = label or target_date
     rows = [dict(row) for row in cursor.fetchall()]
+
+    # Backlog fallback: if the date filter found nothing (or we already got
+    # today's docs), also pick up any cleaned docs from other dates that
+    # have never been extracted.  This prevents docs from being stranded
+    # when their published_at doesn't match the daily run date.
+    if not all_docs:
+        already_ids = {r["doc_id"] for r in rows}
+        remaining = max_docs - len(rows)
+        if remaining > 0:
+            backlog_cursor = conn.execute(
+                """
+                SELECT doc_id, url, source, title, published_at, fetched_at, text_path
+                FROM documents
+                WHERE status = 'cleaned'
+                  AND text_path IS NOT NULL
+                  AND (published_at IS NULL OR substr(published_at, 1, 10) != ?)
+                ORDER BY fetched_at DESC
+                LIMIT ?
+                """,
+                (target_date, remaining),
+            )
+            backlog_rows = [dict(r) for r in backlog_cursor.fetchall()
+                           if r["doc_id"] not in already_ids]
+            if backlog_rows:
+                print(f"Backlog: adding {len(backlog_rows)} cleaned docs from other dates")
+                rows.extend(backlog_rows)
 
     if not rows:
         # Diagnostic: show total docs by status so user knows why nothing was bundled
