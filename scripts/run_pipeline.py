@@ -657,6 +657,7 @@ def main() -> int:
     pipeline_start = time.monotonic()
     overall_status = "success"
     failed_stages = []
+    docpack_bundled = None  # track whether docpack produced docs
 
     print(f"=== Pipeline run {run_id} ({run_date}) ===")
     if args.no_timeout:
@@ -694,6 +695,14 @@ def main() -> int:
                 run_log["stages"][name] = {"status": "skipped"}
                 continue
 
+            # Skip extract if docpack bundled 0 docs and no fresh docpack exists
+            if name == "extract" and docpack_bundled == 0:
+                docpack_file = project_root / docpack_path
+                if not docpack_file.exists():
+                    print(f"[{name}] SKIPPED (no docpack file)")
+                    run_log["stages"][name] = {"status": "skipped", "reason": "no_docpack"}
+                    continue
+
             stage_timeout = None if args.no_timeout else stage.get("timeout", 600)
             stage_stream = stage.get("stream", False)
             print(f"[{name}] Running...", flush=True)
@@ -711,6 +720,10 @@ def main() -> int:
                 "duration_sec": result["duration_sec"],
                 **stage_stats,
             }
+
+            # Track docpack output so extract can be skipped when empty
+            if name == "docpack":
+                docpack_bundled = stage_stats.get("docsBundled", 0)
 
             # Always save raw stdout/stderr for diagnostics
             if result["stdout"].strip():
