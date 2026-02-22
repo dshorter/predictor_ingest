@@ -227,16 +227,23 @@ Article → nano (cheap, strict schema) → score quality
 
 **Quality signals scored (0-1 each, weighted):**
 
-| Signal | Weight | What it catches |
-|--------|--------|-----------------|
-| Entity density (per 1K chars) | 30% | Missed entities |
-| Evidence coverage (asserted with evidence) | 25% | Hallucinated relations |
-| Average confidence | 20% | Model was guessing |
-| Relation/entity ratio | 15% | Found entities but no connections |
-| Tech terms present | 10% | Missed domain content |
+| Signal | Weight | Target | What it catches |
+|--------|--------|--------|-----------------|
+| **Relation type diversity** | 25% | 6 distinct types | Cheap models emit only 2–3 types (hardest to game) |
+| Connectivity (semantic rel/entity ratio) | 20% | 0.5 | Found entities but no structural connections |
+| Entity density (per 1K chars) | 15% | 5.0 | Missed entities |
+| Evidence coverage (asserted with evidence) | 15% | 80% | Hallucinated relations |
+| Tech terms present | 15% | ≥2 | Missed domain content |
+| Average confidence | 10% | 0.85 | Model was guessing; variance penalty if flat-high |
 
-**Cost impact:** If 80% of articles pass nano's quality check, monthly cost drops
-from ~$25 (Sonnet on everything) to ~$5.30 (nano on 80% + Sonnet on 20%).
+*Confidence variance penalty:* If stddev < 0.05 and avg > 0.8, confidence is
+penalised 30%. Uncalibrated models output ~0.9 for everything.
+
+See [docs/fix-details/pipeline-stall-scoring-overhaul.md](fix-details/pipeline-stall-scoring-overhaul.md)
+for the full rationale behind the Feb 2026 scoring overhaul.
+
+**Cost impact:** If 70% of articles pass nano's quality check, monthly cost drops
+from ~$25 (Sonnet on everything) to ~$8 (nano on 70% + Sonnet on 30%).
 
 **Usage:**
 ```bash
