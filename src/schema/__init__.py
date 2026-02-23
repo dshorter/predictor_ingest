@@ -1,6 +1,10 @@
 """Schema validation for extraction output.
 
 Validates extraction JSON against the schema defined in AGENTS.md.
+
+Type enums (ENTITY_TYPES, RELATION_TYPES, RELATION_KINDS) are loaded
+from schemas/extraction.json — the single source of truth.  Do NOT
+duplicate these lists elsewhere; import from this module instead.
 """
 
 from __future__ import annotations
@@ -30,27 +34,22 @@ def _load_schema() -> dict:
         return json.load(f)
 
 
-# Entity types from AGENTS.md
-ENTITY_TYPES = frozenset([
-    "Org", "Person", "Program", "Tool", "Model", "Dataset",
-    "Benchmark", "Paper", "Repo", "Document", "Tech", "Topic",
-    "Event", "Location", "Other",
-])
+# ---------------------------------------------------------------------------
+# Single source of truth: load type enums from schemas/extraction.json
+# ---------------------------------------------------------------------------
+_SCHEMA = _load_schema()
 
-# Relation types from AGENTS.md
-RELATION_TYPES = frozenset([
-    "MENTIONS", "CITES", "ANNOUNCES", "REPORTED_BY",
-    "LAUNCHED", "PUBLISHED", "UPDATED", "FUNDED", "PARTNERED_WITH",
-    "ACQUIRED", "HIRED", "CREATED", "OPERATES", "GOVERNED_BY",
-    "GOVERNS", "REGULATES", "COMPLIES_WITH",
-    "USES_TECH", "USES_MODEL", "USES_DATASET", "TRAINED_ON",
-    "EVALUATED_ON", "INTEGRATES_WITH", "DEPENDS_ON", "REQUIRES",
-    "PRODUCES", "MEASURES", "AFFECTS",
-    "PREDICTS", "DETECTS", "MONITORS",
-])
+ENTITY_TYPES: frozenset[str] = frozenset(
+    _SCHEMA["$defs"]["entityType"]["enum"]
+)
 
-# Relation kinds
-RELATION_KINDS = frozenset(["asserted", "inferred", "hypothesis"])
+RELATION_TYPES: frozenset[str] = frozenset(
+    _SCHEMA["$defs"]["relationType"]["enum"]
+)
+
+RELATION_KINDS: frozenset[str] = frozenset(
+    _SCHEMA["$defs"]["relationKind"]["enum"]
+)
 
 
 def validate_extraction(data: dict[str, Any]) -> None:

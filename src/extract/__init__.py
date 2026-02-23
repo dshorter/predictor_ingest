@@ -17,30 +17,23 @@ import re
 from pathlib import Path
 from typing import Any, Optional
 
-from schema import validate_extraction, ValidationError
+from schema import (
+    validate_extraction,
+    ValidationError,
+    ENTITY_TYPES as _ENTITY_TYPES_SET,
+    RELATION_TYPES as _RELATION_TYPES_SET,
+)
 
 
 # Current extractor version - bump when prompts/schema change
 EXTRACTOR_VERSION = "1.0.0"
 
-# Entity types from AGENTS.md
-ENTITY_TYPES = [
-    "Org", "Person", "Program", "Tool", "Model", "Dataset",
-    "Benchmark", "Paper", "Repo", "Document", "Tech", "Topic",
-    "Event", "Location", "Other",
-]
-
-# Relation types from AGENTS.md
-RELATION_TYPES = [
-    "MENTIONS", "CITES", "ANNOUNCES", "REPORTED_BY",
-    "LAUNCHED", "PUBLISHED", "UPDATED", "FUNDED", "PARTNERED_WITH",
-    "ACQUIRED", "HIRED", "CREATED", "OPERATES", "GOVERNED_BY",
-    "GOVERNS", "REGULATES", "COMPLIES_WITH",
-    "USES_TECH", "USES_MODEL", "USES_DATASET", "TRAINED_ON",
-    "EVALUATED_ON", "INTEGRATES_WITH", "DEPENDS_ON", "REQUIRES",
-    "PRODUCES", "MEASURES", "AFFECTS",
-    "PREDICTS", "DETECTS", "MONITORS",
-]
+# Entity and relation types — derived from the single source of truth
+# in schemas/extraction.json (loaded via schema module).
+# Kept as sorted lists here because prompt templates and the OpenAI
+# tool schema need a stable, ordered sequence.
+ENTITY_TYPES: list[str] = sorted(_ENTITY_TYPES_SET)
+RELATION_TYPES: list[str] = sorted(_RELATION_TYPES_SET)
 
 # Map common LLM variations to canonical relation types
 RELATION_NORMALIZATION = {
@@ -142,306 +135,33 @@ def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
+# ---------------------------------------------------------------------------
+# Domain-specific prompts and tool schemas — delegated to extract.prompts
+# for domain-separation (see docs/architecture/domain-separation.md).
+# Re-exported here so existing callers (run_extract.py, tests) continue
+# to import from "extract" without changes.
+# ---------------------------------------------------------------------------
+from extract.prompts import (                          # noqa: E402
+    build_extraction_prompt as _build_prompt,
+    build_extraction_system_prompt as _build_system,
+    build_extraction_user_prompt,                       # pass-through
+    OPENAI_EXTRACTION_TOOL,                             # pass-through
+)
+
+
 def build_extraction_prompt(
     doc: dict[str, Any],
     extractor_version: Optional[str] = None,
 ) -> str:
-    """Build prompt for LLM extraction.
-
-    Args:
-        doc: Document dict with docId, title, text, url, published
-        extractor_version: Version string to include in output
-
-    Returns:
-        Prompt string for LLM
-    """
-    version = extractor_version or EXTRACTOR_VERSION
-
-    prompt = f"""Extract entities, relationships, and technical terms from the following document.
-
-## Document Metadata
-- docId: {doc['docId']}
-- Title: {doc.get('title', 'Unknown')}
-- URL: {doc.get('url', 'Unknown')}
-- Published: {doc.get('published', 'Unknown')}
-
-## Document Text
-{doc['text']}
-
-## Instructions
-
-Extract the following and return as JSON:
-
-1. **entities**: List of entities mentioned in the document
-   - name: Surface form of the entity name
-   - type: One of {ENTITY_TYPES}
-   - aliases: Optional list of alternative names
-   - idHint: Optional suggested canonical ID (e.g., "org:openai")
-
-2. **relations**: Relationships between entities
-   - source: Entity name
-   - rel: One of {RELATION_TYPES}
-   - target: Entity name
-   - kind: "asserted" (explicitly stated), "inferred", or "hypothesis"
-   - confidence: 0.0 to 1.0
-   - evidence: For asserted relations, include at least one evidence object:
-     - docId: "{doc['docId']}"
-     - url: "{doc.get('url', '')}"
-     - published: "{doc.get('published', '')}"
-     - snippet: Short quote from the text (≤200 chars)
-
-3. **techTerms**: List of technical terms, technologies, or concepts mentioned
-
-4. **dates**: Important dates mentioned
-   - text: Raw date text (e.g., "this fall", "Q3 2025")
-   - start/end: ISO dates if determinable
-
-5. **notes**: Any ambiguities or extraction notes
-
-## Output Format
-
-Return valid JSON with this structure:
-```json
-{{
-  "docId": "{doc['docId']}",
-  "extractorVersion": "{version}",
-  "entities": [...],
-  "relations": [...],
-  "techTerms": [...],
-  "dates": [...],
-  "notes": [...]
-}}
-```
-
-## Critical Rules
-- Asserted relations MUST include evidence with a snippet from the document
-- Do not fabricate entities or relations not supported by the text
-- Mark uncertain relations as "inferred" or "hypothesis"
-- Keep evidence snippets short (≤200 chars)
-"""
-
-    return prompt
+    """Build prompt for LLM extraction (backward-compat wrapper)."""
+    return _build_prompt(doc, extractor_version or EXTRACTOR_VERSION)
 
 
 def build_extraction_system_prompt(
     extractor_version: Optional[str] = None,
 ) -> str:
-    """Build the static system prompt for extraction (cacheable prefix).
-
-    This contains all instructions, schema rules, and enums. It stays
-    identical across documents so OpenAI can cache it.
-
-    Args:
-        extractor_version: Version string to include in output
-
-    Returns:
-        System prompt string
-    """
-    version = extractor_version or EXTRACTOR_VERSION
-
-    return f"""You are an entity/relation extraction system for AI-domain articles.
-Your job is to extract structured data and return it via the emit_extraction tool.
-
-## Extractor Version
-{version}
-
-## Entity Types (use exactly these values)
-{', '.join(ENTITY_TYPES)}
-
-## Relation Types (use exactly these values)
-{', '.join(RELATION_TYPES)}
-
-## Extraction Rules
-
-1. **entities**: Extract all notable entities (organizations, people, models, tools, etc.)
-   - name: Surface form as it appears in the text
-   - type: Must be one of the entity types listed above
-   - aliases: Optional alternative names
-   - idHint: Optional canonical ID suggestion (e.g., "org:openai")
-
-2. **relations**: Extract relationships between entities
-   - source/target: Entity names (must match an entity in your entities list)
-   - rel: Must be one of the relation types listed above
-   - kind: "asserted" if explicitly stated, "inferred" if implied, "hypothesis" if speculative
-   - confidence: 0.0 to 1.0
-   - evidence: REQUIRED for asserted relations — include docId, url, published, and a short snippet (≤200 chars) from the source text
-
-3. **techTerms**: List of technical terms, technologies, or concepts mentioned
-
-4. **dates**: Important dates mentioned
-   - text: Raw date text as it appears (e.g., "this fall", "Q3 2025")
-   - start/end: ISO dates if determinable
-   - resolution: "exact", "range", "anchored_to_published", or "unknown"
-
-5. **notes**: Any ambiguities or extraction warnings
-
-## Critical Rules
-- Asserted relations MUST include evidence with a snippet from the document
-- Do NOT fabricate entities, dates, or relations not supported by the text
-- Mark uncertain relations as "inferred" or "hypothesis"
-- Keep evidence snippets short (≤200 chars)
-- Prefer MENTIONS as the base relation; only use semantic relations when evidence supports them
-"""
-
-
-def build_extraction_user_prompt(doc: dict[str, Any]) -> str:
-    """Build the per-document user prompt (variable part).
-
-    This is the part that changes per document. It goes after the
-    cached system prompt.
-
-    Args:
-        doc: Document dict with docId, title, text, url, published
-
-    Returns:
-        User prompt string
-    """
-    return f"""Extract entities, relations, and tech terms from this document.
-
-## Document Metadata
-- docId: {doc['docId']}
-- Title: {doc.get('title', 'Unknown')}
-- URL: {doc.get('url', 'Unknown')}
-- Published: {doc.get('published', 'Unknown')}
-
-## Document Text
-{doc['text']}
-
-Call the emit_extraction tool with the complete extraction results."""
-
-
-# OpenAI strict tool schema for extraction.
-# All objects have additionalProperties: false and all properties in required,
-# as mandated by OpenAI's strict mode.
-OPENAI_EXTRACTION_TOOL = {
-    "type": "function",
-    "function": {
-        "name": "emit_extraction",
-        "description": "Emit the structured extraction results for this document.",
-        "strict": True,
-        "parameters": {
-            "type": "object",
-            "required": [
-                "docId", "extractorVersion", "entities", "relations",
-                "techTerms", "dates", "notes",
-            ],
-            "additionalProperties": False,
-            "properties": {
-                "docId": {"type": "string", "description": "Document identifier"},
-                "extractorVersion": {"type": "string", "description": "Extractor version"},
-                "entities": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["name", "type", "aliases", "idHint"],
-                        "additionalProperties": False,
-                        "properties": {
-                            "name": {"type": "string", "description": "Surface form of entity name"},
-                            "type": {
-                                "type": "string",
-                                "enum": ENTITY_TYPES,
-                            },
-                            "aliases": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "description": "Alternative names",
-                            },
-                            "idHint": {
-                                "type": ["string", "null"],
-                                "description": "Suggested canonical ID (e.g. org:openai), or null",
-                            },
-                        },
-                    },
-                },
-                "relations": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": [
-                            "source", "rel", "target", "kind",
-                            "confidence", "verbRaw", "evidence",
-                        ],
-                        "additionalProperties": False,
-                        "properties": {
-                            "source": {"type": "string", "description": "Source entity name"},
-                            "rel": {
-                                "type": "string",
-                                "enum": RELATION_TYPES,
-                            },
-                            "target": {"type": "string", "description": "Target entity name"},
-                            "kind": {
-                                "type": "string",
-                                "enum": ["asserted", "inferred", "hypothesis"],
-                            },
-                            "confidence": {"type": "number", "description": "0.0 to 1.0"},
-                            "verbRaw": {
-                                "type": ["string", "null"],
-                                "description": "Original verb from text, or null",
-                            },
-                            "evidence": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "required": ["docId", "url", "published", "snippet"],
-                                    "additionalProperties": False,
-                                    "properties": {
-                                        "docId": {"type": "string"},
-                                        "url": {"type": "string"},
-                                        "published": {
-                                            "type": ["string", "null"],
-                                            "description": "ISO date or null",
-                                        },
-                                        "snippet": {
-                                            "type": "string",
-                                            "description": "Short quote ≤200 chars",
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                "techTerms": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                },
-                "dates": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["text", "start", "end", "resolution", "anchor"],
-                        "additionalProperties": False,
-                        "properties": {
-                            "text": {"type": "string", "description": "Raw date text"},
-                            "start": {
-                                "type": ["string", "null"],
-                                "description": "ISO date start, or null",
-                            },
-                            "end": {
-                                "type": ["string", "null"],
-                                "description": "ISO date end, or null",
-                            },
-                            "resolution": {
-                                "type": ["string", "null"],
-                                "enum": ["exact", "range", "anchored_to_published", "unknown", None],
-                                "description": "Date resolution type, or null",
-                            },
-                            "anchor": {
-                                "type": ["string", "null"],
-                                "description": "Reference date for anchoring, or null",
-                            },
-                        },
-                    },
-                },
-                "notes": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Warnings, ambiguity flags",
-                },
-            },
-        },
-    },
-}
+    """Build the static system prompt for extraction (backward-compat wrapper)."""
+    return _build_system(extractor_version or EXTRACTOR_VERSION)
 
 
 def parse_extraction_response(

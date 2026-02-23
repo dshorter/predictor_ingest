@@ -2,6 +2,10 @@
 
 Exports entities and relations to Cytoscape.js-compatible JSON.
 Supports multiple views: mentions, claims, dependencies, trending.
+
+View-specific relation sets are loaded from config/views.yaml so that
+changing which relation types appear in a view requires only a config
+edit, not a code change.
 """
 
 from __future__ import annotations
@@ -12,19 +16,29 @@ from pathlib import Path
 from typing import Any, Optional
 import sqlite3
 
+import yaml
 
-# Dependency relations per AGENTS.md
-DEPENDENCY_RELATIONS = frozenset([
-    "USES_TECH", "USES_MODEL", "USES_DATASET",
-    "TRAINED_ON", "EVALUATED_ON",
-    "INTEGRATES_WITH", "DEPENDS_ON", "REQUIRES",
-    "PRODUCES",
-])
 
-# Document relations (not semantic entity-to-entity)
-DOCUMENT_RELATIONS = frozenset([
-    "MENTIONS", "CITES", "ANNOUNCES", "REPORTED_BY",
-])
+# ---------------------------------------------------------------------------
+# Load view configuration from config/views.yaml (single source of truth
+# for which relation types belong to each graph view).
+# ---------------------------------------------------------------------------
+def _load_views_config() -> dict[str, list[str]]:
+    """Load graph view relation sets from config/views.yaml."""
+    views_path = Path(__file__).resolve().parents[2] / "config" / "views.yaml"
+    with open(views_path, encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+_VIEWS_CONFIG = _load_views_config()
+
+DEPENDENCY_RELATIONS: frozenset[str] = frozenset(
+    _VIEWS_CONFIG["dependency_relations"]
+)
+
+DOCUMENT_RELATIONS: frozenset[str] = frozenset(
+    _VIEWS_CONFIG["document_relations"]
+)
 
 
 def build_node(entity: dict[str, Any]) -> dict[str, Any]:
