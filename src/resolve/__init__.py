@@ -10,26 +10,15 @@ import re
 import sqlite3
 from typing import Any, Optional
 
+from schema import ENTITY_TYPES
 from util import slugify
 
 
-# Type prefix mapping
-TYPE_PREFIXES = {
-    "Org": "org",
-    "Person": "person",
-    "Program": "program",
-    "Tool": "tool",
-    "Model": "model",
-    "Dataset": "dataset",
-    "Benchmark": "benchmark",
-    "Paper": "paper",
-    "Repo": "repo",
-    "Document": "doc",
-    "Tech": "tech",
-    "Topic": "topic",
-    "Event": "event",
-    "Location": "location",
-    "Other": "other",
+# Type prefix mapping — derived from the canonical ENTITY_TYPES enum.
+# Special cases: "Document" -> "doc".  All others lowercase.
+_PREFIX_OVERRIDES = {"Document": "doc"}
+TYPE_PREFIXES: dict[str, str] = {
+    t: _PREFIX_OVERRIDES.get(t, t.lower()) for t in ENTITY_TYPES
 }
 
 

@@ -1,0 +1,25 @@
+# Graph view configuration
+# Defines which relation types belong to each Cytoscape export view.
+#
+# The export module (src/graph/__init__.py) loads these sets at import
+# time.  To add a new view or change which relation types appear in an
+# existing view, edit this file — no code changes needed.
+
+# Document-level relations (used for the "mentions" view)
+document_relations:
+  - MENTIONS
+  - CITES
+  - ANNOUNCES
+  - REPORTED_BY
+
+# Dependency-style relations (used for the "dependencies" view)
+dependency_relations:
+  - USES_TECH
+  - USES_MODEL
+  - USES_DATASET
+  - TRAINED_ON
+  - EVALUATED_ON
+  - INTEGRATES_WITH
+  - DEPENDS_ON
+  - REQUIRES
+  - PRODUCES

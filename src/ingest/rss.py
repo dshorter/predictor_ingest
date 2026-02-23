@@ -4,6 +4,7 @@ import argparse
 import sqlite3
 import sys
 import time
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -24,6 +25,13 @@ from util import (
 # 5s is polite (each feed hits a different server) while keeping
 # total run time within the pipeline timeout for 12+ feeds.
 DEFAULT_DELAY = 5.0
+
+# Maximum age of feed entries to ingest (days).
+# Entries older than this are skipped at ingest time to prevent DB
+# bloat from feeds that serve ancient back-catalogues (e.g. HF Blog).
+# This matches the 6-month cutoff in build_docpack.py so stale content
+# is never stored in the first place.
+MAX_ENTRY_AGE_DAYS = 180
 
 
 def repo_root() -> Path:
@@ -192,6 +200,19 @@ def ingest_feed(
         published_at = parse_entry_date(entry)
         fetched_at = utc_now_iso()
         date_part = published_at or fetched_at[:10]
+
+        # Skip entries older than MAX_ENTRY_AGE_DAYS to avoid ingesting
+        # stale back-catalogue content (mirrors the 6-month cutoff in
+        # build_docpack.py so stale docs are never stored at all).
+        if published_at:
+            try:
+                pub_date = date.fromisoformat(published_at[:10])
+                cutoff = date.today() - timedelta(days=MAX_ENTRY_AGE_DAYS)
+                if pub_date < cutoff:
+                    skipped += 1
+                    continue
+            except ValueError:
+                pass  # unparseable date — let it through
 
         doc_id = f"{date_part}_{slugify(source)}_{short_hash(url)}"
         raw_path = raw_dir / f"{doc_id}.html"
