@@ -151,7 +151,7 @@ Decision:
 
 ---
 
-## 7) Comparison matrix (CPU vs LLM intensity) + leaning status
+## 7) Comparison matrix (CPU vs LLM intensity) + leaning status  
 
 Legend:
 - **CPU deterministic:** no model tokens
