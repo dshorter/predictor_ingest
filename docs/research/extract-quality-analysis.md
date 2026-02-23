@@ -378,16 +378,21 @@ CREATE INDEX IF NOT EXISTS idx_quality_artifacts_type   ON quality_artifacts(art
 
 ## 13) Implementation plan (living checklist)
 
-### Phase 0 — instrumentation (no behavior change)
-- [ ] Emit `_quality` (or DB records) per run/stage
-- [ ] Log tokens per stage + per doc totals
-- [ ] Record model/provider/schema/pipeline version
+### Phase 0 — instrumentation (no behavior change) ✅ IMPLEMENTED 2026-02-23
+- [x] Emit `_quality` (or DB records) per run/stage → `quality_runs` + `quality_metrics` tables
+- [x] Log tokens per stage + per doc totals → `insert_quality_evaluation()` in `src/db/__init__.py`
+- [x] Record model/provider/schema/pipeline version → `quality_runs.model`, `.provider`, `.pipeline_stage`
 
-### Phase 1 — implement non-negotiable gates (CPU)
-- [ ] Evidence fidelity (exact+normalized substring) vs **model-input text**
-- [ ] Orphan endpoints
-- [ ] Zero-value patterns
-- [ ] High-conf + bad evidence immediate escalate
+### Phase 1 — implement non-negotiable gates (CPU) ✅ IMPLEMENTED 2026-02-23
+- [x] Evidence fidelity (exact+normalized substring) vs **model-input text** → `check_evidence_fidelity()` (threshold: 0.70)
+- [x] Orphan endpoints → `check_orphan_endpoints()` (threshold: 0%)
+- [x] Zero-value patterns → `check_zero_value()` (threshold: ≥1 entity for docs >500 chars)
+- [x] High-conf + bad evidence immediate escalate → `check_high_confidence_bad_evidence()`
+
+**Implementation:** `src/extract/__init__.py` — `evaluate_extraction()` runs gates
+first, then scoring. Gate failure forces escalation regardless of score.
+`scripts/run_extract.py` updated to use `evaluate_extraction()` and emit metrics
+to DB. 33 unit tests in `tests/test_quality_gates.py`.
 
 ### Phase 2 — add deterministic signals (log-only at first)
 - [ ] Dup/fragmentation

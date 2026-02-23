@@ -141,7 +141,13 @@ See **[docs/ux/README.md](docs/ux/README.md)** for the full implementation spec 
 
 ## Quality Bar
 - Validate every extraction/export against JSON Schemas.
-- Unit tests for: slugging + ID rules, date parsing, schema validation, export correctness.
+- **Extraction quality gates** (CPU, zero tokens) run before scoring on every extraction:
+  - Evidence fidelity: snippet must exist in source text (≥70%)
+  - Orphan endpoints: relation source/target must match an entity (0% tolerance)
+  - Zero-value: non-trivial docs must produce ≥1 entity
+  - High-confidence + bad evidence: immediate escalation
+- Unit tests for: slugging + ID rules, date parsing, schema validation, export correctness, quality gates.
+- Quality metrics logged to `quality_runs`/`quality_metrics` tables for calibration.
 - Log errors; never silently drop docs.
 
 ---
@@ -205,6 +211,7 @@ for the boundary definition and enforcement rules.
 | [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs (build_docpack, import, resolve, export, trending) |
 | [docs/llm-selection.md](docs/llm-selection.md) | LLM model tiers, escalation mode architecture, shadow mode, cost model, quality scoring weights |
 | [docs/source-selection-strategy.md](docs/source-selection-strategy.md) | Feed tier model (primary/secondary/echo), entity overlap strategy, coverage targets |
+| [docs/research/extract-quality-analysis.md](docs/research/extract-quality-analysis.md) | Quality gate design, evaluation architecture (Phase 0–4), calibration plan, CPU vs LLM cost matrix |
 
 #### UX & Visualization
 

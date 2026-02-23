@@ -254,6 +254,57 @@ make shadow-report       # See escalation stats in dashboard
 Each extraction JSON includes `_extractedBy` (which model was used),
 `_qualityScore` (combined score), and `_escalationReason` (if escalated).
 
+### Quality Gates (Phase 1 — Pre-Score)
+
+Before the quality score is computed, four CPU-only gates run on every extraction.
+If any gate fails, escalation is **immediate** — the score is irrelevant.
+
+| Gate | What it catches | Threshold | Token cost |
+|------|----------------|-----------|------------|
+| **A — Evidence fidelity** | Hallucinated evidence snippets | ≥70% of asserted snippets found in source text | 0 |
+| **B — Orphan endpoints** | Relations pointing to nonexistent entities | 0% orphan tolerance | 0 |
+| **C — Zero-value** | Schema-valid but empty/useless output | ≥1 entity for docs >500 chars | 0 |
+| **D — High-conf + bad evidence** | Confident assertion citing fabricated text | 0 tolerance | 0 |
+
+**Evaluation flow:**
+```
+Extraction → Gates (CPU, instant) → any fail? → escalate immediately
+                                  → all pass? → score quality → escalate if < 0.6
+```
+
+**Entry point:** `evaluate_extraction()` in `src/extract/__init__.py` — unified
+function that runs gates then scoring, returns decision + full diagnostics.
+
+Gate A is the highest-impact addition. The old scoring checked *whether* evidence
+existed but not *whether it was real*. A substring match against the model's actual
+input text (after whitespace normalization + lowercasing) catches the most
+dangerous failure mode at zero token cost.
+
+### Quality Instrumentation (Phase 0)
+
+Every extraction evaluation is logged to two SQLite tables:
+
+- **`quality_runs`** — one row per extraction attempt: model, timing, decision,
+  combined score, token counts
+- **`quality_metrics`** — per-metric rows (gates + scoring signals) enabling
+  SQL aggregation for threshold calibration
+
+Useful calibration queries:
+```sql
+-- Evidence fidelity distribution across all runs
+SELECT AVG(metric_value), MIN(metric_value), MAX(metric_value)
+FROM quality_metrics WHERE metric_name = 'evidence_fidelity_rate';
+
+-- Gate vs score escalation breakdown
+SELECT decision_reason, COUNT(*) FROM quality_runs GROUP BY 1;
+
+-- Per-model quality comparison
+SELECT model, AVG(quality_score), COUNT(*) FROM quality_runs GROUP BY 1;
+```
+
+See [docs/research/extract-quality-analysis.md](research/extract-quality-analysis.md)
+for the full evaluation architecture design (Phase 2+ signals, LLM judge, calibration plan).
+
 ---
 
 ## Initial Evaluation (Before Shadow Mode)
