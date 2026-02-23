@@ -110,7 +110,9 @@ specialist model.
 3. Quality scoring overhauled: raised thresholds, added relation type diversity
    signal (25% weight), added confidence variance penalty
 
-**Document:** [pipeline-stall-scoring-overhaul.md](pipeline-stall-scoring-overhaul.md)
+**Documents:**
+- [pipeline-stall-scoring-overhaul.md](pipeline-stall-scoring-overhaul.md) — Root causes and code-level fixes
+- [2026-02-22-session-research-summary.md](2026-02-22-session-research-summary.md) — Full research session: investigation arc, simulated scoring benchmarks, documentation overhaul
 
 **Key Takeaway:** When a scoring function produces scores that cluster near the
 maximum, the thresholds are set to "minimum acceptable" rather than "target."
