@@ -129,3 +129,46 @@ CREATE TABLE IF NOT EXISTS extraction_comparison (
 
 CREATE INDEX IF NOT EXISTS idx_comparison_model ON extraction_comparison(understudy_model);
 CREATE INDEX IF NOT EXISTS idx_comparison_date ON extraction_comparison(run_date);
+
+-- Quality evaluation runs (Phase 0 instrumentation + Phase 1 gates)
+-- One row per extraction attempt (cheap pass, specialist pass, etc.)
+CREATE TABLE IF NOT EXISTS quality_runs (
+  run_id TEXT PRIMARY KEY,
+  doc_id TEXT NOT NULL,
+  pipeline_stage TEXT NOT NULL,        -- 'cheap_extract', 'specialist_extract'
+  model TEXT NOT NULL,
+  provider TEXT,
+  started_at TEXT NOT NULL,
+  duration_ms INTEGER,
+  status TEXT NOT NULL,                -- 'ok', 'error'
+  decision TEXT NOT NULL,              -- 'accept', 'escalate', 'reject'
+  decision_reason TEXT,
+  quality_score REAL,                  -- combined score from scoring function
+  input_chars INTEGER,
+  prompt_tokens INTEGER,
+  completion_tokens INTEGER,
+  total_tokens INTEGER,
+  extra_json TEXT,                     -- overflow for future fields
+  FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_quality_runs_doc ON quality_runs(doc_id);
+CREATE INDEX IF NOT EXISTS idx_quality_runs_stage ON quality_runs(pipeline_stage);
+CREATE INDEX IF NOT EXISTS idx_quality_runs_started ON quality_runs(started_at);
+
+-- Per-metric rows for each quality run (gates + signals)
+-- Enables SQL aggregation across runs: AVG(metric_value) WHERE metric_name = 'evidence_fidelity_rate'
+CREATE TABLE IF NOT EXISTS quality_metrics (
+  run_id TEXT NOT NULL,
+  metric_name TEXT NOT NULL,           -- e.g. 'evidence_fidelity_rate', 'orphan_rate'
+  metric_value REAL,
+  passed INTEGER,                      -- 0/1 — did this metric pass its threshold?
+  severity INTEGER NOT NULL DEFAULT 0, -- 0=info, 1=warn, 2=gate
+  threshold_value REAL,                -- threshold used for pass/fail
+  notes TEXT,                          -- debug info (e.g. failed snippet list)
+  PRIMARY KEY (run_id, metric_name),
+  FOREIGN KEY (run_id) REFERENCES quality_runs(run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_quality_metrics_name ON quality_metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_quality_metrics_passed ON quality_metrics(passed);

@@ -647,3 +647,244 @@ def list_understudy_models(conn: sqlite3.Connection) -> list[str]:
         "SELECT DISTINCT understudy_model FROM extraction_comparison ORDER BY understudy_model"
     )
     return [row["understudy_model"] for row in cursor.fetchall()]
+
+
+# ---------------------------------------------------------------------------
+# Quality evaluation tracking (Phase 0 instrumentation)
+# ---------------------------------------------------------------------------
+
+
+def insert_quality_run(
+    conn: sqlite3.Connection,
+    run_id: str,
+    doc_id: str,
+    pipeline_stage: str,
+    model: str,
+    started_at: str,
+    status: str,
+    decision: str,
+    provider: Optional[str] = None,
+    duration_ms: Optional[int] = None,
+    decision_reason: Optional[str] = None,
+    quality_score: Optional[float] = None,
+    input_chars: Optional[int] = None,
+    prompt_tokens: Optional[int] = None,
+    completion_tokens: Optional[int] = None,
+    total_tokens: Optional[int] = None,
+    extra_json: Optional[str] = None,
+) -> str:
+    """Record a quality evaluation run.
+
+    Args:
+        conn: Database connection
+        run_id: Unique run identifier (UUID)
+        doc_id: Document ID
+        pipeline_stage: e.g. 'cheap_extract', 'specialist_extract'
+        model: Model name used
+        started_at: ISO timestamp
+        status: 'ok' or 'error'
+        decision: 'accept', 'escalate', or 'reject'
+        provider: 'openai' or 'anthropic'
+        duration_ms: Extraction duration in milliseconds
+        decision_reason: Why this decision was made
+        quality_score: Combined quality score
+        input_chars: Source text length in chars
+        prompt_tokens: Tokens used in prompt
+        completion_tokens: Tokens in completion
+        total_tokens: Total tokens
+        extra_json: JSON string for overflow fields
+
+    Returns:
+        The run_id
+    """
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO quality_runs (
+            run_id, doc_id, pipeline_stage, model, provider,
+            started_at, duration_ms, status, decision, decision_reason,
+            quality_score, input_chars,
+            prompt_tokens, completion_tokens, total_tokens, extra_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            run_id, doc_id, pipeline_stage, model, provider,
+            started_at, duration_ms, status, decision, decision_reason,
+            quality_score, input_chars,
+            prompt_tokens, completion_tokens, total_tokens, extra_json,
+        ),
+    )
+    conn.commit()
+    return run_id
+
+
+def insert_quality_metric(
+    conn: sqlite3.Connection,
+    run_id: str,
+    metric_name: str,
+    metric_value: Optional[float] = None,
+    passed: Optional[bool] = None,
+    severity: int = 0,
+    threshold_value: Optional[float] = None,
+    notes: Optional[str] = None,
+) -> None:
+    """Record a single quality metric for a run.
+
+    Args:
+        conn: Database connection
+        run_id: Quality run identifier
+        metric_name: e.g. 'evidence_fidelity_rate', 'orphan_rate'
+        metric_value: Numeric value of the metric
+        passed: Whether this metric passed its threshold
+        severity: 0=info, 1=warn, 2=gate
+        threshold_value: Threshold used for pass/fail
+        notes: Debug info (e.g. failed snippet list)
+    """
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO quality_metrics (
+            run_id, metric_name, metric_value, passed, severity,
+            threshold_value, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            run_id, metric_name, metric_value,
+            1 if passed else (0 if passed is not None else None),
+            severity, threshold_value, notes,
+        ),
+    )
+    conn.commit()
+
+
+def insert_quality_evaluation(
+    conn: sqlite3.Connection,
+    run_id: str,
+    doc_id: str,
+    pipeline_stage: str,
+    model: str,
+    started_at: str,
+    duration_ms: Optional[int],
+    evaluation: dict[str, Any],
+    input_chars: int,
+    provider: Optional[str] = None,
+    prompt_tokens: Optional[int] = None,
+    completion_tokens: Optional[int] = None,
+    total_tokens: Optional[int] = None,
+) -> str:
+    """Record a complete quality evaluation (run + all metrics).
+
+    Convenience wrapper that inserts a quality_run and all associated
+    quality_metrics from an evaluate_extraction() result.
+
+    Args:
+        conn: Database connection
+        run_id: Unique run identifier
+        doc_id: Document ID
+        pipeline_stage: 'cheap_extract' or 'specialist_extract'
+        model: Model name
+        started_at: ISO timestamp
+        duration_ms: Extraction duration
+        evaluation: Result from evaluate_extraction()
+        input_chars: Source text length
+        provider: 'openai' or 'anthropic'
+        prompt_tokens: Tokens used in prompt
+        completion_tokens: Tokens in completion
+        total_tokens: Total tokens
+
+    Returns:
+        The run_id
+    """
+    quality = evaluation.get("quality", {})
+
+    insert_quality_run(
+        conn, run_id, doc_id, pipeline_stage, model, started_at,
+        status="ok",
+        decision=evaluation.get("decision", "accept"),
+        provider=provider,
+        duration_ms=duration_ms,
+        decision_reason=evaluation.get("decision_reason"),
+        quality_score=quality.get("combined_score"),
+        input_chars=input_chars,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
+    )
+
+    # Gate metrics (severity=2 for gates)
+    gates = evaluation.get("gates", {}).get("gates", {})
+
+    if "evidence_fidelity" in gates:
+        ef = gates["evidence_fidelity"]
+        failed_notes = None
+        if ef.get("failed_snippets"):
+            failed_notes = json.dumps(ef["failed_snippets"][:5])
+        insert_quality_metric(
+            conn, run_id, "evidence_fidelity_rate",
+            metric_value=ef.get("match_rate"),
+            passed=ef.get("passed"),
+            severity=2,
+            threshold_value=0.70,
+            notes=failed_notes,
+        )
+
+    if "orphan_endpoints" in gates:
+        oe = gates["orphan_endpoints"]
+        orphan_notes = None
+        if oe.get("orphans"):
+            orphan_notes = json.dumps(oe["orphans"][:5])
+        insert_quality_metric(
+            conn, run_id, "orphan_rate",
+            metric_value=oe.get("orphan_rate"),
+            passed=oe.get("passed"),
+            severity=2,
+            threshold_value=0.0,
+            notes=orphan_notes,
+        )
+
+    if "zero_value" in gates:
+        zv = gates["zero_value"]
+        insert_quality_metric(
+            conn, run_id, "zero_value",
+            metric_value=1.0 if zv.get("passed") else 0.0,
+            passed=zv.get("passed"),
+            severity=2,
+            notes=zv.get("reason"),
+        )
+
+    if "high_confidence_bad_evidence" in gates:
+        hc = gates["high_confidence_bad_evidence"]
+        flagged_notes = None
+        if hc.get("flagged_relations"):
+            flagged_notes = json.dumps(hc["flagged_relations"][:5])
+        insert_quality_metric(
+            conn, run_id, "high_conf_bad_evidence",
+            metric_value=float(hc.get("flagged_count", 0)),
+            passed=hc.get("passed"),
+            severity=2,
+            notes=flagged_notes,
+        )
+
+    # Scoring signals (severity=0 for info)
+    for signal_name in [
+        "density_score", "evidence_score", "confidence_score",
+        "connectivity_score", "diversity_score", "tech_score",
+    ]:
+        if signal_name in quality:
+            insert_quality_metric(
+                conn, run_id, signal_name,
+                metric_value=quality[signal_name],
+                severity=0,
+            )
+
+    # Raw metrics for calibration
+    for raw_name in [
+        "entity_density", "evidence_coverage", "avg_confidence",
+        "rel_entity_ratio", "n_rel_types", "n_tech_terms",
+    ]:
+        if raw_name in quality:
+            insert_quality_metric(
+                conn, run_id, raw_name,
+                metric_value=float(quality[raw_name]),
+                severity=0,
+            )
+
+    return run_id

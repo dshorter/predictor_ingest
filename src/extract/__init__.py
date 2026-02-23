@@ -3,6 +3,11 @@
 Supports:
 - Mode A: Automated extraction via LLM API
 - Mode B: Manual extraction import with validation
+
+Quality evaluation (Phase 0+1):
+- Phase 0: Structured quality report per extraction (instrumentation)
+- Phase 1: Non-negotiable CPU gates (evidence fidelity, orphan endpoints,
+  zero-value, high-confidence + bad evidence)
 """
 
 from __future__ import annotations
@@ -634,6 +639,313 @@ def score_extraction_quality(
         "tech_score": round(tech_score, 2),
         "combined_score": round(combined, 2),
         "escalate": combined < ESCALATION_THRESHOLD,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: Non-negotiable quality gates (CPU deterministic, zero tokens)
+# ---------------------------------------------------------------------------
+
+# Gate thresholds — start conservative, tune after calibration data
+GATE_THRESHOLDS = {
+    "evidence_fidelity_min": 0.70,  # fraction of asserted snippets found in source
+    "orphan_max": 0.0,              # fraction of relations with orphan endpoints
+    "zero_value_min_entities": 1,   # minimum entities for non-trivial docs
+    "zero_value_min_doc_chars": 500,  # docs shorter than this skip zero-value gate
+}
+
+
+def _normalize_for_match(text: str) -> str:
+    """Normalize text for substring matching: lowercase, collapse whitespace."""
+    return re.sub(r"\s+", " ", text.lower().strip())
+
+
+def check_evidence_fidelity(
+    extraction: dict[str, Any],
+    source_text: str,
+) -> dict[str, Any]:
+    """Gate A: Check that evidence snippets actually appear in the source text.
+
+    For each asserted relation with evidence, normalize both the snippet and
+    the source text, then check for substring match.
+
+    Args:
+        extraction: Validated extraction dict
+        source_text: The cleaned article text the model was given
+
+    Returns:
+        Dict with passed, match_rate, and failed_snippets list
+    """
+    asserted = [r for r in extraction.get("relations", []) if r.get("kind") == "asserted"]
+    if not asserted:
+        return {"passed": True, "match_rate": 1.0, "checked": 0, "failed_snippets": []}
+
+    normalized_source = _normalize_for_match(source_text)
+
+    total_snippets = 0
+    matched = 0
+    failed_snippets = []
+
+    for rel in asserted:
+        for ev in rel.get("evidence", []):
+            snippet = ev.get("snippet", "")
+            if not snippet:
+                continue
+            total_snippets += 1
+            normalized_snippet = _normalize_for_match(snippet)
+            if normalized_snippet in normalized_source:
+                matched += 1
+            else:
+                failed_snippets.append({
+                    "snippet": snippet[:200],
+                    "source": rel.get("source", ""),
+                    "rel": rel.get("rel", ""),
+                    "target": rel.get("target", ""),
+                })
+
+    if total_snippets == 0:
+        return {"passed": True, "match_rate": 1.0, "checked": 0, "failed_snippets": []}
+
+    match_rate = matched / total_snippets
+    threshold = GATE_THRESHOLDS["evidence_fidelity_min"]
+
+    return {
+        "passed": match_rate >= threshold,
+        "match_rate": round(match_rate, 3),
+        "checked": total_snippets,
+        "matched": matched,
+        "failed_snippets": failed_snippets,
+    }
+
+
+def check_orphan_endpoints(
+    extraction: dict[str, Any],
+) -> dict[str, Any]:
+    """Gate B: Check that every relation endpoint maps to an extracted entity.
+
+    Args:
+        extraction: Validated extraction dict
+
+    Returns:
+        Dict with passed, orphan_rate, and orphans list
+    """
+    entity_names = {e.get("name", "").lower() for e in extraction.get("entities", [])}
+    relations = extraction.get("relations", [])
+
+    if not relations:
+        return {"passed": True, "orphan_rate": 0.0, "orphans": []}
+
+    orphans = []
+    for rel in relations:
+        source = rel.get("source", "")
+        target = rel.get("target", "")
+        if source.lower() not in entity_names:
+            orphans.append({"endpoint": "source", "name": source, "rel": rel.get("rel", "")})
+        if target.lower() not in entity_names:
+            orphans.append({"endpoint": "target", "name": target, "rel": rel.get("rel", "")})
+
+    orphan_rate = len(orphans) / (len(relations) * 2)  # 2 endpoints per relation
+    threshold = GATE_THRESHOLDS["orphan_max"]
+
+    return {
+        "passed": orphan_rate <= threshold,
+        "orphan_rate": round(orphan_rate, 3),
+        "orphan_count": len(orphans),
+        "orphans": orphans[:20],  # cap debug output
+    }
+
+
+def check_zero_value(
+    extraction: dict[str, Any],
+    source_text_length: int,
+) -> dict[str, Any]:
+    """Gate C: Catch schema-valid but empty/useless extractions.
+
+    Args:
+        extraction: Validated extraction dict
+        source_text_length: Length of source document in chars
+
+    Returns:
+        Dict with passed and reason
+    """
+    min_chars = GATE_THRESHOLDS["zero_value_min_doc_chars"]
+    if source_text_length < min_chars:
+        return {"passed": True, "reason": "doc_too_short_to_gate"}
+
+    n_entities = len(extraction.get("entities", []))
+    n_relations = len(extraction.get("relations", []))
+
+    min_entities = GATE_THRESHOLDS["zero_value_min_entities"]
+
+    if n_entities == 0:
+        return {"passed": False, "reason": f"zero_entities (doc={source_text_length} chars)"}
+
+    if n_entities > 3 and n_relations == 0:
+        return {"passed": False, "reason": f"no_relations ({n_entities} entities, 0 relations)"}
+
+    return {"passed": True, "reason": "ok"}
+
+
+def check_high_confidence_bad_evidence(
+    extraction: dict[str, Any],
+    source_text: str,
+) -> dict[str, Any]:
+    """Gate D: Detect the worst failure mode — high confidence + fabricated evidence.
+
+    If a relation is asserted with high confidence but its evidence snippet
+    can't be found in the source text, that's the most dangerous kind of
+    hallucination (looks trustworthy, is fake).
+
+    Args:
+        extraction: Validated extraction dict
+        source_text: The cleaned article text
+
+    Returns:
+        Dict with passed and flagged_relations list
+    """
+    normalized_source = _normalize_for_match(source_text)
+    flagged = []
+
+    for rel in extraction.get("relations", []):
+        if rel.get("kind") != "asserted":
+            continue
+        if rel.get("confidence", 0) < 0.8:
+            continue
+
+        for ev in rel.get("evidence", []):
+            snippet = ev.get("snippet", "")
+            if not snippet:
+                continue
+            normalized_snippet = _normalize_for_match(snippet)
+            if normalized_snippet not in normalized_source:
+                flagged.append({
+                    "source": rel.get("source", ""),
+                    "rel": rel.get("rel", ""),
+                    "target": rel.get("target", ""),
+                    "confidence": rel.get("confidence"),
+                    "snippet": snippet[:200],
+                })
+                break  # one bad snippet per relation is enough
+
+    return {
+        "passed": len(flagged) == 0,
+        "flagged_count": len(flagged),
+        "flagged_relations": flagged[:10],  # cap debug output
+    }
+
+
+def run_quality_gates(
+    extraction: dict[str, Any],
+    source_text: str,
+) -> dict[str, Any]:
+    """Run all Phase 1 non-negotiable gates.
+
+    Returns a combined result with per-gate details and an overall pass/fail.
+    If any gate fails, the overall result is 'escalate'.
+
+    Args:
+        extraction: Validated extraction dict
+        source_text: The cleaned article text
+
+    Returns:
+        Dict with overall_passed, gate results, and escalation_reasons
+    """
+    source_text_length = len(source_text)
+
+    evidence = check_evidence_fidelity(extraction, source_text)
+    orphans = check_orphan_endpoints(extraction)
+    zero_value = check_zero_value(extraction, source_text_length)
+    high_conf = check_high_confidence_bad_evidence(extraction, source_text)
+
+    gates = {
+        "evidence_fidelity": evidence,
+        "orphan_endpoints": orphans,
+        "zero_value": zero_value,
+        "high_confidence_bad_evidence": high_conf,
+    }
+
+    escalation_reasons = []
+    if not evidence["passed"]:
+        escalation_reasons.append(
+            f"evidence_fidelity: {evidence['match_rate']:.0%} "
+            f"< {GATE_THRESHOLDS['evidence_fidelity_min']:.0%}"
+        )
+    if not orphans["passed"]:
+        escalation_reasons.append(
+            f"orphan_endpoints: {orphans['orphan_count']} orphans"
+        )
+    if not zero_value["passed"]:
+        escalation_reasons.append(f"zero_value: {zero_value['reason']}")
+    if not high_conf["passed"]:
+        escalation_reasons.append(
+            f"high_conf_bad_evidence: {high_conf['flagged_count']} flagged"
+        )
+
+    return {
+        "overall_passed": all(g["passed"] for g in gates.values()),
+        "gates": gates,
+        "escalation_reasons": escalation_reasons,
+    }
+
+
+def evaluate_extraction(
+    extraction: dict[str, Any],
+    source_text: str,
+) -> dict[str, Any]:
+    """Full quality evaluation: gates first, then scoring.
+
+    This is the unified entry point for Phase 0+1 quality evaluation.
+    Gates are checked first — if any gate fails, escalation is immediate
+    regardless of the quality score. If all gates pass, the existing
+    scoring function determines whether to escalate.
+
+    Args:
+        extraction: Validated extraction dict
+        source_text: The cleaned article text the model was given
+
+    Returns:
+        Dict with:
+            escalate: bool — should we escalate to specialist?
+            decision: str — 'accept' or 'escalate'
+            decision_reason: str — why
+            gates: gate results
+            quality: scoring results
+    """
+    source_text_length = len(source_text)
+
+    # Phase 1: Run non-negotiable gates
+    gate_results = run_quality_gates(extraction, source_text)
+
+    # Phase existing: Run quality scoring
+    quality = score_extraction_quality(extraction, source_text_length)
+
+    if not gate_results["overall_passed"]:
+        # Gate failure — escalate immediately regardless of score
+        reason = "gate_failed: " + "; ".join(gate_results["escalation_reasons"])
+        return {
+            "escalate": True,
+            "decision": "escalate",
+            "decision_reason": reason,
+            "gates": gate_results,
+            "quality": quality,
+        }
+
+    if quality["escalate"]:
+        # Gates passed but score is low
+        return {
+            "escalate": True,
+            "decision": "escalate",
+            "decision_reason": f"quality_low: score={quality['combined_score']:.2f}",
+            "gates": gate_results,
+            "quality": quality,
+        }
+
+    return {
+        "escalate": False,
+        "decision": "accept",
+        "decision_reason": "gates_passed+quality_ok",
+        "gates": gate_results,
+        "quality": quality,
     }
 
 
