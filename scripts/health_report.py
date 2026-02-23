@@ -4,6 +4,7 @@ Answers "are we on track to a useful graph?" by measuring:
   - Ingestion volume and extraction coverage
   - Entity overlap rate (the key critical-mass metric)
   - Graph density (edges per node)
+  - Extraction quality gates and scoring calibration
   - Per-source contribution quality
   - Source freshness
   - Trajectory projection
@@ -325,6 +326,180 @@ def section_source_freshness(w: ReportWriter, conn: sqlite3.Connection) -> dict:
     return {"stale_sources": stale_count}
 
 
+def section_quality_gates(w: ReportWriter, conn: sqlite3.Connection) -> dict:
+    """Extraction quality gate and scoring metrics from quality_runs/quality_metrics tables.
+
+    Only reports data if the quality tables exist and have rows (Phase 0+1
+    instrumentation must be active). Gracefully skips if tables are empty or
+    missing (pre-Phase 0 databases).
+    """
+    # Check if the quality_runs table exists and has data
+    try:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM quality_runs").fetchone()
+        total_runs = row["cnt"]
+    except Exception:
+        return {}
+
+    if total_runs == 0:
+        w.print("Extraction Quality")
+        w.print("=" * 72)
+        w.print("  No quality data yet (run extract with Phase 0+1 to populate)")
+        w.print()
+        return {}
+
+    w.print("Extraction Quality")
+    w.print("=" * 72)
+
+    # --- Decision breakdown ---
+    cursor = conn.execute(
+        "SELECT decision, COUNT(*) as cnt FROM quality_runs GROUP BY decision ORDER BY cnt DESC"
+    )
+    decision_rows = cursor.fetchall()
+
+    w.print(f"  Total evaluations: {total_runs}")
+    for r in decision_rows:
+        pct = r["cnt"] / total_runs * 100
+        w.print(f"    {r['decision']:<20} {r['cnt']:>5}  ({pct:.0f}%)")
+
+    # --- Escalation reasons ---
+    cursor = conn.execute(
+        """
+        SELECT
+            CASE
+                WHEN decision_reason LIKE 'gate_failed%' THEN 'gate_failure'
+                WHEN decision_reason LIKE 'quality_low%' THEN 'score_low'
+                ELSE decision_reason
+            END as reason_type,
+            COUNT(*) as cnt
+        FROM quality_runs
+        WHERE decision = 'escalate'
+        GROUP BY reason_type
+        ORDER BY cnt DESC
+        """
+    )
+    reason_rows = cursor.fetchall()
+    escalated = sum(r["cnt"] for r in reason_rows)
+
+    if reason_rows:
+        w.print(f"\n  Escalation breakdown ({escalated} total):")
+        for r in reason_rows:
+            w.print(f"    {r['reason_type']:<30} {r['cnt']:>5}")
+
+    # --- Per-model quality ---
+    cursor = conn.execute(
+        """
+        SELECT model,
+               COUNT(*) as runs,
+               AVG(quality_score) as avg_score,
+               MIN(quality_score) as min_score,
+               MAX(quality_score) as max_score,
+               AVG(duration_ms) as avg_duration
+        FROM quality_runs
+        WHERE quality_score IS NOT NULL
+        GROUP BY model
+        ORDER BY avg_score DESC
+        """
+    )
+    model_rows = cursor.fetchall()
+
+    if model_rows:
+        w.print(f"\n  Per-model quality:")
+        w.print(f"  {'Model':<30} {'Runs':>5} {'Avg':>6} {'Min':>6} {'Max':>6} {'Avg ms':>8}")
+        w.print(f"  {'─' * 63}")
+        for r in model_rows:
+            model = r["model"][:28] + ".." if len(r["model"]) > 30 else r["model"]
+            avg_dur = f"{r['avg_duration']:.0f}" if r["avg_duration"] else "--"
+            w.print(
+                f"  {model:<30} {r['runs']:>5} "
+                f"{r['avg_score']:>6.2f} {r['min_score']:>6.2f} {r['max_score']:>6.2f} "
+                f"{avg_dur:>8}"
+            )
+
+    # --- Gate pass rates ---
+    gate_names = [
+        ("evidence_fidelity_rate", "Evidence fidelity", 0.70),
+        ("orphan_rate", "Orphan endpoints", 0.0),
+        ("zero_value", "Zero-value", None),
+        ("high_conf_bad_evidence", "High-conf bad evidence", None),
+    ]
+
+    w.print(f"\n  Gate pass rates:")
+    w.print(f"  {'Gate':<30} {'Total':>5} {'Pass':>5} {'Fail':>5} {'Rate':>7} {'Avg Value':>10}")
+    w.print(f"  {'─' * 63}")
+
+    for metric_name, label, threshold in gate_names:
+        cursor = conn.execute(
+            """
+            SELECT COUNT(*) as total,
+                   SUM(CASE WHEN passed = 1 THEN 1 ELSE 0 END) as pass_cnt,
+                   SUM(CASE WHEN passed = 0 THEN 1 ELSE 0 END) as fail_cnt,
+                   AVG(metric_value) as avg_val
+            FROM quality_metrics
+            WHERE metric_name = ?
+            """,
+            (metric_name,),
+        )
+        r = cursor.fetchone()
+        total = r["total"] or 0
+        if total == 0:
+            continue
+        pass_cnt = r["pass_cnt"] or 0
+        fail_cnt = r["fail_cnt"] or 0
+        rate = pass_cnt / total * 100 if total else 0
+        avg_val = f"{r['avg_val']:.3f}" if r["avg_val"] is not None else "--"
+        w.print(
+            f"  {label:<30} {total:>5} {pass_cnt:>5} {fail_cnt:>5} {rate:>6.0f}% {avg_val:>10}"
+        )
+
+    # --- Evidence fidelity distribution (calibration) ---
+    cursor = conn.execute(
+        """
+        SELECT AVG(metric_value) as avg_val,
+               MIN(metric_value) as min_val,
+               MAX(metric_value) as max_val
+        FROM quality_metrics
+        WHERE metric_name = 'evidence_fidelity_rate'
+        """
+    )
+    ef = cursor.fetchone()
+    if ef and ef["avg_val"] is not None:
+        w.print(f"\n  Evidence fidelity distribution:")
+        w.print(f"    avg={ef['avg_val']:.3f}  min={ef['min_val']:.3f}  max={ef['max_val']:.3f}")
+        w.print(f"    threshold=0.70  {'OK — avg above threshold' if ef['avg_val'] >= 0.70 else 'WARN — avg below threshold'}")
+
+    # --- Scoring signal averages (for calibration) ---
+    signals = [
+        "density_score", "evidence_score", "confidence_score",
+        "connectivity_score", "diversity_score", "tech_score",
+    ]
+    cursor = conn.execute(
+        f"""
+        SELECT metric_name, AVG(metric_value) as avg_val
+        FROM quality_metrics
+        WHERE metric_name IN ({','.join('?' for _ in signals)})
+        GROUP BY metric_name
+        ORDER BY avg_val ASC
+        """,
+        signals,
+    )
+    signal_rows = cursor.fetchall()
+
+    if signal_rows:
+        w.print(f"\n  Scoring signal averages (lowest = weakest):")
+        for r in signal_rows:
+            bar_len = int(r["avg_val"] * 20) if r["avg_val"] else 0
+            bar = "█" * bar_len + "░" * (20 - bar_len)
+            w.print(f"    {r['metric_name']:<25} {r['avg_val']:>5.2f}  {bar}")
+
+    w.print()
+
+    return {
+        "total_runs": total_runs,
+        "escalated": escalated,
+        "models": len(model_rows) if model_rows else 0,
+    }
+
+
 def section_trajectory(
     w: ReportWriter,
     ingestion: dict,
@@ -407,6 +582,7 @@ def run_report(db_path: Path, days: int | None, summary_only: bool = False) -> i
     extraction = section_extraction_coverage(w, conn, extractions_dir)
     graph = section_graph_density(w, conn)
     overlap = section_entity_overlap(w, conn)
+    section_quality_gates(w, conn)
     section_source_contribution(w, conn)
     section_source_freshness(w, conn)
     section_trajectory(w, ingestion, extraction, graph, overlap)
