@@ -47,12 +47,13 @@ from extract import (
     save_extraction,
     compare_extractions,
     score_extraction_quality,
+    evaluate_extraction,
     ExtractionError,
     EXTRACTOR_VERSION,
     ESCALATION_THRESHOLD,
     OPENAI_EXTRACTION_TOOL,
 )
-from db import init_db, insert_extraction_comparison
+from db import init_db, insert_extraction_comparison, insert_quality_evaluation
 
 
 def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
@@ -411,11 +412,36 @@ def run_escalation(
                 time.sleep(0.5)
             continue
 
-        # Step 2: Score the cheap extraction
-        quality = score_extraction_quality(extraction, len(source_text))
-        score = quality["combined_score"]
+        # Step 2: Evaluate the cheap extraction (gates + scoring)
+        evaluation = evaluate_extraction(extraction, source_text)
+        score = evaluation["quality"]["combined_score"]
+        gate_info = ""
+        if not evaluation["gates"]["overall_passed"]:
+            reasons = evaluation["gates"]["escalation_reasons"]
+            gate_info = f" [GATE FAIL: {'; '.join(reasons)}]"
 
-        if not quality["escalate"]:
+        # Phase 0: Log quality evaluation to DB
+        if conn:
+            import uuid
+            from datetime import datetime, timezone
+            try:
+                _provider = "openai" if cheap_model.startswith(("gpt-", "o1", "o3", "o4")) else "anthropic"
+                insert_quality_evaluation(
+                    conn,
+                    run_id=str(uuid.uuid4()),
+                    doc_id=doc_id,
+                    pipeline_stage="cheap_extract",
+                    model=cheap_model,
+                    started_at=datetime.now(timezone.utc).isoformat(),
+                    duration_ms=duration_ms,
+                    evaluation=evaluation,
+                    input_chars=len(source_text),
+                    provider=_provider,
+                )
+            except Exception as qe:
+                print(f"[quality_log warning: {qe}]", end="", flush=True)
+
+        if not evaluation["escalate"]:
             # Good enough — keep the cheap result
             extraction["_extractedBy"] = cheap_model
             extraction["_qualityScore"] = score
@@ -423,24 +449,39 @@ def run_escalation(
 
             entity_count = len(extraction.get("entities", []))
             relation_count = len(extraction.get("relations", []))
-            print(f"cheap OK (q={score:.2f}, {entity_count}e, {relation_count}r, {duration_ms}ms)")
+            print(f"cheap OK (q={score:.2f}, {entity_count}e, {relation_count}r, {duration_ms}ms){gate_info}")
             succeeded += 1
         else:
-            # Quality too low — escalate to specialist
-            print(f"cheap q={score:.2f} < {ESCALATION_THRESHOLD}, escalating... ", end="", flush=True)
+            # Quality too low or gate failed — escalate to specialist
+            reason_short = evaluation["decision_reason"][:80]
+            print(f"cheap q={score:.2f} ({reason_short}), escalating... ", end="", flush=True)
             try:
                 spec_response, spec_duration = extract_document(doc, model=specialist_model)
                 spec_extraction = parse_extraction_response(spec_response, doc_id)
                 spec_extraction["_extractedBy"] = specialist_model
-                spec_extraction["_escalationReason"] = (
-                    f"quality_low: score={score:.2f}, "
-                    f"density={quality['entity_density']:.1f}, "
-                    f"evidence={quality['evidence_coverage']:.0%}, "
-                    f"confidence={quality['avg_confidence']:.2f}"
-                )
-                spec_extraction["_qualityScore"] = score_extraction_quality(
-                    spec_extraction, len(source_text)
-                )["combined_score"]
+                spec_extraction["_escalationReason"] = evaluation["decision_reason"]
+                spec_eval = evaluate_extraction(spec_extraction, source_text)
+                spec_extraction["_qualityScore"] = spec_eval["quality"]["combined_score"]
+
+                # Log specialist quality too
+                if conn:
+                    try:
+                        _spec_provider = "openai" if specialist_model.startswith(("gpt-", "o1", "o3", "o4")) else "anthropic"
+                        insert_quality_evaluation(
+                            conn,
+                            run_id=str(uuid.uuid4()),
+                            doc_id=doc_id,
+                            pipeline_stage="specialist_extract",
+                            model=specialist_model,
+                            started_at=datetime.now(timezone.utc).isoformat(),
+                            duration_ms=spec_duration,
+                            evaluation=spec_eval,
+                            input_chars=len(source_text),
+                            provider=_spec_provider,
+                        )
+                    except Exception as qe:
+                        print(f"[quality_log warning: {qe}]", end="", flush=True)
+
                 save_extraction(spec_extraction, output_dir)
 
                 entity_count = len(spec_extraction.get("entities", []))
