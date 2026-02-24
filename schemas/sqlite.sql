@@ -10,7 +10,10 @@ CREATE TABLE IF NOT EXISTS documents (
   text_path TEXT,
   content_hash TEXT,
   status TEXT,
-  error TEXT
+  error TEXT,
+  extracted_by TEXT,          -- model that produced the kept extraction
+  quality_score REAL,         -- combined quality score (0.0-1.0)
+  escalation_failed TEXT      -- non-NULL if specialist failed; contains error message
 );
 
 CREATE INDEX IF NOT EXISTS idx_documents_url ON documents(url);

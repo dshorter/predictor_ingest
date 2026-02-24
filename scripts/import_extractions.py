@@ -186,10 +186,18 @@ def import_extractions(
             )
             stats["mentions_generated"] += 1
 
-        # Update document status
+        # Update document status and extraction metadata
+        extracted_by = extraction.get("_extractedBy")
+        quality_score = extraction.get("_qualityScore")
+        escalation_failed = extraction.get("_escalationFailed")
         conn.execute(
-            "UPDATE documents SET status = 'extracted' WHERE doc_id = ?",
-            (doc_id,),
+            """UPDATE documents
+               SET status = 'extracted',
+                   extracted_by = COALESCE(?, extracted_by),
+                   quality_score = COALESCE(?, quality_score),
+                   escalation_failed = ?
+               WHERE doc_id = ?""",
+            (extracted_by, quality_score, escalation_failed, doc_id),
         )
         conn.commit()
 

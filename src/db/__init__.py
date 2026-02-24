@@ -54,7 +54,28 @@ def init_db(db_path: Path) -> sqlite3.Connection:
     conn.executescript(schema)
     conn.commit()
 
+    # Migration: add extraction metadata columns to documents table
+    if is_existing:
+        _migrate_documents_extraction_cols(conn)
+
     return conn
+
+
+def _migrate_documents_extraction_cols(conn: sqlite3.Connection) -> None:
+    """Add extracted_by, quality_score, escalation_failed columns if missing."""
+    cols = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(documents)").fetchall()
+    }
+    new_cols = [
+        ("extracted_by", "TEXT"),
+        ("quality_score", "REAL"),
+        ("escalation_failed", "TEXT"),
+    ]
+    for col_name, col_type in new_cols:
+        if col_name not in cols:
+            conn.execute(f"ALTER TABLE documents ADD COLUMN {col_name} {col_type}")
+    conn.commit()
 
 
 def insert_entity(
