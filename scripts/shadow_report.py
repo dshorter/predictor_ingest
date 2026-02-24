@@ -107,6 +107,8 @@ def run_escalation_stats(extractions_dir: Path) -> None:
 
     by_model: dict[str, int] = {}
     escalated_count = 0
+    escalation_failed_count = 0
+    escalation_failed_docs: list[str] = []
     total = 0
     quality_scores: list[float] = []
 
@@ -124,6 +126,9 @@ def run_escalation_stats(extractions_dir: Path) -> None:
         by_model[model] = by_model.get(model, 0) + 1
         if data.get("_escalationReason"):
             escalated_count += 1
+        if data.get("_escalationFailed"):
+            escalation_failed_count += 1
+            escalation_failed_docs.append(f.stem)
         qs = data.get("_qualityScore")
         if qs is not None:
             quality_scores.append(qs)
@@ -145,6 +150,12 @@ def run_escalation_stats(extractions_dir: Path) -> None:
         if cheap_count > 0:
             # Rough cost savings estimate
             print(f"  Kept cheap result:       {cheap_count}/{total} ({100-esc_pct:.0f}%)")
+    if escalation_failed_count > 0:
+        print(f"\n  Escalation FAILED (fell back to cheap): {escalation_failed_count}")
+        for doc_id in escalation_failed_docs[:10]:
+            print(f"    - {doc_id}")
+        if len(escalation_failed_docs) > 10:
+            print(f"    ... and {len(escalation_failed_docs) - 10} more")
 
     if quality_scores:
         avg_q = sum(quality_scores) / len(quality_scores)

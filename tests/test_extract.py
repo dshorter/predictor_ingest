@@ -14,6 +14,9 @@ from extract import (
     save_extraction,
     load_extraction,
     import_manual_extraction,
+    normalize_extraction,
+    RELATION_NORMALIZATION,
+    RELATION_TYPES,
     ExtractionError,
 )
 
@@ -261,3 +264,122 @@ class TestExtractionVersioning:
         prompt = build_extraction_prompt(doc, extractor_version="2.0.0")
 
         assert "2.0.0" in prompt
+
+
+class TestRelationNormalization:
+    """Test that near-miss relation types are normalized to canonical forms."""
+
+    def test_produced_maps_to_produces(self):
+        """PRODUCED (past tense) should normalize to PRODUCES."""
+        data = {
+            "entities": [],
+            "relations": [{"rel": "PRODUCED", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "PRODUCES"
+
+    def test_measured_maps_to_measures(self):
+        data = {
+            "entities": [],
+            "relations": [{"rel": "MEASURED", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "MEASURES"
+
+    def test_affected_maps_to_affects(self):
+        data = {
+            "entities": [],
+            "relations": [{"rel": "AFFECTED", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "AFFECTS"
+
+    def test_predicted_maps_to_predicts(self):
+        data = {
+            "entities": [],
+            "relations": [{"rel": "PREDICTED", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "PREDICTS"
+
+    def test_trained_maps_to_trained_on(self):
+        data = {
+            "entities": [],
+            "relations": [{"rel": "TRAINED", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "TRAINED_ON"
+
+    def test_canonical_types_pass_through(self):
+        """Canonical relation types should not be modified."""
+        data = {
+            "entities": [],
+            "relations": [{"rel": "PRODUCES", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "PRODUCES"
+
+    def test_all_normalization_targets_are_valid(self):
+        """Every value in RELATION_NORMALIZATION must be a valid canonical type."""
+        for alias, canonical in RELATION_NORMALIZATION.items():
+            assert canonical in RELATION_TYPES, (
+                f"RELATION_NORMALIZATION['{alias}'] = '{canonical}' "
+                f"is not a valid relation type"
+            )
+
+    def test_gerund_forms_normalized(self):
+        """Present-tense gerund forms should normalize correctly."""
+        gerund_cases = {
+            "PRODUCING": "PRODUCES",
+            "MEASURING": "MEASURES",
+            "PREDICTING": "PREDICTS",
+            "DETECTING": "DETECTS",
+            "MONITORING": "MONITORS",
+        }
+        for gerund, expected in gerund_cases.items():
+            data = {
+                "entities": [],
+                "relations": [{"rel": gerund, "source": "A", "target": "B"}],
+            }
+            result = normalize_extraction(data)
+            assert result["relations"][0]["rel"] == expected, (
+                f"{gerund} should map to {expected}"
+            )
+
+    def test_case_insensitive_normalization(self):
+        """Normalization should work regardless of input casing."""
+        data = {
+            "entities": [],
+            "relations": [{"rel": "produced", "source": "A", "target": "B"}],
+        }
+        result = normalize_extraction(data)
+        assert result["relations"][0]["rel"] == "PRODUCES"
+
+    def test_parse_extraction_normalizes_before_validation(self):
+        """parse_extraction_response should normalize PRODUCED to PRODUCES
+        instead of failing validation."""
+        response = json.dumps({
+            "docId": "doc1",
+            "extractorVersion": "1.0.0",
+            "entities": [
+                {"name": "Google", "type": "Org"},
+                {"name": "Gemini", "type": "Model"},
+            ],
+            "relations": [{
+                "source": "Google",
+                "rel": "PRODUCED",
+                "target": "Gemini",
+                "kind": "asserted",
+                "confidence": 0.9,
+                "evidence": [{
+                    "docId": "doc1",
+                    "url": "https://example.com",
+                    "published": "2025-01-01",
+                    "snippet": "Google produced Gemini...",
+                }],
+            }],
+            "techTerms": [],
+            "dates": [],
+        })
+        result = parse_extraction_response(response, doc_id="doc1")
+        assert result["relations"][0]["rel"] == "PRODUCES"

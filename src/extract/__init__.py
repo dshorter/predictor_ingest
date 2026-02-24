@@ -73,6 +73,33 @@ RELATION_NORMALIZATION = {
     "CREATES": "CREATED",
     "DISCOVERED": "CREATED",
     "COMPETED_IN": "EVALUATED_ON",
+    # Past-tense of canonical present-tense relation types
+    "PRODUCED": "PRODUCES",
+    "MEASURED": "MEASURES",
+    "AFFECTED": "AFFECTS",
+    "PREDICTED": "PREDICTS",
+    "DETECTED": "DETECTS",
+    "MONITORED": "MONITORS",
+    "REQUIRED": "REQUIRES",
+    "DEPENDED_ON": "DEPENDS_ON",
+    "INTEGRATED": "INTEGRATES_WITH",
+    "GOVERNED": "GOVERNS",
+    "REGULATED": "REGULATES",
+    "COMPLIED_WITH": "COMPLIES_WITH",
+    # Present-tense gerund forms of canonical types
+    "PRODUCING": "PRODUCES",
+    "MEASURING": "MEASURES",
+    "AFFECTING": "AFFECTS",
+    "PREDICTING": "PREDICTS",
+    "DETECTING": "DETECTS",
+    "MONITORING": "MONITORS",
+    "REQUIRING": "REQUIRES",
+    "GOVERNING": "GOVERNS",
+    "REGULATING": "REGULATES",
+    # Other common near-misses
+    "TRAINED": "TRAINED_ON",
+    "EVALUATED": "EVALUATED_ON",
+    "DEPENDED": "DEPENDS_ON",
 }
 
 
