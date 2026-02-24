@@ -598,7 +598,7 @@ def main() -> int:
             "parse": parse_extract_output,
             "fatal": False,
             "skip": args.skip_extract,
-            "timeout": 1800,  # 30 min — extraction calls LLM per doc
+            "timeout": 10800,  # 3 hours — escalation mode can run 100+ docs × 30-120s each
             "stream": True,   # show per-doc progress in real-time
         },
         {

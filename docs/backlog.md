@@ -27,6 +27,40 @@ Also need entity resolution to merge duplicates already created.
 **Waiting on:** More days of pipeline output to see the full pattern of
 misclassifications before tuning.
 
+### EXT-2: Density score prompt tuning
+
+**Observed:** 2026-02-23 | **Priority:** Medium (wait for full backlog)
+
+Density scores vary significantly by source type (arXiv papers vs blog posts
+vs news articles). Prompt tuning should wait until the full backlog is
+extracted so we have representative density numbers across all ~10 source
+types. Tuning against partial data risks overfitting to academic content.
+
+**Waiting on:** Backlog extraction to complete across all source types.
+
+### EXT-3: Add confidence calibration guidance to extraction prompt
+
+**Observed:** 2026-02-23 | **Priority:** Medium (wait for full backlog)
+
+Sonnet produces uniformly high confidence scores (0.85–0.95) with low
+variance, making the UI confidence slider almost useless as a filter. The
+current prompt says `confidence: 0.0 to 1.0` but gives no rubric for what
+different levels mean.
+
+Contributing factors beyond model disposition:
+- MAX aggregation in graph export ratchets confidence upward as more docs
+  cover the same entities (`src/graph/__init__.py:359`)
+- MENTIONS relations are hardcoded to 1.0 (`scripts/import_extractions.py:183`)
+- Quality gates create survivorship bias toward high-confidence edges
+
+**Likely fix:** Add explicit calibration rubric to the extraction prompt, e.g.:
+- 0.5–0.7 for indirect/implied relationships
+- 0.8+ only for explicitly stated facts with direct evidence
+- Reserve 0.95+ for relationships stated in the document's headline/thesis
+
+**Waiting on:** Full backlog extraction to establish baseline confidence
+distribution across all source types before tuning.
+
 ---
 
 ## Entity Resolution
