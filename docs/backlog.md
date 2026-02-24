@@ -61,6 +61,32 @@ Contributing factors beyond model disposition:
 **Waiting on:** Full backlog extraction to establish baseline confidence
 distribution across all source types before tuning.
 
+### EXT-4: Analyze cheap model failure patterns for prompt tuning
+
+**Observed:** 2026-02-24 | **Priority:** Medium (actionable now that backlog is done)
+
+The cheap model (gpt-5-nano) frequently triggers escalation due to quality
+gate failures — most commonly orphan endpoints (relations pointing to entities
+not in the `entities[]` array). Example: doc `2026-02-05_google_ai_blog_daae96d0`
+scored q=0.44 with 18 orphans.
+
+When escalation fires, the specialist (Sonnet) sometimes also fails due to
+near-miss schema violations (e.g. `PRODUCED` instead of `PRODUCES` — now fixed
+by normalization). In those cases the system falls back to the cheap result
+with `_escalationFailed` set, wasting both API calls.
+
+**Analysis needed:**
+- Query `documents WHERE escalation_failed IS NOT NULL` to find all fallback cases
+- Categorize cheap model failure reasons: orphans vs low density vs evidence gaps
+- Check whether orphan failures correlate with specific source types or doc lengths
+- Determine if prompt changes (e.g. "every relation source/target MUST appear in
+  entities[]") would reduce orphan rate enough to avoid escalation
+
+**Data sources:** `quality_metrics` table, extraction JSON `_escalationFailed`
+and `_qualityScore` fields, `shadow_report.py` output.
+
+**Depends on:** Backlog extraction complete (done). Schema normalization fix (done).
+
 ---
 
 ## Entity Resolution
