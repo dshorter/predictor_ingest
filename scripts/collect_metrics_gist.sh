@@ -108,7 +108,7 @@ fi
 
 echo "Creating gist..."
 if [ ${#NORMAL_FILES[@]} -gt 0 ]; then
-    GIST_URL=$(gh gist create --public -d "predictor_ingest metrics $(date +%Y-%m-%d %H:%M)" "${NORMAL_FILES[@]}")
+    GIST_URL=$(gh gist create --public -d "predictor_ingest metrics $(date '+%Y-%m-%d %H:%M')" "${NORMAL_FILES[@]}")
     echo "Gist created: $GIST_URL"
 fi
 
