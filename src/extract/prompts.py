@@ -159,6 +159,9 @@ Your job is to extract structured data and return it via the emit_extraction too
 - Mark uncertain relations as "inferred" or "hypothesis"
 - Keep evidence snippets short (≤200 chars)
 - Prefer MENTIONS as the base relation; only use semantic relations when evidence supports them
+- Every relation source and target MUST exactly match an entity name in your entities list
+- Evidence snippets MUST be direct quotes or close paraphrases from the document text, not recalled from memory
+- Non-trivial documents should produce at least 3 relations connecting entities
 """
 
 

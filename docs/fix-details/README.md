@@ -120,3 +120,28 @@ Proportional scoring against meaningful targets is more discriminating than
 binary pass/fail against low floors.
 
 **Status:** RESOLVED — 2026-02-22
+
+---
+
+## EXT-4: Cheap Model Escalation Analysis & Prompt Tuning (February 2026)
+
+**Problem:** After the scoring overhaul, the cheap model (gpt-5-nano) triggered
+escalation on 80% of documents — making the cheap-first strategy more expensive
+than running the specialist directly.
+
+**Root Causes:** Orphan endpoints (dominant), bimodal evidence fidelity, zero-value
+extractions, and high-confidence fabricated evidence. All traced to the nano model's
+weaker instruction-following, not to gate miscalibration.
+
+**Resolution:** Three lightweight prompt additions to the system prompt's Critical
+Rules section — explicit orphan constraint, evidence grounding, minimum relations.
+Designed to be short and clear enough not to overload the nano model's context.
+
+**Document:** [ext4-cheap-model-escalation-analysis.md](ext4-cheap-model-escalation-analysis.md)
+
+**Key Takeaway:** Scoring and gates can diagnose quality problems, but they can't
+fix them — that requires prompt tuning. However, prompt tuning on a cheap model has
+limited headroom. Adding constraints must be balanced against the model's capacity
+to follow them all simultaneously.
+
+**Status:** IN PROGRESS — prompt tuning applied 2026-02-25, measuring over next ~100 extractions
