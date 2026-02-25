@@ -61,31 +61,33 @@ Contributing factors beyond model disposition:
 **Waiting on:** Full backlog extraction to establish baseline confidence
 distribution across all source types before tuning.
 
-### EXT-4: Analyze cheap model failure patterns for prompt tuning
+### EXT-4: Cheap model escalation rate too high (80%)
 
-**Observed:** 2026-02-24 | **Priority:** Medium (actionable now that backlog is done)
+**Observed:** 2026-02-24 | **Analyzed:** 2026-02-25 | **Priority:** Medium | **Status:** Prompt tuning applied, measuring
 
-The cheap model (gpt-5-nano) frequently triggers escalation due to quality
-gate failures — most commonly orphan endpoints (relations pointing to entities
-not in the `entities[]` array). Example: doc `2026-02-05_google_ai_blog_daae96d0`
-scored q=0.44 with 18 orphans.
+Analysis of 223 extractions (Feb 22–24) showed an 80% escalation rate — the cheap
+model (gpt-5-nano) fails quality gates on 4 out of 5 documents, making the
+cheap-first strategy more expensive than running Sonnet directly.
 
-When escalation fires, the specialist (Sonnet) sometimes also fails due to
-near-miss schema violations (e.g. `PRODUCED` instead of `PRODUCES` — now fixed
-by normalization). In those cases the system falls back to the cheap result
-with `_escalationFailed` set, wasting both API calls.
+**Failure modes (ranked by frequency):**
+1. Orphan endpoints — relation source/target doesn't match entity names (dominant)
+2. Evidence fidelity < 70% — bimodal distribution, low cluster at ~0.4
+3. Zero-value — entities extracted but zero relations
+4. High confidence + bad evidence — 0.9+ confidence with fabricated snippets
 
-**Analysis needed:**
-- Query `documents WHERE escalation_failed IS NOT NULL` to find all fallback cases
-- Categorize cheap model failure reasons: orphans vs low density vs evidence gaps
-- Check whether orphan failures correlate with specific source types or doc lengths
-- Determine if prompt changes (e.g. "every relation source/target MUST appear in
-  entities[]") would reduce orphan rate enough to avoid escalation
+**Action taken (2026-02-25):** Three lightweight prompt additions to
+`build_extraction_system_prompt()` in `src/extract/prompts.py`:
+- Explicit orphan constraint (source/target must match entity names)
+- Evidence grounding (snippets must be quotes from text, not memory)
+- Minimum relations (non-trivial docs should produce ≥3 relations)
 
-**Data sources:** `quality_metrics` table, extraction JSON `_escalationFailed`
-and `_qualityScore` fields, `shadow_report.py` output.
+**Measurement:** After ~100 more extractions, compare escalation rate (target < 50%),
+orphan failures (target: halved), evidence fidelity (target avg > 0.85).
 
-**Depends on:** Backlog extraction complete (done). Schema normalization fix (done).
+**Escalation path:** If rate stays above ~50%, drop cheap-first and run Sonnet
+directly (Option C). Cost delta is small (~$8 vs $25/month).
+
+**Details:** [docs/fix-details/ext4-cheap-model-escalation-analysis.md](docs/fix-details/ext4-cheap-model-escalation-analysis.md)
 
 ---
 
