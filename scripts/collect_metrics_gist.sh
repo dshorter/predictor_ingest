@@ -88,7 +88,13 @@ NORMAL_FILES=()
 LARGE_FILES=()
 
 for f in "$OUTDIR"/*.txt "$OUTDIR"/*.csv; do
+    [ -f "$f" ] || continue
     size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null || echo 0)
+    # gh gist create rejects blank files — write a placeholder if empty
+    if [ "$size" -eq 0 ]; then
+        echo "(no data)" > "$f"
+        size=10
+    fi
     if [ "$size" -gt "$LARGE_THRESHOLD" ]; then
         LARGE_FILES+=("$f")
     else
