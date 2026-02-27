@@ -234,6 +234,7 @@ for the boundary definition and enforcement rules.
 |----------|---------|
 | [docs/fix-details/README.md](docs/fix-details/README.md) | Index of resolved production issues with root causes and lessons learned |
 | [docs/backlog.md](docs/backlog.md) | Known issues and prompt-tuning observations awaiting action |
+| [docs/project-plan.md](docs/project-plan.md) | Unified sprint plan across all backlogs, stability-ordered, with model assignments and timeline |
 
 ---
 
