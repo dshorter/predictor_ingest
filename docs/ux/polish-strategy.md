@@ -7,6 +7,10 @@ tool" to "something someone would want to show off."
 Dead code and wiring gaps should be settled before polishing. No point shining something
 that's not fully connected.
 
+**Related:** [delight-backlog.md](delight-backlog.md) covers engagement, discovery, and
+emotional response features (What's Hot, guided entry, visual reward). This doc covers
+aesthetic mechanics (typography, toolbar, canvas). **Desktop-first** guides all UI decisions.
+
 ---
 
 ## Honest Assessment
@@ -160,59 +164,11 @@ checkbox.insertAdjacentHTML('afterend',
 The graph canvas is where users spend 90% of their time. This is where "bare circles"
 becomes "something I want to explore."
 
-### Node shape differentiation
+### ~~Node shape differentiation~~ — REJECTED
 
-**Current:** Every node type is a circle. The only differentiator is color.
-
-**Target:** Map entity types to Cytoscape.js supported shapes:
-
-| Type | Shape | Rationale |
-|------|-------|-----------|
-| Org | round-rectangle | Institutional, structured |
-| Person | ellipse | Human, organic |
-| Model | diamond | Technical artifact, precision |
-| Tool | round-pentagon | Utility, multi-faceted |
-| Dataset | barrel | Storage, volume |
-| Paper | round-tag | Document with pointer |
-| Repo | octagon | Code (GitHub association) |
-| Tech | hexagon | Technical, modular |
-| Topic | round-rectangle | Container of ideas |
-| Others | ellipse | Default organic |
-
-**Why it matters:** Shape + color is a much stronger visual encoding than color alone.
-Users can distinguish types even in dense clusters where colors blur together.
-
-**Cytoscape supports:** `ellipse`, `triangle`, `round-triangle`, `rectangle`,
-`round-rectangle`, `bottom-round-rectangle`, `cut-rectangle`, `barrel`, `rhomboid`,
-`diamond`, `round-diamond`, `pentagon`, `round-pentagon`, `hexagon`, `round-hexagon`,
-`concave-hexagon`, `heptagon`, `round-heptagon`, `octagon`, `round-octagon`, `star`,
-`tag`, `round-tag`, `vee`
-
-**Implementation:** In `styles.js`, add shape mapping:
-```javascript
-function getNodeShape(type) {
-  const shapes = {
-    'Org': 'round-rectangle',
-    'Person': 'ellipse',
-    'Model': 'diamond',
-    'Tool': 'round-pentagon',
-    'Dataset': 'barrel',
-    'Paper': 'round-tag',
-    'Repo': 'octagon',
-    'Tech': 'hexagon',
-    'Topic': 'round-rectangle',
-    // defaults
-  };
-  return shapes[type] || 'ellipse';
-}
-```
-
-Then in the base node style:
-```javascript
-'shape': function(ele) { return getNodeShape(ele.data('type')); }
-```
-
-**Effort:** ~25 lines. Zero dependencies. Massive perceptual impact.
+**Decision (2026-02-27):** Keep all nodes as circles. Different shapes create visual
+noise that resembles a cluttered flowchart. Color-by-type (15 distinct colors) is
+sufficient encoding for entity differentiation. This keeps the graph clean and scannable.
 
 ### Node depth and texture
 
@@ -358,19 +314,12 @@ This breaks the "all styling via tokens" discipline that every other component f
 **Files:** `web/css/components/panel.css`, `web/js/panels.js`
 **Effort:** ~10 lines
 
-### Toolbar touch targets (desktop)
+### ~~Toolbar touch targets (desktop)~~ — ALREADY DONE
 
-**Current:** Some toolbar buttons are 36×36px. The spec recommends ≥44×44px for
-accessibility compliance (WCAG 2.5.5 Target Size).
-
-**Assessment:** 36px is acceptable for desktop mouse interaction but fails the
-accessibility spec. The mobile implementation correctly uses 48px.
-
-**Target:** Increase `.btn-icon` to 40×40px minimum on desktop. Full 44px may crowd
-the toolbar — test and decide.
-
-**Files:** `web/css/components/button.css`
-**Effort:** 1 line (change `width/height` on `.btn-icon`)
+**Status (2026-02-27):** Mobile already enforces 48px minimums with `touch-action:
+manipulation` and `-webkit-tap-highlight-color: transparent`. Cross-OS inconsistency
+in touch target behavior makes further refinement unreliable on mobile. Desktop 36px
+buttons are acceptable for mouse interaction. No further action needed.
 
 ### Tooltip positioning edge cases
 
@@ -453,24 +402,24 @@ After Phase 1 gaps are closed:
 
 A0 (aesthetic identity)   A1 (graph richness)      P1 (interactions)        P2+P3 (cleanup)
 ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────┐    ┌─────────────┐
-│ Typography upgrade   │ │ Node shape mapping   │ │ View transitions │    │ Inline CSS  │
-│ App title presence   │ │ Node depth/texture   │ │ Panel resize     │    │ Touch target│
-│ Toolbar breathing    │─▶│ Canvas dot grid      │─▶│   smoothness     │───▶│ Tooltip pos │
-│ Filter color dots    │ │ Edge arrow refinement│ │ Contextual empty │    │ Search count│
-│   + grouping         │ │ Velocity halo        │ │   states         │    │ What's New  │
+│ Typography upgrade   │ │ Node depth/texture   │ │ View transitions │    │ Inline CSS  │
+│ App title presence   │ │ Canvas dot grid      │ │ Panel resize     │    │ Tooltip pos │
+│ Toolbar breathing    │─▶│ Edge arrow refinement│─▶│   smoothness     │───▶│ Search count│
+│ Filter color dots    │ │ Velocity halo        │ │ Contextual empty │    │ What's New  │
+│   + grouping         │ │                      │ │   states         │    │             │
 └──────────────────────┘ └──────────────────────┘ └──────────────────┘    └─────────────┘
-     ~2 sessions              ~2 sessions              ~2 sessions            ~1 session
+     ~2 sessions              ~1 session               ~2 sessions            ~1 session
 ```
 
-**Total estimated sessions for A0 through P2:** ~7 focused sessions.
+**Total estimated sessions for A0 through P2:** ~6 focused sessions.
 
 **Why A0 before A1:** Typography and toolbar changes affect every screen. Settle the
 identity first, then enrich the graph. If you do A1 first, you'll be evaluating node
-shapes against a toolbar that still looks generic — you can't judge the whole until
+depth cues against a toolbar that still looks generic — you can't judge the whole until
 the frame is right.
 
-**Why A1 before P1:** Node shapes and depth are what users stare at. View transitions
-are nice but secondary to the primary visual artifact.
+**Why A1 before P1:** Node depth and canvas texture are what users stare at. View
+transitions are nice but secondary to the primary visual artifact.
 
 ---
 

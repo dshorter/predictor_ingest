@@ -219,6 +219,8 @@ for the boundary definition and enforcement rules.
 |----------|---------|
 | [docs/ux/README.md](docs/ux/README.md) | Cytoscape client implementation guidelines |
 | [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
+| [docs/ux/polish-strategy.md](docs/ux/polish-strategy.md) | Aesthetic mechanics: typography, toolbar, canvas, node depth |
+| [docs/ux/delight-backlog.md](docs/ux/delight-backlog.md) | Engagement & discovery: What's Hot, guided entry, visual reward. Desktop-first. |
 
 #### Schema & Data
 
