@@ -1,7 +1,7 @@
 # Polish Strategy ("Glow Up")
 
-Visual and interaction refinements that take the UI from "works correctly" to "feels right."
-These are not bugs or spec gaps — they're the difference between a tool and a product.
+Visual, aesthetic, and interaction refinements that take the UI from "competent developer
+tool" to "something someone would want to show off."
 
 **Prerequisite:** Complete [Phase 1 of gap remediation](gap-remediation-plan.md) first.
 Dead code and wiring gaps should be settled before polishing. No point shining something
@@ -11,17 +11,280 @@ that's not fully connected.
 
 ## Honest Assessment
 
-The foundation doesn't need a rescue. The token system, component architecture, and visual
-encoding are genuinely well-built. What's missing is the *connective tissue* — the
-micro-interactions and transitions that make state changes feel intentional rather than
-abrupt.
+The architecture is strong. The token system is real, the component separation is clean,
+the visual encoding carries real information. None of that needs a rescue.
 
-The items below are ordered by **perceptual impact** (what users notice most), not
-engineering effort.
+But it **looks like any internal dashboard.** If you squint, it could be a Grafana panel
+or a Jira dependency view. The bones are there; the soul isn't. Specifically:
+
+1. **No visual identity.** The toolbar is a flat gray bar with system fonts. Nothing says
+   "this is a knowledge graph about AI trends." It could be anything.
+2. **Toolbar feels like a cockpit.** Dense row of small controls. Functional but
+   overwhelming on first open.
+3. **Typography is flat.** System font stack at uniform sizes. No element draws your eye.
+   No hierarchy beyond "bold vs not bold."
+4. **Filter panel is a wall of checkboxes.** 15 entity types, each a plain checkbox with
+   text. Usable but not inviting. Doesn't leverage the color system it already has.
+5. **Graph nodes are bare circles with text.** Flat color fill, thin border, label below.
+   This is the default Cytoscape look. No depth, no texture, no shape differentiation.
+6. **"Built by engineers for engineers."** Everything is there. Nothing is delightful.
+   Nobody opens it and thinks "I want to explore this."
+
+**The goal isn't decoration. It's signal clarity + visual confidence.** A user should
+open this and immediately feel: *this is a serious tool that respects my attention AND
+looks like someone cared about it.*
+
+Reference calibration: Linear, Figma, Raycast, Vercel Dashboard. Clean, confident,
+information-dense but not cluttered.
 
 ---
 
-## P1 — High Perceptual Impact
+## A0 — Aesthetic Identity (do this first within polish)
+
+These changes address the "no visual identity" and "could be any dashboard" critique.
+They're the highest-leverage aesthetic changes because they're what a user perceives
+in the first 3 seconds.
+
+### Typography upgrade
+
+**Current:** `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto...` for everything.
+Every text element looks the same weight.
+
+**Target:** Introduce a single accent/display font for headings and the app title.
+Body text stays as system stack (fast, readable).
+
+**Concrete options (all free, CDN-available):**
+- **Inter** — modern, slightly geometric, excellent at small sizes. Already the default
+  for Linear, Vercel, and most modern dashboards. Safe choice.
+- **Geist Sans** — Vercel's custom font. Slightly more personality than Inter. Narrower.
+- **Plus Jakarta Sans** — warmer, more approachable. Good for titles at larger sizes.
+
+**Approach:**
+1. Add a single `<link>` for the chosen font (Google Fonts CDN or self-host)
+2. Define `--font-display` in `tokens.css`
+3. Apply to: `.app-title`, panel `h2`/`h3` headers, tooltip headers, stat labels
+4. Body text stays as `--font-sans` (system stack)
+5. Use `--font-mono` more aggressively for data values (counts, dates, percentages)
+
+**Impact on current code:**
+- `tokens.css`: add `--font-display` variable
+- `toolbar.css`: `.app-title` uses `--font-display`
+- `panel.css`: section headers use `--font-display`
+- `index.html`: one `<link>` tag
+
+**Why it matters:** Typography is the single highest-leverage visual change. One font
+swap on headings transforms "generic dashboard" into "designed product."
+
+**Effort:** ~20 minutes
+
+### App title presence
+
+**Current:** `.app-title` is `font-size: 18px; font-weight: 600`. Plain text in a bar.
+
+**Target:** Make the title an anchor point:
+- Use the display font at `--text-lg` or `--text-xl`
+- Add subtle letter-spacing (`0.02em`)
+- Consider a small visual mark: a colored dot, a graph icon, or a subtle gradient text
+- The title should communicate "knowledge graph" without being heavy-handed
+
+**Example (subtle):**
+```css
+.app-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, var(--blue-600), var(--color-model));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+```
+
+**Effort:** ~10 lines CSS
+
+### Toolbar breathing room
+
+**Current:** All controls packed in a single row with `gap: 12px`. Dense.
+
+**Target:** Visual grouping with separators and hierarchy:
+1. Add thin vertical dividers (`border-left: 1px solid var(--gray-200)`) between
+   logical groups: [title | view+date | search | zoom+controls]
+2. Increase gap between groups to `--space-5` or `--space-6`
+3. Consider a subtle background tint for the toolbar (`var(--gray-50)` in light mode,
+   slightly elevated from white) to give it visual weight
+4. Toolbar controls that are secondary (zoom in/out, minimap toggle) can be slightly
+   smaller or lower-contrast to reduce perceived density
+
+**Effort:** ~30 lines CSS
+
+### Filter panel: color dots + grouping
+
+**Current:** 15 checkboxes in a flat list. Each is `☐ Org`, `☐ Person`, etc.
+
+**Target:**
+1. Add a colored dot (or small circle swatch) next to each entity type, matching the
+   node color. This creates an immediate visual link: "the purple dot here = the purple
+   nodes on the graph."
+2. Group types into categories:
+   - **People & Organizations:** Org, Person, Program
+   - **Technology:** Model, Tool, Tech, Dataset, Benchmark
+   - **Knowledge:** Paper, Repo, Topic
+   - **Context:** Document, Event, Location, Other
+3. Each group gets a label + collapsible section (already supported by `filter-section`)
+4. Add a row of "Quick filter" pill buttons at the top: `All`, `Tech`, `Orgs`, `None`
+
+**Implementation:**
+```css
+.entity-type-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  margin-right: var(--space-1);
+}
+```
+
+```javascript
+// In filter population
+checkbox.insertAdjacentHTML('afterend',
+  `<span class="entity-type-dot" style="background: ${nodeTypeColors[type]}"></span>`
+);
+```
+
+**Effort:** ~40 lines (CSS + JS)
+
+---
+
+## A1 — Graph Visual Richness (the big perception shift)
+
+The graph canvas is where users spend 90% of their time. This is where "bare circles"
+becomes "something I want to explore."
+
+### Node shape differentiation
+
+**Current:** Every node type is a circle. The only differentiator is color.
+
+**Target:** Map entity types to Cytoscape.js supported shapes:
+
+| Type | Shape | Rationale |
+|------|-------|-----------|
+| Org | round-rectangle | Institutional, structured |
+| Person | ellipse | Human, organic |
+| Model | diamond | Technical artifact, precision |
+| Tool | round-pentagon | Utility, multi-faceted |
+| Dataset | barrel | Storage, volume |
+| Paper | round-tag | Document with pointer |
+| Repo | octagon | Code (GitHub association) |
+| Tech | hexagon | Technical, modular |
+| Topic | round-rectangle | Container of ideas |
+| Others | ellipse | Default organic |
+
+**Why it matters:** Shape + color is a much stronger visual encoding than color alone.
+Users can distinguish types even in dense clusters where colors blur together.
+
+**Cytoscape supports:** `ellipse`, `triangle`, `round-triangle`, `rectangle`,
+`round-rectangle`, `bottom-round-rectangle`, `cut-rectangle`, `barrel`, `rhomboid`,
+`diamond`, `round-diamond`, `pentagon`, `round-pentagon`, `hexagon`, `round-hexagon`,
+`concave-hexagon`, `heptagon`, `round-heptagon`, `octagon`, `round-octagon`, `star`,
+`tag`, `round-tag`, `vee`
+
+**Implementation:** In `styles.js`, add shape mapping:
+```javascript
+function getNodeShape(type) {
+  const shapes = {
+    'Org': 'round-rectangle',
+    'Person': 'ellipse',
+    'Model': 'diamond',
+    'Tool': 'round-pentagon',
+    'Dataset': 'barrel',
+    'Paper': 'round-tag',
+    'Repo': 'octagon',
+    'Tech': 'hexagon',
+    'Topic': 'round-rectangle',
+    // defaults
+  };
+  return shapes[type] || 'ellipse';
+}
+```
+
+Then in the base node style:
+```javascript
+'shape': function(ele) { return getNodeShape(ele.data('type')); }
+```
+
+**Effort:** ~25 lines. Zero dependencies. Massive perceptual impact.
+
+### Node depth and texture
+
+**Current:** Flat fill + thin border. Looks 2D.
+
+**Target:** Add subtle depth cues:
+1. **Border refinement:** Slightly thicker border (2.5px), slightly darker than fill
+   (computed as 20% darker variant). This creates implicit depth.
+2. **Background gradient (if supported):** Cytoscape doesn't natively support gradients
+   on node backgrounds, BUT it supports `background-opacity` layered with
+   `underlay-color` and `underlay-opacity` — which can simulate a shadow/depth effect.
+3. **Selected node glow:** Use `overlay-color` + `overlay-opacity` + `overlay-padding`
+   to create a visible glow around selected/hovered nodes.
+4. **High-velocity halo:** Nodes with velocity > 2 get a subtle underlay halo:
+   ```javascript
+   'underlay-color': function(ele) {
+     return ele.data('velocity') > 2
+       ? nodeTypeColors[ele.data('type')]
+       : 'transparent';
+   },
+   'underlay-opacity': 0.15,
+   'underlay-padding': 8
+   ```
+
+**What NOT to do:**
+- Don't use `background-image` with SVG data URIs (fragile, slow on large graphs)
+- Don't try CSS-level node styling (Cytoscape renders on canvas, not DOM)
+- Don't add pulsing animations (distracting, battery-draining)
+
+**Effort:** ~30 lines in `styles.js`
+
+### Canvas background
+
+**Current:** Plain white (`#FFFFFF`) or dark (`#111827`). Nothing.
+
+**Target:** A subtle dot grid or fine graph-paper pattern on the canvas background.
+This is a small detail that makes the graph feel like it lives on a surface, not
+floating in void.
+
+**Implementation:** CSS background-image on `#cy`:
+```css
+#cy {
+  background-image: radial-gradient(
+    circle,
+    var(--color-border-secondary) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+```
+
+Dark mode inverts to a very subtle lighter dot.
+
+**Effort:** ~6 lines CSS. Instantly makes the canvas feel intentional.
+
+### Edge arrow refinement
+
+**Current:** Default triangle arrows, uniform gray.
+
+**Target:**
+- Slightly smaller arrow scale for low-confidence edges (0.6 vs 0.8)
+- Edge label on hover (show relation type, e.g., "USES_TECH")
+- Bezier curve style already exists — keep it
+
+**Effort:** ~15 lines
+
+---
+
+## P1 — High Perceptual Impact (Interactions)
+
+These address the "nothing is delightful" part of the critique — micro-interactions
+that signal care.
 
 ### View switch transition
 
@@ -188,18 +451,26 @@ to many elements, which can cause performance issues.
 ```
 After Phase 1 gaps are closed:
 
-P1 (high impact)         P2 (medium impact)       P3 (lower priority)
-┌──────────────────┐    ┌──────────────────────┐  ┌──────────────────┐
-│ View transitions │    │ Detail panel CSS      │  │ "What's New"     │
-│ Panel resize     │    │ Touch targets 40px    │  │    toggle mode   │
-│   smoothness     │    │ Tooltip positioning   │  │ Panel skeletons  │
-│ Contextual empty │    │ Search count overflow │  │ Minimap anim     │
-│   states         │    │                       │  │ Dark mode fade   │
-└──────────────────┘    └──────────────────────┘  └──────────────────┘
-    ~2 sessions              ~1 session               As-needed / V2
+A0 (aesthetic identity)   A1 (graph richness)      P1 (interactions)        P2+P3 (cleanup)
+┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────┐    ┌─────────────┐
+│ Typography upgrade   │ │ Node shape mapping   │ │ View transitions │    │ Inline CSS  │
+│ App title presence   │ │ Node depth/texture   │ │ Panel resize     │    │ Touch target│
+│ Toolbar breathing    │─▶│ Canvas dot grid      │─▶│   smoothness     │───▶│ Tooltip pos │
+│ Filter color dots    │ │ Edge arrow refinement│ │ Contextual empty │    │ Search count│
+│   + grouping         │ │ Velocity halo        │ │   states         │    │ What's New  │
+└──────────────────────┘ └──────────────────────┘ └──────────────────┘    └─────────────┘
+     ~2 sessions              ~2 sessions              ~2 sessions            ~1 session
 ```
 
-**Total estimated sessions for P1–P2:** 3 focused sessions.
+**Total estimated sessions for A0 through P2:** ~7 focused sessions.
+
+**Why A0 before A1:** Typography and toolbar changes affect every screen. Settle the
+identity first, then enrich the graph. If you do A1 first, you'll be evaluating node
+shapes against a toolbar that still looks generic — you can't judge the whole until
+the frame is right.
+
+**Why A1 before P1:** Node shapes and depth are what users stare at. View transitions
+are nice but secondary to the primary visual artifact.
 
 ---
 
@@ -208,12 +479,13 @@ P1 (high impact)         P2 (medium impact)       P3 (lower priority)
 Explicit non-goals to avoid scope creep:
 
 - **Don't add animations for their own sake.** Every transition must serve a
-  purpose (continuity, orientation, feedback).
-- **Don't redesign the toolbar layout.** It works. It's clear. Moving things
-  around for aesthetics risks confusing returning users.
-- **Don't add color gradients to nodes.** The flat color + border encoding is
-  clean and readable. Gradients add visual noise without information.
+  purpose (continuity, orientation, feedback). No bouncing nodes.
 - **Don't add a splash screen or onboarding wizard.** The help panel already
   exists and is comprehensive.
-- **Don't optimize for "wow" screenshots.** Optimize for "I can read this graph
-  at 9am on my second coffee."
+- **Don't use SVG background-image on nodes.** Fragile, slow on large graphs,
+  not worth the maintenance cost for V1.
+- **Don't add a custom color picker.** The token palette is intentional. Users
+  shouldn't customize node colors — consistency is the point.
+- **Don't chase "wow" screenshots at the expense of readability.** The graph
+  should look good AND be readable at 9am on your second coffee. If depth cues
+  or shape mapping reduces legibility, pull them back.
