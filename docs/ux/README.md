@@ -20,6 +20,10 @@ This documentation is organized into focused modules:
 |<implementation.md>        |V1/V2 matrix, file structure, dependencies                                                |
 |<v1-gaps.md>               |**Start here for dev work.** What's built, what's partial, what's missing                 |
 |<troubleshooting.md>       |**Common issues and fixes.** fcose registration, CDN fallbacks, debug tools               |
+|<audit-2026-02-27.md>      |**Full codebase audit.** Structural analysis, honest observations, gap matrix             |
+|<gap-remediation-plan.md>  |Sequenced plan for closing spec gaps (4 phases)                                           |
+|<polish-strategy.md>       |Visual and interaction refinements ("glow up"), ordered by perceptual impact               |
+|<ui-testing-strategy.md>   |Testing approach: unit, integration, visual regression, a11y, performance                 |
 
 
 > **Important:** All CSS must use the design tokens from `design-tokens.md`. Never use hardcoded pixel values, colors, or arbitrary spacing. This ensures visual consistency across the entire UI.

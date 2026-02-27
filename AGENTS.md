@@ -219,6 +219,8 @@ for the boundary definition and enforcement rules.
 |----------|---------|
 | [docs/ux/README.md](docs/ux/README.md) | Cytoscape client implementation guidelines |
 | [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
+| [docs/ux/polish-strategy.md](docs/ux/polish-strategy.md) | Aesthetic mechanics: typography, toolbar, canvas, node depth |
+| [docs/ux/delight-backlog.md](docs/ux/delight-backlog.md) | Engagement & discovery: What's Hot, guided entry, visual reward. Desktop-first. |
 
 #### Schema & Data
 
@@ -232,6 +234,7 @@ for the boundary definition and enforcement rules.
 |----------|---------|
 | [docs/fix-details/README.md](docs/fix-details/README.md) | Index of resolved production issues with root causes and lessons learned |
 | [docs/backlog.md](docs/backlog.md) | Known issues and prompt-tuning observations awaiting action |
+| [docs/project-plan.md](docs/project-plan.md) | Unified sprint plan across all backlogs, stability-ordered, with model assignments and timeline |
 
 ---
 
