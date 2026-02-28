@@ -26,7 +26,10 @@ from schema import (
 
 
 # Current extractor version - bump when prompts/schema change
-EXTRACTOR_VERSION = "1.0.0"
+# 1.0.0 — initial extraction prompts
+# 2.0.0 — quality gates, escalation mode, relation normalization,
+#          budget-based document selection, MENTIONS auto-generation
+EXTRACTOR_VERSION = "2.0.0"
 
 # Entity and relation types — derived from the single source of truth
 # in schemas/extraction.json (loaded via schema module).
