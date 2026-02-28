@@ -3,6 +3,10 @@
 Outputs:
 - JSONL file (one JSON object per line) for programmatic use
 - Markdown file for ChatGPT paste/upload (Mode B workflow)
+
+When --budget is set, applies quality-based selection to control
+extraction costs while ensuring feed representation. See src/doc_select/
+for the scoring algorithm.
 """
 
 from __future__ import annotations
@@ -26,16 +30,25 @@ def build_docpack(
     output_dir: Path,
     all_docs: bool = False,
     label: str | None = None,
+    budget: int | None = None,
+    stretch_max: int | None = None,
+    feeds_config: Path | None = None,
 ) -> int:
     """Build JSONL and markdown bundles from cleaned documents.
 
     Args:
         db_path: Path to SQLite database
         target_date: Date to filter by (YYYY-MM-DD), ignored if all_docs=True
-        max_docs: Maximum documents per bundle
+        max_docs: Maximum documents per bundle (hard cap on DB query)
         output_dir: Directory to write bundles
         all_docs: If True, ignore date filter and grab all cleaned documents
         label: Override the bundle filename label (default: date or "all")
+        budget: If set, apply quality-based selection to pick this many docs
+                (with feed representation). None = no selection, use all.
+        stretch_max: Max docs when stretching beyond budget for high-quality
+                     docs. Defaults to budget + 5 if budget is set.
+        feeds_config: Path to feeds.yaml for tier/signal info. If None and
+                      budget is set, all feeds default to tier 1 / primary.
 
     Returns:
         Number of documents bundled
@@ -151,6 +164,80 @@ def build_docpack(
         conn.close()
         return 0
 
+    # --- Quality-based selection (when budget is set) ---
+    if budget is not None and len(docs) > budget:
+        from doc_select import select_for_extraction
+        from config import load_feeds
+
+        effective_stretch = stretch_max if stretch_max is not None else budget + 5
+
+        # Load feed tier/signal info from config
+        feed_tiers: dict[str, int] = {}
+        feed_signals: dict[str, str] = {}
+        if feeds_config and feeds_config.exists():
+            for fc in load_feeds(feeds_config, include_disabled=True):
+                feed_tiers[fc.name] = fc.tier
+                feed_signals[fc.name] = fc.signal
+
+        # Convert docs to candidate format for selection
+        candidates = [
+            {
+                "doc_id": d["docId"],
+                "source": d["source"],
+                "title": d["title"],
+                "published_at": d["published"],
+                "text": d["text"],
+                "url": d["url"],
+                "fetched": d["fetched"],
+            }
+            for d in docs
+        ]
+
+        print(f"Selection: {len(docs)} candidates, budget={budget}, "
+              f"stretch_max={effective_stretch}")
+
+        selected = select_for_extraction(
+            candidates=candidates,
+            feed_tiers=feed_tiers,
+            feed_signals=feed_signals,
+            budget=budget,
+            stretch_max=effective_stretch,
+        )
+
+        # Report per-feed breakdown
+        feed_counts: dict[str, int] = {}
+        for s in selected:
+            feed_counts[s.source] = feed_counts.get(s.source, 0) + 1
+        for feed, count in sorted(feed_counts.items()):
+            print(f"  {feed}: {count} docs")
+
+        if selected:
+            avg_q = sum(s.quality_score for s in selected) / len(selected)
+            min_q = min(s.quality_score for s in selected)
+            print(f"Selected {len(selected)} docs (avg quality={avg_q:.2f}, "
+                  f"min={min_q:.2f})")
+        else:
+            print("Selection: no docs met quality threshold")
+
+        # Rebuild docs list from selection
+        docs = [
+            {
+                "docId": s.doc_id,
+                "url": s.row.get("url", ""),
+                "source": s.source,
+                "title": s.title,
+                "published": s.published_at,
+                "fetched": s.row.get("fetched", ""),
+                "text": s.text,
+            }
+            for s in selected
+        ]
+
+        if not docs:
+            print(f"No documents passed quality selection for {bundle_label}")
+            conn.close()
+            return 0
+
     # Write JSONL
     jsonl_path = output_dir / f"daily_bundle_{bundle_label}.jsonl"
     with open(jsonl_path, "w", encoding="utf-8") as f:
@@ -213,7 +300,32 @@ def main() -> int:
         "--label", default=None,
         help="Override bundle filename label (default: date or 'all')",
     )
+    parser.add_argument(
+        "--budget", type=int, default=None,
+        help="Target number of docs to select (enables quality-based selection). "
+             "Goal: 10-20 docs, stretch up to --stretch-max if quality warrants.",
+    )
+    parser.add_argument(
+        "--stretch-max", type=int, default=None,
+        help="Maximum docs when stretching beyond budget for high-quality docs "
+             "(default: budget + 5)",
+    )
+    parser.add_argument(
+        "--feeds-config", default=None,
+        help="Path to feeds.yaml for source tier/signal info "
+             "(default: config/feeds.yaml)",
+    )
     args = parser.parse_args()
+
+    # Resolve feeds config path
+    feeds_config = None
+    if args.feeds_config:
+        feeds_config = Path(args.feeds_config)
+    elif args.budget is not None:
+        # Auto-detect feeds.yaml when budget is enabled
+        default_feeds = Path(__file__).resolve().parents[1] / "config" / "feeds.yaml"
+        if default_feeds.exists():
+            feeds_config = default_feeds
 
     count = build_docpack(
         db_path=Path(args.db),
@@ -222,6 +334,9 @@ def main() -> int:
         output_dir=Path(args.output_dir),
         all_docs=args.all,
         label=args.label,
+        budget=args.budget,
+        stretch_max=args.stretch_max,
+        feeds_config=feeds_config,
     )
 
     return 0 if count >= 0 else 1
