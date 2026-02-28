@@ -510,6 +510,12 @@ def main() -> int:
         help="Skip extraction stage (Mode B: manual extraction workflow)",
     )
     parser.add_argument(
+        "--budget", type=int, default=None,
+        help="Extraction budget: target number of docs to extract per run. "
+             "Enables quality-based selection in docpack stage. "
+             "Goal: 10-20, stretch up to budget+5 for high-quality docs.",
+    )
+    parser.add_argument(
         "--no-escalate", action="store_true",
         help="Disable escalation mode; run primary model on all docs with shadow comparison instead",
     )
@@ -584,7 +590,7 @@ def main() -> int:
                 "--db", db_path,
                 "--date", run_date,
                 "--label", docpack_label,
-            ],
+            ] + (["--budget", str(args.budget)] if args.budget else []),
             "parse": parse_docpack_output,
             "fatal": False,
         },

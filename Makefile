@@ -5,6 +5,8 @@ DB ?= data/db/predictor.db
 DATE ?= $(shell date +%Y-%m-%d)
 GRAPHS_DIR ?= data/graphs
 DOCPACK ?= data/docpacks/daily_bundle_$(DATE).jsonl
+BUDGET ?= 20
+BUDGET_FLAG = $(if $(BUDGET),--budget $(BUDGET),)
 
 # ── Setup ──────────────────────────────────────────────────────────────
 
@@ -67,10 +69,10 @@ post-extract:
 	@rm -f data/pipeline.lock
 
 daily:
-	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live $(PIPELINE_FLAGS)
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live $(BUDGET_FLAG) $(PIPELINE_FLAGS)
 
 daily-manual:
-	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(PIPELINE_FLAGS)
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(BUDGET_FLAG) $(PIPELINE_FLAGS)
 
 # ── Testing ────────────────────────────────────────────────────────────
 
