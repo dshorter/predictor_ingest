@@ -22,6 +22,31 @@ from schema import ENTITY_TYPES, RELATION_TYPES
 _ENTITY_TYPES_LIST: list[str] = sorted(ENTITY_TYPES)
 _RELATION_TYPES_LIST: list[str] = sorted(RELATION_TYPES)
 
+# Hyper-generic terms that are noise in an AI-domain knowledge graph.
+# These should NOT be extracted as standalone entities. They are too broad
+# to create meaningful graph structure — they would connect to nearly
+# everything and obscure real signals.
+SUPPRESSED_ENTITIES: list[str] = [
+    "AI", "artificial intelligence",
+    "machine learning", "ML",
+    "deep learning", "DL",
+    "technology", "tech",
+    "software", "hardware",
+    "data", "algorithm", "algorithms",
+    "computer", "computing",
+    "internet", "web", "cloud",
+    "system", "platform", "solution",
+    "research", "science",
+    "model", "models",        # too generic; use the specific model name
+    "tool", "tools",          # too generic; use the specific tool name
+    "API", "APIs",
+    "app", "application",
+    "startup", "company",
+    "industry", "market",
+]
+
+_SUPPRESSED_STR = ", ".join(f'"{t}"' for t in SUPPRESSED_ENTITIES[:15])  # first 15 for prompt brevity
+
 # Current extractor version — imported from the parent package at call
 # time to avoid circular imports.  Callers pass it in explicitly.
 
@@ -95,6 +120,12 @@ Return valid JSON with this structure:
 }}
 ```
 
+## Entity Specificity
+This is an AI-domain graph. Do NOT extract generic terms like {_SUPPRESSED_STR}
+as standalone entities. Extract SPECIFIC names (e.g., "GPT-4o" not "model",
+"OpenAI" not "company"). Use full formal names for orgs. Put broad concepts
+in techTerms[] instead.
+
 ## Critical Rules
 - Asserted relations MUST include evidence with a snippet from the document
 - Do not fabricate entities or relations not supported by the text
@@ -152,6 +183,23 @@ Your job is to extract structured data and return it via the emit_extraction too
    - resolution: "exact", "range", "anchored_to_published", or "unknown"
 
 5. **notes**: Any ambiguities or extraction warnings
+
+## Entity Specificity Rules
+This is an AI-domain knowledge graph. Do NOT extract hyper-generic terms as
+standalone entities — they connect to everything and obscure real signals.
+
+**Suppress these as entities:** {_SUPPRESSED_STR}, and similar umbrella terms.
+
+Instead:
+- Extract the SPECIFIC entity: "GPT-4o" not "model", "LangChain" not "tool",
+  "OpenAI" not "company", "transformer architecture" not "AI"
+- Use full formal names for organizations: "Block Inc." not "Block",
+  "Alphabet" or "Google DeepMind" not just "Google"
+- If a generic term like "AI" appears only as a modifier ("AI startup",
+  "AI safety"), extract the full noun phrase ("AI safety") as a Topic, or
+  extract the specific entity being described
+- techTerms[] is the right place for broad concepts like "machine learning"
+  or "reinforcement learning" — they do NOT need to be graph entities
 
 ## Critical Rules
 - Asserted relations MUST include evidence with a snippet from the document
