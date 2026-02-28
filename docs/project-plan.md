@@ -108,19 +108,65 @@ handling and layout timing.
 
 ---
 
-## Sprint 6 — "What's Hot" Feature (Days 8–11)
+## Sprint 6 — Domain Modularization (Days 8–11)
+
+Refactor the codebase so that all domain-specific content (entity types, relation
+taxonomy, extraction prompts, quality thresholds, suppressed entities) lives in a
+structured domain directory (`domains/ai/`), loaded by the framework at runtime via
+a `domain.yaml` profile. No new functionality — just moving config out of code.
+
+This is the "plugin contract" described in
+[domain-separation.md](architecture/domain-separation.md) and
+[multi-domain-futures.md](architecture/multi-domain-futures.md): a domain is a
+directory with a known file layout; the framework reads it instead of hardcoding values.
+
+**Approach:** Monorepo with plugin architecture (Option D). No libraries, no
+abstract base classes — just a YAML profile, a directory convention, and framework
+code that reads config instead of hardcoding values. Adding a future domain =
+adding a directory.
+
+| # | Item | What changes | Lines | Model |
+|---|------|-------------|-------|-------|
+| 6.1 | Define `domain.yaml` schema | Write JSON Schema for domain profile format: entity types, relation taxonomy, ID prefixes, base relation type, quality thresholds, suppressed entities, prompt paths | ~80 YAML/JSON | [Opus] |
+| 6.2 | Create `domains/ai/domain.yaml` | Populate AI domain profile from current hardcoded values in `schemas/extraction.json`, `src/extract/__init__.py`, `src/extract/prompts.py` | ~120 YAML | [Opus] |
+| 6.3 | Create `domains/ai/prompts/` | Move extraction prompts and suppressed entity list from `src/extract/prompts.py` into `domains/ai/prompts/`. Framework keeps prompt-building logic; domain provides vocabulary, examples, suppressed terms | ~200 move+refactor | [Opus] |
+| 6.4 | Create `domains/ai/views.yaml` | Move `config/views.yaml` content to domain directory. Framework loads views from domain path | ~30 move | [Sonnet] |
+| 6.5 | Create `domains/ai/feeds.yaml` | Move `config/feeds.yaml` to domain directory | ~10 move | [Sonnet] |
+| 6.6 | Parameterize `src/extract/__init__.py` | Load `RELATION_NORMALIZATION`, `QUALITY_THRESHOLDS`, `GATE_THRESHOLDS` from domain profile instead of hardcoding. Remove AI-specific constants from framework code | ~80 refactor | [Opus] |
+| 6.7 | Parameterize `src/trend/__init__.py` | Replace hardcoded `'MENTIONS'` with base relation type from domain profile (3 occurrences: lines ~45, ~172, ~184) | ~15 refactor | [Sonnet] |
+| 6.8 | Parameterize `src/schema/__init__.py` | Generate extraction JSON Schema dynamically from domain profile's entity types and relation taxonomy, instead of loading a static `schemas/extraction.json` | ~60 refactor | [Opus] |
+| 6.9 | Add `--domain` CLI flag to pipeline entry points | `run_pipeline.py`, `build_docpack.py`, `import_manual.py`, `export_graph.py` accept `--domain ai` (default). Framework resolves to `domains/ai/` and loads profile | ~40 refactor | [Sonnet] |
+| 6.10 | Domain profile validation on load | Framework validates `domain.yaml` against the schema from 6.1 at startup. Fail fast with clear error if profile is invalid or missing required fields | ~30 | [Sonnet] |
+| 6.11 | Grep-audit: no domain strings in framework | Run automated check that `src/trend/`, `src/resolve/`, `src/graph/`, `src/db/`, `src/schema/` contain zero references to AI-specific entity types, relation names, or source URLs. Add as a test | ~30 test | [Sonnet] |
+
+**Risk:** Moderate. This is a refactoring sprint — behavior should be identical before
+and after. But it touches many files and changes how config is loaded. Careful
+diffing required.
+**Why Opus for 6.1–6.3, 6.6, 6.8:** Cross-cutting changes that need holistic
+understanding of how entity types, relations, and thresholds flow through the
+pipeline. Getting the domain profile schema right is the critical design decision.
+**Stability gate:** Full test suite passes. Pipeline produces identical output for AI
+domain before and after. `grep` audit (6.11) passes. Manual smoke test: ingest →
+extract → export → verify graph JSON is unchanged.
+**Standing rule for all subsequent sprints:** No sprint may introduce hardcoded
+domain-specific strings into framework code. The grep-audit test (6.11) enforces this
+in CI.
+
+---
+
+## Sprint 7 — "What's Hot" Feature (Days 12–15)
 
 The first genuinely new feature. Requires backend changes (velocity delta
 computation) and a new frontend component. Highest complexity in the plan.
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 6.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] |
-| 6.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] |
-| 6.3 | `whats-hot.js` — ranked list UI component | delight §DL-1 | ~120 JS | [Opus] |
-| 6.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] |
-| 6.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] |
-| 6.6 | Panel CSS for hot list drawer | delight §DL-1 | ~40 CSS | [Opus] |
+| 7.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] |
+| 7.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] |
+| 7.3 | `whats-hot.js` — ranked list UI component | delight §DL-1 | ~120 JS | [Opus] |
+| 7.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] |
+| 7.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] |
+| 7.6 | Panel CSS for hot list drawer | delight §DL-1 | ~40 CSS | [Opus] |
 
 **Risk:** Moderate. Backend data flow change + new UI component. But isolated —
 if it breaks, it only breaks the hot list.
@@ -131,62 +177,62 @@ drawer opens/closes cleanly. Confirm existing views are unaffected.
 
 ---
 
-## Sprint 7 — Discovery Rewards (Days 12–14)
+## Sprint 8 — Discovery Rewards (Days 16–18)
 
-Builds on Sprint 1 (`.new` class wiring) and Sprint 6 (hot list signals).
+Builds on Sprint 1 (`.new` class wiring) and Sprint 7 (hot list signals).
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 7.1 | New-entity entrance glow (one-time pulse on `.new` nodes) | delight §DL-2a | ~20 JS+CSS | [Sonnet] |
-| 7.2 | "N new since yesterday" toolbar badge | delight §DL-2b | ~30 JS+HTML+CSS | [Sonnet] |
-| 7.3 | Staggered neighborhood reveal animation (desktop only) | delight §DL-2c | ~40 JS | [Opus] |
-| 7.4 | "What's New" temporal highlight toggle | polish-strategy §P3 | ~50 JS | [Sonnet] |
+| 8.1 | New-entity entrance glow (one-time pulse on `.new` nodes) | delight §DL-2a | ~20 JS+CSS | [Sonnet] |
+| 8.2 | "N new since yesterday" toolbar badge | delight §DL-2b | ~30 JS+HTML+CSS | [Sonnet] |
+| 8.3 | Staggered neighborhood reveal animation (desktop only) | delight §DL-2c | ~40 JS | [Opus] |
+| 8.4 | "What's New" temporal highlight toggle | polish-strategy §P3 | ~50 JS | [Sonnet] |
 
 **Risk:** Moderate. Animation timing is fiddly. Must respect `prefers-reduced-motion`.
-**Dependency:** Sprint 1 (`.new` class), Sprint 6 (signals for badge counts).
+**Dependency:** Sprint 1 (`.new` class), Sprint 7 (signals for badge counts).
 
 ---
 
-## Sprint 8 — Guided Entry Point (Day 15)
+## Sprint 9 — Guided Entry Point (Day 19)
 
 Ties together What's Hot signals + discovery into a first-load experience.
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 8.1 | "Today's Highlights" overlay card (top 3 items, auto-dismiss) | delight §DL-3 | ~80 JS+CSS+HTML | [Opus] |
-| 8.2 | `localStorage` flag per export date (don't re-show on refresh) | delight §DL-3 | ~10 JS | [Opus] |
+| 9.1 | "Today's Highlights" overlay card (top 3 items, auto-dismiss) | delight §DL-3 | ~80 JS+CSS+HTML | [Opus] |
+| 9.2 | `localStorage` flag per export date (don't re-show on refresh) | delight §DL-3 | ~10 JS | [Opus] |
 
 **Risk:** Low-moderate. Overlay is additive. `localStorage` is straightforward.
-**Dependency:** Sprint 6 (same signal data).
+**Dependency:** Sprint 7 (same signal data).
 
 ---
 
-## Sprint 9 — Medium Gap Features (Days 16–19)
+## Sprint 10 — Medium Gap Features (Days 20–23)
 
 Spec features that were never built. Each is independent. Can be parallelized.
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 9.1 | Context menu (right-click: expand, hide, pin, select) | gap-remediation §3.1 | ~150 JS+HTML | [Opus] |
-| 9.2 | Colorblind-safe palette + toggle | gap-remediation §3.2 | ~80 CSS+JS | [Sonnet] |
-| 9.3 | Custom date range picker inputs | gap-remediation §3.3 | ~70 HTML+JS | [Sonnet] |
-| 9.4 | Gzipped JSON export (build step) | gap-remediation §2.1 | ~20 script | [Sonnet] |
+| 10.1 | Context menu (right-click: expand, hide, pin, select) | gap-remediation §3.1 | ~150 JS+HTML | [Opus] |
+| 10.2 | Colorblind-safe palette + toggle | gap-remediation §3.2 | ~80 CSS+JS | [Sonnet] |
+| 10.3 | Custom date range picker inputs | gap-remediation §3.3 | ~70 HTML+JS | [Sonnet] |
+| 10.4 | Gzipped JSON export (build step) | gap-remediation §2.1 | ~20 script | [Sonnet] |
 
 **Risk:** Context menu is moderate (extension loading, pin/hide state). Others are low.
-**Why Opus for 9.1:** Pin-position and hide-node logic need layout integration + state
+**Why Opus for 10.1:** Pin-position and hide-node logic need layout integration + state
 tracking that cross-cuts filter and layout modules.
 
 ---
 
-## Sprint 10 — Branding & Wrap-up (Day 20)
+## Sprint 11 — Branding & Wrap-up (Day 24)
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 10.1 | App title/branding swap (when name is decided) | delight §DL-6 | ~5 HTML+CSS | [Manual] |
-| 10.2 | Minimap toggle animation (scale from corner) | polish-strategy §P3 | ~10 CSS | [Sonnet] |
-| 10.3 | Final QA pass across all views, both themes, desktop | — | — | [Manual] |
+| 11.1 | App title/branding swap (when name is decided) | delight §DL-6 | ~5 HTML+CSS | [Manual] |
+| 11.2 | Minimap toggle animation (scale from corner) | polish-strategy §P3 | ~10 CSS | [Sonnet] |
+| 11.3 | Final QA pass across all views, both themes, desktop | — | — | [Manual] |
 
-**Dependency:** 10.1 blocked on branding decision (external).
+**Dependency:** 11.1 blocked on branding decision (external).
 
 ---
 
@@ -225,12 +271,14 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 hours/day |
 | Start date | 2026-02-27 |
-| UI sprints | 10 sprints, ~20 working days |
+| Sprints | 11 sprints, ~24 working days |
 | Backend track | Parallel, partially blocked on data |
-| Calendar weeks | ~4 weeks (weekdays only) |
-| **Target completion** | **~March 25–28, 2026** |
+| Calendar weeks | ~5 weeks (weekdays only) |
+| **Target completion** | **~April 1–4, 2026** |
 
 **Risks to timeline:**
+- Sprint 6 (domain modularization) touches many files; refactoring regressions
+  could spill into extra days
 - DL-1 (What's Hot) velocity delta requires backend data design decisions that
   could expand scope
 - Context menu extension loading may have compatibility issues with current
@@ -239,7 +287,7 @@ Not scheduled. Documented so they're not forgotten.
 - Backend items are data-dependent and may shift
 
 **Buffer:** The estimate has no slack built in. A realistic date with ~20% buffer
-would be **~April 1, 2026**.
+would be **~April 8, 2026**.
 
 ---
 
@@ -261,6 +309,7 @@ staggered reveal) touch multiple modules and need holistic design decisions that
 aren't fully captured in any single spec doc. Writing Sonnet-ready specs for these
 would cost roughly as many tokens as just implementing them.
 
-**Practical recommendation:** Use Sonnet 4.6 for Sprints 1–5 and 9.2–9.4 (CSS,
-small JS, well-specified). Use Opus 4.6 for Sprint 6 (What's Hot), 7.3 (staggered
-reveal), 8 (guided entry), and 9.1 (context menu).
+**Practical recommendation:** Use Sonnet 4.6 for Sprints 1–5, 6.4–6.5, 6.7, 6.9–6.11,
+and 10.2–10.4 (CSS, small JS, config moves, well-specified). Use Opus 4.6 for
+Sprint 6.1–6.3, 6.6, 6.8 (domain profile design + framework parameterization),
+Sprint 7 (What's Hot), 8.3 (staggered reveal), 9 (guided entry), and 10.1 (context menu).

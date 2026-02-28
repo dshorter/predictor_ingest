@@ -31,13 +31,14 @@ Create `predictor/Dockerfile` in the `ai-agent-platform` repo:
 ```dockerfile
 FROM python:3.11-slim
 
-# System deps for lxml/beautifulsoup and sqlite
+# System deps for lxml/beautifulsoup, sqlite, and make (for cron target)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libxml2-dev \
     libxslt1-dev \
     sqlite3 \
     cron \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -56,8 +57,10 @@ RUN mkdir -p data/db data/raw data/text data/docpacks \
 # Initialize database
 RUN python scripts/init_db.py --db data/db/predictor.db
 
-# Cron job: daily pipeline at 6:00 AM ET (full orchestrator with structured logging)
-RUN echo "0 6 * * * cd /app && python scripts/run_pipeline.py --copy-to-live >> /var/log/predictor-pipeline.log 2>&1" \
+# Cron job: daily pipeline at 6:00 AM ET
+# Uses `make daily` so budget (default 20), escalation, and copy-to-live
+# are all controlled via Makefile defaults.
+RUN echo "0 6 * * * cd /app && make daily >> /var/log/predictor-pipeline.log 2>&1" \
     > /etc/cron.d/predictor-pipeline \
     && chmod 0644 /etc/cron.d/predictor-pipeline \
     && crontab /etc/cron.d/predictor-pipeline

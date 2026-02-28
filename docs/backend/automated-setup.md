@@ -272,14 +272,15 @@ python scripts/run_pipeline.py --no-escalate --copy-to-live
 
 ## 10. Set Up Daily Cron
 
-Create a cron job for daily automated runs using the pipeline orchestrator:
+Create a cron job for daily automated runs. Use `make daily` so all defaults
+(budget, escalation, copy-to-live) are managed in one place:
 
 ```bash
 # Edit crontab
 crontab -e
 
 # Add this line (runs at 6 AM daily)
-0 6 * * * cd /opt/predictor_ingest && source venv/bin/activate && source .env && python scripts/run_pipeline.py --copy-to-live >> data/logs/cron.log 2>&1
+0 6 * * * cd /opt/predictor_ingest && source venv/bin/activate && set -a && source .env && set +a && make daily >> data/logs/cron.log 2>&1
 ```
 
 Create the logs directory:
@@ -288,8 +289,13 @@ Create the logs directory:
 mkdir -p data/logs
 ```
 
+**Default budget:** `make daily` selects the best 20 docs per run (stretch to
+25 if quality warrants). Override with `make daily BUDGET=15` or disable
+budget selection entirely with `make daily BUDGET=`.
+
 The orchestrator handles:
 - Running all 7 pipeline stages in order
+- Quality-based document selection (`--budget 20` default)
 - Lock file management for safe-reboot awareness
 - Structured JSON run log (`data/logs/pipeline_YYYY-MM-DD.json`)
 - Copying graphs to `web/data/graphs/live/` for the UI
