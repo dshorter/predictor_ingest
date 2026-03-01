@@ -212,6 +212,48 @@ def build_quality(db_path: Path) -> dict:
     return result
 
 
+def _parse_feeds_yaml(path: Path) -> list[dict]:
+    """Parse feeds.yaml, using PyYAML if available, regex fallback otherwise.
+
+    The fallback handles the simple key: value structure of feeds.yaml
+    without any external dependency.
+    """
+    text = path.read_text()
+
+    # Try PyYAML first
+    try:
+        import yaml  # type: ignore[import]
+        cfg = yaml.safe_load(text)
+        return cfg.get("feeds", [])
+    except Exception:
+        pass
+
+    # Regex fallback: split on feed entry boundaries ("  - ") and parse
+    # simple scalar key: value pairs.  Handles str/bool/int values.
+    import re
+    feeds: list[dict] = []
+    # Each entry begins with an optional leading newline + "  - "
+    entries = re.split(r"(?:^|\n)  - ", text)
+    for entry in entries[1:]:  # skip preamble before first "  - "
+        feed: dict = {}
+        for line in entry.splitlines():
+            m = re.match(r"[ \t]+(\w+):\s*(.*)", line)
+            if not m:
+                continue
+            key, raw = m.group(1), m.group(2).strip().strip("\"'")
+            if raw.lower() == "true":
+                feed[key] = True
+            elif raw.lower() == "false":
+                feed[key] = False
+            elif re.fullmatch(r"\d+", raw):
+                feed[key] = int(raw)
+            elif raw and not raw.startswith("#"):
+                feed[key] = raw
+        if feed.get("name"):
+            feeds.append(feed)
+    return feeds
+
+
 def build_feeds(logs: list[dict], config_path: Path) -> dict:
     """Feed list from config, overlaid with reachability data from logs."""
     result: dict = {
@@ -221,17 +263,14 @@ def build_feeds(logs: list[dict], config_path: Path) -> dict:
         "lastRunFeeds": {},
     }
 
-    # Parse feeds.yaml
+    # Parse feeds.yaml (PyYAML or regex fallback)
     feeds_cfg: list[dict] = []
     if config_path.exists():
         try:
-            import yaml  # type: ignore[import]
-            with open(config_path) as f:
-                cfg = yaml.safe_load(f)
-            feeds_cfg = cfg.get("feeds", [])
+            feeds_cfg = _parse_feeds_yaml(config_path)
             result["available"] = True
-        except Exception:
-            pass
+        except Exception as e:
+            result["parse_error"] = str(e)
 
     # Build per-feed error counts from logs
     error_counts: dict[str, int] = {}
