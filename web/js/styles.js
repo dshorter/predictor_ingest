@@ -6,6 +6,19 @@
  */
 
 /**
+ * Darken a hex color by a fraction (0–1).
+ * Example: darkenColor('#4A90D9', 0.2) → 20% darker.
+ * Returns an rgb() string Cytoscape accepts.
+ */
+function darkenColor(hex, fraction) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.length === 3 ? h[0] + h[0] : h.slice(0, 2), 16);
+  const g = parseInt(h.length === 3 ? h[1] + h[1] : h.slice(2, 4), 16);
+  const b = parseInt(h.length === 3 ? h[2] + h[2] : h.slice(4, 6), 16);
+  return `rgb(${Math.round(r*(1-fraction))},${Math.round(g*(1-fraction))},${Math.round(b*(1-fraction))})`;
+}
+
+/**
  * Read a CSS custom property value from :root.
  * Returns the trimmed string value or the fallback if not found.
  */
@@ -156,9 +169,17 @@ function getCytoscapeStyles() {
         'text-outline-color': getCSSVar('--cy-text-outline', '#FFFFFF'),
         'text-outline-width': 2,
         'text-outline-opacity': 1,
-        'border-width': 2,
-        'border-color': getCSSVar('--cy-node-border', '#D1D5DB'),
-        'border-opacity': 0.7
+        // Depth cues: slightly thicker border in the node's own type color (20% darker)
+        'border-width': 2.5,
+        'border-color': function(ele) {
+          const fill = nodeTypeColors[ele.data('type')] || nodeTypeColors['Other'];
+          return darkenColor(fill, 0.2);
+        },
+        'border-opacity': 1,
+        // Subtle drop shadow via underlay
+        'underlay-color': '#000000',
+        'underlay-opacity': 0.06,
+        'underlay-padding': 4
       }
     },
 
@@ -185,6 +206,7 @@ function getCytoscapeStyles() {
         'border-opacity': 1,
         'overlay-color': getCSSVar('--cy-node-overlay-selected', '#3B82F6'),
         'overlay-opacity': 0.15,
+        'overlay-padding': 8,
         'label': function(ele) { return ele.data('label'); },
         'font-weight': 'bold'
       }
@@ -227,6 +249,18 @@ function getCytoscapeStyles() {
       }
     },
 
+    // High-velocity halo: nodes with velocity > 2 get a colored glow (type color, 15% opacity)
+    {
+      selector: 'node[velocity > 2]',
+      style: {
+        'underlay-color': function(ele) {
+          return nodeTypeColors[ele.data('type')] || nodeTypeColors['Other'];
+        },
+        'underlay-opacity': 0.15,
+        'underlay-padding': 8
+      }
+    },
+
     // Hidden label
     {
       selector: 'node.label-hidden',
@@ -251,7 +285,10 @@ function getCytoscapeStyles() {
         'curve-style': 'bezier',
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
-        'arrow-scale': 0.8
+        // Low-confidence edges get a smaller arrowhead (less visual weight)
+        'arrow-scale': function(ele) {
+          return (ele.data('confidence') || 0.5) < 0.5 ? 0.6 : 0.8;
+        }
       }
     },
 
@@ -287,7 +324,17 @@ function getCytoscapeStyles() {
       style: {
         'line-color': edgeColors.hover,
         'target-arrow-color': edgeColors.hover,
-        'z-index': 999
+        'z-index': 999,
+        // Show relation type label on hover
+        'label': function(ele) { return ele.data('rel') || ''; },
+        'font-size': 10,
+        'color': getCSSVar('--cy-text-color', '#1F2937'),
+        'text-outline-color': getCSSVar('--cy-text-outline', '#FFFFFF'),
+        'text-outline-width': 2,
+        'text-background-color': getCSSVar('--color-bg-primary', '#FFFFFF'),
+        'text-background-opacity': 0.85,
+        'text-background-padding': 3,
+        'text-rotation': 'autorotate'
       }
     },
 

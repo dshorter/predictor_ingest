@@ -12,6 +12,13 @@
   right: 0;
   bottom: 0;
   background-color: var(--gray-50);
+  /* Dot grid: anchors the graph on a surface rather than floating in void */
+  background-image: radial-gradient(
+    circle,
+    var(--color-border-secondary) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
   transition: left 0.3s ease, right 0.3s ease, bottom 0.3s ease;
 }
 
