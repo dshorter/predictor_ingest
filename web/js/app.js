@@ -8,10 +8,8 @@
 // Exposed here so the UI can set an initial filter without a server round-trip.
 const DEFAULT_DATE_WINDOW_DAYS = 30;
 
-// Respect OS-level animation preference. Read once at module load.
-// Used to set duration: 0 on all cy.animate() calls and layout animations.
-// CSS transitions are already handled by reset.css via the media query.
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// prefersReducedMotion is declared in layout.js (which loads before app.js).
+// All cy.animate() duration fields in this file reference that global.
 
 // Application state
 const AppState = {
