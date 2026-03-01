@@ -89,7 +89,10 @@ def compute_velocity(
         # nonsensical percentages (was: recent + 1, unbounded).
         return min(float(recent), 5.0)
 
-    return recent / previous
+    # Cap all velocity ratios at 5.0 — going from 1→20 mentions
+    # is not meaningfully different from 1→6 for trend detection,
+    # and uncapped ratios produce misleading percentages (+1900%).
+    return min(recent / previous, 5.0)
 
 
 def compute_novelty(
@@ -222,11 +225,20 @@ class TrendScorer:
         Returns:
             Dict with all trend metrics
         """
+        m7 = count_mentions(self.conn, entity_id, days=7)
+        m30 = count_mentions(self.conn, entity_id, days=30)
+        velocity = compute_velocity(self.conn, entity_id)
+
+        # Invariant: velocity must be 0 when there are no recent mentions.
+        # Guards against stale data from previous pipeline runs.
+        if m7 == 0 and m30 == 0:
+            velocity = 0.0
+
         return {
             "entity_id": entity_id,
-            "mention_count_7d": count_mentions(self.conn, entity_id, days=7),
-            "mention_count_30d": count_mentions(self.conn, entity_id, days=30),
-            "velocity": compute_velocity(self.conn, entity_id),
+            "mention_count_7d": m7,
+            "mention_count_30d": m30,
+            "velocity": velocity,
             "novelty": compute_novelty(self.conn, entity_id),
             "bridge_score": compute_bridge_score(self.conn, entity_id),
         }
@@ -249,7 +261,7 @@ class TrendScorer:
     def get_trending(
         self,
         limit: int = 20,
-        min_mentions: int = 0,
+        min_mentions: int = 1,
     ) -> list[dict[str, Any]]:
         """Get top trending entities.
 
@@ -257,7 +269,8 @@ class TrendScorer:
 
         Args:
             limit: Maximum entities to return
-            min_mentions: Minimum 7d mentions to include
+            min_mentions: Minimum 7d mentions to include (default 1;
+                entities with zero recent mentions are not trending)
 
         Returns:
             List of entity scores, sorted by trend score

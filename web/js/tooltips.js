@@ -93,7 +93,7 @@ function showNodeTooltip(node, position, tooltip) {
       ${data.velocity !== undefined ? `
         <div class="tooltip-row">
           <span class="tooltip-label">Velocity:</span>
-          <span>${formatVelocity(data.velocity)}</span>
+          <span>${formatVelocity(data.velocity, data.mentionCount7d, data.mentionCount30d)}</span>
         </div>
       ` : ''}
       ${data.lastSeen ? `

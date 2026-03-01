@@ -73,7 +73,7 @@ function openNodeDetailPanel(node) {
           <div class="text-xs text-gray-500">Connections</div>
         </div>
         <div class="p-2 bg-gray-50 rounded ${data.velocity > 0.5 ? 'bg-yellow-50' : ''}">
-          <div class="text-lg font-semibold">${formatVelocity(data.velocity)}</div>
+          <div class="text-lg font-semibold">${formatVelocity(data.velocity, data.mentionCount7d, data.mentionCount30d)}</div>
           <div class="text-xs text-gray-500">Velocity</div>
         </div>
       </div>

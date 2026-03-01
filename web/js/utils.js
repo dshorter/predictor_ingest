@@ -109,8 +109,11 @@ function formatRelation(rel) {
  * @param {number} velocity - ratio (recent / previous)
  * @returns {string}
  */
-function formatVelocity(velocity) {
+function formatVelocity(velocity, mentionCount7d, mentionCount30d) {
   if (velocity === undefined || velocity === null || velocity === 0) return '—';
+  // Guard: velocity should be 0 when there are no recent mentions.
+  // Treat stale non-zero values as missing.
+  if ((mentionCount7d || 0) === 0 && (mentionCount30d || 0) === 0) return '—';
   const change = (velocity - 1) * 100;
   if (Math.abs(change) < 1) return '0%';
   const sign = change > 0 ? '+' : '';

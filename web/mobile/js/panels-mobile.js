@@ -44,7 +44,7 @@ function openNodeDetailSheet(node) {
           '<div class="stat-label">Connections</div>' +
         '</div>' +
         '<div class="stat-card">' +
-          '<div class="stat-value">' + formatVelocity(data.velocity) + '</div>' +
+          '<div class="stat-value">' + formatVelocity(data.velocity, data.mentionCount7d, data.mentionCount30d) + '</div>' +
           '<div class="stat-label">Velocity</div>' +
         '</div>' +
       '</div>' +
