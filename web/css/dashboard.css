@@ -8,12 +8,19 @@
 
 /* ── Canvas background ───────────────────────────────────────────────
    base.css sets body to --color-bg-primary (white / near-black).
-   Override here so the dashboard canvas is one step darker, making
-   cards visually lift off the surface.
-   Light:  canvas = gray-50  (#F9FAFB),  cards = white  (#FFFFFF)
-   Dark:   canvas = gray-800 (#1F2937),  cards = gray-900 (#111827)
+   Override here so the dashboard canvas is clearly darker than cards.
+
+   Light:  canvas = gray-100 (#F3F4F6),  cards = white  (#FFFFFF)  ← visible gap
+   Dark:   canvas = gray-800 (#1F2937),  cards = gray-900 (#111827) ← subtle, intentional
+
+   Using tertiary for light gives a real step; dark mode pulls back to
+   secondary so the near-black card surface doesn't clash.
    ──────────────────────────────────────────────────────────────────── */
 body {
+  background: var(--color-bg-tertiary);
+}
+
+[data-theme="dark"] body {
   background: var(--color-bg-secondary);
 }
 
