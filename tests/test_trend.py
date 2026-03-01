@@ -214,8 +214,51 @@ class TestVelocity:
 
         velocity = trend.compute_velocity(conn, "org:openai")
 
-        # New entity with mentions should have high velocity
+        # New entity with mentions should have high velocity, capped at 5.0
         assert velocity > 1.0
+        assert velocity <= 5.0
+
+        conn.close()
+
+    def test_velocity_zero_previous_capped(self, tmp_path: Path):
+        """Test that velocity is capped at 5.0 for brand-new entities."""
+        trend = _get_trend_module()
+        db_path = tmp_path / "test.db"
+        conn = init_db(db_path)
+
+        insert_entity(conn, "org:viral", "ViralCo", "Org")
+
+        # 20 recent mentions, no previous — would have been 21.0 uncapped
+        for i in range(20):
+            doc_id = f"recent_{i}"
+            conn.execute(
+                """
+                INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (doc_id, f"http://example.com/{i}", "Test", f"Doc {i}",
+                 _days_ago(i % 7), _days_ago(i % 7), "extracted")
+            )
+            insert_relation(conn, f"doc:{doc_id}", "MENTIONS", "org:viral",
+                          "asserted", 1.0, doc_id, "1.0.0")
+
+        velocity = trend.compute_velocity(conn, "org:viral")
+
+        assert velocity == 5.0  # capped
+
+        conn.close()
+
+    def test_velocity_both_zero(self, tmp_path: Path):
+        """Test velocity is 0.0 when no mentions in either window."""
+        trend = _get_trend_module()
+        db_path = tmp_path / "test.db"
+        conn = init_db(db_path)
+
+        insert_entity(conn, "org:ghost", "GhostCo", "Org")
+
+        velocity = trend.compute_velocity(conn, "org:ghost")
+
+        assert velocity == 0.0
 
         conn.close()
 
