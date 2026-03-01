@@ -103,6 +103,7 @@
 }
 
 .filter-section h3 {
+  font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
@@ -175,6 +176,48 @@
   background-color: var(--blue-600);
   border-color: var(--blue-600);
   color: white;
+}
+
+/* Entity type color dot — visual link from filter checkbox to graph node color */
+.entity-type-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Type group header inside the entity type filter */
+.type-group {
+  margin-bottom: var(--space-3);
+}
+
+.type-group:last-child {
+  margin-bottom: 0;
+}
+
+.type-group-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-1);
+}
+
+/* Quick-filter pill row above the type checkboxes */
+.type-quick-filters {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Detail panel stats grid (replaces inline style="grid-template-columns:...") */
+.detail-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
 }
 
 /* Hidden utility for panels */

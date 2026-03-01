@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Trend Graph</title>
 
+  <!-- Display font: Inter for headings and app title -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/main.css?v=9">
   <!-- Cytoscape Navigator styles -->
@@ -39,6 +44,8 @@
       <div class="toolbar-left">
         <h1 class="app-title">AI Trend Graph</h1>
 
+        <div class="toolbar-divider" aria-hidden="true"></div>
+
         <div class="toolbar-group">
           <label for="view-selector">View:</label>
           <select id="view-selector">
@@ -48,6 +55,8 @@
             <option value="dependencies">Dependencies</option>
           </select>
         </div>
+
+        <div class="toolbar-divider" aria-hidden="true"></div>
 
         <div class="toolbar-group">
           <label for="date-anchor">As of:</label>
@@ -144,8 +153,14 @@
           <!-- Entity Types -->
           <section class="filter-section">
             <h3>Entity Types</h3>
-            <div class="checkbox-grid" id="type-filters">
-              <!-- Populated dynamically -->
+            <div class="type-quick-filters">
+              <button id="quick-filter-all" class="btn-sm active">All</button>
+              <button id="quick-filter-tech" class="btn-sm">Tech</button>
+              <button id="quick-filter-orgs" class="btn-sm">Orgs</button>
+              <button id="quick-filter-none" class="btn-sm">None</button>
+            </div>
+            <div id="type-filters">
+              <!-- Populated dynamically with grouped types + color dots -->
             </div>
             <div class="filter-actions-small">
               <button id="select-all-types" class="btn-link">All</button>

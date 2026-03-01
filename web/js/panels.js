@@ -59,7 +59,7 @@ function openNodeDetailPanel(node) {
 
     <section class="detail-section mt-4">
       <h3 class="text-xs font-semibold text-gray-500 mb-2">ACTIVITY</h3>
-      <div class="grid gap-2" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="detail-stats-grid">
         <div class="p-2 bg-gray-50 rounded">
           <div class="text-lg font-semibold">${data.mentionCount7d || 0}</div>
           <div class="text-xs text-gray-500">Mentions (7d)</div>
