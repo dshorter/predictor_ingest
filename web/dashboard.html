@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipeline Dashboard — AI Trend Graph</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      color: var(--color-text-primary);
+      background: var(--color-bg-secondary);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    #dash-header {
+      background: var(--color-bg-primary);
+      border-bottom: var(--border-width) solid var(--color-border-secondary);
+      padding: var(--space-4) var(--space-6);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      box-shadow: var(--shadow-sm);
+    }
+    #dash-header h1 {
+      font-size: var(--text-md);
+      font-weight: var(--weight-semibold);
+      color: var(--color-text-primary);
+      flex: 1;
+    }
+    #dash-header h1 span {
+      color: var(--color-text-secondary);
+      font-weight: var(--weight-normal);
+      font-size: var(--text-sm);
+      margin-left: var(--space-2);
+    }
+    .header-actions { display: flex; align-items: center; gap: var(--space-3); }
+    #last-updated {
+      font-size: var(--text-xs);
+      color: var(--color-text-tertiary);
+    }
+    .btn {
+      font-family: var(--font-sans);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      border: var(--border-width) solid var(--color-border-primary);
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      transition: background var(--duration-fast) var(--easing-default),
+                  border-color var(--duration-fast) var(--easing-default);
+    }
+    .btn:hover { background: var(--color-bg-tertiary); border-color: var(--color-border-primary); }
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .btn-primary:hover { background: var(--blue-600); border-color: var(--blue-600); }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    #dash-body {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
+    .card {
+      background: var(--color-bg-primary);
+      border: var(--border-width) solid var(--color-border-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+    }
+    .card-title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-4);
+    }
+
+    /* ── KPI Row ────────────────────────────────────────────────── */
+    #kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: var(--space-4);
+    }
+    .kpi-card {
+      background: var(--color-bg-primary);
+      border: var(--border-width) solid var(--color-border-secondary);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-5);
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--color-border-primary);
+    }
+    .kpi-card.ok    { border-left-color: var(--color-success); }
+    .kpi-card.partial { border-left-color: var(--color-warning); }
+    .kpi-card.failed  { border-left-color: var(--color-error); }
+    .kpi-label {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-medium);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-1);
+    }
+    .kpi-value {
+      font-size: var(--text-xl);
+      font-weight: var(--weight-bold);
+      color: var(--color-text-primary);
+      line-height: var(--leading-tight);
+    }
+    .kpi-value.ok     { color: var(--color-success); }
+    .kpi-value.partial { color: var(--color-warning); }
+    .kpi-value.failed  { color: var(--color-error); }
+    .kpi-sub {
+      font-size: var(--text-xs);
+      color: var(--color-text-tertiary);
+      margin-top: var(--space-1);
+    }
+
+    /* ── Grid layouts ───────────────────────────────────────────── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-6);
+    }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Chart containers ───────────────────────────────────────── */
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* ── Pipeline stages ────────────────────────────────────────── */
+    .stage-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .stage-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-secondary);
+      font-size: var(--text-sm);
+    }
+    .stage-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .stage-dot.ok      { background: var(--color-success); }
+    .stage-dot.error   { background: var(--color-error); }
+    .stage-dot.skipped { background: var(--color-text-tertiary); }
+    .stage-dot.timeout { background: var(--color-warning); }
+    .stage-dot.unknown { background: var(--color-text-tertiary); }
+    .stage-name {
+      font-weight: var(--weight-medium);
+      width: 80px;
+      flex-shrink: 0;
+    }
+    .stage-meta { color: var(--color-text-secondary); flex: 1; }
+    .stage-dur  { color: var(--color-text-tertiary); font-size: var(--text-xs); font-family: var(--font-mono); }
+    .stage-empty {
+      color: var(--color-text-tertiary);
+      font-size: var(--text-sm);
+      font-style: italic;
+      padding: var(--space-4) 0;
+      text-align: center;
+    }
+
+    /* ── Quality gates ──────────────────────────────────────────── */
+    .gate-list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .gate-row { display: flex; flex-direction: column; gap: var(--space-1); }
+    .gate-header { display: flex; justify-content: space-between; align-items: center; }
+    .gate-name { font-size: var(--text-sm); font-weight: var(--weight-medium); }
+    .gate-pct  { font-size: var(--text-sm); font-family: var(--font-mono); }
+    .gate-bar-track {
+      height: 6px;
+      background: var(--color-bg-tertiary);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .gate-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.4s var(--easing-out);
+    }
+    .gate-bar-fill.good { background: var(--color-success); }
+    .gate-bar-fill.warn { background: var(--color-warning); }
+    .gate-bar-fill.bad  { background: var(--color-error); }
+
+    /* ── Rising Stars ───────────────────────────────────────────── */
+    .star-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .star-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-secondary);
+      font-size: var(--text-sm);
+    }
+    .star-rank {
+      font-size: var(--text-xs);
+      color: var(--color-text-tertiary);
+      font-family: var(--font-mono);
+      width: 20px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .star-type-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .star-name { font-weight: var(--weight-medium); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .star-vel {
+      font-weight: var(--weight-semibold);
+      font-size: var(--text-sm);
+      font-family: var(--font-mono);
+      color: var(--color-success);
+      flex-shrink: 0;
+    }
+    .star-vel.down { color: var(--color-error); }
+    .star-mentions { font-size: var(--text-xs); color: var(--color-text-tertiary); flex-shrink: 0; font-family: var(--font-mono); }
+
+    /* ── Tables ─────────────────────────────────────────────────── */
+    .dash-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+    .dash-table th {
+      text-align: left;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: var(--border-width) solid var(--color-border-secondary);
+    }
+    .dash-table td {
+      padding: var(--space-2) var(--space-3);
+      border-bottom: var(--border-width) solid var(--color-border-secondary);
+      color: var(--color-text-primary);
+      vertical-align: middle;
+    }
+    .dash-table tr:last-child td { border-bottom: none; }
+    .dash-table tr:hover td { background: var(--color-bg-secondary); }
+    .mono { font-family: var(--font-mono); }
+    .text-muted { color: var(--color-text-tertiary); }
+    .text-ok      { color: var(--color-success); }
+    .text-warn    { color: var(--color-warning); }
+    .text-error   { color: var(--color-error); }
+
+    /* ── Status badges ──────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-medium);
+    }
+    .badge-ok      { background: var(--color-badge-success-bg); color: var(--color-success); }
+    .badge-partial { background: var(--color-badge-warning-bg); color: var(--color-warning); }
+    .badge-failed  { background: var(--color-badge-error-bg);   color: var(--color-error); }
+    .badge-muted   { background: var(--color-bg-tertiary); color: var(--color-text-secondary); }
+
+    /* ── Empty states ───────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      color: var(--color-text-tertiary);
+      font-size: var(--text-sm);
+      font-style: italic;
+      padding: var(--space-8) 0;
+    }
+
+    /* ── Tier badge ─────────────────────────────────────────────── */
+    .tier-badge {
+      display: inline-block;
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      background: var(--color-bg-tertiary);
+      color: var(--color-text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────── -->
+<header id="dash-header">
+  <h1>Pipeline Dashboard <span>AI Trend Graph</span></h1>
+  <div class="header-actions">
+    <span id="last-updated">—</span>
+    <button class="btn btn-primary" onclick="loadAll()">↻ Refresh</button>
+    <a class="btn" href="index.html">Graph View →</a>
+  </div>
+</header>
+
+<!-- ── Body ────────────────────────────────────────────────────── -->
+<div id="dash-body">
+
+  <!-- KPI row -->
+  <div id="kpi-row"></div>
+
+  <!-- Run history + Pipeline stages -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">30-Day Run History</div>
+      <div class="chart-wrap">
+        <canvas id="runs-chart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pipeline Stages — Last Run</div>
+      <div id="stages-list" class="stage-list"></div>
+    </div>
+  </div>
+
+  <!-- Quality gates + Rising Stars -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Quality Gates</div>
+      <div id="gates-list" class="gate-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Rising Stars — by Velocity</div>
+      <div id="stars-list" class="star-list"></div>
+    </div>
+  </div>
+
+  <!-- Feed health -->
+  <div class="card">
+    <div class="card-title">Feed Health</div>
+    <div id="feeds-wrap"></div>
+  </div>
+
+  <!-- Model quality -->
+  <div class="card">
+    <div class="card-title">Model Quality</div>
+    <div id="models-wrap"></div>
+  </div>
+
+</div><!-- /#dash-body -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+/* ================================================================
+   Dashboard — pure vanilla JS, no build step
+   Data sources:
+     data/dashboard/status.json
+     data/dashboard/runs.json
+     data/dashboard/quality.json
+     data/dashboard/feeds.json
+     data/graphs/live/trending.json  (velocity — free from existing export)
+   ================================================================ */
+
+const BASE = 'data/';
+let runsChart = null;
+
+// ── Helpers ──────────────────────────────────────────────────────
+
+function fmt(v, fallback = '—') {
+  if (v == null || v === undefined) return fallback;
+  if (typeof v === 'number') return v.toLocaleString();
+  return String(v);
+}
+
+function fmtDur(sec) {
+  if (sec == null) return '—';
+  if (sec < 60) return `${Math.round(sec)}s`;
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return `${m}m ${s}s`;
+}
+
+function fmtPct(v) {
+  if (v == null) return '—';
+  return `${(v * 100).toFixed(1)}%`;
+}
+
+function fmtVel(v) {
+  if (v == null) return '—';
+  const arrow = v >= 1 ? '↑' : '↓';
+  return `${arrow} ${v.toFixed(1)}×`;
+}
+
+function statusBadge(s) {
+  const map = { success: ['ok', 'OK'], partial: ['partial', 'PARTIAL'], failed: ['failed', 'FAILED'] };
+  const [cls, label] = map[s] || ['muted', s || '—'];
+  return `<span class="badge badge-${cls}">${label}</span>`;
+}
+
+function stageDotCls(s) {
+  return s === 'ok' ? 'ok' : s === 'error' ? 'error' : s === 'skipped' ? 'skipped' : s === 'timeout' ? 'timeout' : 'unknown';
+}
+
+const TYPE_COLORS = {
+  Org: '#4A90D9', Person: '#50B4A8', Program: '#6366F1', Tool: '#8B5CF6',
+  Model: '#7C3AED', Dataset: '#F59E0B', Benchmark: '#D97706', Paper: '#10B981',
+  Repo: '#059669', Tech: '#EAB308', Topic: '#64748B', Document: '#9CA3AF',
+  Event: '#F43F5E', Location: '#0EA5E9', Other: '#A1A1AA',
+};
+
+function typeColor(t) { return TYPE_COLORS[t] || '#9CA3AF'; }
+
+async function fetchJSON(path) {
+  try {
+    const r = await fetch(path + '?v=' + Date.now());
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+// ── KPI row ──────────────────────────────────────────────────────
+
+function renderKPIs(status) {
+  const row = document.getElementById('kpi-row');
+  if (!status || !status.available) {
+    row.innerHTML = `<div class="card" style="grid-column:1/-1"><div class="empty-state">No pipeline logs found yet. Run <code>make daily</code> to generate data.</div></div>`;
+    return;
+  }
+
+  const s = status.lastRunStatus || 'unknown';
+  const cls = s === 'success' ? 'ok' : s === 'partial' ? 'partial' : s === 'failed' ? 'failed' : '';
+
+  const cards = [
+    {
+      label: 'Last Run',
+      value: s === 'success' ? 'OK' : s.toUpperCase(),
+      valueCls: cls,
+      cardCls: cls,
+      sub: `${status.lastRunDate || '—'} · ${fmtDur(status.lastRunDurationSec)}`,
+    },
+    {
+      label: 'Nodes',
+      value: fmt(status.totalNodesLatest, '—'),
+      sub: `${fmt(status.totalEdgesLatest, '—')} edges`,
+    },
+    {
+      label: 'New Docs',
+      value: fmt(status.newDocsLastRun, '—'),
+      sub: 'last run',
+    },
+    {
+      label: 'Entities',
+      value: fmt(status.entitiesLastRun, '—'),
+      sub: `${fmt(status.relationsLastRun, '—')} relations`,
+    },
+    {
+      label: 'Feeds',
+      value: status.feedsReachable != null
+        ? `${status.feedsReachable}/${status.feedsChecked}`
+        : '—',
+      valueCls: status.feedsUnreachable > 0 ? 'partial' : '',
+      sub: status.feedsUnreachable > 0
+        ? `${status.feedsUnreachable} unreachable`
+        : 'all reachable',
+    },
+    {
+      label: 'Backlog',
+      value: fmt(status.backlog, '—'),
+      valueCls: (status.backlog || 0) > 10 ? 'warn' : '',
+      sub: 'docs pending extraction',
+    },
+  ];
+
+  row.innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.cardCls || ''}">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value ${c.valueCls || ''}">${c.value}</div>
+      <div class="kpi-sub">${c.sub || ''}</div>
+    </div>
+  `).join('');
+}
+
+// ── Run history chart ─────────────────────────────────────────────
+
+function renderRunsChart(runs) {
+  const canvas = document.getElementById('runs-chart');
+  const ctx = canvas.getContext('2d');
+
+  if (runsChart) { runsChart.destroy(); runsChart = null; }
+
+  const data = (runs && runs.runs) ? runs.runs : [];
+
+  if (!data.length) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.parentElement.innerHTML = '<div class="empty-state">No run data yet.</div>';
+    return;
+  }
+
+  const labels = data.map(r => r.date ? r.date.slice(5) : '');  // MM-DD
+  const docs = data.map(r => r.newDocs || 0);
+  const colors = data.map(r => {
+    if (r.status === 'success') return '#10B981';
+    if (r.status === 'partial') return '#F59E0B';
+    if (r.status === 'failed')  return '#EF4444';
+    return '#9CA3AF';
+  });
+
+  runsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'New docs',
+        data: docs,
+        backgroundColor: colors,
+        borderRadius: 3,
+        borderSkipped: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => data[items[0].dataIndex]?.date || '',
+            label: (item) => {
+              const r = data[item.dataIndex];
+              const lines = [`${item.raw} new docs`];
+              if (r.entities) lines.push(`${r.entities} entities`);
+              if (r.status) lines.push(`Status: ${r.status}`);
+              return lines;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10, family: 'monospace' }, maxRotation: 0 },
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#E5E7EB' },
+          ticks: { font: { size: 10 } },
+        },
+      },
+    },
+  });
+}
+
+// ── Pipeline stages ───────────────────────────────────────────────
+
+const STAGE_ORDER = ['ingest', 'docpack', 'extract', 'import', 'resolve', 'export', 'trending'];
+
+const STAGE_META_FN = {
+  ingest:   (r) => { const s = r.stages?.ingest; return s ? `${fmt(s.newDocs ?? r.newDocs)} docs, ${r.feedsReachable}/${r.feedsChecked} feeds` : ''; },
+  extract:  (r) => { const e = r.entities; const rel = r.relations; return [e && `${fmt(e)} entities`, rel && `${fmt(rel)} relations`].filter(Boolean).join(', '); },
+  import:   (r) => '',
+  export:   (r) => { return [r.nodes && `${fmt(r.nodes)} nodes`, r.edges && `${fmt(r.edges)} edges`].filter(Boolean).join(', '); },
+};
+
+function renderStages(runs) {
+  const el = document.getElementById('stages-list');
+  const latest = runs?.runs?.[runs.runs.length - 1];
+
+  if (!latest) {
+    el.innerHTML = '<div class="stage-empty">No run data yet.</div>';
+    return;
+  }
+
+  const stagesData = latest.stages || {};
+
+  el.innerHTML = STAGE_ORDER.map(name => {
+    const s = stagesData[name];
+    if (!s) return '';
+    const dotCls = stageDotCls(s.status);
+    const metaFn = STAGE_META_FN[name];
+    const meta = metaFn ? metaFn(latest) : '';
+    const dur = s.duration_sec != null ? fmtDur(s.duration_sec) : '';
+    return `
+      <div class="stage-row">
+        <span class="stage-dot ${dotCls}"></span>
+        <span class="stage-name">${name}</span>
+        <span class="stage-meta">${meta}</span>
+        <span class="stage-dur">${dur}</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Quality gates ─────────────────────────────────────────────────
+
+const GATE_LABELS = {
+  evidence_fidelity_rate:   { label: 'Evidence Fidelity', invert: false, threshold: 0.70 },
+  orphan_rate:              { label: 'Orphan Endpoints',  invert: true,  threshold: 0.00 },
+  zero_value:               { label: 'Zero-Value Docs',  invert: true,  threshold: 0.05 },
+  high_conf_bad_evidence:   { label: 'Hi-Conf Bad Evid', invert: true,  threshold: 0.00 },
+};
+
+function renderGates(quality) {
+  const el = document.getElementById('gates-list');
+
+  if (!quality || !quality.available) {
+    el.innerHTML = '<div class="empty-state">No quality data yet. Run pipeline with LLM extraction to populate.</div>';
+    return;
+  }
+
+  const gates = quality.gates || [];
+  if (!gates.length) {
+    el.innerHTML = '<div class="empty-state">No gate metrics recorded yet.</div>';
+    return;
+  }
+
+  el.innerHTML = gates.map(g => {
+    const cfg = GATE_LABELS[g.metric_name] || { label: g.metric_name, invert: false, threshold: 0.7 };
+    const pct = g.pass_rate ?? 0;
+    const displayPct = cfg.invert ? 1 - pct : pct;
+    const barPct = Math.round(displayPct * 100);
+    const isGood = cfg.invert ? pct <= cfg.threshold : pct >= cfg.threshold;
+    const barCls = barPct >= 90 ? 'good' : barPct >= 70 ? 'warn' : 'bad';
+    const pctCls = isGood ? 'text-ok' : 'text-error';
+
+    return `
+      <div class="gate-row">
+        <div class="gate-header">
+          <span class="gate-name">${cfg.label}</span>
+          <span class="gate-pct ${pctCls}">${fmtPct(g.pass_rate)} <span class="text-muted">(${fmt(g.total)} runs)</span></span>
+        </div>
+        <div class="gate-bar-track">
+          <div class="gate-bar-fill ${barCls}" style="width:${barPct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Rising Stars ──────────────────────────────────────────────────
+
+function renderRisingStars(trending) {
+  const el = document.getElementById('stars-list');
+
+  const nodes = trending?.elements?.nodes || [];
+  if (!nodes.length) {
+    el.innerHTML = '<div class="empty-state">No trending data yet. Run <code>make trending</code> then <code>make copy-to-live</code>.</div>';
+    return;
+  }
+
+  // Sort by velocity descending, take top 10
+  const sorted = nodes
+    .map(n => n.data)
+    .filter(d => d.velocity != null)
+    .sort((a, b) => (b.velocity || 0) - (a.velocity || 0))
+    .slice(0, 10);
+
+  if (!sorted.length) {
+    el.innerHTML = '<div class="empty-state">No velocity data on trending nodes.</div>';
+    return;
+  }
+
+  el.innerHTML = sorted.map((d, i) => {
+    const vel = d.velocity || 0;
+    const velCls = vel >= 1 ? '' : 'down';
+    const color = typeColor(d.type);
+    return `
+      <div class="star-row">
+        <span class="star-rank">${i + 1}</span>
+        <span class="star-type-dot" style="background:${color}" title="${d.type || ''}"></span>
+        <span class="star-name" title="${d.id || ''}">${d.label || d.id || '—'}</span>
+        <span class="star-vel ${velCls}">${fmtVel(vel)}</span>
+        <span class="star-mentions">${fmt(d.mention_count_7d, 0)}d7 · ${fmt(d.mention_count_30d, 0)}d30</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Feed health ───────────────────────────────────────────────────
+
+function renderFeeds(feeds) {
+  const el = document.getElementById('feeds-wrap');
+
+  if (!feeds || !feeds.available || !feeds.feeds.length) {
+    el.innerHTML = '<div class="empty-state">Feed config not found or no logs available.</div>';
+    return;
+  }
+
+  const lastRun = feeds.lastRunFeeds || {};
+  const errored = new Set((lastRun.erroredFeeds || []).map(e => e.split('(')[0].trim()));
+
+  const rows = feeds.feeds.map(f => {
+    const isErrored = errored.has(f.name);
+    const isDisabled = f.enabled === false;
+    const errorRate = f.total_runs > 0 ? f.errored_runs / f.total_runs : 0;
+    const statusCls = isDisabled ? 'text-muted' : isErrored ? 'text-error' : errorRate > 0.2 ? 'text-warn' : 'text-ok';
+    const statusLabel = isDisabled ? 'disabled' : isErrored ? 'error (last run)' : errorRate > 0.2 ? `unstable (${Math.round(errorRate*100)}%)` : 'ok';
+
+    return `
+      <tr>
+        <td>${f.name || '—'}</td>
+        <td><span class="tier-badge">T${f.tier || '?'}</span> <span class="text-muted">${f.signal || ''}</span></td>
+        <td class="mono text-muted" style="font-size:var(--text-xs)">${(f.url || '').slice(0, 50)}${(f.url || '').length > 50 ? '…' : ''}</td>
+        <td class="${statusCls}">${statusLabel}</td>
+        <td class="mono text-muted">${f.errored_runs}/${f.total_runs}</td>
+      </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <table class="dash-table">
+      <thead><tr>
+        <th>Name</th><th>Tier / Signal</th><th>URL</th><th>Status</th><th>Errors/Runs</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Model quality ─────────────────────────────────────────────────
+
+function renderModels(quality) {
+  const el = document.getElementById('models-wrap');
+
+  if (!quality || !quality.available) {
+    el.innerHTML = '<div class="empty-state">No quality data yet.</div>';
+    return;
+  }
+
+  const models = quality.models || [];
+  if (!models.length) {
+    el.innerHTML = '<div class="empty-state">No model quality records yet.</div>';
+    return;
+  }
+
+  const rows = models.map(m => {
+    const scoreCls = m.avg_score >= 0.75 ? 'text-ok' : m.avg_score >= 0.55 ? 'text-warn' : 'text-error';
+    const escalationRate = m.runs > 0 ? m.escalated / m.runs : 0;
+    return `
+      <tr>
+        <td class="mono" style="font-size:var(--text-xs)">${m.model || '—'}</td>
+        <td class="mono text-muted">${fmt(m.runs)}</td>
+        <td class="mono ${scoreCls}">${m.avg_score != null ? m.avg_score.toFixed(3) : '—'}</td>
+        <td class="mono text-muted">${m.min_score != null ? m.min_score.toFixed(3) : '—'} – ${m.max_score != null ? m.max_score.toFixed(3) : '—'}</td>
+        <td class="mono">${fmtPct(escalationRate)} <span class="text-muted">(${fmt(m.escalated)})</span></td>
+        <td class="mono text-muted">${m.avg_duration_ms != null ? Math.round(m.avg_duration_ms).toLocaleString() + ' ms' : '—'}</td>
+      </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <table class="dash-table">
+      <thead><tr>
+        <th>Model</th><th>Runs</th><th>Avg Score</th><th>Min – Max</th><th>Escalation</th><th>Avg Duration</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Last-updated footer ───────────────────────────────────────────
+
+function renderUpdated(status) {
+  const el = document.getElementById('last-updated');
+  const ts = status?.generatedAt;
+  if (!ts) { el.textContent = ''; return; }
+  const d = new Date(ts);
+  el.textContent = `Data as of ${d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} · ${d.toLocaleDateString()}`;
+}
+
+// ── Main loader ───────────────────────────────────────────────────
+
+async function loadAll() {
+  const [status, runs, quality, feeds, trending] = await Promise.all([
+    fetchJSON(BASE + 'dashboard/status.json'),
+    fetchJSON(BASE + 'dashboard/runs.json'),
+    fetchJSON(BASE + 'dashboard/quality.json'),
+    fetchJSON(BASE + 'dashboard/feeds.json'),
+    // Try live first, fall back to latest (fixture data)
+    fetchJSON(BASE + 'graphs/live/trending.json')
+      .then(d => d || fetchJSON(BASE + 'graphs/latest/trending.json')),
+  ]);
+
+  renderUpdated(status);
+  renderKPIs(status);
+  renderRunsChart(runs);
+  renderStages(runs);
+  renderGates(quality);
+  renderRisingStars(trending);
+  renderFeeds(feeds);
+  renderModels(quality);
+}
+
+loadAll();
+</script>
+</body>
+</html>
