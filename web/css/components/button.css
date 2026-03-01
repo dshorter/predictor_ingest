@@ -109,6 +109,18 @@
   border-color: var(--blue-600);
 }
 
+/* SVGs inside icon buttons: block removes inline baseline gap */
+.btn-icon svg {
+  display: block;
+}
+
+/* Theme toggle: CSS-driven sun/moon swap via data-theme on <html>.
+   The JS still updates #theme-icon textContent (no-op on the hidden span)
+   but visibility is controlled entirely here. */
+.icon-theme-dark  { display: none; }
+[data-theme="dark"] .icon-theme-light { display: none; }
+[data-theme="dark"] .icon-theme-dark  { display: block; }
+
 /* Link style button */
 .btn-link {
   padding: 0;
