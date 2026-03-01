@@ -105,6 +105,31 @@ Each item is a discrete check that can be verified independently. Mark `[x]` whe
 
 ---
 
+## Sprint 4 — Graph Canvas Polish
+
+### 4.1 Node depth and texture
+- [ ] All nodes have a **2.5px border** in their type color (20% darker than fill), not flat gray
+- [ ] All nodes have a subtle drop shadow (faint underlay visible when zoomed in)
+- [ ] Nodes with `velocity > 2` show a **colored halo** (type-colored, low opacity) extending beyond the node circle
+- [ ] Standard nodes do **not** show a halo
+- [ ] Selected nodes show an **8px blue glow** (`overlay-padding: 8`)
+- [ ] DevTools console: `getCytoscapeStyles()` returns a `node[velocity > 2]` entry
+
+### 4.2 Canvas dot-grid
+- [ ] The graph canvas shows a **subtle 24px dot grid** in both light and dark mode
+- [ ] Light mode: dots are gray-200 (`#E5E7EB`); dark mode: dots are gray-700 (`#374151`)
+- [ ] Dot grid does not interfere with node/edge rendering at any zoom level
+- [ ] Grid is present on initial load without needing to toggle theme
+
+### 4.3 Edge arrow refinement
+- [ ] Edges with `confidence < 0.5` have a **smaller arrowhead** (scale 0.6 vs 0.8)
+- [ ] Hovering an edge shows the **relation type label** (e.g. `USES_TECH`) centered on the edge
+- [ ] Edge label disappears when the cursor leaves
+- [ ] Edge label has a light background pill so it reads over other elements
+- [ ] Label rotates with edge direction (`text-rotation: autorotate`)
+
+---
+
 ## Regression Checks (run after any sprint)
 
 - [ ] **Open DevTools console before loading** — zero errors on initial page load (a JS SyntaxError here silences the entire app)
