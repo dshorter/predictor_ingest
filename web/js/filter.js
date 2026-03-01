@@ -212,7 +212,27 @@ class GraphFilter {
 }
 
 /**
- * Populate type filter checkboxes dynamically.
+ * Entity type groups: maps display label → ordered list of types.
+ * Order within groups matches the canonical spec type list.
+ */
+const TYPE_GROUPS = [
+  { label: 'People & Organizations', types: ['Org', 'Person', 'Program'] },
+  { label: 'Technology',             types: ['Model', 'Tool', 'Tech', 'Dataset', 'Benchmark'] },
+  { label: 'Knowledge',              types: ['Paper', 'Repo', 'Topic'] },
+  { label: 'Context',                types: ['Document', 'Event', 'Location', 'Other'] },
+];
+
+/** CSS custom property names for each entity type (mirrors tokens.css). */
+const TYPE_DOT_VARS = {
+  Org: '--color-org', Person: '--color-person', Program: '--color-program',
+  Tool: '--color-tool', Model: '--color-model', Dataset: '--color-dataset',
+  Benchmark: '--color-benchmark', Paper: '--color-paper', Repo: '--color-repo',
+  Tech: '--color-tech', Topic: '--color-topic', Document: '--color-document',
+  Event: '--color-event', Location: '--color-location', Other: '--color-other',
+};
+
+/**
+ * Populate type filter checkboxes dynamically, grouped by category with color dots.
  * Re-generates the HTML and re-attaches change listeners so counts
  * stay in sync whenever the underlying graph data changes.
  *
@@ -223,34 +243,30 @@ function populateTypeFilters(cy, filter) {
   const typeFiltersContainer = document.getElementById('type-filters');
   if (!typeFiltersContainer) return;
 
-  // All 15 entity types from the specification
-  const allTypes = [
-    'Org', 'Person', 'Model', 'Tool', 'Dataset',
-    'Benchmark', 'Paper', 'Repo', 'Tech', 'Topic',
-    'Event', 'Program', 'Location', 'Document', 'Other'
-  ];
-
   // Get types that actually exist in the current graph
   const existingTypes = new Set();
   cy.nodes().forEach(node => {
     existingTypes.add(node.data('type'));
   });
 
-  // Generate checkboxes for all types
-  typeFiltersContainer.innerHTML = allTypes.map(type => {
-    const disabled = !existingTypes.has(type);
-    const count = disabled ? 0 : cy.nodes(`[type="${type}"]`).length;
+  // Generate grouped checkboxes with color dots
+  typeFiltersContainer.innerHTML = TYPE_GROUPS.map(group => {
+    const checkboxes = group.types.map(type => {
+      const disabled = !existingTypes.has(type);
+      const count = disabled ? 0 : cy.nodes(`[type="${type}"]`).length;
+      const dotVar = TYPE_DOT_VARS[type] || '--color-other';
+      return `
+        <label class="checkbox-label${disabled ? ' text-gray-400' : ''}">
+          <input type="checkbox" data-type="${type}" ${disabled ? 'disabled' : 'checked'} />
+          <span class="entity-type-dot" style="background:var(${dotVar})"></span>
+          ${type}${count > 0 ? ` (${count})` : ''}
+        </label>`;
+    }).join('');
 
-    return `
-      <label class="checkbox-label ${disabled ? 'text-gray-400' : ''}">
-        <input
-          type="checkbox"
-          data-type="${type}"
-          ${disabled ? 'disabled' : 'checked'}
-        />
-        ${type} ${count > 0 ? `(${count})` : ''}
-      </label>
-    `;
+    return `<div class="type-group">
+      <div class="type-group-label">${group.label}</div>
+      ${checkboxes}
+    </div>`;
   }).join('');
 
   // Re-attach change listeners after regenerating the HTML
@@ -310,7 +326,7 @@ function initializeFilterPanel(filter) {
   // Entity type checkbox change listeners are now attached inside
   // populateTypeFilters() so they survive HTML regeneration.
 
-  // Select all/none types
+  // Select all/none types (existing small buttons below the list)
   document.getElementById('select-all-types')?.addEventListener('click', () => {
     const checkboxes = document.querySelectorAll('[data-type]:not([disabled])');
     checkboxes.forEach(cb => {
@@ -325,6 +341,32 @@ function initializeFilterPanel(filter) {
       cb.checked = false;
       filter.toggleType(cb.dataset.type, false);
     });
+  });
+
+  // Quick-filter pill buttons
+  const TECH_TYPES = ['Model', 'Tool', 'Tech', 'Dataset', 'Benchmark'];
+  const ORG_TYPES  = ['Org', 'Person', 'Program'];
+
+  function applyQuickFilter(enabledTypes) {
+    const checkboxes = document.querySelectorAll('[data-type]:not([disabled])');
+    checkboxes.forEach(cb => {
+      const on = enabledTypes === null || enabledTypes.includes(cb.dataset.type);
+      cb.checked = on;
+      filter.toggleType(cb.dataset.type, on);
+    });
+  }
+
+  document.getElementById('quick-filter-all')?.addEventListener('click', () => {
+    applyQuickFilter(null);   // null = enable all
+  });
+  document.getElementById('quick-filter-tech')?.addEventListener('click', () => {
+    applyQuickFilter(TECH_TYPES);
+  });
+  document.getElementById('quick-filter-orgs')?.addEventListener('click', () => {
+    applyQuickFilter(ORG_TYPES);
+  });
+  document.getElementById('quick-filter-none')?.addEventListener('click', () => {
+    applyQuickFilter([]);     // empty = disable all
   });
 
   // Kind checkboxes

@@ -27,6 +27,7 @@
 
 /* Tooltip header */
 .tooltip-header {
+  font-family: var(--font-display);
   display: flex;
   align-items: center;
   gap: var(--space-2);
