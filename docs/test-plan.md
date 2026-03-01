@@ -79,6 +79,32 @@ Each item is a discrete check that can be verified independently. Mark `[x]` whe
 
 ---
 
+## Sprint 3 — Toolbar Icons
+
+### 3.1 / 3.2 Desktop icons (Lucide SVGs, 20×20)
+- [ ] Zoom in button shows a magnifying glass with a `+` inside (not `+` text)
+- [ ] Zoom out button shows a magnifying glass with a `−` inside
+- [ ] Fit to view button shows four corner arrows (maximize-2)
+- [ ] Re-layout button shows a circular clockwise arrow (refresh-cw)
+- [ ] Minimap toggle button shows a folded map icon
+- [ ] Theme toggle button shows a **sun** in light mode and a **moon** in dark mode (no text glyph)
+- [ ] Toggling theme swaps the icon without a page reload or JS error
+- [ ] Filter button shows a three-row horizontal sliders icon
+- [ ] Help button shows a circle with a question mark inside
+- [ ] All icons render in `currentColor` — they match the button text color in both themes
+- [ ] DevTools → Elements: no Unicode characters (`☀`, `☾`, `⚙`, `▣`, `↻`, `⬜`, `?`) visible inside any `.btn-icon`
+- [ ] `aria-label` is present on every toolbar button
+
+### 3.3 Mobile icons (Lucide SVGs, 24×24)
+- [ ] Mobile menu button (hamburger) shows three horizontal lines
+- [ ] Mobile search button shows a magnifying glass
+- [ ] Mobile filter button shows the same sliders-horizontal icon
+- [ ] Mobile help button shows help-circle
+- [ ] Mobile theme toggle in the hamburger menu shows sun/moon correctly
+- [ ] All mobile icons are 24×24 (larger touch targets than desktop 20×20)
+
+---
+
 ## Regression Checks (run after any sprint)
 
 - [ ] **Open DevTools console before loading** — zero errors on initial page load (a JS SyntaxError here silences the entire app)
