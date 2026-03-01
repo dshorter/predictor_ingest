@@ -148,6 +148,19 @@ function addElements(cy, elements) {
 }
 
 /**
+ * Apply .new CSS class to nodes first seen within the last 7 days.
+ * Call after addElements() or initializeGraph() to activate the green
+ * double-border style defined in styles.js.
+ */
+function applyNewClass(cy) {
+  cy.nodes().forEach(node => {
+    if (isNewNode(node.data('firstSeen'))) {
+      node.addClass('new');
+    }
+  });
+}
+
+/**
  * Remove elements from graph
  */
 function removeElements(cy, elementIds) {

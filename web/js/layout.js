@@ -11,6 +11,10 @@
  * See docs/fix-details/FCOSE_LAYOUT_ANALYSIS.md for research.
  */
 
+// Respect OS-level animation preference for all Cytoscape layout animations.
+// CSS transitions are already covered by the reset.css media query.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * Check if fcose layout is available.
  * The CDN script auto-registers with cytoscape when both are loaded,
@@ -43,7 +47,7 @@ const LAYOUT_OPTIONS_BASE = {
 
   // Animation
   animate: true,
-  animationDuration: 500,
+  animationDuration: prefersReducedMotion ? 0 : 500,
   animationEasing: 'ease-out',
 
   // Fit to viewport
@@ -188,7 +192,7 @@ function getScaledLayoutOptions(nodeCount, edgeCount) {
 const COSE_FALLBACK = {
   name: 'cose',
   animate: true,
-  animationDuration: 500,
+  animationDuration: prefersReducedMotion ? 0 : 500,
   fit: true,
   padding: 50,
   nodeRepulsion: 4500,
@@ -268,7 +272,7 @@ function runPartialLayout(cy, nodes, options = {}) {
     fit: false,
     randomize: false,
     animate: true,
-    animationDuration: 300,
+    animationDuration: prefersReducedMotion ? 0 : 300,
   };
 
   const layout = nodes.layout(layoutOptions);
@@ -309,7 +313,7 @@ function fitGraph(cy, padding = 50) {
       eles: cy.elements(),
       padding: padding
     },
-    duration: 300
+    duration: prefersReducedMotion ? 0 : 300
   });
 }
 
@@ -319,7 +323,7 @@ function fitGraph(cy, padding = 50) {
 function centerOn(cy, elements, zoom = null) {
   const options = {
     center: { eles: elements },
-    duration: 300
+    duration: prefersReducedMotion ? 0 : 300
   };
 
   if (zoom !== null) {
