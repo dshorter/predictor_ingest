@@ -22,7 +22,7 @@ require human input or are data-dependent.
 
 ---
 
-## Sprint 1 — Dead Code Wiring (Day 1)
+## Sprint 1 — Dead Code Wiring (Day 1) ✓ DONE
 
 Fix features that are built but never activated. Zero new functionality — just
 connecting wires that already exist. Lowest risk, highest embarrassment-to-fix ratio.
@@ -36,10 +36,11 @@ connecting wires that already exist. Lowest risk, highest embarrassment-to-fix r
 
 **Risk:** Near-zero. All code paths already exist.
 **Stability gate:** Run desktop + mobile in browser, confirm no regressions.
+**Completed:** 2026-02-27
 
 ---
 
-## Sprint 2 — Aesthetic Identity: CSS Foundation (Days 2–3)
+## Sprint 2 — Aesthetic Identity: CSS Foundation (Days 2–3) ✓ DONE
 
 CSS-only changes that establish visual identity. No JS logic changes. If anything
 breaks, it's purely visual and immediately reversible.
@@ -54,10 +55,11 @@ breaks, it's purely visual and immediately reversible.
 
 **Risk:** Low. CSS token system is well-established. Changes are additive.
 **Stability gate:** Visual QA in light + dark mode, desktop + mobile.
+**Completed:** 2026-02-28
 
 ---
 
-## Sprint 3 — Toolbar Icons (Day 4)
+## Sprint 3 — Toolbar Icons (Day 4) ✓ DONE
 
 Replace Unicode glyphs with professional SVG icons. Natural to do right after
 toolbar CSS changes settle.
@@ -70,10 +72,14 @@ toolbar CSS changes settle.
 
 **Risk:** Low. Purely presentational. No JS logic changes.
 **Dependency:** Sprint 2 (toolbar CSS must be settled first).
+**Completed:** 2026-03-01
+**Notes:** Theme toggle (sun/moon) implemented as CSS-driven swap via `[data-theme]`
+on `<html>` — no JS changes required. `#theme-icon` span kept hidden for JS
+compatibility. CSS toggle rules added to `button.css`.
 
 ---
 
-## Sprint 4 — Graph Canvas Polish (Day 5)
+## Sprint 4 — Graph Canvas Polish (Day 5) ✓ DONE
 
 Cytoscape `styles.js` changes. Contained to one file. Changes how the graph
 *looks* but not how it *behaves*.
@@ -86,6 +92,10 @@ Cytoscape `styles.js` changes. Contained to one file. Changes how the graph
 
 **Risk:** Low. All changes are Cytoscape style properties, not event logic.
 **Stability gate:** Load all 4 views, confirm rendering at various zoom levels.
+**Completed:** 2026-03-01
+**Notes:** `darkenColor()` helper added for 20%-darker type-colored borders. Edge
+hover label (relation type, autorotate) implemented as part of 4.3. Arrow scale
+is a function rather than a second selector.
 
 ---
 
@@ -265,16 +275,34 @@ Not scheduled. Documented so they're not forgotten.
 
 ---
 
+## Progress Summary
+
+| Sprint | Status | Completed |
+|--------|--------|-----------|
+| 1 — Dead Code Wiring | ✓ Done | 2026-02-27 |
+| 2 — Aesthetic Identity CSS | ✓ Done | 2026-02-28 |
+| 3 — Toolbar Icons | ✓ Done | 2026-03-01 |
+| 4 — Graph Canvas Polish | ✓ Done | 2026-03-01 |
+| 5 — Interaction Polish | **Next** | — |
+| 6 — Domain Modularization | Pending | — |
+| 7 — What's Hot | Pending | — |
+| 8 — Discovery Rewards | Pending | — |
+| 9 — Guided Entry | Pending | — |
+| 10 — Medium Gap Features | Pending | — |
+| 11 — Branding & Wrap-up | Pending | — |
+
+---
+
 ## Completion Estimate
 
 | Metric | Value |
 |--------|-------|
-| Working pace | ~2 hours/day |
+| Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| Sprints | 11 sprints, ~24 working days |
+| As of | 2026-03-01 (4 sprints done in 3 days) |
+| Sprints remaining | 7 sprints (5–11) |
 | Backend track | Parallel, partially blocked on data |
-| Calendar weeks | ~5 weeks (weekdays only) |
-| **Target completion** | **~April 1–4, 2026** |
+| **Revised target** | **~mid-March 2026** |
 
 **Risks to timeline:**
 - Sprint 6 (domain modularization) touches many files; refactoring regressions
@@ -286,8 +314,7 @@ Not scheduled. Documented so they're not forgotten.
 - Branding decision (DL-6) is externally blocked
 - Backend items are data-dependent and may shift
 
-**Buffer:** The estimate has no slack built in. A realistic date with ~20% buffer
-would be **~April 8, 2026**.
+**Buffer:** With current pace, completion by end of March is achievable with slack.
 
 ---
 
