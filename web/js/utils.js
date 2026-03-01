@@ -103,13 +103,18 @@ function formatRelation(rel) {
 }
 
 /**
- * Format velocity as percentage
- * @param {number} velocity
+ * Format velocity ratio for display.
+ * Velocity is a ratio: 2.0 = "2× as many mentions as previous period."
+ * We display it as a percentage change: 2.0 → "+100%", 0.5 → "−50%".
+ * @param {number} velocity - ratio (recent / previous)
  * @returns {string}
  */
 function formatVelocity(velocity) {
-  if (velocity === undefined || velocity === null) return '0%';
-  return `${(velocity * 100).toFixed(0)}%`;
+  if (velocity === undefined || velocity === null || velocity === 0) return '—';
+  const change = (velocity - 1) * 100;
+  if (Math.abs(change) < 1) return '0%';
+  const sign = change > 0 ? '+' : '';
+  return `${sign}${change.toFixed(0)}%`;
 }
 
 /**

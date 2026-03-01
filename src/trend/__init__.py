@@ -80,11 +80,14 @@ def compute_velocity(
     prev_date = as_of - timedelta(days=window)
     previous = count_mentions(conn, entity_id, days=window, as_of=prev_date)
 
-    if previous == 0:
-        # New entity or no previous mentions
-        if recent > 0:
-            return float(recent + 1)  # High velocity for new entities
+    if previous == 0 and recent == 0:
         return 0.0
+
+    if previous == 0:
+        # First appearance — use Laplace-smoothed ratio: recent / 1
+        # Caps at 5.0 so brand-new entities don't dominate with
+        # nonsensical percentages (was: recent + 1, unbounded).
+        return min(float(recent), 5.0)
 
     return recent / previous
 
