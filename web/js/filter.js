@@ -18,6 +18,10 @@ class GraphFilter {
         'Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
         'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'
       ]),
+      // 'hypothesis' edges are intentionally OFF by default. They are
+      // speculative claims not backed by direct evidence; showing them
+      // by default would clutter the base graph with low-signal noise.
+      // Users can enable them via the Relationship Kind filter panel.
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
       viewPreset: initialView === 'trending' ? 'trending' : 'all'
@@ -178,6 +182,7 @@ class GraphFilter {
         'Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
         'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'
       ]),
+      // 'hypothesis' intentionally excluded — see constructor comment.
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
       viewPreset: 'all'  // safe default; caller sets view-specific preset

@@ -8,6 +8,11 @@
 // Exposed here so the UI can set an initial filter without a server round-trip.
 const DEFAULT_DATE_WINDOW_DAYS = 30;
 
+// Respect OS-level animation preference. Read once at module load.
+// Used to set duration: 0 on all cy.animate() calls and layout animations.
+// CSS transitions are already handled by reset.css via the media query.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 // Application state
 const AppState = {
   currentView: 'trending',
@@ -213,6 +218,9 @@ async function initializeApp() {
     // Expose cy globally for panel functions
     window.cy = AppState.cy;
 
+    // Mark nodes first seen within the last 7 days with .new class
+    applyNewClass(AppState.cy);
+
     // Initialize all components
     initializeEventHandlers(AppState.cy);
     initializePanels(AppState.cy);
@@ -328,13 +336,13 @@ function initializeEventHandlers(cy) {
     }
   });
 
-  // Double-click node: zoom to neighborhood
+  // Double-click node: expand hidden neighbors, then zoom to neighborhood
   cy.on('dbltap', 'node', (e) => {
     const node = e.target;
-    const neighborhood = node.closedNeighborhood();
+    expandNeighbors(node);
     cy.animate({
-      fit: { eles: neighborhood, padding: 50 },
-      duration: 300
+      fit: { eles: node.closedNeighborhood(), padding: 50 },
+      duration: prefersReducedMotion ? 0 : 300
     });
   });
 
@@ -343,7 +351,7 @@ function initializeEventHandlers(cy) {
     if (e.target === cy) {
       cy.animate({
         fit: { padding: 30 },
-        duration: 300
+        duration: prefersReducedMotion ? 0 : 300
       });
     }
   });
@@ -544,6 +552,7 @@ async function switchView(view) {
     // Clear and reload
     AppState.cy.elements().remove();
     addElements(AppState.cy, data.elements);
+    applyNewClass(AppState.cy);
 
     // Re-run layout and re-initialize navigator after it completes
     const layout = runLayout(AppState.cy);

@@ -194,6 +194,8 @@ Collapsible sidebar with comprehensive filtering:
       <label><input type="checkbox" data-kind="inferred" checked /> Inferred</label>
       <label><input type="checkbox" data-kind="hypothesis" /> Hypothesis</label>
     </section>
+    <!-- NOTE: 'hypothesis' is intentionally unchecked by default.
+         See "Hypothesis Edges: Default-Off" section below. -->
 
     <!-- Confidence Threshold -->
     <section class="filter-section">
@@ -397,6 +399,30 @@ class GraphFilter {
   }
 }
 ```
+
+---
+
+---
+
+## Hypothesis Edges: Default-Off
+
+`hypothesis` edges are **unchecked by default** in the Relationship Kind filter.
+This is an intentional product decision, not an oversight.
+
+**Rationale:**
+- Hypothesis edges are speculative claims — not backed by direct evidence from a
+  source document. They represent "could be true" rather than "was stated to be true."
+- Including them by default would clutter the base graph with low-signal noise,
+  making it harder to see the asserted/inferred edges that represent real claims.
+- The CLAUDE.md spec explicitly requires: *"Separate 'asserted' vs 'inferred' vs
+  'hypothesis'. Never let inferred edges overwrite asserted edges. Inferred/hypothesis
+  edges must be clearly labeled and toggleable in the UI."*
+
+**To enable:** Open the Filter panel → Relationship Kind → check "Hypothesis."
+
+**Code:** `filter.js` `GraphFilter` constructor initializes `kinds` as
+`new Set(['asserted', 'inferred'])` — hypothesis is present in the HTML checkbox
+but absent from the default set.
 
 ---
 
