@@ -81,6 +81,7 @@ Each item is a discrete check that can be verified independently. Mark `[x]` whe
 
 ## Regression Checks (run after any sprint)
 
+- [ ] **Open DevTools console before loading** — zero errors on initial page load (a JS SyntaxError here silences the entire app)
 - [ ] All four views load without console errors: Trending, Claims, Mentions, Dependencies
 - [ ] Search highlights matching nodes and dims others
 - [ ] Filter panel opens and closes
