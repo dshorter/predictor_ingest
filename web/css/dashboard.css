@@ -17,11 +17,11 @@
    secondary so the near-black card surface doesn't clash.
    ──────────────────────────────────────────────────────────────────── */
 body {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-secondary);   /* gray-50 #F9FAFB — very light, shadow-md carries the depth */
 }
 
 [data-theme="dark"] body {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-secondary);   /* gray-800 #1F2937 — unchanged */
 }
 
 /* ── Header ──────────────────────────────────────────────────────────── */
