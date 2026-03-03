@@ -212,6 +212,7 @@ for the boundary definition and enforcement rules.
 | [docs/llm-selection.md](docs/llm-selection.md) | LLM model tiers, escalation mode architecture, shadow mode, cost model, quality scoring weights |
 | [docs/source-selection-strategy.md](docs/source-selection-strategy.md) | Feed tier model (primary/secondary/echo), entity overlap strategy, coverage targets |
 | [docs/research/extract-quality-analysis.md](docs/research/extract-quality-analysis.md) | Quality gate design, evaluation architecture (Phase 0–4), calibration plan, CPU vs LLM cost matrix |
+| [docs/research/trend-insights.md](docs/research/trend-insights.md) | Insight articulation layer: templates, categories, deterministic vs LLM generation, backtest protocol |
 
 #### UX & Visualization
 

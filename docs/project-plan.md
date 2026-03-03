@@ -185,6 +185,25 @@ integration, and fly-to animation. Needs holistic understanding of the data flow
 **Stability gate:** Verify hot list populates from real export data, fly-to works,
 drawer opens/closes cleanly. Confirm existing views are unaffected.
 
+**Content upgrade path (B.8 → B.9):** Sprint 7 ships with raw velocity-ranked
+entities. B.8–B.9 later produce structured insight artifacts (title, category,
+evidence, "so what") that slot into the same panel. Design 7.3 (`whats-hot.js`)
+to accept either raw scores or insight objects — start simple, upgrade in place.
+
+```
+Sprint 7 (UI shell)          B.8 (insight templates)
+      │                            │
+      │     ┌──────────────────────┘
+      ▼     ▼
+Sprint 7.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
+                                           │
+                                      B.11 (dedup so daily users
+                                            don't see repeats)
+                                           │
+                                      B.10 (backtest: are these
+                                            insights actually good?)
+```
+
 ---
 
 ## Sprint 8 — Discovery Rewards (Days 16–18)
@@ -259,6 +278,10 @@ These items run independently of the UI work. Most are waiting on pipeline data.
 | B.5 | VentureBeat 429 retry reset | backlog §PIPE-2 | Low priority | [Sonnet] |
 | B.6 | Anthropic Blog feed monitoring | backlog §SRC-1 | Monitor only | [Manual] |
 | B.7 | Feed freshness verification | backlog §SRC-2 | Run diagnostic script | [Manual] |
+| B.8 | Insight template spec (title templates + `so_what` stubs per category) | [trend-insights](research/trend-insights.md) §2–3 | Ready now (pure doc, no data dependency) | [Opus] |
+| B.9 | Insight generator script (`scripts/generate_insights.py`) | [trend-insights](research/trend-insights.md) §6 Phase B | Blocked on ≥14 days pipeline data (~mid-March) | [Opus] |
+| B.10 | Backtest harness for insight accuracy | [trend-insights](research/trend-insights.md) §6 Phase C | Blocked on ≥30 days pipeline data (~late March) | [Opus] |
+| B.11 | Insight deduplication + storage (JSONL + SQLite) | [trend-insights](research/trend-insights.md) §8 | After B.9 | [Sonnet] |
 
 ---
 
