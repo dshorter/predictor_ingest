@@ -1,5 +1,7 @@
 # Trend Insights: North Star, Ladder Architecture, and Evaluation Artifacts
 
+## This is a research-only document  
+
 ## 1) Why we’re doing this
 The goal is **unique, genuinely useful trend insights**—signals that feel *special* (early, corroborated, structurally meaningful), not generic “AI is trending” noise.
 
