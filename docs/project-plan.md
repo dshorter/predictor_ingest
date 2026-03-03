@@ -259,6 +259,10 @@ These items run independently of the UI work. Most are waiting on pipeline data.
 | B.5 | VentureBeat 429 retry reset | backlog §PIPE-2 | Low priority | [Sonnet] |
 | B.6 | Anthropic Blog feed monitoring | backlog §SRC-1 | Monitor only | [Manual] |
 | B.7 | Feed freshness verification | backlog §SRC-2 | Run diagnostic script | [Manual] |
+| B.8 | Insight template spec (title templates + `so_what` stubs per category) | [trend-insights](research/trend-insights.md) §2–3 | Ready now (pure doc, no data dependency) | [Opus] |
+| B.9 | Insight generator script (`scripts/generate_insights.py`) | [trend-insights](research/trend-insights.md) §6 Phase B | Blocked on ≥14 days pipeline data (~mid-March) | [Opus] |
+| B.10 | Backtest harness for insight accuracy | [trend-insights](research/trend-insights.md) §6 Phase C | Blocked on ≥30 days pipeline data (~late March) | [Opus] |
+| B.11 | Insight deduplication + storage (JSONL + SQLite) | [trend-insights](research/trend-insights.md) §8 | After B.9 | [Sonnet] |
 
 ---
 
