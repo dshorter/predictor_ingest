@@ -185,6 +185,25 @@ integration, and fly-to animation. Needs holistic understanding of the data flow
 **Stability gate:** Verify hot list populates from real export data, fly-to works,
 drawer opens/closes cleanly. Confirm existing views are unaffected.
 
+**Content upgrade path (B.8 → B.9):** Sprint 7 ships with raw velocity-ranked
+entities. B.8–B.9 later produce structured insight artifacts (title, category,
+evidence, "so what") that slot into the same panel. Design 7.3 (`whats-hot.js`)
+to accept either raw scores or insight objects — start simple, upgrade in place.
+
+```
+Sprint 7 (UI shell)          B.8 (insight templates)
+      │                            │
+      │     ┌──────────────────────┘
+      ▼     ▼
+Sprint 7.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
+                                           │
+                                      B.11 (dedup so daily users
+                                            don't see repeats)
+                                           │
+                                      B.10 (backtest: are these
+                                            insights actually good?)
+```
+
 ---
 
 ## Sprint 8 — Discovery Rewards (Days 16–18)
