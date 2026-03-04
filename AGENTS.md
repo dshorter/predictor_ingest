@@ -201,6 +201,7 @@ for the boundary definition and enforcement rules.
 | [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Boundary between framework and domain config; rules for what goes where |
 | [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 vision for applying the framework to other domains |
 | [docs/architecture/date-filtering.md](docs/architecture/date-filtering.md) | Why published_at (not fetched_at) is used for filtering; 30-day default window; NULL handling |
+| [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) | **Read first for big picture.** How 5 vectors (insights, sources, cost spectrum, plugin arch, connectors) converge mid-March; decision log |
 
 #### Pipeline & Backend
 
