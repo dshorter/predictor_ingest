@@ -543,6 +543,12 @@ async function switchView(view) {
   AppState.currentView = view;
   const dataUrl = getDataUrl(view);
 
+  // Crossfade: fade the canvas to 50% while new data loads, snap back on layoutstop
+  const cyEl = document.getElementById('cy');
+  if (cyEl && !prefersReducedMotion) {
+    cyEl.classList.add('view-switching');
+  }
+
   try {
     showLoading('Switching view...');
     const data = await loadGraphData(dataUrl);
@@ -552,9 +558,10 @@ async function switchView(view) {
     addElements(AppState.cy, data.elements);
     applyNewClass(AppState.cy);
 
-    // Re-run layout and re-initialize navigator after it completes
+    // Re-run layout; fade canvas back in and re-initialize navigator on completion
     const layout = runLayout(AppState.cy);
     layout.on('layoutstop', () => {
+      if (cyEl) cyEl.classList.remove('view-switching');
       initNavigator(AppState.cy);
     });
 
@@ -580,6 +587,7 @@ async function switchView(view) {
 
   } catch (error) {
     console.error('Failed to switch view:', error);
+    if (cyEl) cyEl.classList.remove('view-switching');
     hideLoading();
     // Show a non-fatal warning — don't crash the UI
     showWarning(

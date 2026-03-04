@@ -146,6 +146,19 @@ function showEdgeTooltip(edge, position, tooltip) {
 }
 
 /**
+ * Return pixel widths consumed by open side panels so tooltips don't slide under them.
+ */
+function getOpenPanelOffsets() {
+  const detailPanel = document.getElementById('detail-panel');
+  const filterPanel = document.getElementById('filter-panel');
+  const left = (detailPanel && !detailPanel.classList.contains('hidden'))
+    ? (detailPanel.offsetWidth || 0) : 0;
+  const right = (filterPanel && !filterPanel.classList.contains('collapsed'))
+    ? (filterPanel.offsetWidth || 0) : 0;
+  return { left, right };
+}
+
+/**
  * Position tooltip and make visible
  */
 function positionAndShowTooltip(tooltip, content, position) {
@@ -163,13 +176,21 @@ function positionAndShowTooltip(tooltip, content, position) {
   // Get tooltip dimensions after content is set
   const tooltipRect = tooltip.getBoundingClientRect();
 
-  // Adjust if tooltip would overflow viewport
-  if (x + tooltipRect.width > window.innerWidth - 10) {
+  // Account for open side panels when computing available space
+  const { left: panelLeft, right: panelRight } = getOpenPanelOffsets();
+  const rightBound = window.innerWidth - panelRight - 10;
+  const leftBound = panelLeft + 10;
+
+  // Flip to left of cursor if tooltip would overflow right bound
+  if (x + tooltipRect.width > rightBound) {
     x = containerRect.left + position.x - tooltipRect.width - TOOLTIP_OFFSET;
   }
+  // Flip above cursor if tooltip would overflow bottom
   if (y + tooltipRect.height > window.innerHeight - 10) {
     y = containerRect.top + position.y - tooltipRect.height - TOOLTIP_OFFSET;
   }
+  // Clamp so tooltip never slides under the left detail panel
+  x = Math.max(leftBound, x);
 
   tooltip.style.left = `${x}px`;
   tooltip.style.top = `${y}px`;

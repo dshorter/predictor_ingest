@@ -30,13 +30,10 @@ function initializeSearch(cy) {
     if (e.key === 'Enter') {
       const matches = cy.nodes('.search-match');
       if (matches.length > 0) {
-        cy.animate({
-          fit: {
-            eles: matches,
-            padding: 50
-          },
-          duration: 300
-        });
+        cy.animate(
+          { fit: { eles: matches, padding: 50 } },
+          { duration: prefersReducedMotion ? 0 : 400 }
+        );
       }
     }
 
@@ -99,9 +96,10 @@ function performSearch(cy, query) {
     // Dim non-matches
     cy.elements().not('.search-match').addClass('dimmed');
 
-    // Show count
+    // Show count as a bare number — keeps it short next to the clear button
     if (resultsCount) {
-      resultsCount.textContent = `${matches.length} node${matches.length === 1 ? '' : 's'}`;
+      resultsCount.textContent = String(matches.length);
+      resultsCount.title = `${matches.length} matching node${matches.length === 1 ? '' : 's'}`;
     }
 
     // Announce to screen readers

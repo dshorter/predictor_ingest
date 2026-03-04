@@ -167,6 +167,15 @@ class GraphFilter {
       updateLabelVisibility(cy);
     }
 
+    // Contextual empty state: distinguish "filtered out" from "no data"
+    const totalNodes = cy.nodes().length;
+    const visibleNodes = cy.nodes().not('.filtered-out').length;
+    if (totalNodes > 0 && visibleNodes === 0) {
+      showFilterEmptyState();
+    } else {
+      hideFilterEmptyState();
+    }
+
     // Emit event for UI updates
     this.cy.emit('filtersApplied', { count: this.getActiveFilterCount() });
   }
@@ -451,4 +460,59 @@ function initializeFilters(cy) {
   const filter = new GraphFilter(cy);
   initializeFilterPanel(filter);
   return filter;
+}
+
+/**
+ * Show the empty-state overlay with a filter-specific message and reset button.
+ * Called when all nodes are filtered out (data exists but nothing passes the filter).
+ */
+function showFilterEmptyState() {
+  const emptyState = document.getElementById('empty-state');
+  const heading = document.getElementById('empty-state-heading');
+  const msg = document.getElementById('empty-state-message');
+  const hint = document.getElementById('empty-state-hint');
+  const resetBtn = document.getElementById('empty-state-reset');
+  if (!emptyState) return;
+  if (heading) heading.textContent = 'Nothing to show';
+  if (msg) msg.textContent = 'Your filters are hiding all nodes. Try widening your date range or enabling more entity types.';
+  if (hint) hint.classList.add('hidden');
+  if (resetBtn) resetBtn.classList.remove('hidden');
+  emptyState.classList.remove('hidden');
+}
+
+/**
+ * Hide the filter-caused empty state (called when filters allow ≥1 visible node).
+ */
+function hideFilterEmptyState() {
+  const emptyState = document.getElementById('empty-state');
+  const hint = document.getElementById('empty-state-hint');
+  const resetBtn = document.getElementById('empty-state-reset');
+  // Only hide if it was showing a filter-caused state, not a no-data state
+  const heading = document.getElementById('empty-state-heading');
+  if (heading && heading.textContent === 'Nothing to show') {
+    if (emptyState) emptyState.classList.add('hidden');
+    if (hint) hint.classList.remove('hidden');
+    if (resetBtn) resetBtn.classList.add('hidden');
+  }
+}
+
+/**
+ * Reset filters and hide the empty-state overlay.
+ * Called by the "Reset Filters" button inside the empty-state overlay.
+ */
+function resetFiltersFromEmptyState() {
+  if (!AppState.filter) return;
+  AppState.filter.reset();
+  const currentView = AppState.currentView || 'trending';
+  AppState.filter.setViewPreset(currentView === 'trending' ? 'trending' : 'all');
+  AppState.filter.apply();
+  if (typeof populateTypeFilters === 'function') {
+    populateTypeFilters(AppState.filter.cy, AppState.filter);
+  }
+  if (typeof syncFilterUI === 'function') {
+    syncFilterUI(AppState.filter);
+  }
+  if (typeof applyDateFilterFromAnchor === 'function') {
+    applyDateFilterFromAnchor();
+  }
 }

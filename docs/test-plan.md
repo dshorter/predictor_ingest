@@ -130,6 +130,42 @@ Each item is a discrete check that can be verified independently. Mark `[x]` whe
 
 ---
 
+## Sprint 5 — Interaction Polish
+
+### 5.1 View switch crossfade
+- [ ] Switching views fades `#cy` to ~50% opacity during load, then fades back on `layoutstop`
+- [ ] With `prefers-reduced-motion: reduce`, opacity stays at 1 (no fade)
+- [ ] On network error during switch, opacity is restored (no stuck dimmed canvas)
+- [ ] Crossfade does not interfere with minimap or panel state
+
+### 5.2 Panel resize choreography
+- [ ] Opening/closing a panel: graph does **not snap** to new bounds mid-animation
+- [ ] Graph re-renders correctly after panel slide finishes (~300ms)
+- [ ] With `prefers-reduced-motion: reduce`, `cy.resize()` fires immediately
+- [ ] Safety fallback: if `transitionend` never fires, graph resizes within 400ms
+
+### 5.3 Search fly-to animation
+- [ ] Pressing Enter after a search smoothly pans/zooms to matching nodes (400ms)
+- [ ] With `prefers-reduced-motion: reduce`, fit is instant (duration 0)
+- [ ] No error or animation when there are no matches
+
+### 5.4 Contextual empty states
+- [ ] Disabling all entity types shows **"Nothing to show"** with the filter-specific message and a **Reset Filters** button
+- [ ] Clicking Reset Filters restores defaults and makes the graph visible again
+- [ ] Data-caused empty (meta `nodeCount === 0`) still shows original "No Graph Data" heading with hint — no Reset Filters button
+- [ ] Re-enabling filters hides the empty state automatically
+
+### 5.5 Tooltip panel-aware positioning
+- [ ] With filter panel open and node near right edge: tooltip does not slide under the panel
+- [ ] With detail panel open and node near left edge: tooltip does not slide under the panel
+- [ ] Bottom-flip behavior (existing) still works
+
+### 5.6 Search count overflow
+- [ ] Count shows bare number (e.g. `5`, not `5 nodes`) — no overlap with × button
+- [ ] Count has `title` attribute with full label for screen readers
+
+---
+
 ## Regression Checks (run after any sprint)
 
 - [ ] **Open DevTools console before loading** — zero errors on initial page load (a JS SyntaxError here silences the entire app)

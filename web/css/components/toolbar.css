@@ -141,12 +141,19 @@
 
 #search-results-count {
   position: absolute;
-  right: var(--space-3);
+  /* Sit to the left of the clear button (24px wide, right: --space-2 = 8px) so
+     the count never overlaps the × button when both are visible. */
+  right: calc(var(--space-2) + 28px);
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--text-xs);
   color: var(--gray-600);
   pointer-events: none;
+  /* Clip very long strings gracefully */
+  max-width: 5ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 #search-clear {
