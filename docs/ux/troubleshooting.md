@@ -137,48 +137,30 @@ const node = cy.getElementById(nodeId);
 
 ## Panel / Canvas Interaction Issues
 
-### Evidence Panel Does Not Shrink the Graph Canvas
+### Panels Overlay Graph (No Canvas Resize)
 
-**Fixed:** 2026-01-28 UTC
+**Updated:** 2026-03-04 UTC (originally fixed 2026-01-28 as "shrink canvas" approach)
 
-**Symptoms:**
-- Opening the bottom evidence panel overlaps the graph instead of shrinking it
-- Graph nodes hidden behind the panel are not clickable
-- Closing the panel doesn't restore full canvas height
+**Original approach (2026-01-28):**
+Panels toggled CSS classes on `#cy` to shrink the container (`left`, `right`, `bottom`)
+and called `cy.resize()`. This caused the graph viewport to visibly resize and shift
+when panels opened, which was disorienting—especially on desktop where users expect
+the graph to stay stable while inspecting a detail panel.
 
-**Root Cause:**
-The Cytoscape container (`#cy`) had a fixed height. When the evidence panel opened, nothing told the container to shrink. Additionally, Cytoscape caches its container dimensions and doesn't automatically detect DOM size changes—you must call `cy.resize()` explicitly.
-
-**Solution:**
-
-1. **CSS classes** toggle canvas sizing when panels open:
-   ```css
-   #cy.panel-bottom-open {
-     bottom: 240px;  /* evidence panel height */
-   }
-   ```
-
-2. **`updateCyContainer()`** in `panels.js` toggles classes and calls `cy.resize()`:
-   ```javascript
-   function updateCyContainer() {
-     const cyEl = document.getElementById('cy');
-     const evidenceOpen = !document.getElementById('evidence-panel')
-       ?.classList.contains('hidden');
-     cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
-     setTimeout(() => window.cy.resize(), 50);
-   }
-   ```
-
-3. **Called from** every panel open/close: `openEvidencePanel()`, `closeAllPanels()`, panel close buttons.
+**Current approach (2026-03-04):**
+Panels overlay the graph at a higher `z-index` instead of shrinking the `#cy` container.
+The graph viewport remains stable. The `.panel-left-open`, `.panel-right-open`, and
+`.panel-bottom-open` classes are still toggled on `#cy` but only to reposition the
+navigator minimap via CSS sibling selectors. No `cy.resize()` is called.
 
 **Files Modified:**
-- `web/css/graph/cytoscape.css` — Panel-aware sizing classes
-- `web/js/panels.js` — `updateCyContainer()` function, panel open/close handlers
+- `web/css/graph/cytoscape.css` — Removed `left`/`right`/`bottom` overrides and transition
+- `web/js/panels.js` — Removed `cy.resize()` from `updateCyContainer()`
+- `web/js/app.js` — Removed `cy.resize()` from filter panel fallback
 
-**Prevention:**
-- Any new panel that affects canvas bounds must call `updateCyContainer()` on show/hide
-- Always call `cy.resize()` after changing the Cytoscape container's dimensions
-- Use a short `setTimeout` (50ms) to let the DOM settle before resize
+**Note:** Nodes behind an open panel are not directly clickable. This is acceptable
+because the panel itself shows the relevant detail/evidence. Users can close the panel
+to access obscured nodes.
 
 ---
 
