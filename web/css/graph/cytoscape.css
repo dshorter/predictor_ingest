@@ -19,6 +19,12 @@
     transparent 1px
   );
   background-size: 24px 24px;
+  transition: opacity 200ms ease;
+}
+
+/* During view switch: fade graph to 50% while new data loads */
+#cy.view-switching {
+  opacity: 0.5;
 }
 
 /* Panel-open classes kept on #cy for navigator repositioning (see below).

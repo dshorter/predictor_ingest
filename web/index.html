@@ -292,9 +292,12 @@
     <div id="empty-state" class="empty-state hidden">
       <div class="empty-state-content">
         <div class="empty-state-icon" aria-hidden="true">&#x2205;</div>
-        <h2>No Graph Data</h2>
+        <h2 id="empty-state-heading">No Graph Data</h2>
         <p id="empty-state-message">This view has no data. Try switching to a different view or data source.</p>
-        <p class="empty-state-hint">Switch to <strong>Sample data</strong> in the filter panel, or try a different <strong>View</strong>.</p>
+        <p id="empty-state-hint" class="empty-state-hint">Switch to <strong>Sample data</strong> in the filter panel, or try a different <strong>View</strong>.</p>
+        <button id="empty-state-reset" class="btn btn-primary mt-4 hidden" onclick="resetFiltersFromEmptyState()">
+          Reset Filters
+        </button>
       </div>
     </div>
 

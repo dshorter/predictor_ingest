@@ -99,7 +99,7 @@ is a function rather than a second selector.
 
 ---
 
-## Sprint 5 — Interaction Polish (Days 6–7)
+## Sprint 5 — Interaction Polish (Days 6–7) ✓ DONE
 
 JS behavior changes for smoother interactions. Moderate risk — touches event
 handling and layout timing.
@@ -115,6 +115,11 @@ handling and layout timing.
 
 **Risk:** Moderate. Event timing changes can cause subtle bugs. Test thoroughly.
 **Stability gate:** Rapid view switching, panel toggle + zoom, search edge cases.
+**Completed:** 2026-03-04
+**Notes:** 5.2 (panel resize choreography) superseded by PR #118 — panels now overlay
+the graph instead of shrinking it, so `cy.resize()` is not needed. The `opacity`
+transition for view-switch crossfade (5.1) is retained; position transitions were
+removed as they are no longer applicable to the overlay model.
 
 ---
 
@@ -306,8 +311,8 @@ Not scheduled. Documented so they're not forgotten.
 | 2 — Aesthetic Identity CSS | ✓ Done | 2026-02-28 |
 | 3 — Toolbar Icons | ✓ Done | 2026-03-01 |
 | 4 — Graph Canvas Polish | ✓ Done | 2026-03-01 |
-| 5 — Interaction Polish | **Next** | — |
-| 6 — Domain Modularization | Pending | — |
+| 5 — Interaction Polish | ✓ Done | 2026-03-04 |
+| 6 — Domain Modularization | **Next** | — |
 | 7 — What's Hot | Pending | — |
 | 8 — Discovery Rewards | Pending | — |
 | 9 — Guided Entry | Pending | — |
@@ -322,8 +327,8 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-01 (4 sprints done in 3 days) |
-| Sprints remaining | 7 sprints (5–11) |
+| As of | 2026-03-04 (5 sprints done in 5 days) |
+| Sprints remaining | 6 sprints (6–11) |
 | Backend track | Parallel, partially blocked on data |
 | **Revised target** | **~mid-March 2026** |
 
