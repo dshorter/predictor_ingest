@@ -115,7 +115,11 @@ class GraphFilter {
       // View preset filters
       if (visible && filters.viewPreset === 'trending') {
         const velocity = node.data('velocity') || 0;
-        if (velocity < 0.1) {
+        // Bridge nodes (non-trending entities that reconnect isolated trending
+        // entities) are exempt from the velocity threshold — they exist only
+        // to provide graph connectivity, not as trending signals.
+        const isBridge = node.data('bridge') === true;
+        if (velocity < 0.1 && !isBridge) {
           visible = false;
         }
       }
