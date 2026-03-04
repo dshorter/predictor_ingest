@@ -91,6 +91,40 @@ directly (Option C). Cost delta is small (~$8 vs $25/month).
 
 ---
 
+## Trend Insights & Articulation
+
+### INS-1: Insight articulation layer
+
+**Observed:** 2026-03-03 | **Priority:** Medium | **Status:** Design complete, implementation planned
+
+After ~5 days of real pipeline data, trend scores (velocity, novelty, bridge)
+work mechanically but are unactionable for end users. A velocity of 0.73 doesn't
+communicate *what happened* or *why it matters*.
+
+**Design:** [docs/research/trend-insights.md](research/trend-insights.md) —
+deterministic-first insight generation with five categories (Adoption Wave,
+Capability Leap, Ecosystem Shift, Emerging Concern, Research Frontier).
+
+**Scheduled as:** Backend Track B.8–B.11 in [project-plan.md](project-plan.md).
+B.8 (template spec) is unblocked now. B.9 (generator script) needs ≥14 days
+pipeline data (~mid-March). B.10 (backtest) needs ≥30 days (~late March).
+
+**Cross-references:** See [convergence-narrative.md](architecture/convergence-narrative.md)
+for how this intersects with the plugin architecture and cost spectrum work.
+
+### INS-2: Cost reporting for extraction runs
+
+**Observed:** 2026-03-04 | **Priority:** Low | **Status:** Infrastructure exists, script missing
+
+The `quality_runs` table already logs `prompt_tokens` and `completion_tokens`
+per extraction run, but no script or query surfaces this as a cost report.
+Needed to validate the V3 cost spectrum hypothesis (cheap model + gates ≈ $8/month
+vs Sonnet-only ≈ $25/month).
+
+**Scheduled as:** Backend Track B.13 in [project-plan.md](project-plan.md).
+
+---
+
 ## Entity Resolution
 
 *(items will accumulate here)*

@@ -99,7 +99,7 @@ is a function rather than a second selector.
 
 ---
 
-## Sprint 5 — Interaction Polish (Days 6–7)
+## Sprint 5 — Interaction Polish (Days 6–7) ✓ DONE
 
 JS behavior changes for smoother interactions. Moderate risk — touches event
 handling and layout timing.
@@ -115,6 +115,7 @@ handling and layout timing.
 
 **Risk:** Moderate. Event timing changes can cause subtle bugs. Test thoroughly.
 **Stability gate:** Rapid view switching, panel toggle + zoom, search edge cases.
+**Completed:** 2026-03-03
 
 ---
 
@@ -161,6 +162,11 @@ extract → export → verify graph JSON is unchanged.
 **Standing rule for all subsequent sprints:** No sprint may introduce hardcoded
 domain-specific strings into framework code. The grep-audit test (6.11) enforces this
 in CI.
+**Ordering note (B.8):** B.8 (insight template spec) is ready now and shouldn't be
+blocked on Sprint 6. If B.8 lands before Sprint 6 creates `domains/ai/`, templates
+go in `src/trend/` or `docs/research/` — Sprint 6 moves them to `domains/ai/` as
+part of the broader config migration. This is acceptable; don't delay insight work
+for the refactor.
 
 ---
 
@@ -282,6 +288,9 @@ These items run independently of the UI work. Most are waiting on pipeline data.
 | B.9 | Insight generator script (`scripts/generate_insights.py`) | [trend-insights](research/trend-insights.md) §6 Phase B | Blocked on ≥14 days pipeline data (~mid-March) | [Opus] |
 | B.10 | Backtest harness for insight accuracy | [trend-insights](research/trend-insights.md) §6 Phase C | Blocked on ≥30 days pipeline data (~late March) | [Opus] |
 | B.11 | Insight deduplication + storage (JSONL + SQLite) | [trend-insights](research/trend-insights.md) §8 | After B.9 | [Sonnet] |
+| B.12 | Source connector convention (function signature spec for non-RSS ingestors) | [convergence-narrative](architecture/convergence-narrative.md) §V4.5 | After Sprint 6 (needs `domains/ai/feeds.yaml` + `type` dispatch) | [Opus] |
+| B.13 | Cost reporting script (per-run token costs from `quality_runs` table) | [convergence-narrative](architecture/convergence-narrative.md) §V3 | Ready now (table already logs tokens) | [Sonnet] |
+| B.14 | Shadow mode evaluation milestone (nano vs Sonnet on ≥30 days real data) | [llm-selection](llm-selection.md) §shadow-mode | Blocked on ~late March corpus size | [Opus] |
 
 ---
 
@@ -306,8 +315,8 @@ Not scheduled. Documented so they're not forgotten.
 | 2 — Aesthetic Identity CSS | ✓ Done | 2026-02-28 |
 | 3 — Toolbar Icons | ✓ Done | 2026-03-01 |
 | 4 — Graph Canvas Polish | ✓ Done | 2026-03-01 |
-| 5 — Interaction Polish | **Next** | — |
-| 6 — Domain Modularization | Pending | — |
+| 5 — Interaction Polish | ✓ Done | 2026-03-03 |
+| 6 — Domain Modularization | **Next** | — |
 | 7 — What's Hot | Pending | — |
 | 8 — Discovery Rewards | Pending | — |
 | 9 — Guided Entry | Pending | — |
@@ -322,10 +331,10 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-01 (4 sprints done in 3 days) |
-| Sprints remaining | 7 sprints (5–11) |
-| Backend track | Parallel, partially blocked on data |
-| **Revised target** | **~mid-March 2026** |
+| As of | 2026-03-04 (5 sprints done in 5 days) |
+| UI sprints remaining | 6 sprints (6–11) |
+| Backend track | 14 items (B.1–B.14); B.8, B.13 unblocked; rest data-dependent or sequenced |
+| **Revised target** | **~mid-March 2026 for UI; Backend Track extends through late March** |
 
 **Risks to timeline:**
 - Sprint 6 (domain modularization) touches many files; refactoring regressions
@@ -336,8 +345,14 @@ Not scheduled. Documented so they're not forgotten.
   Cytoscape version
 - Branding decision (DL-6) is externally blocked
 - Backend items are data-dependent and may shift
+- **Convergence risk (new):** Five vectors (insights, sources, cost spectrum,
+  plugin arch, connectors) intersect mid-to-late March. See
+  [convergence-narrative.md](architecture/convergence-narrative.md) for the
+  dependency map and critical intersections
 
-**Buffer:** With current pace, completion by end of March is achievable with slack.
+**Buffer:** With current pace, UI completion by mid-March is achievable with slack.
+Backend Track items B.9–B.14 are gated by data accumulation and naturally extend
+into late March — this is by design, not slippage.
 
 ---
 
