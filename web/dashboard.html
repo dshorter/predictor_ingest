@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipeline Dashboard — AI Trend Graph</title>
+  <!--
+    CSS load order mirrors main.css:
+      1. main.css  → tokens + reset + base + all shared components
+      2. dashboard.css → dashboard-layout only (no token duplication)
+  -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header id="dash-header">
+  <h1>Pipeline Dashboard <span>AI Trend Graph</span></h1>
+  <div class="header-actions">
+    <span id="last-updated"></span>
+    <button class="btn" onclick="loadAll()">↻ Refresh</button>
+
+    <!-- Theme toggle — CSS swap handled by button.css .icon-theme-light / .icon-theme-dark -->
+    <button id="theme-toggle" class="btn-icon" title="Toggle dark/light mode"
+            aria-label="Toggle dark/light mode" onclick="toggleTheme()">
+      <!-- Sun: visible in light mode -->
+      <svg class="icon-theme-light" xmlns="http://www.w3.org/2000/svg"
+           width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1"  x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22"  y1="4.22"  x2="5.64"  y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1"  y1="12" x2="3"  y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22"  y1="19.78" x2="5.64"  y2="18.36"/>
+        <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22"/>
+      </svg>
+      <!-- Moon: visible in dark mode -->
+      <svg class="icon-theme-dark" xmlns="http://www.w3.org/2000/svg"
+           width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+
+    <a class="btn" href="index.html">Graph View →</a>
+  </div>
+</header>
+
+<!-- ── Body ────────────────────────────────────────────────────────────── -->
+<div id="dash-body">
+
+  <!-- KPI cards -->
+  <div id="kpi-row"></div>
+
+  <!-- Run history chart + pipeline stage grid -->
+  <div class="dash-grid-2">
+    <div class="dash-card">
+      <div class="dash-card-title">30-Day Run History</div>
+      <div class="chart-wrap">
+        <canvas id="runs-chart"></canvas>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">Pipeline Stages — Last Run</div>
+      <div id="stages-list" class="stage-list"></div>
+    </div>
+  </div>
+
+  <!-- Quality gates + Rising Stars -->
+  <div class="dash-grid-2">
+    <div class="dash-card">
+      <div class="dash-card-title">Quality Gates</div>
+      <div id="gates-list" class="gate-list"></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">Rising Stars — by Velocity</div>
+      <div id="stars-list" class="star-list"></div>
+    </div>
+  </div>
+
+  <!-- Feed health -->
+  <div class="dash-card">
+    <div class="dash-card-title">Feed Health</div>
+    <div id="feeds-wrap"></div>
+  </div>
+
+  <!-- Model quality -->
+  <div class="dash-card">
+    <div class="dash-card-title">Model Quality</div>
+    <div id="models-wrap"></div>
+  </div>
+
+</div><!-- /#dash-body -->
+
+<!-- Chart.js (only external dependency) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+/* ====================================================================
+   Theme — mirrors app.js initTheme/toggleTheme exactly, minus the
+   Cytoscape-specific reapplyGraphStyles() call.
+   Must run before first render so the correct data-theme is set.
+   ==================================================================== */
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    }
+  });
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  // Redraw chart so Chart.js picks up new token values
+  if (runsChart) renderRunsChart(_cachedRuns);
+}
+
+// Set theme before any paint
+initTheme();
+
+/* ====================================================================
+   Dashboard data + rendering
+   ==================================================================== */
+
+const BASE = 'data/';
+let runsChart    = null;
+let _cachedRuns  = null;   // kept so toggleTheme can redraw
+
+// ── Helpers ──────────────────────────────────────────────────────────
+
+function fmt(v, fallback = '—') {
+  if (v == null) return fallback;
+  if (typeof v === 'number') return v.toLocaleString();
+  return String(v);
+}
+
+function fmtDur(sec) {
+  if (sec == null) return '—';
+  if (sec < 60) return `${Math.round(sec)}s`;
+  return `${Math.floor(sec / 60)}m ${Math.round(sec % 60)}s`;
+}
+
+function fmtPct(v) {
+  if (v == null) return '—';
+  return `${(v * 100).toFixed(1)}%`;
+}
+
+function fmtVel(v) {
+  if (v == null) return '—';
+  return `${v >= 1 ? '↑' : '↓'} ${v.toFixed(1)}×`;
+}
+
+/** Use the existing badge component classes from badge.css */
+function statusBadge(s) {
+  const map = {
+    success: ['badge-success', 'OK'],
+    partial: ['badge-warning', 'PARTIAL'],
+    failed:  ['badge-error',   'FAILED'],
+  };
+  const [cls, label] = map[s] || ['', s || '—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function stageDotCls(s) {
+  return ['ok', 'error', 'skipped', 'timeout'].includes(s) ? s : 'unknown';
+}
+
+/** Read entity-type colour from the token system at runtime */
+function typeColor(t) {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(`--color-${(t || 'other').toLowerCase()}`)
+    .trim() || 'var(--color-other)';
+}
+
+/** Read a CSS token value (for Chart.js which can't consume vars directly) */
+function tok(varName) {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(varName).trim();
+}
+
+async function fetchJSON(path) {
+  try {
+    const r = await fetch(path + '?_=' + Date.now());
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+// ── KPI row ───────────────────────────────────────────────────────────
+
+function renderKPIs(status) {
+  const row = document.getElementById('kpi-row');
+  if (!status?.available) {
+    row.innerHTML = `<div class="dash-card" style="grid-column:1/-1">
+      <div class="dash-empty">No pipeline logs found yet.
+        Run <code>make daily</code> then <code>make dashboard-data</code>.</div>
+    </div>`;
+    return;
+  }
+
+  const s = status.lastRunStatus || 'unknown';
+  const statusCls = { success: 'ok', partial: 'partial', failed: 'failed' }[s] || '';
+
+  const cards = [
+    {
+      label: 'Last Run',
+      value: s === 'success' ? 'OK' : s.toUpperCase(),
+      valueCls: statusCls,
+      cardCls: `status-${statusCls}`,
+      sub: `${status.lastRunDate || '—'} · ${fmtDur(status.lastRunDurationSec)}`,
+    },
+    {
+      label: 'Nodes',
+      value: fmt(status.totalNodesLatest, '—'),
+      sub: `${fmt(status.totalEdgesLatest, '—')} edges`,
+    },
+    {
+      label: 'New Docs',
+      value: fmt(status.newDocsLastRun, '—'),
+      sub: 'last run',
+    },
+    {
+      label: 'Entities',
+      value: fmt(status.entitiesLastRun, '—'),
+      sub: `${fmt(status.relationsLastRun, '—')} relations`,
+    },
+    {
+      label: 'Feeds',
+      value: status.feedsReachable != null
+        ? `${status.feedsReachable}/${status.feedsChecked}`
+        : '—',
+      valueCls: (status.feedsUnreachable || 0) > 0 ? 'partial' : '',
+      sub: (status.feedsUnreachable || 0) > 0
+        ? `${status.feedsUnreachable} unreachable`
+        : 'all reachable',
+    },
+    {
+      label: 'Backlog',
+      value: fmt(status.backlog, '—'),
+      valueCls: (status.backlog || 0) > 10 ? 'warn' : '',
+      sub: 'pending extraction',
+    },
+  ];
+
+  row.innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.cardCls || ''}">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value ${c.valueCls || ''}">${c.value}</div>
+      <div class="kpi-sub">${c.sub || ''}</div>
+    </div>`).join('');
+}
+
+// ── Run history chart ─────────────────────────────────────────────────
+
+function renderRunsChart(runs) {
+  _cachedRuns = runs;
+  const canvas = document.getElementById('runs-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  if (runsChart) { runsChart.destroy(); runsChart = null; }
+
+  const data = runs?.runs || [];
+  if (!data.length) {
+    canvas.parentElement.innerHTML = '<div class="dash-empty">No run data yet.</div>';
+    return;
+  }
+
+  // Read colours from token system so dark mode works
+  const gridColor  = tok('--color-border-secondary') || '#E5E7EB';
+  const labelColor = tok('--color-text-tertiary')    || '#9CA3AF';
+
+  const labels = data.map(r => (r.date || '').slice(5));  // MM-DD
+  const docs   = data.map(r => r.newDocs || 0);
+  const colors = data.map(r => ({
+    success: tok('--color-success') || '#10B981',
+    partial: tok('--color-warning') || '#F59E0B',
+    failed:  tok('--color-error')   || '#EF4444',
+  }[r.status] || (tok('--color-text-tertiary') || '#9CA3AF')));
+
+  runsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'New docs',
+        data: docs,
+        backgroundColor: colors,
+        borderRadius: 3,
+        borderSkipped: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => data[items[0].dataIndex]?.date || '',
+            label: (item) => {
+              const r = data[item.dataIndex];
+              const lines = [`${item.raw} new docs`];
+              if (r.entities) lines.push(`${fmt(r.entities)} entities`);
+              if (r.status)   lines.push(`Status: ${r.status}`);
+              return lines;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: labelColor, font: { size: 10, family: 'monospace' }, maxRotation: 0 },
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: labelColor, font: { size: 10 } },
+        },
+      },
+    },
+  });
+}
+
+// ── Pipeline stage grid ───────────────────────────────────────────────
+
+const STAGE_ORDER = ['ingest', 'docpack', 'extract', 'import', 'resolve', 'export', 'trending'];
+
+function stageMeta(name, run) {
+  const s = run.stages?.[name] || {};
+  if (name === 'ingest')
+    return `${fmt(run.newDocs, 0)} docs · ${run.feedsReachable}/${run.feedsChecked} feeds`;
+  if (name === 'extract')
+    return [run.entities && `${fmt(run.entities)} entities`,
+            run.relations && `${fmt(run.relations)} relations`].filter(Boolean).join(' · ');
+  if (name === 'export')
+    return [run.nodes && `${fmt(run.nodes)} nodes`,
+            run.edges  && `${fmt(run.edges)} edges`].filter(Boolean).join(' · ');
+  return '';
+}
+
+function renderStages(runs) {
+  const el = document.getElementById('stages-list');
+  const latest = runs?.runs?.[runs.runs.length - 1];
+
+  if (!latest) {
+    el.innerHTML = '<div class="dash-empty">No run data yet.</div>';
+    return;
+  }
+
+  el.innerHTML = STAGE_ORDER.map(name => {
+    const s = latest.stages?.[name];
+    if (!s) return '';
+    const dot = stageDotCls(s.status);
+    const dur = s.duration_sec != null ? fmtDur(s.duration_sec) : '';
+    const meta = stageMeta(name, latest);
+    return `
+      <div class="stage-row">
+        <span class="stage-dot ${dot}"></span>
+        <span class="stage-name">${name}</span>
+        <span class="stage-meta">${meta}</span>
+        <span class="stage-dur">${dur}</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Quality gates ─────────────────────────────────────────────────────
+
+const GATE_CFG = {
+  evidence_fidelity_rate: { label: 'Evidence Fidelity',  invert: false, threshold: 0.70 },
+  orphan_rate:            { label: 'Orphan Endpoints',   invert: true,  threshold: 0.00 },
+  zero_value:             { label: 'Zero-Value Docs',    invert: true,  threshold: 0.05 },
+  high_conf_bad_evidence: { label: 'Hi-Conf Bad Evidence', invert: true, threshold: 0.00 },
+};
+
+function renderGates(quality) {
+  const el = document.getElementById('gates-list');
+  if (!quality?.available) {
+    el.innerHTML = '<div class="dash-empty">No quality data yet — run the LLM extraction pipeline.</div>';
+    return;
+  }
+  const gates = quality.gates || [];
+  if (!gates.length) {
+    el.innerHTML = '<div class="dash-empty">No gate metrics recorded yet.</div>';
+    return;
+  }
+
+  el.innerHTML = gates.map(g => {
+    const cfg = GATE_CFG[g.metric_name] || { label: g.metric_name, invert: false, threshold: 0.7 };
+    const pct      = g.pass_rate ?? 0;
+    const barPct   = Math.round((cfg.invert ? 1 - pct : pct) * 100);
+    const isGood   = cfg.invert ? pct <= cfg.threshold : pct >= cfg.threshold;
+    const barCls   = barPct >= 90 ? 'good' : barPct >= 70 ? 'warn' : 'bad';
+    const pctCls   = isGood ? 'text-ok' : 'text-bad';
+
+    return `
+      <div class="gate-row">
+        <div class="gate-header">
+          <span class="gate-name">${cfg.label}</span>
+          <span class="gate-pct ${pctCls}">${fmtPct(g.pass_rate)}
+            <span class="text-gray-400 font-normal">(${fmt(g.total)} runs)</span>
+          </span>
+        </div>
+        <div class="gate-bar-track">
+          <div class="gate-bar-fill ${barCls}" style="width:${barPct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Rising Stars ──────────────────────────────────────────────────────
+
+function renderRisingStars(trending) {
+  const el = document.getElementById('stars-list');
+  const nodes = trending?.elements?.nodes || [];
+
+  if (!nodes.length) {
+    el.innerHTML = `<div class="dash-empty">No trending data yet.
+      Run <code>make trending copy-to-live</code>.</div>`;
+    return;
+  }
+
+  const sorted = nodes
+    .map(n => n.data)
+    .filter(d => d.velocity != null)
+    .sort((a, b) => (b.velocity || 0) - (a.velocity || 0))
+    .slice(0, 10);
+
+  if (!sorted.length) {
+    el.innerHTML = '<div class="dash-empty">No velocity data on trending nodes yet.</div>';
+    return;
+  }
+
+  el.innerHTML = sorted.map((d, i) => {
+    const vel    = d.velocity || 0;
+    const color  = typeColor(d.type);
+    const velCls = vel >= 1 ? '' : 'down';
+    return `
+      <div class="star-row">
+        <span class="star-rank">${i + 1}</span>
+        <span class="star-type-dot" style="background:${color}" title="${d.type || ''}"></span>
+        <span class="star-name" title="${d.id || ''}">${d.label || d.id || '—'}</span>
+        <span class="star-vel ${velCls}">${fmtVel(vel)}</span>
+        <span class="star-mentions">${fmt(d.mention_count_7d, 0)}d7 · ${fmt(d.mention_count_30d, 0)}d30</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Feed health ───────────────────────────────────────────────────────
+
+function renderFeeds(feeds) {
+  const el = document.getElementById('feeds-wrap');
+  if (!feeds?.available || !feeds.feeds.length) {
+    el.innerHTML = `<div class="dash-empty">
+      ${feeds == null
+        ? 'feeds.json not found — run <code>make dashboard-data</code> first.'
+        : !feeds.available
+          ? 'Feed config (config/feeds.yaml) could not be read — is PyYAML installed?'
+          : 'No feeds configured yet.'}
+    </div>`;
+    return;
+  }
+
+  const errored = new Set(
+    (feeds.lastRunFeeds?.erroredFeeds || []).map(e => e.split('(')[0].trim())
+  );
+
+  const rows = feeds.feeds.map(f => {
+    const isErrored  = errored.has(f.name);
+    const isDisabled = f.enabled === false;
+    const errorRate  = f.total_runs > 0 ? f.errored_runs / f.total_runs : 0;
+    const statusCls  = isDisabled ? 'text-gray-400'
+                     : isErrored  ? 'text-bad'
+                     : errorRate > 0.2 ? 'text-warn'
+                     : 'text-ok';
+    const statusLabel = isDisabled           ? 'disabled'
+                      : isErrored            ? 'error (last run)'
+                      : errorRate > 0.2      ? `unstable (${Math.round(errorRate*100)}%)`
+                      : 'ok';
+
+    return `<tr>
+      <td>${f.name || '—'}</td>
+      <td><span class="tier-badge">T${f.tier || '?'}</span>
+          <span class="text-gray-400"> ${f.signal || ''}</span></td>
+      <td class="text-mono text-gray-500" style="font-size:var(--text-xs)">
+        ${(f.url || '').slice(0, 50)}${(f.url || '').length > 50 ? '…' : ''}</td>
+      <td class="${statusCls}">${statusLabel}</td>
+      <td class="text-mono text-gray-400">${f.errored_runs}/${f.total_runs}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <table class="dash-table">
+      <thead><tr>
+        <th>Name</th><th>Tier / Signal</th><th>URL</th><th>Status</th><th>Errors/Runs</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Model quality table ───────────────────────────────────────────────
+
+function renderModels(quality) {
+  const el = document.getElementById('models-wrap');
+  if (!quality?.available) {
+    el.innerHTML = '<div class="dash-empty">No quality data yet.</div>';
+    return;
+  }
+  const models = quality.models || [];
+  if (!models.length) {
+    el.innerHTML = '<div class="dash-empty">No model quality records yet.</div>';
+    return;
+  }
+
+  const rows = models.map(m => {
+    const scoreCls = m.avg_score >= 0.75 ? 'text-ok'
+                   : m.avg_score >= 0.55 ? 'text-warn'
+                   : 'text-bad';
+    const escRate  = m.runs > 0 ? m.escalated / m.runs : 0;
+    return `<tr>
+      <td class="text-mono" style="font-size:var(--text-xs)">${m.model || '—'}</td>
+      <td class="text-mono text-gray-400">${fmt(m.runs)}</td>
+      <td class="text-mono ${scoreCls}">${m.avg_score != null ? m.avg_score.toFixed(3) : '—'}</td>
+      <td class="text-mono text-gray-400">
+        ${m.min_score != null ? m.min_score.toFixed(3) : '—'} –
+        ${m.max_score != null ? m.max_score.toFixed(3) : '—'}</td>
+      <td class="text-mono">${fmtPct(escRate)}
+        <span class="text-gray-400">(${fmt(m.escalated)})</span></td>
+      <td class="text-mono text-gray-400">
+        ${m.avg_duration_ms != null ? Math.round(m.avg_duration_ms).toLocaleString() + ' ms' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <table class="dash-table">
+      <thead><tr>
+        <th>Model</th><th>Runs</th><th>Avg Score</th>
+        <th>Min – Max</th><th>Escalation</th><th>Avg Duration</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Last-updated timestamp ────────────────────────────────────────────
+
+function renderUpdated(status) {
+  const el = document.getElementById('last-updated');
+  const ts = status?.generatedAt;
+  if (!ts) { el.textContent = ''; return; }
+  const d = new Date(ts);
+  el.textContent =
+    `Data as of ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${d.toLocaleDateString()}`;
+}
+
+// ── Main loader ───────────────────────────────────────────────────────
+
+async function loadAll() {
+  const [status, runs, quality, feeds, trending] = await Promise.all([
+    fetchJSON(BASE + 'dashboard/status.json'),
+    fetchJSON(BASE + 'dashboard/runs.json'),
+    fetchJSON(BASE + 'dashboard/quality.json'),
+    fetchJSON(BASE + 'dashboard/feeds.json'),
+    // Try live/ first (daily pipeline output), fall back to latest/ (fixture data)
+    fetchJSON(BASE + 'graphs/live/trending.json')
+      .then(d => d || fetchJSON(BASE + 'graphs/latest/trending.json')),
+  ]);
+
+  renderUpdated(status);
+  renderKPIs(status);
+  renderRunsChart(runs);
+  renderStages(runs);
+  renderGates(quality);
+  renderRisingStars(trending);
+  renderFeeds(feeds);
+  renderModels(quality);
+}
+
+loadAll();
+</script>
+</body>
+</html>

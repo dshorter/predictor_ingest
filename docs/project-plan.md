@@ -99,7 +99,7 @@ is a function rather than a second selector.
 
 ---
 
-## Sprint 5 — Interaction Polish (Days 6–7)
+## Sprint 5 — Interaction Polish (Days 6–7) ✓ DONE
 
 JS behavior changes for smoother interactions. Moderate risk — touches event
 handling and layout timing.
@@ -115,6 +115,11 @@ handling and layout timing.
 
 **Risk:** Moderate. Event timing changes can cause subtle bugs. Test thoroughly.
 **Stability gate:** Rapid view switching, panel toggle + zoom, search edge cases.
+**Completed:** 2026-03-04
+**Notes:** 5.2 (panel resize choreography) superseded by PR #118 — panels now overlay
+the graph instead of shrinking it, so `cy.resize()` is not needed. The `opacity`
+transition for view-switch crossfade (5.1) is retained; position transitions were
+removed as they are no longer applicable to the overlay model.
 
 ---
 
@@ -184,6 +189,25 @@ if it breaks, it only breaks the hot list.
 integration, and fly-to animation. Needs holistic understanding of the data flow.
 **Stability gate:** Verify hot list populates from real export data, fly-to works,
 drawer opens/closes cleanly. Confirm existing views are unaffected.
+
+**Content upgrade path (B.8 → B.9):** Sprint 7 ships with raw velocity-ranked
+entities. B.8–B.9 later produce structured insight artifacts (title, category,
+evidence, "so what") that slot into the same panel. Design 7.3 (`whats-hot.js`)
+to accept either raw scores or insight objects — start simple, upgrade in place.
+
+```
+Sprint 7 (UI shell)          B.8 (insight templates)
+      │                            │
+      │     ┌──────────────────────┘
+      ▼     ▼
+Sprint 7.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
+                                           │
+                                      B.11 (dedup so daily users
+                                            don't see repeats)
+                                           │
+                                      B.10 (backtest: are these
+                                            insights actually good?)
+```
 
 ---
 
@@ -259,6 +283,10 @@ These items run independently of the UI work. Most are waiting on pipeline data.
 | B.5 | VentureBeat 429 retry reset | backlog §PIPE-2 | Low priority | [Sonnet] |
 | B.6 | Anthropic Blog feed monitoring | backlog §SRC-1 | Monitor only | [Manual] |
 | B.7 | Feed freshness verification | backlog §SRC-2 | Run diagnostic script | [Manual] |
+| B.8 | Insight template spec (title templates + `so_what` stubs per category) | [trend-insights](research/trend-insights.md) §2–3 | Ready now (pure doc, no data dependency) | [Opus] |
+| B.9 | Insight generator script (`scripts/generate_insights.py`) | [trend-insights](research/trend-insights.md) §6 Phase B | Blocked on ≥14 days pipeline data (~mid-March) | [Opus] |
+| B.10 | Backtest harness for insight accuracy | [trend-insights](research/trend-insights.md) §6 Phase C | Blocked on ≥30 days pipeline data (~late March) | [Opus] |
+| B.11 | Insight deduplication + storage (JSONL + SQLite) | [trend-insights](research/trend-insights.md) §8 | After B.9 | [Sonnet] |
 
 ---
 
@@ -283,8 +311,8 @@ Not scheduled. Documented so they're not forgotten.
 | 2 — Aesthetic Identity CSS | ✓ Done | 2026-02-28 |
 | 3 — Toolbar Icons | ✓ Done | 2026-03-01 |
 | 4 — Graph Canvas Polish | ✓ Done | 2026-03-01 |
-| 5 — Interaction Polish | **Next** | — |
-| 6 — Domain Modularization | Pending | — |
+| 5 — Interaction Polish | ✓ Done | 2026-03-04 |
+| 6 — Domain Modularization | **Next** | — |
 | 7 — What's Hot | Pending | — |
 | 8 — Discovery Rewards | Pending | — |
 | 9 — Guided Entry | Pending | — |
@@ -299,8 +327,8 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-01 (4 sprints done in 3 days) |
-| Sprints remaining | 7 sprints (5–11) |
+| As of | 2026-03-04 (5 sprints done in 5 days) |
+| Sprints remaining | 6 sprints (6–11) |
 | Backend track | Parallel, partially blocked on data |
 | **Revised target** | **~mid-March 2026** |
 

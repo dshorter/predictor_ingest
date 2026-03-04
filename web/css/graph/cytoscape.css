@@ -19,7 +19,7 @@
     transparent 1px
   );
   background-size: 24px 24px;
-  transition: opacity 200ms ease, left 0.3s ease, right 0.3s ease, bottom 0.3s ease;
+  transition: opacity 200ms ease;
 }
 
 /* During view switch: fade graph to 50% while new data loads */
@@ -27,20 +27,9 @@
   opacity: 0.5;
 }
 
-/* When detail panel is open, shrink graph area */
-#cy.panel-left-open {
-  left: var(--panel-width);
-}
-
-/* When filter panel is open, shrink graph area */
-#cy.panel-right-open {
-  right: var(--panel-width);
-}
-
-/* When evidence panel is open, shrink graph area from bottom */
-#cy.panel-bottom-open {
-  bottom: 40vh;
-}
+/* Panel-open classes kept on #cy for navigator repositioning (see below).
+   Panels overlay the graph instead of shrinking the canvas so the graph
+   viewport stays stable when panels slide in/out. */
 
 /* Focus styles for accessibility */
 #cy:focus {

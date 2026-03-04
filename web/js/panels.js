@@ -251,30 +251,8 @@ function updateCyContainer() {
   cyEl.classList.toggle('panel-right-open', filterOpen);
   cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
 
-  // Defer cy.resize() until the panel slide transition finishes, so the graph
-  // content doesn't snap to new bounds while the panel is still animating.
-  if (window.cy) {
-    if (prefersReducedMotion) {
-      window.cy.resize();
-    } else {
-      let resized = false;
-      const doResize = () => {
-        if (resized) return;
-        resized = true;
-        window.cy.resize();
-      };
-      const onTransitionEnd = (e) => {
-        if (e.target === cyEl &&
-            (e.propertyName === 'left' || e.propertyName === 'right' || e.propertyName === 'bottom')) {
-          doResize();
-          cyEl.removeEventListener('transitionend', onTransitionEnd);
-        }
-      };
-      cyEl.addEventListener('transitionend', onTransitionEnd);
-      // Safety fallback: if transitionend doesn't fire (e.g. panel already at target), resize anyway
-      setTimeout(doResize, 400);
-    }
-  }
+  // No cy.resize() needed — panels overlay the graph instead of shrinking it,
+  // so the Cytoscape container dimensions don't change.
 }
 
 /**

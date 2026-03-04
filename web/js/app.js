@@ -621,13 +621,10 @@ function toggleFilterPanel() {
     if (typeof updateCyContainer === 'function') {
       updateCyContainer();
     } else {
-      // Fallback: directly toggle the cy class
+      // Fallback: directly toggle the cy class (for navigator positioning)
       const cyEl = document.getElementById('cy');
       if (cyEl) {
         cyEl.classList.toggle('panel-right-open', wasCollapsed);
-        if (window.cy) {
-          setTimeout(() => window.cy.resize(), 50);
-        }
       }
     }
   }
