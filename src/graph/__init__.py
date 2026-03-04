@@ -413,6 +413,31 @@ class GraphExporter:
         """Filter nodes to only include those with matching IDs."""
         return [n for n in nodes if n["data"]["id"] in ids]
 
+    @staticmethod
+    def _strip_orphan_edges(
+        nodes: list[dict[str, Any]],
+        edges: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Remove edges whose source or target node is missing.
+
+        Cytoscape.js throws a hard error when an edge references a
+        nonexistent node.  This guard ensures exports are always
+        structurally valid regardless of upstream data inconsistencies.
+        """
+        node_ids = {n["data"]["id"] for n in nodes}
+        valid = [
+            e for e in edges
+            if e["data"]["source"] in node_ids
+            and e["data"]["target"] in node_ids
+        ]
+        dropped = len(edges) - len(valid)
+        if dropped:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Stripped %d orphan edge(s) referencing missing nodes", dropped
+            )
+        return valid
+
     def export_all(
         self,
         kinds: Optional[list[str]] = None,
@@ -434,6 +459,7 @@ class GraphExporter:
 
         nodes = [build_node(e) for e in entities]
         edges = self._build_edges_with_evidence(relations)
+        edges = self._strip_orphan_edges(nodes, edges)
 
         return {
             "elements": {
@@ -488,6 +514,7 @@ class GraphExporter:
                     nodes.append(doc_node)
 
         edges = self._build_edges_with_evidence(relations)
+        edges = self._strip_orphan_edges(nodes, edges)
 
         return {
             "elements": {
@@ -536,6 +563,7 @@ class GraphExporter:
         nodes = self._filter_nodes_by_ids(entity_nodes, referenced_ids)
 
         edges = self._build_aggregated_edges(merged)
+        edges = self._strip_orphan_edges(nodes, edges)
 
         return {
             "elements": {
@@ -583,6 +611,7 @@ class GraphExporter:
         nodes = self._filter_nodes_by_ids(entity_nodes, referenced_ids)
 
         edges = self._build_aggregated_edges(merged)
+        edges = self._strip_orphan_edges(nodes, edges)
 
         return {
             "elements": {

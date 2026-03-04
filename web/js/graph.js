@@ -104,13 +104,31 @@ function handleGraphMeta(meta) {
 }
 
 /**
+ * Strip edges whose source or target node is missing.
+ * Prevents Cytoscape.js from throwing on orphan edges.
+ */
+function stripOrphanEdges(elements) {
+  if (!elements.nodes || !elements.edges) return elements;
+  const nodeIds = new Set(elements.nodes.map(n => n.data.id));
+  const validEdges = elements.edges.filter(e =>
+    nodeIds.has(e.data.source) && nodeIds.has(e.data.target)
+  );
+  const dropped = elements.edges.length - validEdges.length;
+  if (dropped > 0) {
+    console.warn(`Stripped ${dropped} orphan edge(s) referencing missing nodes`);
+  }
+  return { nodes: elements.nodes, edges: validEdges };
+}
+
+/**
  * Initialize Cytoscape with data
  */
 function initializeGraph(container, data, styles) {
+  const cleanElements = stripOrphanEdges(data.elements);
   const cy = cytoscape({
     container: container,
 
-    elements: data.elements,
+    elements: cleanElements,
 
     style: styles,
 
@@ -139,11 +157,12 @@ function initializeGraph(container, data, styles) {
  * Add elements to existing graph
  */
 function addElements(cy, elements) {
-  if (elements.nodes) {
-    cy.add(elements.nodes.map(n => ({ group: 'nodes', data: n.data })));
+  const clean = stripOrphanEdges(elements);
+  if (clean.nodes) {
+    cy.add(clean.nodes.map(n => ({ group: 'nodes', data: n.data })));
   }
-  if (elements.edges) {
-    cy.add(elements.edges.map(e => ({ group: 'edges', data: e.data })));
+  if (clean.edges) {
+    cy.add(clean.edges.map(e => ({ group: 'edges', data: e.data })));
   }
 }
 
