@@ -72,11 +72,67 @@ def export_trending(
         r for r in all_relations
         if r["source_id"] in trending_ids and r["target_id"] in trending_ids
     ]
-    merged_relations = exporter._aggregate_relations(filtered_relations)
+
+    # Step 2b: Find isolated trending entities (no edges to other trending
+    # entities) and pull in bridge entities that reconnect them.
+    # This counters the entity-suppression effect where generic hub nodes
+    # (e.g. "AI", "machine learning") were removed from extraction, leaving
+    # specific entities with no direct relations to each other.
+    connected_ids = set()
+    for r in filtered_relations:
+        connected_ids.add(r["source_id"])
+        connected_ids.add(r["target_id"])
+    isolated_ids = trending_ids - connected_ids
+
+    bridge_ids: set[str] = set()
+    bridge_relations: list[dict] = []
+    if isolated_ids:
+        # For each non-trending entity, check if it connects an isolated
+        # trending entity to ANY other trending entity (isolated or not).
+        # Candidate edges: one endpoint is an isolated trending entity,
+        # the other endpoint is a non-trending entity.
+        candidate_bridges: dict[str, set[str]] = {}  # bridge_id → {trending ids it touches}
+        for r in all_relations:
+            src, tgt = r["source_id"], r["target_id"]
+            # Case 1: isolated trending → non-trending
+            if src in isolated_ids and tgt not in trending_ids:
+                candidate_bridges.setdefault(tgt, set()).add(src)
+            # Case 2: non-trending → isolated trending
+            if tgt in isolated_ids and src not in trending_ids:
+                candidate_bridges.setdefault(src, set()).add(tgt)
+            # Case 3: non-trending connects to a non-isolated trending entity
+            if src not in trending_ids and tgt in trending_ids:
+                candidate_bridges.setdefault(src, set()).add(tgt)
+            if tgt not in trending_ids and src in trending_ids:
+                candidate_bridges.setdefault(tgt, set()).add(src)
+
+        # Keep bridge entities that connect at least one isolated entity
+        # to at least one OTHER trending entity (isolated or connected).
+        for b_id, touched in candidate_bridges.items():
+            has_isolated = bool(touched & isolated_ids)
+            connects_multiple = len(touched) >= 2
+            if has_isolated and connects_multiple:
+                bridge_ids.add(b_id)
+
+        # Collect relations that involve bridge entities and trending entities
+        for r in all_relations:
+            src, tgt = r["source_id"], r["target_id"]
+            if src in bridge_ids and tgt in trending_ids:
+                bridge_relations.append(r)
+            elif tgt in bridge_ids and src in trending_ids:
+                bridge_relations.append(r)
+
+        if bridge_ids:
+            print(f"  - {len(isolated_ids)} isolated trending entities, "
+                  f"added {len(bridge_ids)} bridge entities to reconnect")
+
+    all_view_relations = filtered_relations + bridge_relations
+    merged_relations = exporter._aggregate_relations(all_view_relations)
 
     # Step 3: Build Cytoscape nodes with trend scores
     all_entities = exporter._get_entities()
-    filtered_entities = [e for e in all_entities if e["entity_id"] in trending_ids]
+    included_ids = trending_ids | bridge_ids
+    filtered_entities = [e for e in all_entities if e["entity_id"] in included_ids]
 
     nodes = []
     first_seen_dates = []
@@ -84,13 +140,16 @@ def export_trending(
 
     for entity in filtered_entities:
         node = build_node(entity)
-        # Enrich with trend scores
-        scores = trend_lookup.get(entity["entity_id"], {})
+        eid = entity["entity_id"]
+        # Enrich with trend scores (bridge entities get zeroes)
+        scores = trend_lookup.get(eid, {})
         node["data"]["velocity"] = scores.get("velocity", 0)
         node["data"]["novelty"] = scores.get("novelty", 0)
         node["data"]["trend_score"] = scores.get("trend_score", 0)
         node["data"]["mention_count_7d"] = scores.get("mention_count_7d", 0)
         node["data"]["mention_count_30d"] = scores.get("mention_count_30d", 0)
+        if eid in bridge_ids:
+            node["data"]["bridge"] = True
         nodes.append(node)
 
         # Collect dates for meta range
