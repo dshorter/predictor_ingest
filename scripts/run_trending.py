@@ -100,6 +100,7 @@ def export_trending(
             last_seen_dates.append(entity["last_seen"][:10])
 
     edges = exporter._build_aggregated_edges(merged_relations)
+    edges = GraphExporter._strip_orphan_edges(nodes, edges)
 
     # Step 4: Compute date range
     date_start = min(first_seen_dates) if first_seen_dates else None
