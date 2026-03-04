@@ -251,10 +251,8 @@ function updateCyContainer() {
   cyEl.classList.toggle('panel-right-open', filterOpen);
   cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
 
-  // Tell Cytoscape to recalculate after container resize
-  if (window.cy) {
-    setTimeout(() => window.cy.resize(), 50);
-  }
+  // No cy.resize() needed — panels overlay the graph instead of shrinking it,
+  // so the Cytoscape container dimensions don't change.
 }
 
 /**
