@@ -99,7 +99,28 @@ directly (Option C). Cost delta is small (~$8 vs $25/month).
 
 ## Graph Export & Visualization
 
-*(items will accumulate here)*
+### GEV-1: Cap bridge entity edge count to prevent artificial centrality
+
+**Observed:** 2026-03-05 | **Priority:** Low (monitor first)
+
+When a bridge entity is admitted to the trending view, ALL its edges to
+trending entities are included — not just the minimum set needed to
+reconnect isolated nodes. If a bridge entity happens to connect to many
+trending entities (e.g., a Tech concept like "transformer" touching 8+
+models), it could appear artificially central in the layout.
+
+**Current behavior:** Bridge selection gate is conservative (must connect
+2+ trending entities, at least one isolated), so the risk is low at
+current graph scale. Node sizing also naturally de-emphasizes bridges
+(velocity=0, trend_score=0).
+
+**Possible fix:** After selecting bridge entities, limit each bridge's
+edges to only those connecting isolated trending entities (plus one edge
+to a non-isolated trending entity for connectivity). Drop edges to
+already-connected trending entities.
+
+**Waiting on:** More daily pipeline runs to see whether any bridge entity
+accumulates disproportionate degree in practice.
 
 ---
 
