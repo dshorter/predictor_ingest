@@ -4,18 +4,28 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy (default: main)"
+        required: false
+        default: "main"
+        type: string
 
 concurrency:
-  group: deploy-main
+  group: deploy-${{ github.event.inputs.branch || 'main' }}
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_BRANCH: ${{ github.event.inputs.branch || 'main' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_BRANCH }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,4 +50,4 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /opt/predictor_ingest
-            ./scripts/deploy.sh
+            ./scripts/deploy.sh "${{ env.DEPLOY_BRANCH }}"

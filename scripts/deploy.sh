@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
-# Deploy script — called by GitHub Actions after push to main
+# Deploy script — called by GitHub Actions after push to main (or a feature branch)
 # Pulls latest code and restarts the predictor container if running
+#
+# Usage: ./scripts/deploy.sh [BRANCH]
+#   BRANCH defaults to "main" if not provided.
 #
 # IMPORTANT: data/ is gitignored and must NEVER be touched by deploys.
 # We use `git checkout` on tracked files only — NOT `git reset --hard`
 # which can interfere with untracked runtime data.
 set -euo pipefail
 
+BRANCH="${1:-main}"
 REPO_DIR="/opt/predictor_ingest"
 LOG_TAG="predictor-deploy"
+DEPLOY_LOG="$REPO_DIR/data/logs/deploy.log"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
     logger -t "$LOG_TAG" "$*"
+    # Append to persistent deploy log for audit trail
+    mkdir -p "$(dirname "$DEPLOY_LOG")"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] branch=$BRANCH $*" >> "$DEPLOY_LOG"
 }
 
 cd "$REPO_DIR"
@@ -22,17 +30,17 @@ if [ -f "$REPO_DIR/data/pipeline.lock" ]; then
     log "WARNING: pipeline.lock exists — pipeline may be running. Deploying anyway but skipping restart."
 fi
 
-log "Pulling latest from origin/main..."
-git fetch origin main
+log "Deploying branch '$BRANCH' from origin..."
+git fetch origin "$BRANCH"
 
 # Safe update: only update tracked files, never touch untracked data/
-# This replaces the old `git reset --hard origin/main` which could
+# This replaces the old `git reset --hard origin/$BRANCH` which could
 # interfere with gitignored runtime data like data/, .env, etc.
-git checkout origin/main -- .
+git checkout "origin/$BRANCH" -- .
 # Update HEAD to match (so `git log` shows current state)
-git reset origin/main
+git reset "origin/$BRANCH"
 
-log "Pull complete: $(git log --oneline -1)"
+log "Deploy complete for branch '$BRANCH': $(git log --oneline -1)"
 
 # Ensure runtime directories exist (gitignored, created by pipeline)
 mkdir -p "$REPO_DIR/data/raw"
