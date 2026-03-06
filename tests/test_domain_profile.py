@@ -277,3 +277,79 @@ class TestInvalidValues:
         valid_profile["relation_taxonomy"]["normalization"]["BUILT"] = "created"
         errors = list(validator.iter_errors(valid_profile))
         assert len(errors) > 0, "Normalization targets must be UPPER_SNAKE_CASE"
+
+
+class TestAIDomainProfile:
+    """Test the actual domains/ai/domain.yaml profile."""
+
+    AI_PROFILE_PATH = Path(__file__).parent.parent / "domains" / "ai" / "domain.yaml"
+    EXTRACTION_SCHEMA_PATH = Path(__file__).parent.parent / "schemas" / "extraction.json"
+
+    @pytest.fixture
+    def ai_profile(self):
+        import yaml
+        with open(self.AI_PROFILE_PATH) as f:
+            return yaml.safe_load(f)
+
+    def test_ai_profile_exists(self):
+        assert self.AI_PROFILE_PATH.exists()
+
+    def test_ai_profile_validates_against_schema(self, validator, ai_profile):
+        validator.validate(ai_profile)
+
+    def test_entity_types_match_extraction_schema(self, ai_profile):
+        with open(self.EXTRACTION_SCHEMA_PATH) as f:
+            ext = json.load(f)
+        schema_types = set(ext["$defs"]["entityType"]["enum"])
+        profile_types = set(ai_profile["entity_types"])
+        assert schema_types == profile_types, (
+            f"Mismatch: schema-only={schema_types - profile_types}, "
+            f"profile-only={profile_types - schema_types}"
+        )
+
+    def test_relation_types_match_extraction_schema(self, ai_profile):
+        with open(self.EXTRACTION_SCHEMA_PATH) as f:
+            ext = json.load(f)
+        schema_rels = set(ext["$defs"]["relationType"]["enum"])
+        profile_rels = set(ai_profile["relation_taxonomy"]["canonical"])
+        assert schema_rels == profile_rels, (
+            f"Mismatch: schema-only={schema_rels - profile_rels}, "
+            f"profile-only={profile_rels - schema_rels}"
+        )
+
+    def test_normalization_targets_are_canonical(self, ai_profile):
+        canonical = set(ai_profile["relation_taxonomy"]["canonical"])
+        bad = {
+            k: v for k, v in ai_profile["relation_taxonomy"]["normalization"].items()
+            if v not in canonical
+        }
+        assert not bad, f"Normalization targets not in canonical: {bad}"
+
+    def test_id_prefixes_cover_all_entity_types(self, ai_profile):
+        entity_types = set(ai_profile["entity_types"])
+        prefix_types = set(ai_profile["id_prefixes"].keys())
+        assert entity_types == prefix_types, (
+            f"Missing prefixes: {entity_types - prefix_types}, "
+            f"Extra prefixes: {prefix_types - entity_types}"
+        )
+
+    def test_base_relation_is_canonical(self, ai_profile):
+        canonical = set(ai_profile["relation_taxonomy"]["canonical"])
+        assert ai_profile["base_relation"] in canonical
+
+    def test_scoring_weights_sum_to_one(self, ai_profile):
+        weights = ai_profile["scoring_weights"]
+        total = sum(weights.values())
+        assert abs(total - 1.0) < 0.01, f"Scoring weights sum to {total}, expected 1.0"
+
+    def test_trend_weights_sum_to_one(self, ai_profile):
+        tw = ai_profile["trend_weights"]
+        total = tw["velocity"] + tw["novelty"] + tw["activity"]
+        assert abs(total - 1.0) < 0.01, f"Trend weights sum to {total}, expected 1.0"
+
+    def test_document_prefix_is_doc(self, ai_profile):
+        """Document type has special 'doc' prefix, not 'document'."""
+        assert ai_profile["id_prefixes"]["Document"] == "doc"
+
+    def test_suppressed_entities_not_empty(self, ai_profile):
+        assert len(ai_profile["suppressed_entities"]) > 0
