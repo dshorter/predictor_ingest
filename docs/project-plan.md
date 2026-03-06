@@ -145,21 +145,21 @@ adding a directory.
 | 6.1 | Define `domain.yaml` schema | Write JSON Schema for domain profile format: entity types, relation taxonomy, ID prefixes, base relation type, quality thresholds, suppressed entities, prompt paths | ~80 YAML/JSON | [Opus] |
 | 6.2 | Create `domains/ai/domain.yaml` | Populate AI domain profile from current hardcoded values in `schemas/extraction.json`, `src/extract/__init__.py`, `src/extract/prompts.py` | ~120 YAML | [Opus] |
 | 6.3 | Create `domains/ai/prompts/` | Move extraction prompts and suppressed entity list from `src/extract/prompts.py` into `domains/ai/prompts/`. Framework keeps prompt-building logic; domain provides vocabulary, examples, suppressed terms | ~200 move+refactor | [Opus] |
-| 6.4 | Create `domains/ai/views.yaml` | Move `config/views.yaml` content to domain directory. Framework loads views from domain path | ~30 move | [Sonnet] |
-| 6.5 | Create `domains/ai/feeds.yaml` | Move `config/feeds.yaml` to domain directory | ~10 move | [Sonnet] |
+| 6.4 | Create `domains/ai/views.yaml` | Move `config/views.yaml` content to domain directory. Framework loads views from domain path | ~30 move | [Opus] |
+| 6.5 | Create `domains/ai/feeds.yaml` | Move `config/feeds.yaml` to domain directory | ~10 move | [Opus] |
 | 6.6 | Parameterize `src/extract/__init__.py` | Load `RELATION_NORMALIZATION`, `QUALITY_THRESHOLDS`, `GATE_THRESHOLDS` from domain profile instead of hardcoding. Remove AI-specific constants from framework code | ~80 refactor | [Opus] |
-| 6.7 | Parameterize `src/trend/__init__.py` | Replace hardcoded `'MENTIONS'` with base relation type from domain profile (3 occurrences: lines ~45, ~172, ~184) | ~15 refactor | [Sonnet] |
+| 6.7 | Parameterize `src/trend/__init__.py` | Replace hardcoded `'MENTIONS'` with base relation type from domain profile (3 occurrences: lines ~45, ~172, ~184) | ~15 refactor | [Opus] |
 | 6.8 | Parameterize `src/schema/__init__.py` | Generate extraction JSON Schema dynamically from domain profile's entity types and relation taxonomy, instead of loading a static `schemas/extraction.json` | ~60 refactor | [Opus] |
-| 6.9 | Add `--domain` CLI flag to pipeline entry points | `run_pipeline.py`, `build_docpack.py`, `import_manual.py`, `export_graph.py` accept `--domain ai` (default). Framework resolves to `domains/ai/` and loads profile | ~40 refactor | [Sonnet] |
-| 6.10 | Domain profile validation on load | Framework validates `domain.yaml` against the schema from 6.1 at startup. Fail fast with clear error if profile is invalid or missing required fields | ~30 | [Sonnet] |
-| 6.11 | Grep-audit: no domain strings in framework | Run automated check that `src/trend/`, `src/resolve/`, `src/graph/`, `src/db/`, `src/schema/` contain zero references to AI-specific entity types, relation names, or source URLs. Add as a test | ~30 test | [Sonnet] |
+| 6.9 | Add `--domain` CLI flag to pipeline entry points | `run_pipeline.py`, `build_docpack.py`, `import_manual.py`, `export_graph.py` accept `--domain ai` (default). Framework resolves to `domains/ai/` and loads profile | ~40 refactor | [Opus] |
+| 6.10 | Domain profile validation on load | Framework validates `domain.yaml` against the schema from 6.1 at startup. Fail fast with clear error if profile is invalid or missing required fields | ~30 | [Opus] |
+| 6.11 | Grep-audit: no domain strings in framework | Run automated check that `src/trend/`, `src/resolve/`, `src/graph/`, `src/db/`, `src/schema/` contain zero references to AI-specific entity types, relation names, or source URLs. Add as a test | ~30 test | [Opus] |
 
 **Risk:** Moderate. This is a refactoring sprint — behavior should be identical before
 and after. But it touches many files and changes how config is loaded. Careful
 diffing required.
-**Why Opus for 6.1–6.3, 6.6, 6.8:** Cross-cutting changes that need holistic
-understanding of how entity types, relations, and thresholds flow through the
-pipeline. Getting the domain profile schema right is the critical design decision.
+**Why Opus for all of Sprint 6:** This is a single cohesive refactor where all 11
+tasks are tightly coupled. The domain profile schema (6.1) dictates every downstream
+task. Splitting across models risks inconsistency in how config is structured vs consumed.
 **Stability gate:** Full test suite passes. Pipeline produces identical output for AI
 domain before and after. `grep` audit (6.11) passes. Manual smoke test: ingest →
 extract → export → verify graph JSON is unchanged.
@@ -364,7 +364,8 @@ staggered reveal) touch multiple modules and need holistic design decisions that
 aren't fully captured in any single spec doc. Writing Sonnet-ready specs for these
 would cost roughly as many tokens as just implementing them.
 
-**Practical recommendation:** Use Sonnet 4.6 for Sprints 1–5, 6.4–6.5, 6.7, 6.9–6.11,
-and 10.2–10.4 (CSS, small JS, config moves, well-specified). Use Opus 4.6 for
-Sprint 6.1–6.3, 6.6, 6.8 (domain profile design + framework parameterization),
-Sprint 7 (What's Hot), 8.3 (staggered reveal), 9 (guided entry), and 10.1 (context menu).
+**Practical recommendation:** Use Sonnet 4.6 for Sprints 1–5 and 10.2–10.4
+(CSS, small JS, well-specified). Use Opus 4.6 for all of Sprint 6 (domain
+modularization — all 11 tasks assigned to Opus for consistency since the sprint
+is a single cohesive refactor), Sprint 7 (What's Hot), 8.3 (staggered reveal),
+9 (guided entry), and 10.1 (context menu).
