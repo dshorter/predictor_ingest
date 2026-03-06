@@ -5,7 +5,7 @@
 ![version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.project.version&label=version&prefix=v)
 ![python](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.python&label=python)
 ![stage](https://img.shields.io/badge/stage-beta-orange)
-![SQLite](https://img.shields.io/badge/storage-SQLite-003B57?logo=sqlite&logoColor=white)
+![SQLite](https://img.shields.io/badge/storage-SQLite-003B57?logo=sqlite&logoColor=white)  
 ![Cytoscape.js](https://img.shields.io/badge/viz-Cytoscape.js-F7DF1E)
 
 A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends — then exports interactive Cytoscape.js visualizations that reveal emerging patterns early.
