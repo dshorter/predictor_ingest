@@ -5,7 +5,7 @@
 ![version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.project.version&label=version&prefix=v)
 ![python](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.python&label=python)
 ![stage](https://img.shields.io/badge/stage-beta-orange)
-![SQLite](https://img.shields.io/badge/storage-SQLite-003B57?logo=sqlite&logoColor=white)  
+![SQLite](https://img.shields.io/badge/storage-SQLite-003B57?logo=sqlite&logoColor=white)
 ![Cytoscape.js](https://img.shields.io/badge/viz-Cytoscape.js-F7DF1E)
 
 A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends — then exports interactive Cytoscape.js visualizations that reveal emerging patterns early.
@@ -98,6 +98,8 @@ Both modes feed into the same downstream pipeline (`resolve → export → trend
 | `make test-network` | Run network-dependent tests |
 | `make test-all` | Run all tests |
 
+Overridable variables: `DB`, `DATE`, `GRAPHS_DIR`, `DOCPACK`, `BUDGET`.
+
 ## Web Client — AI Trend Graph Viewer
 
 The pipeline's end product is an interactive Cytoscape.js knowledge graph explorer in [`web/`](web/). It runs as a static site — no backend needed beyond the exported JSON files.
@@ -166,6 +168,22 @@ predictor_ingest/
     └── db/              # SQLite database
 ```
 
+## LLM Extraction
+
+### Extractor v2.0.0 Features
+
+- **Escalation mode** (`--escalate`): auto-escalates low-confidence or low-yield extractions to a stronger model
+- **Shadow mode** (`--shadow`, `--shadow-only`): runs a cheap model in parallel for quality comparison without DB writes
+- **Budget controls** (`--budget N`): cap daily LLM spend (default: `$20`)
+- **Quality gates (CPU, zero tokens)**: four non-negotiable gates run on every extraction before scoring:
+  - *Evidence fidelity* — snippet must appear in source text (≥70%)
+  - *Orphan endpoints* — relation source/target must match a declared entity (0% tolerance)
+  - *Zero-value* — non-trivial documents must yield ≥1 entity
+  - *High-confidence + bad evidence* — immediate escalation trigger
+- Environment variables: `ANTHROPIC_API_KEY` (Claude) or `OPENAI_API_KEY` (OpenAI)
+
+> **See also:** [LLM model tiers, escalation architecture, cost model](docs/llm-selection.md) · [Quality gate design and calibration](docs/research/extract-quality-analysis.md)
+
 ## Graph Views
 
 | View | Description |
@@ -174,6 +192,10 @@ predictor_ingest/
 | `claims.json` | Entity-to-entity semantic relations (CREATED, USES_TECH, etc.) |
 | `dependencies.json` | Dependency relations only (USES_*, TRAINED_ON, etc.) |
 | `trending.json` | Entities ranked by trend score with velocity/novelty metrics |
+
+Each export includes `meta` (view, nodeCount, edgeCount, exportedAt, dateRange) and `elements` (nodes, edges) in Cytoscape.js format.
+
+> **See also:** [Full export schema and Cytoscape format](docs/schema/data-contracts.md)
 
 ## Entity Types
 
@@ -185,11 +207,15 @@ Canonical ID format: `{type}:{slug}` (e.g., `org:openai`, `model:gpt-4`, `tech:t
 
 **Document:** MENTIONS, CITES, ANNOUNCES, REPORTED_BY
 
-**Org / Person:** LAUNCHED, PUBLISHED, UPDATED, FUNDED, PARTNERED_WITH, ACQUIRED, HIRED, CREATED, OPERATES, GOVERNS, REGULATES
+**Org / Person / Program:** LAUNCHED, PUBLISHED, UPDATED, FUNDED, PARTNERED_WITH, ACQUIRED, HIRED, CREATED, OPERATES, GOVERNED_BY/GOVERNS, REGULATES, COMPLIES_WITH
 
-**Tech / Model / Data:** USES_TECH, USES_MODEL, USES_DATASET, TRAINED_ON, EVALUATED_ON, INTEGRATES_WITH, DEPENDS_ON, REQUIRES, PRODUCES
+**Tech / Model / Tool / Dataset:** USES_TECH, USES_MODEL, USES_DATASET, TRAINED_ON, EVALUATED_ON, INTEGRATES_WITH, DEPENDS_ON, REQUIRES, PRODUCES, MEASURES, AFFECTS
 
 **Forecasting:** PREDICTS, DETECTS, MONITORS
+
+Prefer `MENTIONS` as the base layer; only emit semantic edges when evidence supports them.
+
+> **See also:** [Canonical IDs, slugging rules, and relation taxonomy](AGENTS.md)
 
 ## Trend Signals
 
@@ -201,6 +227,24 @@ Canonical ID format: `{type}:{slug}` (e.g., `org:openai`, `model:gpt-4`, `tech:t
 | `novelty` | Based on entity age and rarity |
 | `bridge_score` | Cross-domain connectivity measure |
 
+> **See also:** [Signal formulas, velocity/novelty/bridge scoring details](docs/methodology/prediction-methodology.md) · [Trend insights and templates](docs/research/trend-insights.md)
+
+## Web Client
+
+The static Cytoscape.js client at `web/index.html` provides:
+
+- Four graph views switchable from the toolbar
+- Node search with live result count
+- Neighborhood highlighting and dimming
+- Filter panel (by node type, relation type, date range)
+- In-app help (`web/help/`)
+- Dark mode / theme toggle
+- Minimap navigator (cytoscape-navigator)
+- Mobile-responsive layout auto-detected and redirected to `web/mobile/`
+- Pipeline health dashboard at `web/dashboard.html`
+
+> **See also:** [UI walkthrough, visual encoding, screenshots](docs/product/README.md) · [Cytoscape client implementation guide](docs/ux/README.md) · [Cytoscape.js gotchas and fixes](docs/ux/troubleshooting.md) · [Dark mode implementation](docs/ux/dark-mode-implementation.md)
+
 ## Testing
 
 ```bash
@@ -211,65 +255,22 @@ make test-all          # Everything
 
 ~209 unit tests across 18 modules. Network and LLM tests are marked separately and excluded by default.
 
+Markers: `network` (requires internet), `llm_live` (requires API key).
+
+## Environment Variables
+
+| Variable | Required For |
+|----------|-------------|
+| `ANTHROPIC_API_KEY` | Mode A extraction via Claude |
+| `OPENAI_API_KEY` | Mode A extraction via OpenAI |
+
+No environment variables required for ingestion, manual import, or graph export.
+
 ## Deployment
 
 CI/CD via GitHub Actions:
-- **`deploy.yml`** — On push to `main`: run tests → SSH deploy to VPS
+- **`deploy.yml`** — On push to `main` (or manual dispatch with branch selection): run tests → SSH deploy to VPS
 - **`release.yml`** — On tag push (`v*`): run tests → create GitHub Release (detects pre-release from tag)
-
-## Documentation
-
-### Architecture & Methodology
-
-| Document | Purpose |
-|----------|---------|
-| [Convergence Narrative](docs/architecture/convergence-narrative.md) | **Read first.** How 5 vectors converge; decision log |
-| [Domain Separation](docs/architecture/domain-separation.md) | Framework vs. domain config boundary |
-| [Multi-Domain Futures](docs/architecture/multi-domain-futures.md) | Post-V2 vision for other domains |
-| [Date Filtering](docs/architecture/date-filtering.md) | Why published_at, 30-day window, NULL handling |
-| [Prediction Methodology](docs/methodology/prediction-methodology.md) | Signal formulas, validation, weight tuning |
-| [LLM Selection](docs/llm-selection.md) | Model tiers, escalation, shadow mode, cost model |
-
-### Pipeline & Backend
-
-| Document | Purpose |
-|----------|---------|
-| [Workflow Guide](docs/backend/workflow-guide.md) | Step-by-step Mode A and Mode B |
-| [Daily Run Log](docs/backend/daily-run-log.md) | Pipeline health monitoring, per-stage metrics |
-| [Manual Workflow Plan](docs/backend/manual-workflow-plan.md) | Script specs for Mode B pipeline |
-| [Source Selection](docs/source-selection-strategy.md) | Feed tier model, coverage targets |
-| [Extract Quality](docs/research/extract-quality-analysis.md) | Quality gates, evaluation phases, calibration |
-| [Trend Insights](docs/research/trend-insights.md) | Insight templates, deterministic vs LLM generation |
-
-### UX & Visualization
-
-| Document | Purpose |
-|----------|---------|
-| [Product Guide](docs/product/README.md) | UI walkthrough, visual encoding, workflows |
-| [UX Implementation](docs/ux/README.md) | Cytoscape client technical specs |
-| [Design Tokens](docs/ux/design-tokens.md) | Colors, spacing, typography |
-| [Visual Encoding](docs/ux/visual-encoding.md) | Node/edge encoding rules |
-| [Troubleshooting](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
-| [Polish Strategy](docs/ux/polish-strategy.md) | Typography, toolbar, canvas, node depth |
-| [Accessibility](docs/ux/accessibility.md) | A11y compliance |
-
-### Schema & Data
-
-| Document | Purpose |
-|----------|---------|
-| [Data Contracts](docs/schema/data-contracts.md) | Full schemas: documents, docpack, extraction, export |
-| [Glossary](docs/GLOSSARY.md) | Terminology definitions |
-
-### Operations
-
-| Document | Purpose |
-|----------|---------|
-| [Project Plan](docs/project-plan.md) | Sprint plan, model assignments, timeline |
-| [Backlog](docs/backlog.md) | Known issues, prompt-tuning observations |
-| [Fix Details](docs/fix-details/README.md) | Resolved production issues, root causes, lessons |
-| [Test Plan](docs/test-plan.md) | Testing strategy |
-
-## Configuration
 
 ### Feed Configuration
 
@@ -287,9 +288,68 @@ feeds:
 
 **Tier model:** Primary (academic + industry blogs) → Secondary (aggregators) → Echo (tech press)
 
-### Environment Variables
+> **See also:** [Feed tier model, source selection strategy](docs/source-selection-strategy.md)
 
-An LLM API key is required for Mode A extraction. Basic ingestion and Mode B work without one.
+### Makefile Overrides
+
+```bash
+make daily DB=data/db/custom.db DATE=2026-03-01 BUDGET=10
+```
+
+## Documentation
+
+> **New here?** Start with [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) for a step-by-step pipeline walkthrough, then [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) for the big-picture design decisions.
+
+### Architecture & Methodology
+
+| Document | Purpose |
+|----------|---------|
+| [Convergence Narrative](docs/architecture/convergence-narrative.md) | **Read first.** How 5 vectors converge; decision log |
+| [Domain Separation](docs/architecture/domain-separation.md) | Framework vs. domain config boundary |
+| [Multi-Domain Futures](docs/architecture/multi-domain-futures.md) | Post-V2 vision for other domains |
+| [Date Filtering](docs/architecture/date-filtering.md) | Why published_at, 30-day window, NULL handling |
+| [Prediction Methodology](docs/methodology/prediction-methodology.md) | Signal formulas, validation, weight tuning |
+| [LLM Selection](docs/llm-selection.md) | Model tiers, escalation, shadow mode, cost model |
+
+### Pipeline & Backend
+
+| Document | Purpose |
+|----------|---------|
+| [Workflow Guide](docs/backend/workflow-guide.md) | Step-by-step Mode A and Mode B — **start here** |
+| [Daily Run Log](docs/backend/daily-run-log.md) | Pipeline health monitoring, per-stage metrics |
+| [Manual Workflow Plan](docs/backend/manual-workflow-plan.md) | Script specs for Mode B pipeline |
+| [Source Selection](docs/source-selection-strategy.md) | Feed tier model, coverage targets |
+| [Extract Quality](docs/research/extract-quality-analysis.md) | Quality gates, evaluation phases, calibration |
+| [Trend Insights](docs/research/trend-insights.md) | Insight templates, deterministic vs LLM generation |
+
+### UX & Visualization
+
+| Document | Purpose |
+|----------|---------|
+| [Product Guide](docs/product/README.md) | UI walkthrough, visual encoding, workflows |
+| [UX Implementation](docs/ux/README.md) | Cytoscape client technical specs |
+| [Design Tokens](docs/ux/design-tokens.md) | Colors, spacing, typography |
+| [Visual Encoding](docs/ux/visual-encoding.md) | Node/edge encoding rules |
+| [Troubleshooting](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
+| [Polish Strategy](docs/ux/polish-strategy.md) | Typography, toolbar, canvas, node depth |
+| [Accessibility](docs/ux/accessibility.md) | A11y compliance |
+| [Dark Mode](docs/ux/dark-mode-implementation.md) | Dark mode / theme toggle |
+
+### Schema & Data
+
+| Document | Purpose |
+|----------|---------|
+| [Data Contracts](docs/schema/data-contracts.md) | Full schemas: documents, docpack, extraction, export |
+| [Glossary](GLOSSARY.md) | Terminology definitions |
+| [Changelog](CHANGELOG.md) | Release history |
+
+### Operations
+
+| Document | Purpose |
+|----------|---------|
+| [Project Plan](docs/project-plan.md) | Sprint plan, model assignments, timeline |
+| [Backlog](docs/backlog.md) | Known issues, prompt-tuning observations |
+| [Fix Details](docs/fix-details/README.md) | Resolved production issues, root causes, lessons |
 
 ## License
 
