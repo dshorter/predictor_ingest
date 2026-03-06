@@ -1,7 +1,6 @@
 # Predictor Ingest
 
 [![Deploy to VPS](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)
-[![Tests](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg?event=push)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/dshorter/predictor_ingest?include_prereleases&label=release)](https://github.com/dshorter/predictor_ingest/releases)
 ![version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.project.version&label=version&prefix=v)
 ![python](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.python&label=python)
@@ -98,6 +97,31 @@ Both modes feed into the same downstream pipeline (`resolve → export → trend
 | `make test` | Run unit tests (no network/LLM) |
 | `make test-network` | Run network-dependent tests |
 | `make test-all` | Run all tests |
+
+## Web Client — AI Trend Graph Viewer
+
+The pipeline's end product is an interactive Cytoscape.js knowledge graph explorer in [`web/`](web/). It runs as a static site — no backend needed beyond the exported JSON files.
+
+**Features:**
+- **4 graph views** — Trending, Claims, Mentions, Dependencies (switchable from toolbar)
+- **Force-directed layout** — fcose with automatic clustering
+- **Search & filter** — by entity type, relationship kind, confidence threshold, date range
+- **Node detail panel** — aliases, connections, evidence snippets, trend scores
+- **Edge evidence panel** — provenance with source snippets and URLs
+- **Minimap** — navigator overlay for large graphs
+- **Dark mode** — system-aware with manual toggle
+- **Mobile** — dedicated touch-optimized viewer at `web/mobile/`
+- **Sample data** — small/medium/large/stress tiers for testing without live data
+- **Accessibility** — ARIA roles, keyboard navigation, screen reader announcements
+
+**Serving locally:**
+```bash
+make copy-to-live    # Publish latest export to web/data/graphs/live/
+cd web && python -m http.server 8000
+# Open http://localhost:8000
+```
+
+See [`web/README.md`](web/README.md) for architecture, file inventory, and Cytoscape.js gotchas.
 
 ## Project Structure
 
