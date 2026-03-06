@@ -174,6 +174,8 @@ predictor_ingest/
   - *High-confidence + bad evidence* — immediate escalation trigger
 - Environment variables: `ANTHROPIC_API_KEY` (Claude) or `OPENAI_API_KEY` (OpenAI)
 
+> **See also:** [LLM model tiers, escalation architecture, cost model](docs/llm-selection.md) · [Quality gate design and calibration](docs/research/extract-quality-analysis.md)
+
 ## Graph Views
 
 | View | Description |
@@ -184,6 +186,8 @@ predictor_ingest/
 | `trending.json` | Entities ranked by trend score |
 
 Each export includes `meta` (view, nodeCount, edgeCount, exportedAt, dateRange) and `elements` (nodes, edges) in Cytoscape.js format.
+
+> **See also:** [Full export schema and Cytoscape format](docs/schema/data-contracts.md)
 
 ## Entity Types
 
@@ -201,6 +205,8 @@ Each export includes `meta` (view, nodeCount, edgeCount, exportedAt, dateRange) 
 
 Prefer `MENTIONS` as the base layer; only emit semantic edges when evidence supports them.
 
+> **See also:** [Canonical IDs, slugging rules, and relation taxonomy](AGENTS.md)
+
 ## Trend Signals
 
 | Signal | Description |
@@ -210,6 +216,8 @@ Prefer `MENTIONS` as the base layer; only emit semantic edges when evidence supp
 | `velocity` | Ratio of recent to previous mentions |
 | `novelty` | Based on entity age and rarity |
 | `bridge_score` | Connectivity/centrality measure |
+
+> **See also:** [Signal formulas, velocity/novelty/bridge scoring details](docs/methodology/prediction-methodology.md) · [Trend insights and templates](docs/research/trend-insights.md)
 
 ## Web Client
 
@@ -224,6 +232,8 @@ The static Cytoscape.js client at `web/index.html` provides:
 - Minimap navigator (cytoscape-navigator)
 - Mobile-responsive layout auto-detected and redirected to `web/mobile/`
 - Pipeline health dashboard at `web/dashboard.html`
+
+> **See also:** [UI walkthrough, visual encoding, screenshots](docs/product/README.md) · [Cytoscape client implementation guide](docs/ux/README.md) · [Cytoscape.js gotchas and fixes](docs/ux/troubleshooting.md) · [Dark mode implementation](docs/ux/dark-mode-implementation.md)
 
 ## Testing
 
@@ -262,6 +272,8 @@ feeds:
     enabled: true    # set false to skip
 ```
 
+> **See also:** [Feed tier model, source selection strategy](docs/source-selection-strategy.md)
+
 ### Makefile Overrides
 
 ```bash
@@ -270,21 +282,13 @@ make daily DB=data/db/custom.db DATE=2026-03-01 BUDGET=10
 
 ## Documentation
 
-#### Methodology & Architecture
+> **New here?** Start with [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) for a step-by-step pipeline walkthrough, then [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) for the big-picture design decisions.
+
+### Pipeline & Backend
 
 | Document | Purpose |
 |----------|---------|
-| [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal formulas, source requirements, weight tuning |
-| [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Framework vs. domain-config boundary |
-| [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) | Big-picture decision log — read first |
-| [docs/architecture/date-filtering.md](docs/architecture/date-filtering.md) | Why `published_at` is used; NULL handling |
-| [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 multi-domain vision |
-
-#### Pipeline & Backend
-
-| Document | Purpose |
-|----------|---------|
-| [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step pipeline guide (Mode A & B) |
+| [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step pipeline guide (Mode A & B) — **start here** |
 | [docs/backend/daily-run-log.md](docs/backend/daily-run-log.md) | JSON log format, per-stage metrics, healthy thresholds |
 | [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Script specs for docpack, import, resolve, export, trending |
 | [docs/llm-selection.md](docs/llm-selection.md) | LLM tiers, escalation, shadow mode, cost model |
@@ -292,7 +296,15 @@ make daily DB=data/db/custom.db DATE=2026-03-01 BUDGET=10
 | [docs/research/extract-quality-analysis.md](docs/research/extract-quality-analysis.md) | Quality gate design, evaluation architecture, calibration |
 | [docs/research/trend-insights.md](docs/research/trend-insights.md) | Insight articulation layer, templates, backtest protocol |
 
-#### UX & Visualization
+### Schema & Data
+
+| Document | Purpose |
+|----------|---------|
+| [docs/schema/data-contracts.md](docs/schema/data-contracts.md) | Full schemas: documents table, docpack JSONL, extraction JSON, Cytoscape export |
+| [GLOSSARY.md](GLOSSARY.md) | Term definitions |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+
+### UX & Visualization
 
 | Document | Purpose |
 |----------|---------|
@@ -301,16 +313,23 @@ make daily DB=data/db/custom.db DATE=2026-03-01 BUDGET=10
 | [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
 | [docs/ux/dark-mode-implementation.md](docs/ux/dark-mode-implementation.md) | Dark mode / theme toggle |
 | [docs/ux/polish-strategy.md](docs/ux/polish-strategy.md) | Aesthetic mechanics: typography, toolbar, canvas |
+| [docs/ux/design-tokens.md](docs/ux/design-tokens.md) | CSS design token system |
+| [docs/ux/visual-encoding.md](docs/ux/visual-encoding.md) | Node/edge color, shape, and size encoding rules |
+| [docs/ux/accessibility.md](docs/ux/accessibility.md) | Accessibility guidelines |
 
-#### Schema & Data
+> For the full list of UX docs see [`docs/ux/`](docs/ux/).
+
+### Methodology & Architecture
 
 | Document | Purpose |
 |----------|---------|
-| [docs/schema/data-contracts.md](docs/schema/data-contracts.md) | Full schemas: documents table, docpack JSONL, extraction JSON, Cytoscape export |
-| [GLOSSARY.md](GLOSSARY.md) | Term definitions |
-| [CHANGELOG.md](CHANGELOG.md) | Release history |
+| [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) | Big-picture decision log — how the 5 design vectors converge |
+| [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal formulas, source requirements, weight tuning |
+| [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Framework vs. domain-config boundary |
+| [docs/architecture/date-filtering.md](docs/architecture/date-filtering.md) | Why `published_at` is used; NULL handling |
+| [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 multi-domain vision |
 
-#### Operational History
+### Operational History
 
 | Document | Purpose |
 |----------|---------|
