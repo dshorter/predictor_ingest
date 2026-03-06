@@ -1,40 +1,39 @@
 # Predictor Ingest
 
-[![Deploy to VPS](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)  
- 
+[![Deploy to VPS](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml/badge.svg)](https://github.com/dshorter/predictor_ingest/actions/workflows/deploy.yml)
+
 ![version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.project.version&label=version&prefix=v)
 ![python](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.python&label=python)
 ![feedparser](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.feedparser&label=feedparser)
 ![requests](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.requests&label=requests)
 ![beautifulsoup4](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.beautifulsoup4&label=beautifulsoup4)
 ![pyyaml](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.pyyaml&label=pyyaml)
-![jsonschema](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.jsonschema&label=jsonschema)  
+![jsonschema](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/dshorter/predictor_ingest/main/pyproject.toml&query=$.tool.versions.jsonschema&label=jsonschema)
 
-A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends to produce Cytoscape.js-ready visualizations.
-## Overview   
+A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends to produce Cytoscape.js-ready visualizations with an interactive web client.
+
+## Overview
 
 ```
-RSS Feeds → Ingest → Clean → Extract → Resolve → Graph/Trend → Cytoscape.js
+RSS Feeds → Ingest → Clean → [Doc Select] → Extract → Resolve → Graph/Trend → Cytoscape.js
 ```
 
 The pipeline:
-1. **Ingests** RSS feeds and web pages
+1. **Ingests** RSS feeds and web pages (archive-first: raw HTML + cleaned text stored with metadata)
 2. **Cleans** HTML to extract article content
-3. **Extracts** entities and relationships (via LLM or manual)
-4. **Resolves** duplicate entities into canonical forms
-5. **Exports** Cytoscape.js graph views
-6. **Scores** entities for velocity, novelty, and bridge metrics
+3. **Selects** documents for extraction (scored by word count, metadata quality, source tier, signal type)
+4. **Extracts** entities and relationships (via LLM API or manual ChatGPT paste)
+5. **Resolves** duplicate entities into canonical forms
+6. **Exports** four Cytoscape.js graph views
+7. **Scores** entities for velocity, novelty, and bridge metrics
 
 ## Installation
 
 ```bash
-# Clone and install
 git clone <repo-url>
 cd predictor_ingest
-pip install -e .
-
-# Or install dependencies directly
-pip install feedparser requests beautifulsoup4 pyyaml jsonschema
+make setup          # pip install -e .
+make init-db        # create data/db/predictor.db
 ```
 
 ## Quick Start
@@ -51,87 +50,133 @@ feeds:
     enabled: true
 ```
 
-### 2. Run Ingestion
+### 2. Run the Full Daily Pipeline
+
+**Mode A: LLM API available**
 
 ```bash
-# Ingest from configured feeds
-python -m ingest.rss --config config/feeds.yaml
-
-# Or specify a feed directly
-python -m ingest.rss --feed https://example.com/feed.xml --limit 10
+export ANTHROPIC_API_KEY=sk-...   # or OPENAI_API_KEY
+make daily                        # ingest → docpack → extract → resolve → export → trending → copy-to-live
 ```
 
-### 3. Extract Entities
+**Mode B: No API key (manual ChatGPT)**
 
-**Mode A: LLM API** (when API key available)
 ```bash
-# Coming soon - requires LLM integration
+make daily-manual    # ingest → docpack → (skip extract) → resolve → export → trending → copy-to-live
+# Then: upload the docpack to ChatGPT, save returned JSON to data/extractions/
+make import          # validate and import manual extractions
+make post-extract    # resolve → export → trending → copy-to-live
 ```
 
-**Mode B: Manual** (paste into ChatGPT)
+### 3. Run Steps Individually
+
 ```bash
-# Generate document bundle for manual extraction
-# Then save extraction JSON to data/extractions/
+make ingest          # Fetch RSS feeds → DB
+make docpack         # Build JSONL bundle for extraction
+make extract         # LLM extraction with escalation (Mode A)
+make import          # Import & validate manual extractions (Mode B)
+make resolve         # Merge duplicate entities
+make export          # Export graph JSON views
+make trending        # Compute trend scores → trending.json
+make copy-to-live    # Copy graphs to web/data/graphs/live/
+make dashboard-data  # Generate pipeline health JSON for dashboard
+make health-report   # Print pipeline health summary
 ```
 
-### 4. Export Graph
+### 4. View the Graph
 
-```python
-from db import init_db
-from graph import GraphExporter
+Open `web/index.html` in a browser (or serve it statically). The client automatically loads from `web/data/graphs/live/`.
 
-conn = init_db("data/db/ingest.sqlite")
-exporter = GraphExporter(conn)
+> For mobile: `web/mobile/index.html` — a separate responsive layout auto-detected by `index.html`.
 
-# Export all views
-exporter.export_all_views("data/graphs/2026-01-24")
-# Creates: claims.json, mentions.json, dependencies.json
-```
+## Makefile Reference
 
-### 5. Compute Trends
+| Target | Description |
+|--------|-------------|
+| `make setup` | Install Python package in editable mode |
+| `make init-db` | Initialize SQLite database |
+| `make ingest` | Fetch all enabled RSS feeds |
+| `make docpack` | Build daily JSONL document bundle |
+| `make extract` | LLM extraction with auto-escalation |
+| `make extract-shadow` | Run main + shadow model in parallel |
+| `make shadow-only` | Run shadow model only (no DB write) |
+| `make shadow-report` | Print cheap-vs-main quality comparison |
+| `make health-report` | Print pipeline health summary |
+| `make import` | Validate + import manual extractions |
+| `make resolve` | Entity resolution pass |
+| `make export` | Export graph JSON views |
+| `make trending` | Compute and export trend scores |
+| `make copy-to-live` | Publish graph files to web client |
+| `make dashboard-data` | Regenerate dashboard metrics JSON |
+| `make pipeline` | `ingest + docpack` (with lock file) |
+| `make post-extract` | `import → resolve → export → trending → copy-to-live` |
+| `make daily` | Full automated daily run (Mode A) |
+| `make daily-manual` | Daily run skipping extraction (Mode B) |
+| `make test` | Non-network, non-LLM unit tests |
+| `make test-network` | Network integration tests |
+| `make test-all` | All tests |
 
-```python
-from trend import TrendScorer
-
-scorer = TrendScorer(conn)
-trending = scorer.get_trending(limit=20)
-scorer.export_trending("data/graphs/2026-01-24")
-# Creates: trending.json
-```
+Overridable variables: `DB`, `DATE`, `GRAPHS_DIR`, `DOCPACK`, `BUDGET`.
 
 ## Project Structure
 
 ```
 predictor_ingest/
 ├── src/
-│   ├── config/     # Feed configuration loader
-│   ├── db/         # SQLite database operations
-│   ├── schema/     # JSON Schema validation
-│   ├── ingest/     # RSS/web fetching CLI
-│   ├── extract/    # LLM prompt building and parsing
-│   ├── util/       # Hashing, slugify, date parsing
-│   ├── clean/      # Readability extraction, boilerplate removal
-│   ├── resolve/    # Entity resolution, alias merging
-│   ├── graph/      # Cytoscape.js export
-│   └── trend/      # Velocity, novelty, bridge scoring
+│   ├── config/       # Feed configuration loader
+│   ├── db/           # SQLite database operations
+│   ├── schema/       # JSON Schema validation
+│   ├── ingest/       # RSS/web fetching CLI
+│   ├── extract/      # LLM prompt building, parsing, quality gates
+│   ├── doc_select/   # Document scoring and selection for extraction
+│   ├── util/         # Hashing, slugify, date parsing
+│   ├── clean/        # Readability extraction, boilerplate removal
+│   ├── resolve/      # Entity resolution, alias merging
+│   ├── graph/        # Cytoscape.js export
+│   └── trend/        # Velocity, novelty, bridge scoring
 ├── config/
-│   └── feeds.yaml  # RSS feed configuration
+│   └── feeds.yaml    # RSS feed configuration
 ├── schemas/
-│   ├── extraction.json  # JSON Schema for extractions
+│   ├── extraction.json  # JSON Schema for extraction output
 │   └── sqlite.sql       # Database schema
-├── tests/          # pytest test suite
-├── data/           # Runtime data (gitignored)
-│   ├── raw/        # Raw HTML
-│   ├── text/       # Cleaned text
-│   ├── extractions/# Per-doc extraction JSON
-│   ├── graphs/     # Cytoscape exports
-│   └── db/         # SQLite database
-└── web/            # Cytoscape.js viewer (planned)
+├── scripts/          # Pipeline orchestration and helper scripts
+├── tests/            # pytest test suite (20 modules)
+├── diagnostics/      # Runtime diagnostic output
+├── data/             # Runtime data (gitignored)
+│   ├── raw/          # Raw HTML
+│   ├── text/         # Cleaned text
+│   ├── docpacks/     # Daily JSONL bundles
+│   ├── extractions/  # Per-doc extraction JSON
+│   ├── graphs/       # Dated Cytoscape exports
+│   └── db/           # predictor.db (SQLite)
+└── web/              # Cytoscape.js interactive viewer
+    ├── index.html    # Desktop graph explorer
+    ├── dashboard.html# Pipeline health dashboard
+    ├── mobile/       # Responsive mobile UI
+    ├── help/         # In-app help system
+    ├── js/           # app, filter, graph, layout, panels,
+    │                 #   search, styles, tooltips, utils, help
+    ├── css/          # Design token system + component partials
+    └── data/graphs/live/  # Live graph JSON (copied by make copy-to-live)
 ```
 
-## Graph Views
+## LLM Extraction
 
-The pipeline exports multiple graph views:
+### Extractor v2.0.0 Features
+
+- **Escalation mode** (`--escalate`): auto-escalates low-confidence or low-yield extractions to a stronger model
+- **Shadow mode** (`--shadow`, `--shadow-only`): runs a cheap model in parallel for quality comparison without DB writes
+- **Budget controls** (`--budget N`): cap daily LLM spend (default: `$20`)
+- **Quality gates (CPU, zero tokens)**: four non-negotiable gates run on every extraction before scoring:
+  - *Evidence fidelity* — snippet must appear in source text (≥70%)
+  - *Orphan endpoints* — relation source/target must match a declared entity (0% tolerance)
+  - *Zero-value* — non-trivial documents must yield ≥1 entity
+  - *High-confidence + bad evidence* — immediate escalation trigger
+- Environment variables: `ANTHROPIC_API_KEY` (Claude) or `OPENAI_API_KEY` (OpenAI)
+
+> **See also:** [LLM model tiers, escalation architecture, cost model](docs/llm-selection.md) · [Quality gate design and calibration](docs/research/extract-quality-analysis.md)
+
+## Graph Views
 
 | View | Description |
 |------|-------------|
@@ -140,28 +185,27 @@ The pipeline exports multiple graph views:
 | `dependencies.json` | Dependency relations only (USES_*, TRAINED_ON, etc.) |
 | `trending.json` | Entities ranked by trend score |
 
+Each export includes `meta` (view, nodeCount, edgeCount, exportedAt, dateRange) and `elements` (nodes, edges) in Cytoscape.js format.
+
+> **See also:** [Full export schema and Cytoscape format](docs/schema/data-contracts.md)
+
 ## Entity Types
 
-- `Org` - Organizations (OpenAI, Google DeepMind)
-- `Person` - Researchers, executives
-- `Model` - AI models (GPT-4, Gemini)
-- `Dataset` - Training/eval datasets
-- `Benchmark` - Evaluation benchmarks (MMLU)
-- `Tech` - Technologies (Transformer, RLHF)
-- `Paper` - Research papers
-- `Repo` - Code repositories
-- `Tool` - Software tools
-- `Topic` - Research topics
-- `Event` - Conferences, launches
-- `Location` - Places
+`Org`, `Person`, `Program`, `Tool`, `Model`, `Dataset`, `Benchmark`, `Paper`, `Repo`, `Document`, `Tech`, `Topic`, `Event`, `Location`, `Other`
 
 ## Relation Types
 
-**Document relations:** MENTIONS, CITES, ANNOUNCES
+**Document:** `MENTIONS`, `CITES`, `ANNOUNCES`, `REPORTED_BY`
 
-**Semantic relations:** CREATED, PUBLISHED, FUNDED, PARTNERED_WITH, ACQUIRED, HIRED
+**Org/Person/Program:** `LAUNCHED`, `PUBLISHED`, `UPDATED`, `FUNDED`, `PARTNERED_WITH`, `ACQUIRED`, `HIRED`, `CREATED`, `OPERATES`, `GOVERNED_BY`/`GOVERNS`, `REGULATES`, `COMPLIES_WITH`
 
-**Dependencies:** USES_TECH, USES_MODEL, USES_DATASET, TRAINED_ON, EVALUATED_ON, DEPENDS_ON, REQUIRES
+**Tech/Model/Tool/Dataset:** `USES_TECH`, `USES_MODEL`, `USES_DATASET`, `TRAINED_ON`, `EVALUATED_ON`, `INTEGRATES_WITH`, `DEPENDS_ON`, `REQUIRES`, `PRODUCES`, `MEASURES`, `AFFECTS`
+
+**Forecasting:** `PREDICTS`, `DETECTS`, `MONITORS`
+
+Prefer `MENTIONS` as the base layer; only emit semantic edges when evidence supports them.
+
+> **See also:** [Canonical IDs, slugging rules, and relation taxonomy](AGENTS.md)
 
 ## Trend Signals
 
@@ -173,46 +217,125 @@ The pipeline exports multiple graph views:
 | `novelty` | Based on entity age and rarity |
 | `bridge_score` | Connectivity/centrality measure |
 
+> **See also:** [Signal formulas, velocity/novelty/bridge scoring details](docs/methodology/prediction-methodology.md) · [Trend insights and templates](docs/research/trend-insights.md)
+
+## Web Client
+
+The static Cytoscape.js client at `web/index.html` provides:
+
+- Four graph views switchable from the toolbar
+- Node search with live result count
+- Neighborhood highlighting and dimming
+- Filter panel (by node type, relation type, date range)
+- In-app help (`web/help/`)
+- Dark mode / theme toggle
+- Minimap navigator (cytoscape-navigator)
+- Mobile-responsive layout auto-detected and redirected to `web/mobile/`
+- Pipeline health dashboard at `web/dashboard.html`
+
+> **See also:** [UI walkthrough, visual encoding, screenshots](docs/product/README.md) · [Cytoscape client implementation guide](docs/ux/README.md) · [Cytoscape.js gotchas and fixes](docs/ux/troubleshooting.md) · [Dark mode implementation](docs/ux/dark-mode-implementation.md)
+
 ## Testing
 
 ```bash
-# Run all non-network tests
-pytest tests/ -m "not network"
+make test              # non-network, non-LLM unit tests
+make test-network      # network integration tests (requires internet)
+make test-all          # all tests
 
-# Run with verbose output
-pytest tests/ -v -m "not network"
-
-# Run network tests (requires internet)
-python scripts/run_network_tests.py
+# Or directly:
+pytest tests/ -m "not network and not llm_live"
 ```
 
-**Test coverage:** 223 non-network tests across 10 modules.
+**Test coverage:** ~209 non-network tests across 20 modules.
+
+Markers: `network` (requires internet), `llm_live` (requires API key).
+
+## Environment Variables
+
+| Variable | Required For |
+|----------|-------------|
+| `ANTHROPIC_API_KEY` | Mode A extraction via Claude |
+| `OPENAI_API_KEY` | Mode A extraction via OpenAI |
+
+No environment variables required for ingestion, manual import, or graph export.
 
 ## Configuration
 
-### Environment Variables
-
-*None required for basic operation.*
-
-### Feed Configuration
-
-See `config/feeds.yaml` for RSS feed definitions:
+### Feed Configuration (`config/feeds.yaml`)
 
 ```yaml
 feeds:
   - name: "Feed Name"
     url: "https://example.com/feed.xml"
     type: rss        # or atom
+    tier: 1          # 1=primary, 2=secondary, 3=echo
     enabled: true    # set false to skip
+```
+
+> **See also:** [Feed tier model, source selection strategy](docs/source-selection-strategy.md)
+
+### Makefile Overrides
+
+```bash
+make daily DB=data/db/custom.db DATE=2026-03-01 BUDGET=10
 ```
 
 ## Documentation
 
-- **[Product Guide](docs/product/README.md)** - UI walkthrough, visual encoding, workflows, and screenshot guide
-- **AGENTS.md** - Detailed specification and design decisions
-- **[UX Implementation](docs/ux/README.md)** - Cytoscape client technical specs and design tokens
-- **schemas/extraction.json** - JSON Schema for extraction output
-- **schemas/sqlite.sql** - Database schema
+> **New here?** Start with [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) for a step-by-step pipeline walkthrough, then [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) for the big-picture design decisions.
+
+### Pipeline & Backend
+
+| Document | Purpose |
+|----------|---------|
+| [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step pipeline guide (Mode A & B) — **start here** |
+| [docs/backend/daily-run-log.md](docs/backend/daily-run-log.md) | JSON log format, per-stage metrics, healthy thresholds |
+| [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Script specs for docpack, import, resolve, export, trending |
+| [docs/llm-selection.md](docs/llm-selection.md) | LLM tiers, escalation, shadow mode, cost model |
+| [docs/source-selection-strategy.md](docs/source-selection-strategy.md) | Feed tier model, entity overlap strategy |
+| [docs/research/extract-quality-analysis.md](docs/research/extract-quality-analysis.md) | Quality gate design, evaluation architecture, calibration |
+| [docs/research/trend-insights.md](docs/research/trend-insights.md) | Insight articulation layer, templates, backtest protocol |
+
+### Schema & Data
+
+| Document | Purpose |
+|----------|---------|
+| [docs/schema/data-contracts.md](docs/schema/data-contracts.md) | Full schemas: documents table, docpack JSONL, extraction JSON, Cytoscape export |
+| [GLOSSARY.md](GLOSSARY.md) | Term definitions |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+
+### UX & Visualization
+
+| Document | Purpose |
+|----------|---------|
+| [docs/product/README.md](docs/product/README.md) | UI walkthrough, visual encoding, workflows, screenshots |
+| [docs/ux/README.md](docs/ux/README.md) | Cytoscape client implementation guidelines |
+| [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
+| [docs/ux/dark-mode-implementation.md](docs/ux/dark-mode-implementation.md) | Dark mode / theme toggle |
+| [docs/ux/polish-strategy.md](docs/ux/polish-strategy.md) | Aesthetic mechanics: typography, toolbar, canvas |
+| [docs/ux/design-tokens.md](docs/ux/design-tokens.md) | CSS design token system |
+| [docs/ux/visual-encoding.md](docs/ux/visual-encoding.md) | Node/edge color, shape, and size encoding rules |
+| [docs/ux/accessibility.md](docs/ux/accessibility.md) | Accessibility guidelines |
+
+> For the full list of UX docs see [`docs/ux/`](docs/ux/).
+
+### Methodology & Architecture
+
+| Document | Purpose |
+|----------|---------|
+| [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) | Big-picture decision log — how the 5 design vectors converge |
+| [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal formulas, source requirements, weight tuning |
+| [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Framework vs. domain-config boundary |
+| [docs/architecture/date-filtering.md](docs/architecture/date-filtering.md) | Why `published_at` is used; NULL handling |
+| [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 multi-domain vision |
+
+### Operational History
+
+| Document | Purpose |
+|----------|---------|
+| [docs/fix-details/README.md](docs/fix-details/README.md) | Index of resolved production issues with root causes |
+| [docs/backlog.md](docs/backlog.md) | Known issues and prompt-tuning observations |
+| [docs/project-plan.md](docs/project-plan.md) | Sprint plan, model assignments, timeline |
 
 ## License
 
