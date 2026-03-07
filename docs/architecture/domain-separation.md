@@ -77,27 +77,31 @@ Ground truth:     Papers With Code, GitHub star velocity, Google Trends
 
 ---
 
-## How to Add a New Domain (Post-V2)
+## How to Add a New Domain
 
-1. **Create a domain profile** in `config/domains/{domain}.yaml`:
+1. **Copy the template:** `cp -r domains/_template domains/<your-domain>`
+
+2. **Edit `domain.yaml`** — fill in:
    - Entity types and their ID prefixes
-   - Relation taxonomy (canonical names + descriptions)
-   - Source list with categories
-   - Ground truth sources for validation
+   - Relation taxonomy (canonical names + normalization map)
+   - Quality thresholds tuned for your domain's expected density
+   - Suppressed entities (generic terms to filter out)
 
-2. **Create extraction prompts** in `src/extract/prompts/{domain}/`:
-   - System prompt with domain vocabulary
-   - Few-shot examples using domain entity types
+3. **Customize `prompts/`** — adapt system/user prompt templates for your
+   domain vocabulary and specificity rules
 
-3. **Create or extend the JSON Schema** in `schemas/{domain}_extraction.json`:
-   - Entity type enum for this domain
-   - Relation type enum for this domain
-   - Any domain-specific evidence requirements
+4. **Configure `feeds.yaml`** — add RSS feeds relevant to your domain
 
-4. **Configure feeds** in `config/feeds_{domain}.yaml`
+5. **Configure `views.yaml`** — define which relations appear in each graph view
 
-5. **Run the same pipeline** — no changes to scoring, resolution, export,
-   or validation code
+6. **Validate:** `python -m pytest tests/test_domain_profile.py`
+
+7. **Run:** `make daily --domain <your-domain>`
+
+The JSON Schema for extraction output is generated dynamically from your
+`domain.yaml` profile — no need to create a separate schema file.
+
+See `domains/ai/` for the complete working example.
 
 ---
 
@@ -105,11 +109,11 @@ Ground truth:     Papers With Code, GitHub star velocity, Google Trends
 
 New sessions should check this boundary when making changes:
 
-- Adding a new entity type? → `schemas/extraction.json` only
-- Adding a new relation? → `schemas/extraction.json` + `CLAUDE.md` taxonomy
+- Adding a new entity type? → `domains/<domain>/domain.yaml` only
+- Adding a new relation? → `domains/<domain>/domain.yaml` + `CLAUDE.md` taxonomy
 - Changing scoring math? → Must remain entity-type-agnostic
-- Adding a source? → `config/feeds.yaml` only
-- Changing extraction prompts? → `src/extract/` only
+- Adding a source? → `domains/<domain>/feeds.yaml` only
+- Changing extraction prompts? → `domains/<domain>/prompts/` only
 - Modifying validation targets? → `docs/methodology/` only
 
 If a change touches both sides of the boundary, it likely needs to be split

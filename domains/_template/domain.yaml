@@ -1,0 +1,134 @@
+# Domain Profile Template
+# Schema: schemas/domain-profile.json
+#
+# Copy this directory to domains/<your-domain>/ and fill in the values.
+# See domains/ai/ for a complete working example.
+#
+# After populating, run: python -m pytest tests/test_domain_profile.py
+# to validate your profile against the schema.
+
+domain:
+  name: ""            # Human-readable name (e.g., "Cybersecurity")
+  slug: ""            # Lowercase identifier used in CLI and paths (e.g., "cyber")
+  description: ""     # One-line scope description
+
+# --- Entity Types ---
+# PascalCase names. Order determines display priority.
+# Must have at least one. Each type gets an ID prefix below.
+entity_types:
+  # - Org
+  # - Person
+  # - ...
+  # - Other            # Catch-all (recommended)
+
+# --- Relation Taxonomy ---
+relation_taxonomy:
+  # Canonical relation type names. UPPER_SNAKE_CASE.
+  # These are the only values allowed in extraction output.
+  canonical:
+    # - MENTIONS        # Base relation (usually keep this)
+    # - CITES
+    # - CREATED
+    # - ...
+
+  # Optional: group relations by category for docs/UI
+  groups: {}
+    # document:
+    #   - MENTIONS
+    #   - CITES
+    # creation:
+    #   - CREATED
+
+  # Map LLM output variations to canonical names.
+  # Keys = non-canonical strings the LLM might produce.
+  # Values = canonical relation they map to.
+  normalization: {}
+    # ANNOUNCED: MENTIONS
+    # BUILT: CREATED
+
+# --- Relation metadata enums (defaults shown; override if needed) ---
+relation_kinds:
+  - asserted
+  - inferred
+  - hypothesis
+
+polarity_values:
+  - pos
+  - neg
+  - unclear
+
+modality_values:
+  - observed
+  - planned
+  - speculative
+
+# --- ID Prefixes ---
+# Map each entity type to its canonical ID prefix: {prefix}:{slug}
+# Every entity_type above MUST have an entry here.
+id_prefixes: {}
+  # Org: org
+  # Person: person
+  # Other: other
+
+# --- Base Relation ---
+# The default relation type used for mention counting in trend scoring
+# and as the base layer in graph views. Must be in canonical list above.
+base_relation: MENTIONS
+
+# --- Quality Thresholds (extraction scoring for escalation) ---
+# Tune these based on your domain's expected extraction density.
+quality_thresholds:
+  entity_density_target: 5.0       # entities per 1000 chars
+  evidence_coverage_min: 0.8       # fraction of asserted relations with evidence
+  avg_confidence_target: 0.85      # target average confidence
+  relation_entity_ratio_target: 0.5  # semantic relations / entities
+  tech_terms_min: 2                # domain-specific terms expected per extraction
+  relation_type_diversity_target: 6  # distinct relation types per extraction
+
+# --- Gate Thresholds (non-negotiable quality gates) ---
+gate_thresholds:
+  evidence_fidelity_min: 0.70      # snippet must appear in source text
+  orphan_max: 0.0                  # zero tolerance for orphan relation endpoints
+  zero_value_min_entities: 1       # non-trivial docs must produce >= 1 entity
+  zero_value_min_doc_chars: 500    # docs shorter than this skip zero-value gate
+  high_confidence_threshold: 0.8   # confidence above this + bad evidence = escalate
+
+# Combined quality score below this triggers escalation to stronger model
+escalation_threshold: 0.6
+
+# --- Scoring Weights (must sum to 1.0) ---
+scoring_weights:
+  density: 0.15
+  evidence: 0.15
+  confidence: 0.10
+  connectivity: 0.20
+  diversity: 0.25
+  tech_terms: 0.15
+
+# --- Trend Weights (velocity + novelty + activity must sum to 1.0) ---
+trend_weights:
+  velocity: 0.4
+  novelty: 0.3
+  activity: 0.3
+  velocity_cap: 5.0          # cap velocity ratio before normalization
+  activity_cap: 20           # cap 7-day mention count before normalization
+  max_age_days: 365          # maximum age for novelty scoring
+  novelty_age_weight: 0.6    # weight of age component in novelty
+  novelty_rarity_weight: 0.4 # weight of rarity component in novelty
+
+# --- Suppressed Entities ---
+# Entity names too generic for this domain. Case-insensitive matching.
+# These are filtered out during extraction to reduce noise.
+suppressed_entities: []
+  # - "technology"
+  # - "system"
+  # - "platform"
+
+# --- Prompts ---
+# Paths are relative to this domain directory.
+# See domains/ai/prompts/ for examples of the expected template format.
+prompts:
+  dir: prompts
+  system_prompt: system.txt
+  user_prompt: user.txt
+  single_message_prompt: single_message.txt

@@ -1,0 +1,65 @@
+Extract entities, relationships, and domain-specific terms from the following document.
+
+## Document Metadata
+- docId: {docId}
+- Title: {title}
+- URL: {url}
+- Published: {published}
+
+## Document Text
+{text}
+
+## Instructions
+
+Extract the following and return as JSON:
+
+1. **entities**: List of entities mentioned in the document
+   - name: Surface form of the entity name
+   - type: One of {entity_types}
+   - aliases: Optional list of alternative names
+   - idHint: Optional suggested canonical ID
+
+2. **relations**: Relationships between entities
+   - source: Entity name
+   - rel: One of {relation_types}
+   - target: Entity name
+   - kind: "asserted" (explicitly stated), "inferred", or "hypothesis"
+   - confidence: 0.0 to 1.0
+   - evidence: For asserted relations, include at least one evidence object:
+     - docId: "{docId}"
+     - url: "{url}"
+     - published: "{published}"
+     - snippet: Short quote from the text (≤200 chars)
+
+3. **techTerms**: List of domain-specific terms and concepts
+
+4. **dates**: Important dates mentioned
+   - text: Raw date text
+   - start/end: ISO dates if determinable
+
+5. **notes**: Any ambiguities or extraction notes
+
+## Output Format
+
+Return valid JSON with this structure:
+```json
+{{
+  "docId": "{docId}",
+  "extractorVersion": "{extractor_version}",
+  "entities": [...],
+  "relations": [...],
+  "techTerms": [...],
+  "dates": [...],
+  "notes": [...]
+}}
+```
+
+## Entity Specificity
+Do NOT extract generic terms like {suppressed_entities_sample} as standalone
+entities. Extract SPECIFIC names. Put broad concepts in techTerms[] instead.
+
+## Critical Rules
+- Asserted relations MUST include evidence with a snippet from the document
+- Do not fabricate entities or relations not supported by the text
+- Mark uncertain relations as "inferred" or "hypothesis"
+- Keep evidence snippets short (≤200 chars)
