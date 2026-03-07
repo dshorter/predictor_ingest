@@ -397,3 +397,49 @@ class TestAIDomainProfile:
         assert "{entity_types}" in single_text
         assert "{relation_types}" in single_text
         assert "{text}" in single_text
+
+    def test_views_yaml_exists(self):
+        views_path = self.AI_PROFILE_PATH.parent / "views.yaml"
+        assert views_path.exists(), "domains/ai/views.yaml not found"
+
+    def test_views_yaml_has_required_keys(self):
+        import yaml
+        views_path = self.AI_PROFILE_PATH.parent / "views.yaml"
+        with open(views_path) as f:
+            views = yaml.safe_load(f)
+        assert "document_relations" in views, "Missing document_relations"
+        assert "dependency_relations" in views, "Missing dependency_relations"
+        assert len(views["document_relations"]) > 0
+        assert len(views["dependency_relations"]) > 0
+
+    def test_views_relations_are_canonical(self, ai_profile):
+        import yaml
+        views_path = self.AI_PROFILE_PATH.parent / "views.yaml"
+        with open(views_path) as f:
+            views = yaml.safe_load(f)
+        canonical = set(ai_profile["relation_taxonomy"]["canonical"])
+        for key in ["document_relations", "dependency_relations"]:
+            for rel in views[key]:
+                assert rel in canonical, f"'{rel}' in {key} is not a canonical relation"
+
+    def test_feeds_yaml_exists(self):
+        feeds_path = self.AI_PROFILE_PATH.parent / "feeds.yaml"
+        assert feeds_path.exists(), "domains/ai/feeds.yaml not found"
+
+    def test_feeds_yaml_has_feeds(self):
+        import yaml
+        feeds_path = self.AI_PROFILE_PATH.parent / "feeds.yaml"
+        with open(feeds_path) as f:
+            feeds = yaml.safe_load(f)
+        assert "feeds" in feeds, "Missing 'feeds' key"
+        assert len(feeds["feeds"]) > 0, "No feeds defined"
+
+    def test_feeds_have_required_fields(self):
+        import yaml
+        feeds_path = self.AI_PROFILE_PATH.parent / "feeds.yaml"
+        with open(feeds_path) as f:
+            feeds = yaml.safe_load(f)
+        for feed in feeds["feeds"]:
+            assert "name" in feed, f"Feed missing 'name': {feed}"
+            assert "url" in feed, f"Feed missing 'url': {feed.get('name', '?')}"
+            assert "tier" in feed, f"Feed missing 'tier': {feed['name']}"
