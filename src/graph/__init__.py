@@ -18,6 +18,10 @@ import sqlite3
 
 import yaml
 
+from domain import get_active_profile
+
+_BASE_RELATION: str = get_active_profile()["base_relation"]
+
 
 # ---------------------------------------------------------------------------
 # Load view configuration from config/views.yaml (single source of truth
@@ -486,9 +490,9 @@ class GraphExporter:
         Returns:
             Cytoscape elements dict
         """
-        # Get MENTIONS relations
+        # Get base-relation (e.g. MENTIONS) edges
         relations = self._get_relations(
-            relation_filter={"MENTIONS"},
+            relation_filter={_BASE_RELATION},
             kinds=kinds,
             start_date=start_date,
             end_date=end_date,
