@@ -82,11 +82,79 @@ def load_domain_profile(domain: str = "ai") -> dict[str, Any]:
     if not isinstance(profile, dict):
         raise ValueError(f"Invalid domain profile at {profile_path}: expected dict, got {type(profile)}")
 
+    # Validate required fields with clear error messages
+    _validate_profile(profile, profile_path)
+
     # Attach the resolved domain directory path for prompt/config loading
     profile["_domain_dir"] = domain_dir
     profile["_domain_slug"] = domain
 
     return profile
+
+
+def _validate_profile(profile: dict[str, Any], path: Path) -> None:
+    """Validate domain profile structure. Fail fast with clear errors."""
+    required_keys = {
+        "domain": (str, dict),
+        "entity_types": (list,),
+        "relation_taxonomy": (dict,),
+        "id_prefixes": (dict,),
+        "base_relation": (str,),
+        "quality_thresholds": (dict,),
+        "gate_thresholds": (dict,),
+        "scoring_weights": (dict,),
+        "trend_weights": (dict,),
+        "suppressed_entities": (list,),
+        "prompts": (dict,),
+    }
+
+    missing = [k for k in required_keys if k not in profile]
+    if missing:
+        raise ValueError(
+            f"Domain profile {path} missing required keys: {missing}"
+        )
+
+    for key, expected_types in required_keys.items():
+        val = profile[key]
+        if not isinstance(val, expected_types):
+            type_names = "/".join(t.__name__ for t in expected_types)
+            raise ValueError(
+                f"Domain profile {path}: '{key}' must be {type_names}, "
+                f"got {type(val).__name__}"
+            )
+
+    # Validate relation_taxonomy has required sub-keys
+    rt = profile["relation_taxonomy"]
+    for sub in ("canonical", "normalization"):
+        if sub not in rt:
+            raise ValueError(
+                f"Domain profile {path}: relation_taxonomy missing '{sub}'"
+            )
+
+    # Validate base_relation is in canonical relations
+    canonical = rt["canonical"]
+    if profile["base_relation"] not in canonical:
+        raise ValueError(
+            f"Domain profile {path}: base_relation '{profile['base_relation']}' "
+            f"not in relation_taxonomy.canonical"
+        )
+
+    # Validate scoring_weights sum to ~1.0
+    sw = profile["scoring_weights"]
+    sw_sum = sum(v for v in sw.values() if isinstance(v, (int, float)))
+    if abs(sw_sum - 1.0) > 0.01:
+        raise ValueError(
+            f"Domain profile {path}: scoring_weights sum to {sw_sum:.3f}, expected ~1.0"
+        )
+
+    # Validate trend_weights core weights sum to ~1.0
+    tw = profile["trend_weights"]
+    core_trend = sum(tw.get(k, 0) for k in ("velocity", "novelty", "activity"))
+    if abs(core_trend - 1.0) > 0.01:
+        raise ValueError(
+            f"Domain profile {path}: trend_weights (velocity+novelty+activity) "
+            f"sum to {core_trend:.3f}, expected ~1.0"
+        )
 
 
 def get_domain_dir(domain: str = "ai") -> Path:

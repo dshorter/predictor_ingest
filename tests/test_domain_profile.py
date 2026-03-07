@@ -443,3 +443,101 @@ class TestAIDomainProfile:
             assert "name" in feed, f"Feed missing 'name': {feed}"
             assert "url" in feed, f"Feed missing 'url': {feed.get('name', '?')}"
             assert "tier" in feed, f"Feed missing 'tier': {feed['name']}"
+
+
+class TestProfileValidationOnLoad:
+    """Test that load_domain_profile validates structure and fails fast."""
+
+    def test_load_ai_profile_succeeds(self):
+        """The AI domain profile should load without errors."""
+        from domain import load_domain_profile
+        profile = load_domain_profile("ai")
+        assert profile["base_relation"] == "MENTIONS"
+
+    def test_missing_required_key_raises(self, tmp_path):
+        """Missing a required key should raise ValueError."""
+        import yaml
+        from domain import load_domain_profile
+
+        # Create a minimal but incomplete profile
+        domain_dir = tmp_path / "domains" / "bad"
+        domain_dir.mkdir(parents=True)
+        profile = {"domain": "bad", "entity_types": ["Org"]}
+        with open(domain_dir / "domain.yaml", "w") as f:
+            yaml.dump(profile, f)
+
+        # Monkey-patch _find_domains_dir to use tmp_path
+        import domain as domain_mod
+        orig = domain_mod._find_domains_dir
+        domain_mod._find_domains_dir = lambda: tmp_path / "domains"
+        try:
+            with pytest.raises(ValueError, match="missing required keys"):
+                load_domain_profile("bad")
+        finally:
+            domain_mod._find_domains_dir = orig
+
+    def test_bad_scoring_weights_sum_raises(self, tmp_path):
+        """Scoring weights that don't sum to ~1.0 should raise ValueError."""
+        import yaml
+        from domain import load_domain_profile
+
+        # Build a complete but invalid profile
+        profile = _build_full_profile()
+        profile["scoring_weights"] = {"a": 0.5, "b": 0.1}  # sums to 0.6
+
+        domain_dir = tmp_path / "domains" / "bad2"
+        domain_dir.mkdir(parents=True)
+        with open(domain_dir / "domain.yaml", "w") as f:
+            yaml.dump(profile, f)
+
+        import domain as domain_mod
+        orig = domain_mod._find_domains_dir
+        domain_mod._find_domains_dir = lambda: tmp_path / "domains"
+        try:
+            with pytest.raises(ValueError, match="scoring_weights sum"):
+                load_domain_profile("bad2")
+        finally:
+            domain_mod._find_domains_dir = orig
+
+    def test_base_relation_not_in_canonical_raises(self, tmp_path):
+        """base_relation must be in canonical relations."""
+        import yaml
+        from domain import load_domain_profile
+
+        profile = _build_full_profile()
+        profile["base_relation"] = "NONEXISTENT"
+
+        domain_dir = tmp_path / "domains" / "bad3"
+        domain_dir.mkdir(parents=True)
+        with open(domain_dir / "domain.yaml", "w") as f:
+            yaml.dump(profile, f)
+
+        import domain as domain_mod
+        orig = domain_mod._find_domains_dir
+        domain_mod._find_domains_dir = lambda: tmp_path / "domains"
+        try:
+            with pytest.raises(ValueError, match="not in relation_taxonomy.canonical"):
+                load_domain_profile("bad3")
+        finally:
+            domain_mod._find_domains_dir = orig
+
+
+def _build_full_profile():
+    """Build a minimal but structurally complete profile for testing."""
+    return {
+        "domain": "test",
+        "entity_types": ["Org", "Person"],
+        "relation_taxonomy": {
+            "canonical": ["MENTIONS", "CREATED"],
+            "normalization": {"BUILT": "CREATED"},
+        },
+        "id_prefixes": {"Org": "org"},
+        "base_relation": "MENTIONS",
+        "quality_thresholds": {"entity_density_target": 5.0},
+        "gate_thresholds": {"high_confidence_threshold": 0.8},
+        "scoring_weights": {"a": 0.5, "b": 0.5},
+        "trend_weights": {"velocity": 0.4, "novelty": 0.3, "activity": 0.3},
+        "suppressed_entities": [],
+        "prompts": {"dir": "prompts"},
+    }
+
