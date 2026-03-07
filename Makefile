@@ -1,7 +1,7 @@
 .PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data pipeline post-extract daily test test-network test-all
 
 # Configurable paths (override with: make export DATE=2026-01-15)
-DB ?= data/db/predictor.db
+DB ?= data/db/$(DOMAIN).db
 DATE ?= $(shell date +%Y-%m-%d)
 GRAPHS_DIR ?= data/graphs
 DOCPACK ?= data/docpacks/daily_bundle_$(DATE).jsonl

@@ -1,0 +1,21 @@
+# View definitions for biosafety domain graph exports.
+# Controls which relation types appear in each Cytoscape view.
+
+# Document-level relations for the mentions view
+document_relations:
+  - MENTIONS
+  - CITES
+  - ANNOUNCES
+  - REPORTED_BY
+
+# Relations that indicate regulatory/operational dependencies
+dependency_relations:
+  - REGULATES
+  - REGULATED_BY
+  - ENFORCES
+  - COMPLIES_WITH
+  - AUTHORIZES
+  - DEPENDS_ON
+  - CONTAINS
+  - STORES
+  - OPERATES

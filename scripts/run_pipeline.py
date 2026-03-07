@@ -486,8 +486,8 @@ def main() -> int:
         description="Run the full daily pipeline with structured logging."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
         "--date", default=date.today().isoformat(),
@@ -545,6 +545,10 @@ def main() -> int:
     from domain import set_active_domain
     os.environ["PREDICTOR_DOMAIN"] = args.domain
     set_active_domain(args.domain)
+
+    # Derive DB path from domain if not explicitly provided
+    if args.db is None:
+        args.db = f"data/db/{args.domain}.db"
 
     project_root = Path(__file__).resolve().parents[1]
     run_date = args.date

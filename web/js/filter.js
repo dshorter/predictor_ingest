@@ -11,13 +11,16 @@ class GraphFilter {
     // Derive initial viewPreset from the active view so the velocity
     // filter is only applied when actually on the trending view.
     const initialView = (typeof AppState !== 'undefined' && AppState.currentView) || 'trending';
+    // Use domain config entity types if available, else fall back to AI defaults
+    const domainTypes = (typeof AppState !== 'undefined' && AppState.domainConfig
+      && AppState.domainConfig.entityTypes && AppState.domainConfig.entityTypes.length > 0)
+      ? AppState.domainConfig.entityTypes
+      : ['Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
+         'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'];
     this.filters = {
       dateStart: null,
       dateEnd: null,
-      types: new Set([
-        'Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
-        'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'
-      ]),
+      types: new Set(domainTypes),
       // 'hypothesis' edges are intentionally OFF by default. They are
       // speculative claims not backed by direct evidence; showing them
       // by default would clutter the base graph with low-signal noise.
@@ -225,24 +228,37 @@ class GraphFilter {
 }
 
 /**
- * Entity type groups: maps display label → ordered list of types.
- * Order within groups matches the canonical spec type list.
+ * Default entity type groups (AI domain fallback).
+ * Overridden by domain config typeGroups if available.
  */
-const TYPE_GROUPS = [
+const _DEFAULT_TYPE_GROUPS = [
   { label: 'People & Organizations', types: ['Org', 'Person', 'Program'] },
   { label: 'Technology',             types: ['Model', 'Tool', 'Tech', 'Dataset', 'Benchmark'] },
   { label: 'Knowledge',              types: ['Paper', 'Repo', 'Topic'] },
   { label: 'Context',                types: ['Document', 'Event', 'Location', 'Other'] },
 ];
 
-/** CSS custom property names for each entity type (mirrors tokens.css). */
-const TYPE_DOT_VARS = {
-  Org: '--color-org', Person: '--color-person', Program: '--color-program',
-  Tool: '--color-tool', Model: '--color-model', Dataset: '--color-dataset',
-  Benchmark: '--color-benchmark', Paper: '--color-paper', Repo: '--color-repo',
-  Tech: '--color-tech', Topic: '--color-topic', Document: '--color-document',
-  Event: '--color-event', Location: '--color-location', Other: '--color-other',
-};
+/**
+ * Get type groups from domain config or fall back to defaults.
+ * If domain config provides typeGroups, use those. Otherwise, if it provides
+ * entityTypes without groups, auto-generate a single "All Types" group.
+ */
+function getTypeGroups() {
+  const dc = (typeof AppState !== 'undefined') && AppState.domainConfig;
+  if (dc && dc.typeGroups && dc.typeGroups.length > 0) return dc.typeGroups;
+  if (dc && dc.entityTypes && dc.entityTypes.length > 0) {
+    return [{ label: 'All Types', types: dc.entityTypes }];
+  }
+  return _DEFAULT_TYPE_GROUPS;
+}
+
+/**
+ * Get CSS variable name for an entity type's dot color.
+ * Convention: --color-{lowercase type name}
+ */
+function getTypeDotVar(type) {
+  return `--color-${type.toLowerCase()}`;
+}
 
 /**
  * Populate type filter checkboxes dynamically, grouped by category with color dots.
@@ -263,11 +279,11 @@ function populateTypeFilters(cy, filter) {
   });
 
   // Generate grouped checkboxes with color dots
-  typeFiltersContainer.innerHTML = TYPE_GROUPS.map(group => {
+  typeFiltersContainer.innerHTML = getTypeGroups().map(group => {
     const checkboxes = group.types.map(type => {
       const disabled = !existingTypes.has(type);
       const count = disabled ? 0 : cy.nodes(`[type="${type}"]`).length;
-      const dotVar = TYPE_DOT_VARS[type] || '--color-other';
+      const dotVar = getTypeDotVar(type);
       return `
         <label class="checkbox-label${disabled ? ' text-gray-400' : ''}">
           <input type="checkbox" data-type="${type}" ${disabled ? 'disabled' : 'checked'} />

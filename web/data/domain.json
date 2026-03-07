@@ -1,0 +1,33 @@
+{
+  "domain": "ai",
+  "title": "AI Trend Graph",
+  "titleShort": "AI Trends",
+  "entityTypes": [
+    "Org", "Person", "Program", "Tool", "Model", "Dataset",
+    "Benchmark", "Paper", "Repo", "Tech", "Topic",
+    "Event", "Location", "Document", "Other"
+  ],
+  "typeGroups": [
+    { "label": "People & Organizations", "types": ["Org", "Person", "Program"] },
+    { "label": "Technology", "types": ["Model", "Tool", "Tech", "Dataset", "Benchmark"] },
+    { "label": "Knowledge", "types": ["Paper", "Repo", "Topic"] },
+    { "label": "Context", "types": ["Document", "Event", "Location", "Other"] }
+  ],
+  "typeColors": {
+    "Org": "#4A90D9",
+    "Person": "#50B4A8",
+    "Program": "#6366F1",
+    "Tool": "#8B5CF6",
+    "Model": "#7C3AED",
+    "Dataset": "#F59E0B",
+    "Benchmark": "#D97706",
+    "Paper": "#10B981",
+    "Repo": "#059669",
+    "Tech": "#EAB308",
+    "Topic": "#64748B",
+    "Document": "#9CA3AF",
+    "Event": "#F43F5E",
+    "Location": "#0EA5E9",
+    "Other": "#A1A1AA"
+  }
+}

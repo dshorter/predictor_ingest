@@ -445,6 +445,113 @@ class TestAIDomainProfile:
             assert "tier" in feed, f"Feed missing 'tier': {feed['name']}"
 
 
+class TestBiosafetyDomainProfile:
+    """Validate the biosafety domain profile end-to-end."""
+
+    BIO_PROFILE_PATH = Path(__file__).parent.parent / "domains" / "biosafety" / "domain.yaml"
+
+    @pytest.fixture
+    def bio_profile(self):
+        import yaml
+        with open(self.BIO_PROFILE_PATH) as f:
+            return yaml.safe_load(f)
+
+    def test_biosafety_profile_exists(self):
+        assert self.BIO_PROFILE_PATH.exists()
+
+    def test_loads_via_domain_loader(self):
+        from domain import load_domain_profile
+        profile = load_domain_profile("biosafety")
+        assert profile["base_relation"] == "MENTIONS"
+
+    def test_validates_against_json_schema(self, bio_profile):
+        import json
+        from jsonschema import Draft202012Validator
+        with open(Path(__file__).parent.parent / "schemas" / "domain-profile.json") as f:
+            schema = json.load(f)
+        validator = Draft202012Validator(schema)
+        errors = list(validator.iter_errors(bio_profile))
+        assert not errors, f"Schema errors: {[e.message for e in errors]}"
+
+    def test_has_select_agent_entity_type(self, bio_profile):
+        assert "SelectAgent" in bio_profile["entity_types"]
+
+    def test_has_facility_entity_type(self, bio_profile):
+        assert "Facility" in bio_profile["entity_types"]
+
+    def test_has_regulation_entity_type(self, bio_profile):
+        assert "Regulation" in bio_profile["entity_types"]
+
+    def test_has_regulatory_relations(self, bio_profile):
+        canonical = bio_profile["relation_taxonomy"]["canonical"]
+        for rel in ["REGULATES", "INSPECTS", "COMPLIES_WITH", "AUTHORIZES"]:
+            assert rel in canonical, f"Missing regulatory relation: {rel}"
+
+    def test_has_containment_relations(self, bio_profile):
+        canonical = bio_profile["relation_taxonomy"]["canonical"]
+        for rel in ["STORES", "TRANSFERS", "CONTAINS"]:
+            assert rel in canonical, f"Missing containment relation: {rel}"
+
+    def test_has_incident_relations(self, bio_profile):
+        canonical = bio_profile["relation_taxonomy"]["canonical"]
+        for rel in ["CAUSED", "DETECTED_IN", "RESPONDS_TO"]:
+            assert rel in canonical, f"Missing incident relation: {rel}"
+
+    def test_id_prefix_for_select_agent(self, bio_profile):
+        assert bio_profile["id_prefixes"]["SelectAgent"] == "agent"
+
+    def test_id_prefix_for_facility(self, bio_profile):
+        assert bio_profile["id_prefixes"]["Facility"] == "facility"
+
+    def test_scoring_weights_sum(self, bio_profile):
+        sw = bio_profile["scoring_weights"]
+        total = sum(v for v in sw.values() if isinstance(v, (int, float)))
+        assert abs(total - 1.0) < 0.01
+
+    def test_trend_weights_sum(self, bio_profile):
+        tw = bio_profile["trend_weights"]
+        total = tw["velocity"] + tw["novelty"] + tw["activity"]
+        assert abs(total - 1.0) < 0.01
+
+    def test_prompt_files_exist(self):
+        prompts_dir = self.BIO_PROFILE_PATH.parent / "prompts"
+        for name in ["system.txt", "user.txt", "single_message.txt"]:
+            assert (prompts_dir / name).exists(), f"Missing prompt: {name}"
+
+    def test_system_prompt_has_placeholders(self, bio_profile):
+        prompts_dir = self.BIO_PROFILE_PATH.parent / bio_profile["prompts"]["dir"]
+        text = (prompts_dir / "system.txt").read_text()
+        for placeholder in ["{entity_types}", "{relation_types}", "{base_relation}"]:
+            assert placeholder in text, f"Missing placeholder: {placeholder}"
+
+    def test_feeds_file_exists(self):
+        feeds_path = self.BIO_PROFILE_PATH.parent / "feeds.yaml"
+        assert feeds_path.exists()
+
+    def test_feeds_have_required_fields(self):
+        import yaml
+        feeds_path = self.BIO_PROFILE_PATH.parent / "feeds.yaml"
+        with open(feeds_path) as f:
+            feeds = yaml.safe_load(f)
+        assert len(feeds["feeds"]) >= 5, "Need at least 5 feeds"
+        for feed in feeds["feeds"]:
+            assert "name" in feed, f"Feed missing 'name': {feed}"
+            assert "url" in feed, f"Feed missing 'url': {feed.get('name', '?')}"
+            assert "tier" in feed, f"Feed missing 'tier': {feed['name']}"
+
+    def test_views_file_exists(self):
+        views_path = self.BIO_PROFILE_PATH.parent / "views.yaml"
+        assert views_path.exists()
+
+    def test_normalization_targets_are_canonical(self, bio_profile):
+        canonical = set(bio_profile["relation_taxonomy"]["canonical"])
+        norm = bio_profile["relation_taxonomy"]["normalization"]
+        for alias, target in norm.items():
+            assert target in canonical, (
+                f"Normalization '{alias}' → '{target}' but '{target}' not in canonical"
+            )
+
+
 class TestProfileValidationOnLoad:
     """Test that load_domain_profile validates structure and fails fast."""
 
