@@ -166,6 +166,38 @@ extract → export → verify graph JSON is unchanged.
 **Standing rule for all subsequent sprints:** No sprint may introduce hardcoded
 domain-specific strings into framework code. The grep-audit test (6.11) enforces this
 in CI.
+**Completed:** 2026-03-07
+**Notes:** All 11 items delivered in a single session. Key implementation decisions:
+- `domains/_template/` created as scaffolding for new domains.
+- `PREDICTOR_DOMAIN` env var supported alongside `--domain` CLI flag.
+- Makefile targets wired with `DOMAIN=` variable (e.g., `make ingest DOMAIN=biosafety`).
+- Grep-audit test (`test_domain_isolation.py`) validates zero AI-specific strings in
+  framework modules. All tests pass.
+
+---
+
+## Sprint 6B — First Non-AI Domain: Biosafety (Day 11, bonus)
+
+Proof-of-concept for the domain plugin architecture: stand up a complete second domain
+from scratch to validate that Sprint 6's modularization actually works end-to-end.
+
+| # | Item | What was done | Model |
+|---|------|--------------|-------|
+| 6B.1 | `domains/biosafety/domain.yaml` | Full domain profile: 14 entity types (incl. `SelectAgent`, `Facility`, `Regulation`), 35 canonical relations, 70+ normalization mappings, tuned quality/trend weights, 30+ suppressed entities | [Opus] |
+| 6B.2 | `domains/biosafety/feeds.yaml` | 13 RSS feeds across 3 tiers: Federal Register, CDC EID, WHO DON, mBio, PNAS Micro (primary); CIDRAP, JHU CHS, Bulletin of Atomic Scientists, NTI, GAO (secondary); STAT News, Science (echo) | [Opus] |
+| 6B.3 | `domains/biosafety/prompts/` | System, user, and single-message extraction prompts tailored to biosafety entity types and regulatory vocabulary | [Opus] |
+| 6B.4 | `domains/biosafety/views.yaml` | Four graph views adapted for biosafety: mentions, claims, regulatory, trending | [Opus] |
+| 6B.5 | DB isolation | `--domain` flag routes to `data/db/{domain}.db`, so domains have fully separate databases | [Opus] |
+| 6B.6 | Web client parameterization | `web/data/domains/{domain}.json` config files; `app.js` reads domain from URL param (`?domain=biosafety`); filter panel dynamically loads entity types from domain config | [Opus] |
+| 6B.7 | Domain profile validation tests | `test_domain_profile.py` validates both `ai` and `biosafety` profiles against JSON Schema | [Opus] |
+
+**Risk:** Low. All changes are additive — no existing AI domain behavior modified.
+**Stability gate:** All existing tests pass. Domain profile validation passes for both
+domains. Grep-audit confirms framework remains domain-agnostic.
+**Completed:** 2026-03-07
+**Notes:** First `make daily DOMAIN=biosafety` run is next step to validate feed
+ingestion. Feed URLs need live testing — some institutional feeds (WHO, JHU CHS) may
+have changed structure since last verified.
 
 ---
 
@@ -312,8 +344,9 @@ Not scheduled. Documented so they're not forgotten.
 | 3 — Toolbar Icons | ✓ Done | 2026-03-01 |
 | 4 — Graph Canvas Polish | ✓ Done | 2026-03-01 |
 | 5 — Interaction Polish | ✓ Done | 2026-03-04 |
-| 6 — Domain Modularization | **Next** | — |
-| 7 — What's Hot | Pending | — |
+| 6 — Domain Modularization | ✓ Done | 2026-03-07 |
+| 6B — Biosafety Domain (bonus) | ✓ Done | 2026-03-07 |
+| 7 — What's Hot | **Next** | — |
 | 8 — Discovery Rewards | Pending | — |
 | 9 — Guided Entry | Pending | — |
 | 10 — Medium Gap Features | Pending | — |
@@ -327,22 +360,28 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-04 (5 sprints done in 5 days) |
-| Sprints remaining | 6 sprints (6–11) |
+| As of | 2026-03-07 (7 sprints done in 8 days, incl. bonus 6B) |
+| Sprints remaining | 5 sprints (7–11) |
 | Backend track | Parallel, partially blocked on data |
 | **Revised target** | **~mid-March 2026** |
 
+**Milestone:** Sprint 6 + 6B delivered the domain plugin architecture AND its first
+proof-of-concept (biosafety). The framework is now domain-agnostic and validated
+with two distinct domains. This was the highest-risk refactoring sprint and it
+landed cleanly — all tests pass, grep-audit confirms no AI-specific strings in
+framework code.
+
 **Risks to timeline:**
-- Sprint 6 (domain modularization) touches many files; refactoring regressions
-  could spill into extra days
 - DL-1 (What's Hot) velocity delta requires backend data design decisions that
   could expand scope
 - Context menu extension loading may have compatibility issues with current
   Cytoscape version
 - Branding decision (DL-6) is externally blocked
 - Backend items are data-dependent and may shift
+- Biosafety feed URLs need live testing — some institutional feeds may 404 or
+  have non-standard RSS
 
-**Buffer:** With current pace, completion by end of March is achievable with slack.
+**Buffer:** With current pace, completion by mid-March is on track with slack.
 
 ---
 

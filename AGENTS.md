@@ -1,10 +1,10 @@
-# AGENTS.md — Project Instructions (AI Trend Graph → Cytoscape.js)
+# AGENTS.md — Project Instructions (Domain-Agnostic Trend Graph → Cytoscape.js)
 
 ## Mission
-Build a small, reliable pipeline that:
-1) ingests ~10–20 new AI-related sources per day (web pages + RSS),
+Build a small, reliable, **domain-agnostic** pipeline that:
+1) ingests ~10–20 new sources per day per domain (web pages + RSS),
 2) archives raw content + cleaned text with metadata (archive-first),
-3) extracts **entities**, **relationships**, **dates**, and **technology concepts** into a structured dataset,
+3) extracts **entities**, **relationships**, **dates**, and **domain concepts** into a structured dataset,
 4) resolves/merges entities over time (incremental, not perfect on day 1),
 5) exports Cytoscape.js-ready JSON (`elements`) for interactive graph exploration,
 6) supports **two operating modes**:
@@ -12,6 +12,22 @@ Build a small, reliable pipeline that:
    - **Mode B:** semi-manual extraction via ChatGPT web copy/paste or file upload (when an API key is not available)
 
 The end product is a growing knowledge graph that can reveal **emerging trends early**, using velocity/novelty/bridge signals.
+
+### Active Domains
+- **AI/ML** (`domains/ai/`) — the original domain, fully operational
+- **Biosafety** (`domains/biosafety/`) — second domain, added 2026-03-07. Monitors
+  Federal Select Agent Program, dual-use research, gain-of-function policy, BSL
+  facility oversight, and global health security governance. 13 RSS feeds, 14 entity
+  types (incl. `SelectAgent`, `Facility`, `Regulation`), 35 canonical relations.
+
+### Multi-Domain Architecture (completed Sprint 6 + 6B)
+- Each domain is a directory under `domains/` with `domain.yaml`, `feeds.yaml`,
+  `views.yaml`, and `prompts/`
+- `--domain <name>` CLI flag (or `PREDICTOR_DOMAIN` env var) selects the active domain
+- Databases are isolated: `data/db/{domain}.db`
+- Web client accepts `?domain=biosafety` URL parameter
+- `domains/_template/` provides scaffolding for new domains
+- Framework code (`src/`) is domain-agnostic — enforced by grep-audit test
 
 ## Non-goals (V1)
 - Perfect "truth." We represent claims with provenance + confidence, and allow ambiguity.
@@ -42,12 +58,16 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
 
 ## Repository Layout
 - `src/` — `config/`, `db/`, `schema/`, `ingest/`, `extract/`, `util/`, `clean/`, `resolve/`, `graph/`, `trend/`
-- `config/feeds.yaml` — RSS feed definitions
+- `domains/` — domain-specific config directories
+  - `domains/ai/` — AI/ML domain (entity types, relations, prompts, feeds, views)
+  - `domains/biosafety/` — Biosafety domain
+  - `domains/_template/` — scaffolding for new domains
+- `config/feeds.yaml` — legacy RSS feed definitions (domains have their own)
 - `data/` (gitignored) — `raw/`, `text/`, `docpacks/`, `extractions/`, `graphs/`, `db/`
-- `schemas/` — `extraction.json` (JSON Schema), `sqlite.sql` (DB schema)
+- `schemas/` — `domain-profile.json` (domain schema), `sqlite.sql` (DB schema)
 - `scripts/` — pipeline orchestration and helper scripts
 - `tests/` — pytest tests; network tests marked with `@pytest.mark.network`
-- `web/` — thin Cytoscape.js client (static site)
+- `web/` — thin Cytoscape.js client (static site, domain-aware via URL params)
 
 ---
 
@@ -163,9 +183,19 @@ See **[docs/ux/README.md](docs/ux/README.md)** for the full implementation spec 
 
 ```bash
 pip install -e .
-python -m ingest.rss --config config/feeds.yaml    # RSS ingestion
-python scripts/run_pipeline.py                      # Full daily pipeline
+
+# AI domain (default)
+make daily                                          # Full daily pipeline
+make ingest                                         # RSS ingestion only
 pytest tests/ -m "not network"                      # Unit tests
+
+# Biosafety domain
+make daily DOMAIN=biosafety                         # Full daily pipeline
+make ingest DOMAIN=biosafety                        # RSS ingestion only
+
+# Direct script invocation
+python scripts/run_pipeline.py --domain ai          # Explicit domain flag
+python scripts/run_pipeline.py --domain biosafety
 python scripts/diagnose_feeds.py                    # Debug feed dedup
 ```
 
