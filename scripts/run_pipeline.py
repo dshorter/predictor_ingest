@@ -532,10 +532,19 @@ def main() -> int:
         help="Disable all stage timeouts (useful for self-hosted servers)",
     )
     parser.add_argument(
+        "--domain", default="ai",
+        help="Domain slug to use (default: ai). Loads config from domains/<slug>/.",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
         help="Print what would be run without executing",
     )
     args = parser.parse_args()
+
+    # Set active domain before any module imports that read the profile
+    from domain import set_active_domain
+    os.environ["PREDICTOR_DOMAIN"] = args.domain
+    set_active_domain(args.domain)
 
     project_root = Path(__file__).resolve().parents[1]
     run_date = args.date

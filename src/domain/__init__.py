@@ -21,10 +21,14 @@ Usage:
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Optional
 
 import yaml
+
+# Environment variable for domain override (used by subprocess pipelines)
+_ENV_DOMAIN = "PREDICTOR_DOMAIN"
 
 
 # Root of the repository (two levels up from src/domain/)
@@ -116,15 +120,23 @@ def set_active_domain(domain: str = "ai") -> dict[str, Any]:
     return _active_profile
 
 
+def _default_domain() -> str:
+    """Return the default domain slug from env or fallback to 'ai'."""
+    return os.environ.get(_ENV_DOMAIN, "ai")
+
+
 def get_active_profile() -> dict[str, Any]:
-    """Get the active domain profile, loading "ai" on first access.
+    """Get the active domain profile.
+
+    On first access, loads the domain specified by PREDICTOR_DOMAIN
+    environment variable, falling back to "ai".
 
     Returns:
         The active domain profile dict.
     """
     global _active_profile
     if _active_profile is None:
-        set_active_domain("ai")
+        set_active_domain(_default_domain())
     return _active_profile
 
 

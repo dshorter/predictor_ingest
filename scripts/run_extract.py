@@ -760,7 +760,17 @@ def main() -> int:
         default="data/db/predictor.db",
         help="Path to SQLite database for shadow mode logging (default: data/db/predictor.db)",
     )
+    parser.add_argument(
+        "--domain", default=None,
+        help="Domain slug (default: PREDICTOR_DOMAIN env or 'ai')",
+    )
     args = parser.parse_args()
+
+    # Set active domain if specified
+    if args.domain:
+        os.environ["PREDICTOR_DOMAIN"] = args.domain
+        from domain import set_active_domain
+        set_active_domain(args.domain)
 
     docpack_path = Path(args.docpack)
     if not docpack_path.exists():
