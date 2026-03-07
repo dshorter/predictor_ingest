@@ -353,3 +353,47 @@ class TestAIDomainProfile:
 
     def test_suppressed_entities_not_empty(self, ai_profile):
         assert len(ai_profile["suppressed_entities"]) > 0
+
+    def test_prompt_files_exist(self, ai_profile):
+        domain_dir = self.AI_PROFILE_PATH.parent
+        prompts_dir = domain_dir / ai_profile["prompts"]["dir"]
+        assert prompts_dir.is_dir(), f"Prompts dir not found: {prompts_dir}"
+
+        system_file = prompts_dir / ai_profile["prompts"].get("system_prompt", "system.txt")
+        user_file = prompts_dir / ai_profile["prompts"].get("user_prompt", "user.txt")
+        single_file = prompts_dir / ai_profile["prompts"].get("single_message_prompt", "single_message.txt")
+
+        assert system_file.exists(), f"System prompt not found: {system_file}"
+        assert user_file.exists(), f"User prompt not found: {user_file}"
+        assert single_file.exists(), f"Single message prompt not found: {single_file}"
+
+    def test_system_prompt_has_placeholders(self, ai_profile):
+        domain_dir = self.AI_PROFILE_PATH.parent
+        prompts_dir = domain_dir / ai_profile["prompts"]["dir"]
+        system_text = (prompts_dir / "system.txt").read_text()
+
+        # Must have template placeholders for dynamic content
+        assert "{extractor_version}" in system_text
+        assert "{entity_types}" in system_text
+        assert "{relation_types}" in system_text
+        assert "{suppressed_entities_sample}" in system_text
+        assert "{base_relation}" in system_text
+
+    def test_user_prompt_has_placeholders(self, ai_profile):
+        domain_dir = self.AI_PROFILE_PATH.parent
+        prompts_dir = domain_dir / ai_profile["prompts"]["dir"]
+        user_text = (prompts_dir / "user.txt").read_text()
+
+        assert "{docId}" in user_text
+        assert "{title}" in user_text
+        assert "{text}" in user_text
+
+    def test_single_message_prompt_has_placeholders(self, ai_profile):
+        domain_dir = self.AI_PROFILE_PATH.parent
+        prompts_dir = domain_dir / ai_profile["prompts"]["dir"]
+        single_text = (prompts_dir / "single_message.txt").read_text()
+
+        assert "{docId}" in single_text
+        assert "{entity_types}" in single_text
+        assert "{relation_types}" in single_text
+        assert "{text}" in single_text

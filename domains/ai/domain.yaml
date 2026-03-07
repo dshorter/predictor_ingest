@@ -300,3 +300,4 @@ prompts:
   dir: prompts
   system_prompt: system.txt
   user_prompt: user.txt
+  single_message_prompt: single_message.txt

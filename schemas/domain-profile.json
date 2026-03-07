@@ -324,6 +324,11 @@
           "type": "string",
           "default": "user.txt",
           "description": "Filename for extraction user prompt template within the prompts dir"
+        },
+        "single_message_prompt": {
+          "type": "string",
+          "default": "single_message.txt",
+          "description": "Filename for single-message extraction prompt (Anthropic style) within the prompts dir"
         }
       }
     }
