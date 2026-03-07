@@ -7,6 +7,8 @@ GRAPHS_DIR ?= data/graphs
 DOCPACK ?= data/docpacks/daily_bundle_$(DATE).jsonl
 BUDGET ?= 20
 BUDGET_FLAG = $(if $(BUDGET),--budget $(BUDGET),)
+DOMAIN ?= ai
+DOMAIN_FLAG = --domain $(DOMAIN)
 
 # ── Setup ──────────────────────────────────────────────────────────────
 
@@ -25,13 +27,13 @@ docpack:
 	python scripts/build_docpack.py --db $(DB) --all --label $(DATE)
 
 extract:
-	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB)
+	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB) $(DOMAIN_FLAG)
 
 extract-shadow:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB)
+	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB) $(DOMAIN_FLAG)
 
 shadow-only:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB)
+	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB) $(DOMAIN_FLAG)
 
 shadow-report:
 	python scripts/shadow_report.py --db $(DB)
@@ -72,10 +74,10 @@ post-extract:
 	@rm -f data/pipeline.lock
 
 daily:
-	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live $(BUDGET_FLAG) $(PIPELINE_FLAGS)
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live $(BUDGET_FLAG) $(DOMAIN_FLAG) $(PIPELINE_FLAGS)
 
 daily-manual:
-	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(BUDGET_FLAG) $(PIPELINE_FLAGS)
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(BUDGET_FLAG) $(DOMAIN_FLAG) $(PIPELINE_FLAGS)
 
 # ── Testing ────────────────────────────────────────────────────────────
 
