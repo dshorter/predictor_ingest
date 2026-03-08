@@ -6,9 +6,9 @@ Diagnoses and fixes:
 3. Re-ingests docs stuck in 'error' status from retryable errors (429/5xx)
 
 Usage:
-    python scripts/repair_data.py --db data/db/predictor.db --check
-    python scripts/repair_data.py --db data/db/predictor.db --fix
-    python scripts/repair_data.py --db data/db/predictor.db --fix --retry-errors
+    python scripts/repair_data.py --domain ai --check
+    python scripts/repair_data.py --domain ai --fix
+    python scripts/repair_data.py --domain ai --fix --retry-errors
 """
 
 from __future__ import annotations
@@ -171,8 +171,12 @@ def reset_retryable_errors(conn: sqlite3.Connection, dry_run: bool = False) -> i
 def main() -> int:
     parser = argparse.ArgumentParser(description="Repair pipeline data integrity.")
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
+    )
+    parser.add_argument(
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
         "--check", action="store_true",
@@ -191,6 +195,10 @@ def main() -> int:
         help="Show what would be done without making changes",
     )
     args = parser.parse_args()
+
+    from util.paths import get_db_path
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
 
     if not args.fix and not args.retry_errors:
         args.check = True

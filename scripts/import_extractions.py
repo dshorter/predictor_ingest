@@ -215,18 +215,28 @@ def main() -> int:
         description="Import extraction JSON files into the database."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
     )
     parser.add_argument(
-        "--extractions-dir", default="data/extractions",
-        help="Directory containing extraction JSON files (default: data/extractions)",
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
+    )
+    parser.add_argument(
+        "--extractions-dir", default=None,
+        help="Directory containing extraction JSON files (default: data/extractions/{domain})",
     )
     parser.add_argument(
         "--dry-run", action="store_true",
         help="Validate only, don't write to DB",
     )
     args = parser.parse_args()
+
+    from util.paths import get_db_path, get_extractions_dir
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
+    if args.extractions_dir is None:
+        args.extractions_dir = str(get_extractions_dir(args.domain))
 
     stats = import_extractions(
         db_path=Path(args.db),

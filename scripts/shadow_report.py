@@ -276,11 +276,17 @@ def run_report(db_path: Path, days: int | None) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Shadow mode comparison report.")
-    parser.add_argument("--db", default="data/db/predictor.db",
-                        help="Path to SQLite database")
+    parser.add_argument("--domain", default=None,
+                        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)")
+    parser.add_argument("--db", default=None,
+                        help="Path to SQLite database (default: data/db/{domain}.db)")
     parser.add_argument("--days", type=int, default=None,
                         help="Limit to last N days (default: all time)")
     args = parser.parse_args()
+
+    from util.paths import get_db_path
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
 
     db_path = Path(args.db)
     if not db_path.exists():

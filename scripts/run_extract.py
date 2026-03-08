@@ -711,8 +711,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--output-dir",
-        default="data/extractions",
-        help="Output directory for extractions (default: data/extractions)",
+        default=None,
+        help="Output directory for extractions (default: data/extractions/{domain})",
     )
     parser.add_argument(
         "--model",
@@ -772,10 +772,12 @@ def main() -> int:
         from domain import set_active_domain
         set_active_domain(args.domain)
 
-    # Derive DB path from domain if not explicitly provided
+    # Derive domain-scoped defaults
+    from util.paths import get_db_path, get_extractions_dir
     if args.db is None:
-        domain_slug = args.domain or os.environ.get("PREDICTOR_DOMAIN", "ai")
-        args.db = f"data/db/{domain_slug}.db"
+        args.db = str(get_db_path(args.domain))
+    if args.output_dir is None:
+        args.output_dir = str(get_extractions_dir(args.domain))
 
     docpack_path = Path(args.docpack)
     if not docpack_path.exists():

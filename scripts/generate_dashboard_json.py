@@ -25,6 +25,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Add src/ to import path
+sys.path.insert(0, str(ROOT / "src"))
+
 
 def load_pipeline_logs(logs_dir: Path, n: int = 30) -> list[dict]:
     """Load last N pipeline logs sorted newest-first."""
@@ -314,13 +317,21 @@ def _now() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate dashboard JSON for web/dashboard.html")
-    parser.add_argument("--db", default=str(ROOT / "data" / "db" / "predictor.db"),
-                        help="Path to SQLite database")
-    parser.add_argument("--logs-dir", default=str(ROOT / "data" / "logs"),
+    parser.add_argument("--domain", default=None,
+                        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)")
+    parser.add_argument("--db", default=None,
+                        help="Path to SQLite database (default: data/db/{domain}.db)")
+    parser.add_argument("--logs-dir", default=None,
                         help="Directory containing pipeline_*.json logs")
     parser.add_argument("--out-dir", default=str(ROOT / "web" / "data" / "dashboard"),
                         help="Output directory for dashboard JSON files")
     args = parser.parse_args()
+
+    from util.paths import get_db_path, get_logs_dir
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
+    if args.logs_dir is None:
+        args.logs_dir = str(get_logs_dir(args.domain))
 
     db_path = Path(args.db)
     logs_dir = Path(args.logs_dir)
