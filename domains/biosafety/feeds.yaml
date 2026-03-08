@@ -12,6 +12,16 @@
 #   incident    — outbreaks, lab accidents, containment breaches
 #   policy      — governance changes, international agreements
 #   community   — expert commentary, practitioner perspectives
+#
+# Source viability note (2026-03-08):
+#   Biosafety/biosecurity has a much thinner RSS ecosystem than AI/ML.
+#   6 feeds removed (WHO, JHU CHS, NTI, PNAS, Science — no working RSS).
+#   Future expansion should prioritize APIs over RSS:
+#     - Federal Register API (regulations.gov)
+#     - PubMed/PMC API (research papers)
+#     - WHO API (disease outbreak news)
+#     - ProMED (subscription-based since 2023)
+#   See docs/architecture/multi-domain-futures.md for API source roadmap.
 # ==========================================================================
 
 feeds:
@@ -25,89 +35,73 @@ feeds:
     notes: "Federal Register entries for CDC/APHIS select agent regulations"
 
   - name: "Emerging Infectious Diseases"
-    url: "https://wwwnc.cdc.gov/eid/rss/en.xml"
+    url: "https://wwwnc.cdc.gov/eid/rss/upcoming.xml"
     tier: primary
     signal: research
     limit: 30
-    notes: "CDC's peer-reviewed journal on emerging infectious diseases"
-
-  - name: "WHO Disease Outbreak News"
-    url: "https://www.who.int/feeds/entity/don/en/rss.xml"
-    tier: primary
-    signal: incident
-    limit: 30
-    notes: "WHO official disease outbreak notifications"
-
-  - name: "WHO Weekly Epidemiological Record"
-    url: "https://www.who.int/wer/en/rss.xml"
-    tier: primary
-    signal: research
-    limit: 20
-    notes: "WHO epidemiological surveillance and policy updates"
+    notes: "CDC's peer-reviewed journal — upcoming/ahead-of-print articles"
+    # Fixed 2026-03-08: old URL /eid/rss/en.xml returned 403; CDC lists
+    # /eid/rss/upcoming.xml on their RSS feeds page.
 
   - name: "mBio"
-    url: "https://journals.asm.org/action/showFeed?type=etoc&feed=rss&jc=mbio"
+    url: "https://journals.asm.org/action/showFeed?type=axatoc&feed=rss&jc=mbio"
     tier: primary
     signal: research
     limit: 30
-    notes: "ASM open-access journal; publishes high-impact microbiology research"
-
-  - name: "PNAS Microbiology"
-    url: "https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=micro-bio&tagCode=jcode%7Cpnas"
-    tier: primary
-    signal: research
-    limit: 20
-    notes: "PNAS papers tagged microbiology - includes biosafety-relevant research"
+    notes: "ASM open-access journal; high-impact microbiology research"
+    # Fixed 2026-03-08: switched from type=etoc to type=axatoc (latest
+    # articles vs current issue TOC). Silverchair platform may still
+    # block automated fetchers — candidate for API source migration.
 
   # ── Secondary: Analysis & Policy ────────────────────────────────────
 
-  - name: "CIDRAP News"
-    url: "https://www.cidrap.umn.edu/rss.xml"
+  - name: "CIDRAP - Biosecurity Issues"
+    url: "https://www.cidrap.umn.edu/news/50/rss"
     tier: secondary
     signal: community
     limit: 30
-    notes: "Center for Infectious Disease Research and Policy at University of Minnesota"
+    notes: "CIDRAP biosecurity-specific topic feed (UMN)"
+    # Fixed 2026-03-08: old generic /rss.xml was stale; CIDRAP offers
+    # topic-specific feeds at /news/{id}/rss. ID 50 = Biosecurity Issues.
 
-  - name: "Johns Hopkins Center for Health Security"
-    url: "https://centerforhealthsecurity.org/feeds/news.rss"
-    tier: secondary
-    signal: policy
-    limit: 20
-    notes: "Expert biosecurity analysis, pandemic preparedness policy"
-
-  - name: "Bulletin of the Atomic Scientists - Biosecurity"
+  - name: "Bulletin of the Atomic Scientists"
     url: "https://thebulletin.org/feed/"
     tier: secondary
     signal: policy
     limit: 20
-    notes: "Biosecurity and dual-use research policy analysis"
-
-  - name: "NTI Biosecurity"
-    url: "https://www.nti.org/area/biosecurity/feed/"
-    tier: secondary
-    signal: policy
-    limit: 20
-    notes: "Nuclear Threat Initiative biosecurity program updates"
+    notes: "Covers biosecurity, dual-use research, nuclear + bio policy"
+    # Note: general feed, not biosecurity-filtered. Content is mixed but
+    # includes strong biosecurity coverage (see their Dec 2025 special issue).
 
   - name: "GAO Reports - Science & Technology"
     url: "https://www.gao.gov/rss/topic/science_and_technology.xml"
     tier: secondary
     signal: regulatory
     limit: 15
-    notes: "Government Accountability Office - includes select agent program audits"
+    notes: "Government Accountability Office — includes select agent program audits"
 
   # ── Echo: News & Velocity ───────────────────────────────────────────
 
   - name: "STAT News - Infectious Disease"
-    url: "https://www.statnews.com/category/infectious-disease/feed/"
+    url: "https://www.statnews.com/topic/infectious-disease/feed/"
     tier: echo
     signal: community
     limit: 20
-    notes: "Health and biotech news; covers biosafety incidents and policy"
+    notes: "Health/biotech news; covers biosafety incidents and policy"
+    # Fixed 2026-03-08: old URL /category/infectious-disease/feed/ was
+    # returning 403. STAT uses /topic/ not /category/ for RSS feeds.
 
-  - name: "Science - Biosecurity News"
-    url: "https://www.science.org/action/showFeed?type=searchTopic&taxonomyCode=topic-biosecurity"
-    tier: echo
-    signal: research
-    limit: 20
-    notes: "Science magazine biosecurity coverage"
+# ==========================================================================
+# Removed feeds (2026-03-08) — no working RSS available
+# ==========================================================================
+# - WHO Disease Outbreak News: legacy /feeds/entity/don/en/rss.xml is dead;
+#   WHO restructured site, no replacement RSS found. Candidate for WHO API.
+# - WHO Weekly Epidemiological Record: same legacy URL pattern, dead.
+# - Johns Hopkins Center for Health Security: no RSS feed exists;
+#   centerforhealthsecurity.org is newsletter-only. Consider scraping or API.
+# - NTI Biosecurity: no RSS feed found; newsletter-only org.
+# - PNAS Microbiology: Silverchair platform blocks automated fetchers (403).
+#   Candidate for PubMed API.
+# - Science - Biosecurity: no dedicated biosecurity topic RSS on science.org.
+#   General Science RSS exists but would need filtering.
+# ==========================================================================
