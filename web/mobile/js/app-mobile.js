@@ -30,6 +30,7 @@ var AppState = {
   currentView: 'trending',
   dataSource: 'live',
   currentTier: 'medium',
+  domain: new URLSearchParams(window.location.search).get('domain') || 'ai',
   anchorDate: null,
   activePresetDays: 30,
   dateRange: null,
@@ -88,10 +89,12 @@ function reapplyGraphStyles() {
 
 function getDataUrl(view) {
   var basePath = '../data/graphs';
-  var folder = AppState.dataSource === 'sample'
-    ? (AppState.currentTier || 'medium')
-    : 'live';
-  return basePath + '/' + folder + '/' + view + '.json';
+  if (AppState.dataSource === 'sample') {
+    var tier = AppState.currentTier || 'medium';
+    return basePath + '/' + tier + '/' + view + '.json';
+  }
+  var domain = AppState.domain || 'ai';
+  return basePath + '/live/' + domain + '/' + view + '.json';
 }
 
 async function switchDataSource(source, tier) {
