@@ -23,7 +23,16 @@ async function loadGraphData(url) {
     throw new Error(`HTTP ${response.status} loading ${url}`);
   }
 
-  const data = await response.json();
+  // Parse as text first, then JSON — Safari throws a cryptic
+  // "The string did not match the expected pattern" when .json()
+  // is called on a non-JSON body (e.g., HTML error pages).
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Invalid JSON from ${url}: ${text.substring(0, 100)}`);
+  }
 
   // Validate required structure
   if (!data.elements) {
