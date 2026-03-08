@@ -533,7 +533,14 @@ function hideHelpGuide() {
    ============================================================ */
 
 async function initializeApp() {
-  console.log('Initializing AI Trend Graph (mobile)...');
+  var domainLabels = { ai: 'AI Trends', biosafety: 'Biosafety Trends' };
+  var domainLabel = domainLabels[AppState.domain] || (AppState.domain + ' Trends');
+  console.log('Initializing ' + domainLabel + ' (mobile)...');
+
+  // Set domain-aware title
+  document.title = domainLabel;
+  var titleEl = document.getElementById('app-title');
+  if (titleEl) titleEl.textContent = domainLabel;
 
   initTheme();
 

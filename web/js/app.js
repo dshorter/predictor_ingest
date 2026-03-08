@@ -241,6 +241,11 @@ async function initializeApp() {
   const domainName = AppState.domainConfig.title || 'Trend Graph';
   console.log(`Initializing ${domainName}...`);
 
+  // Set domain-aware page title and toolbar heading
+  document.title = domainName;
+  const titleEl = document.querySelector('.app-title');
+  if (titleEl) titleEl.textContent = domainName;
+
   try {
     // Show loading state
     showLoading('Initializing...');
