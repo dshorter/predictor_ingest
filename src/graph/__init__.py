@@ -3,9 +3,8 @@
 Exports entities and relations to Cytoscape.js-compatible JSON.
 Supports multiple views: mentions, claims, dependencies, trending.
 
-View-specific relation sets are loaded from config/views.yaml so that
-changing which relation types appear in a view requires only a config
-edit, not a code change.
+View-specific relation sets are loaded from the active domain's
+views.yaml so that each domain can define its own view configuration.
 """
 
 from __future__ import annotations
@@ -20,15 +19,21 @@ import yaml
 
 from domain import get_active_profile
 
-_BASE_RELATION: str = get_active_profile()["base_relation"]
+_profile = get_active_profile()
+_BASE_RELATION: str = _profile["base_relation"]
 
 
 # ---------------------------------------------------------------------------
-# Load view configuration from config/views.yaml (single source of truth
-# for which relation types belong to each graph view).
+# Load view configuration from the active domain's views.yaml.
+# Falls back to config/views.yaml for backward compatibility.
 # ---------------------------------------------------------------------------
 def _load_views_config() -> dict[str, list[str]]:
-    """Load graph view relation sets from config/views.yaml."""
+    """Load graph view relation sets from the active domain's views.yaml."""
+    domain_views = _profile["_domain_dir"] / "views.yaml"
+    if domain_views.exists():
+        with open(domain_views, encoding="utf-8") as f:
+            return yaml.safe_load(f)
+    # Fallback to legacy config/views.yaml
     views_path = Path(__file__).resolve().parents[2] / "config" / "views.yaml"
     with open(views_path, encoding="utf-8") as f:
         return yaml.safe_load(f)

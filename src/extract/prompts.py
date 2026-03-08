@@ -1,61 +1,135 @@
-"""AI-domain extraction prompts and tool schemas.
+"""Domain-aware extraction prompts and tool schemas.
 
-This module contains domain-specific content for the AI/ML knowledge
-graph pipeline.  It is intentionally separated from the framework-level
-extraction logic (quality gates, scoring, normalization) in __init__.py
-to respect the domain-separation boundary documented in
-docs/architecture/domain-separation.md.
+Loads prompt templates from the active domain's prompts/ directory and
+populates them with domain-specific values (entity types, relation types,
+suppressed entities, base relation) from the domain profile.
 
-If you adapt this pipeline to another domain, create a parallel module
-(e.g. prompts_biotech.py) and swap it in via config — do NOT mix domain
-content into the framework modules.
+The tool schema (OPENAI_EXTRACTION_TOOL) is also built dynamically from
+the domain profile so that entity and relation type enums match the
+active domain.
+
+See docs/architecture/domain-separation.md for boundary rules.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Optional
 
+from domain import get_active_profile
 from schema import ENTITY_TYPES, RELATION_TYPES
 
 
-# Stable sorted lists for prompt interpolation and tool schemas
+# --- Domain-derived values ---
+_profile = get_active_profile()
 _ENTITY_TYPES_LIST: list[str] = sorted(ENTITY_TYPES)
 _RELATION_TYPES_LIST: list[str] = sorted(RELATION_TYPES)
 
-# Hyper-generic terms that are noise in an AI-domain knowledge graph.
-# These should NOT be extracted as standalone entities. They are too broad
-# to create meaningful graph structure — they would connect to nearly
-# everything and obscure real signals.
-SUPPRESSED_ENTITIES: list[str] = [
-    "AI", "artificial intelligence",
-    "machine learning", "ML",
-    "deep learning", "DL",
-    "technology", "tech",
-    "software", "hardware",
-    "data", "algorithm", "algorithms",
-    "computer", "computing",
-    "internet", "web", "cloud",
-    "system", "platform", "solution",
-    "research", "science",
-    "model", "models",        # too generic; use the specific model name
-    "tool", "tools",          # too generic; use the specific tool name
-    "API", "APIs",
-    "app", "application",
-    "startup", "company",
-    "industry", "market",
-]
+SUPPRESSED_ENTITIES: list[str] = list(_profile.get("suppressed_entities", []))
+_SUPPRESSED_STR = ", ".join(f'"{t}"' for t in SUPPRESSED_ENTITIES[:15])
 
-_SUPPRESSED_STR = ", ".join(f'"{t}"' for t in SUPPRESSED_ENTITIES[:15])  # first 15 for prompt brevity
+_BASE_RELATION: str = _profile["base_relation"]
+_DOMAIN_DIR: Path = _profile["_domain_dir"]
+_PROMPTS_DIR: Path = _DOMAIN_DIR / _profile.get("prompts", {}).get("dir", "prompts")
 
-# Current extractor version — imported from the parent package at call
-# time to avoid circular imports.  Callers pass it in explicitly.
 
+# --- Template loading ---
+
+def _load_template(filename: str) -> str:
+    """Load a prompt template file from the domain's prompts directory.
+
+    Args:
+        filename: Template filename (e.g. "system.txt")
+
+    Returns:
+        Template string with {placeholders} intact
+
+    Raises:
+        FileNotFoundError: If the template file does not exist
+    """
+    path = _PROMPTS_DIR / filename
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Prompt template not found: {path}\n"
+            f"Domain '{_profile.get('_domain_slug', '?')}' must provide "
+            f"prompts/{filename}"
+        )
+    return path.read_text(encoding="utf-8")
+
+
+def _template_vars(
+    doc: Optional[dict[str, Any]] = None,
+    extractor_version: str = "",
+) -> dict[str, str]:
+    """Build the variable dict for prompt template interpolation.
+
+    Args:
+        doc: Optional document dict (for per-document templates)
+        extractor_version: Extractor version string
+
+    Returns:
+        Dict of {placeholder: value} for str.format_map()
+    """
+    vars_ = {
+        "extractor_version": extractor_version,
+        "entity_types": ", ".join(_ENTITY_TYPES_LIST),
+        "relation_types": ", ".join(_RELATION_TYPES_LIST),
+        "suppressed_entities_sample": _SUPPRESSED_STR,
+        "base_relation": _BASE_RELATION,
+    }
+    if doc:
+        vars_.update({
+            "docId": doc.get("docId", ""),
+            "title": doc.get("title", "Unknown"),
+            "url": doc.get("url", "Unknown"),
+            "published": doc.get("published", "Unknown"),
+            "text": doc.get("text", ""),
+        })
+    return vars_
+
+
+# Cache loaded templates (they don't change within a run)
+_SYSTEM_TEMPLATE: Optional[str] = None
+_USER_TEMPLATE: Optional[str] = None
+_SINGLE_MSG_TEMPLATE: Optional[str] = None
+
+
+def _get_system_template() -> str:
+    global _SYSTEM_TEMPLATE
+    if _SYSTEM_TEMPLATE is None:
+        prompts_cfg = _profile.get("prompts", {})
+        _SYSTEM_TEMPLATE = _load_template(prompts_cfg.get("system_prompt", "system.txt"))
+    return _SYSTEM_TEMPLATE
+
+
+def _get_user_template() -> str:
+    global _USER_TEMPLATE
+    if _USER_TEMPLATE is None:
+        prompts_cfg = _profile.get("prompts", {})
+        _USER_TEMPLATE = _load_template(prompts_cfg.get("user_prompt", "user.txt"))
+    return _USER_TEMPLATE
+
+
+def _get_single_message_template() -> str:
+    global _SINGLE_MSG_TEMPLATE
+    if _SINGLE_MSG_TEMPLATE is None:
+        prompts_cfg = _profile.get("prompts", {})
+        _SINGLE_MSG_TEMPLATE = _load_template(
+            prompts_cfg.get("single_message_prompt", "single_message.txt")
+        )
+    return _SINGLE_MSG_TEMPLATE
+
+
+# --- Public API (same signatures as before) ---
 
 def build_extraction_prompt(
     doc: dict[str, Any],
     extractor_version: str,
 ) -> str:
-    """Build prompt for LLM extraction (single-message Anthropic style).
+    """Build prompt for LLM extraction (single-message style).
+
+    Loads the single_message.txt template from the active domain's
+    prompts directory and fills in document and domain values.
 
     Args:
         doc: Document dict with docId, title, text, url, published
@@ -64,74 +138,8 @@ def build_extraction_prompt(
     Returns:
         Prompt string for LLM
     """
-    return f"""Extract entities, relationships, and technical terms from the following document.
-
-## Document Metadata
-- docId: {doc['docId']}
-- Title: {doc.get('title', 'Unknown')}
-- URL: {doc.get('url', 'Unknown')}
-- Published: {doc.get('published', 'Unknown')}
-
-## Document Text
-{doc['text']}
-
-## Instructions
-
-Extract the following and return as JSON:
-
-1. **entities**: List of entities mentioned in the document
-   - name: Surface form of the entity name
-   - type: One of {_ENTITY_TYPES_LIST}
-   - aliases: Optional list of alternative names
-   - idHint: Optional suggested canonical ID (e.g., "org:openai")
-
-2. **relations**: Relationships between entities
-   - source: Entity name
-   - rel: One of {_RELATION_TYPES_LIST}
-   - target: Entity name
-   - kind: "asserted" (explicitly stated), "inferred", or "hypothesis"
-   - confidence: 0.0 to 1.0
-   - evidence: For asserted relations, include at least one evidence object:
-     - docId: "{doc['docId']}"
-     - url: "{doc.get('url', '')}"
-     - published: "{doc.get('published', '')}"
-     - snippet: Short quote from the text (≤200 chars)
-
-3. **techTerms**: List of technical terms, technologies, or concepts mentioned
-
-4. **dates**: Important dates mentioned
-   - text: Raw date text (e.g., "this fall", "Q3 2025")
-   - start/end: ISO dates if determinable
-
-5. **notes**: Any ambiguities or extraction notes
-
-## Output Format
-
-Return valid JSON with this structure:
-```json
-{{
-  "docId": "{doc['docId']}",
-  "extractorVersion": "{extractor_version}",
-  "entities": [...],
-  "relations": [...],
-  "techTerms": [...],
-  "dates": [...],
-  "notes": [...]
-}}
-```
-
-## Entity Specificity
-This is an AI-domain graph. Do NOT extract generic terms like {_SUPPRESSED_STR}
-as standalone entities. Extract SPECIFIC names (e.g., "GPT-4o" not "model",
-"OpenAI" not "company"). Use full formal names for orgs. Put broad concepts
-in techTerms[] instead.
-
-## Critical Rules
-- Asserted relations MUST include evidence with a snippet from the document
-- Do not fabricate entities or relations not supported by the text
-- Mark uncertain relations as "inferred" or "hypothesis"
-- Keep evidence snippets short (≤200 chars)
-"""
+    template = _get_single_message_template()
+    return template.format_map(_template_vars(doc, extractor_version))
 
 
 def build_extraction_system_prompt(
@@ -139,8 +147,7 @@ def build_extraction_system_prompt(
 ) -> str:
     """Build the static system prompt for extraction (cacheable prefix).
 
-    This contains all instructions, schema rules, and enums. It stays
-    identical across documents so OpenAI can cache it.
+    Loads system.txt from the active domain's prompts directory.
 
     Args:
         extractor_version: Version string to include in output
@@ -148,76 +155,14 @@ def build_extraction_system_prompt(
     Returns:
         System prompt string
     """
-    return f"""You are an entity/relation extraction system for AI-domain articles.
-Your job is to extract structured data and return it via the emit_extraction tool.
-
-## Extractor Version
-{extractor_version}
-
-## Entity Types (use exactly these values)
-{', '.join(_ENTITY_TYPES_LIST)}
-
-## Relation Types (use exactly these values)
-{', '.join(_RELATION_TYPES_LIST)}
-
-## Extraction Rules
-
-1. **entities**: Extract all notable entities (organizations, people, models, tools, etc.)
-   - name: Surface form as it appears in the text
-   - type: Must be one of the entity types listed above
-   - aliases: Optional alternative names
-   - idHint: Optional canonical ID suggestion (e.g., "org:openai")
-
-2. **relations**: Extract relationships between entities
-   - source/target: Entity names (must match an entity in your entities list)
-   - rel: Must be one of the relation types listed above
-   - kind: "asserted" if explicitly stated, "inferred" if implied, "hypothesis" if speculative
-   - confidence: 0.0 to 1.0
-   - evidence: REQUIRED for asserted relations — include docId, url, published, and a short snippet (≤200 chars) from the source text
-
-3. **techTerms**: List of technical terms, technologies, or concepts mentioned
-
-4. **dates**: Important dates mentioned
-   - text: Raw date text as it appears (e.g., "this fall", "Q3 2025")
-   - start/end: ISO dates if determinable
-   - resolution: "exact", "range", "anchored_to_published", or "unknown"
-
-5. **notes**: Any ambiguities or extraction warnings
-
-## Entity Specificity Rules
-This is an AI-domain knowledge graph. Do NOT extract hyper-generic terms as
-standalone entities — they connect to everything and obscure real signals.
-
-**Suppress these as entities:** {_SUPPRESSED_STR}, and similar umbrella terms.
-
-Instead:
-- Extract the SPECIFIC entity: "GPT-4o" not "model", "LangChain" not "tool",
-  "OpenAI" not "company", "transformer architecture" not "AI"
-- Use full formal names for organizations: "Block Inc." not "Block",
-  "Alphabet" or "Google DeepMind" not just "Google"
-- If a generic term like "AI" appears only as a modifier ("AI startup",
-  "AI safety"), extract the full noun phrase ("AI safety") as a Topic, or
-  extract the specific entity being described
-- techTerms[] is the right place for broad concepts like "machine learning"
-  or "reinforcement learning" — they do NOT need to be graph entities
-
-## Critical Rules
-- Asserted relations MUST include evidence with a snippet from the document
-- Do NOT fabricate entities, dates, or relations not supported by the text
-- Mark uncertain relations as "inferred" or "hypothesis"
-- Keep evidence snippets short (≤200 chars)
-- Prefer MENTIONS as the base relation; only use semantic relations when evidence supports them
-- Every relation source and target MUST exactly match an entity name in your entities list
-- Evidence snippets MUST be direct quotes or close paraphrases from the document text, not recalled from memory
-- Non-trivial documents should produce at least 3 relations connecting entities
-"""
+    template = _get_system_template()
+    return template.format_map(_template_vars(extractor_version=extractor_version))
 
 
 def build_extraction_user_prompt(doc: dict[str, Any]) -> str:
     """Build the per-document user prompt (variable part).
 
-    This is the part that changes per document. It goes after the
-    cached system prompt.
+    Loads user.txt from the active domain's prompts directory.
 
     Args:
         doc: Document dict with docId, title, text, url, published
@@ -225,23 +170,12 @@ def build_extraction_user_prompt(doc: dict[str, Any]) -> str:
     Returns:
         User prompt string
     """
-    return f"""Extract entities, relations, and tech terms from this document.
-
-## Document Metadata
-- docId: {doc['docId']}
-- Title: {doc.get('title', 'Unknown')}
-- URL: {doc.get('url', 'Unknown')}
-- Published: {doc.get('published', 'Unknown')}
-
-## Document Text
-{doc['text']}
-
-Call the emit_extraction tool with the complete extraction results."""
+    template = _get_user_template()
+    return template.format_map(_template_vars(doc))
 
 
-# OpenAI strict tool schema for extraction.
-# All objects have additionalProperties: false and all properties in required,
-# as mandated by OpenAI's strict mode.
+# --- OpenAI tool schema (built from domain profile) ---
+
 OPENAI_EXTRACTION_TOOL = {
     "type": "function",
     "function": {
