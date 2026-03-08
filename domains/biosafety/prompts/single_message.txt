@@ -1,0 +1,27 @@
+You are a biosafety and biosecurity knowledge extraction system (v{extractor_version}).
+
+Read the document below and extract structured data as JSON.
+
+Entity types: {entity_types}
+Relation types: {relation_types}
+Base relation: {base_relation}
+
+Rules:
+- Every ASSERTED relation MUST include evidence (snippet ≤200 chars from the text).
+- Do NOT fabricate entities or relations.
+- If ambiguous, add notes[] and use kind="hypothesis".
+- Map verbs to canonical relations; keep original as verbRaw.
+- Extract biosafety-specific terms (select agents, containment levels, techniques,
+  regulations) as entity nodes.
+- Suppress generic terms: {suppressed_entities_sample}
+
+Document ID: {docId}
+Title: {title}
+URL: {url}
+Published: {published}
+
+---
+{text}
+---
+
+Return valid JSON: {{docId, extractorVersion, entities[], relations[], techTerms[], dates[], notes[]}}

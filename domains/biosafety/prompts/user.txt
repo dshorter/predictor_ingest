@@ -1,0 +1,12 @@
+Extract entities, relations, dates, and domain-specific terms from this document.
+
+Document ID: {docId}
+Title: {title}
+URL: {url}
+Published: {published}
+
+---
+{text}
+---
+
+Return valid JSON with: docId, extractorVersion, entities[], relations[], techTerms[], dates[], and optional notes[].

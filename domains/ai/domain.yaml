@@ -1,0 +1,303 @@
+# Domain Profile: AI and Machine Learning
+# Schema: schemas/domain-profile.json
+#
+# This file is the single source of truth for all AI-domain-specific
+# configuration. The framework loads this at runtime via --domain ai
+# (default). No AI-specific constants should exist in framework code.
+
+domain:
+  name: "AI and Machine Learning"
+  slug: "ai"
+  description: "Artificial intelligence, machine learning, and deep learning trends"
+
+# --- Entity Types ---
+# PascalCase. Order determines display priority.
+entity_types:
+  - Org
+  - Person
+  - Program
+  - Tool
+  - Model
+  - Dataset
+  - Benchmark
+  - Paper
+  - Repo
+  - Document
+  - Tech
+  - Topic
+  - Event
+  - Location
+  - Other
+
+# --- Relation Taxonomy ---
+relation_taxonomy:
+  canonical:
+    # Document relations
+    - MENTIONS
+    - CITES
+    - ANNOUNCES
+    - REPORTED_BY
+    # Org / Person / Program relations
+    - LAUNCHED
+    - PUBLISHED
+    - UPDATED
+    - FUNDED
+    - PARTNERED_WITH
+    - ACQUIRED
+    - HIRED
+    - CREATED
+    - OPERATES
+    - GOVERNED_BY
+    - GOVERNS
+    - REGULATES
+    - COMPLIES_WITH
+    # Tech / Model / Tool / Dataset relations
+    - USES_TECH
+    - USES_MODEL
+    - USES_DATASET
+    - TRAINED_ON
+    - EVALUATED_ON
+    - INTEGRATES_WITH
+    - DEPENDS_ON
+    - REQUIRES
+    - PRODUCES
+    - MEASURES
+    - AFFECTS
+    # Forecasting relations
+    - PREDICTS
+    - DETECTS
+    - MONITORS
+
+  groups:
+    document:
+      - MENTIONS
+      - CITES
+      - ANNOUNCES
+      - REPORTED_BY
+    org_person:
+      - LAUNCHED
+      - PUBLISHED
+      - UPDATED
+      - FUNDED
+      - PARTNERED_WITH
+      - ACQUIRED
+      - HIRED
+      - CREATED
+      - OPERATES
+      - GOVERNED_BY
+      - GOVERNS
+      - REGULATES
+      - COMPLIES_WITH
+    tech_model:
+      - USES_TECH
+      - USES_MODEL
+      - USES_DATASET
+      - TRAINED_ON
+      - EVALUATED_ON
+      - INTEGRATES_WITH
+      - DEPENDS_ON
+      - REQUIRES
+      - PRODUCES
+      - MEASURES
+      - AFFECTS
+    forecasting:
+      - PREDICTS
+      - DETECTS
+      - MONITORS
+
+  # Map common LLM output variations to canonical relation types.
+  # Keys are non-canonical strings the LLM might produce;
+  # values are the canonical relation they map to.
+  normalization:
+    ANNOUNCED: ANNOUNCES
+    ANNOUNCING: ANNOUNCES
+    MENTIONED: MENTIONS
+    MENTIONING: MENTIONS
+    CITED: CITES
+    CITING: CITES
+    LAUNCHED_BY: LAUNCHED
+    PUBLISHED_BY: PUBLISHED
+    CREATED_BY: CREATED
+    FUNDED_BY: FUNDED
+    USED: USES_TECH
+    USING: USES_TECH
+    USES_TOOL: USES_TECH
+    DEVELOPED: CREATED
+    DEVELOPED_BY: CREATED
+    BUILT: CREATED
+    BUILT_BY: CREATED
+    FOUNDED: CREATED
+    FOUNDED_BY: CREATED
+    RELEASED: LAUNCHED
+    RELEASED_BY: LAUNCHED
+    PARTNERS_WITH: PARTNERED_WITH
+    PARTNERING_WITH: PARTNERED_WITH
+    OPERATED: OPERATES
+    OPERATED_BY: OPERATES
+    OPERATES_ON: OPERATES
+    IMPLEMENTS: INTEGRATES_WITH
+    IMPLEMENTED: INTEGRATES_WITH
+    IMPLEMENTED_BY: INTEGRATES_WITH
+    IMPLEMENTING: INTEGRATES_WITH
+    INTEGRATED_WITH: INTEGRATES_WITH
+    PROVIDES: PRODUCES
+    UPDATES: UPDATED
+    CREATES: CREATED
+    DISCOVERED: CREATED
+    COMPETED_IN: EVALUATED_ON
+    # Past-tense of canonical present-tense types
+    PRODUCED: PRODUCES
+    MEASURED: MEASURES
+    AFFECTED: AFFECTS
+    PREDICTED: PREDICTS
+    DETECTED: DETECTS
+    MONITORED: MONITORS
+    REQUIRED: REQUIRES
+    DEPENDED_ON: DEPENDS_ON
+    INTEGRATED: INTEGRATES_WITH
+    GOVERNED: GOVERNS
+    REGULATED: REGULATES
+    COMPLIED_WITH: COMPLIES_WITH
+    # Gerund forms
+    PRODUCING: PRODUCES
+    MEASURING: MEASURES
+    AFFECTING: AFFECTS
+    PREDICTING: PREDICTS
+    DETECTING: DETECTS
+    MONITORING: MONITORS
+    REQUIRING: REQUIRES
+    GOVERNING: GOVERNS
+    REGULATING: REGULATES
+    # Other common near-misses
+    TRAINED: TRAINED_ON
+    EVALUATED: EVALUATED_ON
+    DEPENDED: DEPENDS_ON
+
+# --- Relation metadata enums ---
+relation_kinds:
+  - asserted
+  - inferred
+  - hypothesis
+
+polarity_values:
+  - pos
+  - neg
+  - unclear
+
+modality_values:
+  - observed
+  - planned
+  - speculative
+
+# --- ID Prefixes ---
+# Map entity type to canonical ID prefix: {prefix}:{slug}
+# e.g., Document -> doc:abc123, Model -> model:gpt_4
+id_prefixes:
+  Org: org
+  Person: person
+  Program: program
+  Tool: tool
+  Model: model
+  Dataset: dataset
+  Benchmark: benchmark
+  Paper: paper
+  Repo: repo
+  Document: doc
+  Tech: tech
+  Topic: topic
+  Event: event
+  Location: location
+  Other: other
+
+# --- Base Relation ---
+# The base/default relation type used for mention counting in trend scoring
+# and as the base layer in graph views.
+base_relation: MENTIONS
+
+# --- Quality Thresholds (extraction scoring for escalation) ---
+quality_thresholds:
+  entity_density_target: 5.0       # entities per 1000 chars
+  evidence_coverage_min: 0.8       # fraction of asserted relations with evidence
+  avg_confidence_target: 0.85      # target average confidence
+  relation_entity_ratio_target: 0.5  # semantic relations / entities
+  tech_terms_min: 2                # domain articles should have >= 2 domain terms
+  relation_type_diversity_target: 6  # distinct semantic relation types used
+
+# --- Gate Thresholds (non-negotiable CPU quality gates) ---
+gate_thresholds:
+  evidence_fidelity_min: 0.70      # snippet must appear in source text
+  orphan_max: 0.0                  # zero tolerance for orphan relation endpoints
+  zero_value_min_entities: 1       # non-trivial docs must produce >= 1 entity
+  zero_value_min_doc_chars: 500    # docs shorter than this skip zero-value gate
+  high_confidence_threshold: 0.8   # confidence above this + bad evidence = escalate
+
+# Combined quality score below this triggers escalation to stronger model
+escalation_threshold: 0.6
+
+# --- Scoring Weights (quality score components, must sum to 1.0) ---
+scoring_weights:
+  density: 0.15
+  evidence: 0.15
+  confidence: 0.10
+  connectivity: 0.20
+  diversity: 0.25
+  tech_terms: 0.15
+
+# --- Trend Weights (trend score components, must sum to 1.0) ---
+trend_weights:
+  velocity: 0.4
+  novelty: 0.3
+  activity: 0.3
+  velocity_cap: 5.0          # cap velocity ratio before normalization
+  activity_cap: 20           # cap 7-day mention count before normalization
+  max_age_days: 365          # maximum age for novelty scoring
+  novelty_age_weight: 0.6    # weight of age component in novelty
+  novelty_rarity_weight: 0.4 # weight of rarity component in novelty
+
+# --- Suppressed Entities ---
+# Entity names too generic for this domain. Case-insensitive matching.
+# These are filtered out during extraction to reduce noise.
+suppressed_entities:
+  - AI
+  - artificial intelligence
+  - machine learning
+  - ML
+  - deep learning
+  - DL
+  - technology
+  - tech
+  - software
+  - hardware
+  - data
+  - algorithm
+  - algorithms
+  - computer
+  - computing
+  - internet
+  - web
+  - cloud
+  - system
+  - platform
+  - solution
+  - research
+  - science
+  - model
+  - models
+  - tool
+  - tools
+  - API
+  - APIs
+  - app
+  - application
+  - startup
+  - company
+  - industry
+  - market
+
+# --- Prompts ---
+# Paths are relative to this domain directory (domains/ai/).
+prompts:
+  dir: prompts
+  system_prompt: system.txt
+  user_prompt: user.txt
+  single_message_prompt: single_message.txt

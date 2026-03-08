@@ -8,6 +8,10 @@ Quality evaluation (Phase 0+1):
 - Phase 0: Structured quality report per extraction (instrumentation)
 - Phase 1: Non-negotiable CPU gates (evidence fidelity, orphan endpoints,
   zero-value, high-confidence + bad evidence)
+
+Domain-specific values (entity types, relation taxonomy, normalization map,
+quality thresholds, gate thresholds, scoring weights) are loaded from the
+active domain profile. See src/domain/ and domains/<slug>/domain.yaml.
 """
 
 from __future__ import annotations
@@ -20,9 +24,8 @@ from typing import Any, Optional
 from schema import (
     validate_extraction,
     ValidationError,
-    ENTITY_TYPES as _ENTITY_TYPES_SET,
-    RELATION_TYPES as _RELATION_TYPES_SET,
 )
+from domain import get_active_profile
 
 
 # Current extractor version - bump when prompts/schema change
@@ -31,79 +34,13 @@ from schema import (
 #          budget-based document selection, MENTIONS auto-generation
 EXTRACTOR_VERSION = "2.0.0"
 
-# Entity and relation types — derived from the single source of truth
-# in schemas/extraction.json (loaded via schema module).
-# Kept as sorted lists here because prompt templates and the OpenAI
-# tool schema need a stable, ordered sequence.
-ENTITY_TYPES: list[str] = sorted(_ENTITY_TYPES_SET)
-RELATION_TYPES: list[str] = sorted(_RELATION_TYPES_SET)
-
-# Map common LLM variations to canonical relation types
-RELATION_NORMALIZATION = {
-    "ANNOUNCED": "ANNOUNCES",
-    "ANNOUNCING": "ANNOUNCES",
-    "MENTIONED": "MENTIONS",
-    "MENTIONING": "MENTIONS",
-    "CITED": "CITES",
-    "CITING": "CITES",
-    "LAUNCHED_BY": "LAUNCHED",
-    "PUBLISHED_BY": "PUBLISHED",
-    "CREATED_BY": "CREATED",
-    "FUNDED_BY": "FUNDED",
-    "USED": "USES_TECH",
-    "USING": "USES_TECH",
-    "USES_TOOL": "USES_TECH",
-    "DEVELOPED": "CREATED",
-    "DEVELOPED_BY": "CREATED",
-    "BUILT": "CREATED",
-    "BUILT_BY": "CREATED",
-    "FOUNDED": "CREATED",
-    "FOUNDED_BY": "CREATED",
-    "RELEASED": "LAUNCHED",
-    "RELEASED_BY": "LAUNCHED",
-    "PARTNERS_WITH": "PARTNERED_WITH",
-    "PARTNERING_WITH": "PARTNERED_WITH",
-    "OPERATED": "OPERATES",
-    "OPERATED_BY": "OPERATES",
-    "OPERATES_ON": "OPERATES",
-    "IMPLEMENTS": "INTEGRATES_WITH",
-    "IMPLEMENTED": "INTEGRATES_WITH",
-    "IMPLEMENTED_BY": "INTEGRATES_WITH",
-    "IMPLEMENTING": "INTEGRATES_WITH",
-    "INTEGRATED_WITH": "INTEGRATES_WITH",
-    "PROVIDES": "PRODUCES",
-    "UPDATES": "UPDATED",
-    "CREATES": "CREATED",
-    "DISCOVERED": "CREATED",
-    "COMPETED_IN": "EVALUATED_ON",
-    # Past-tense of canonical present-tense relation types
-    "PRODUCED": "PRODUCES",
-    "MEASURED": "MEASURES",
-    "AFFECTED": "AFFECTS",
-    "PREDICTED": "PREDICTS",
-    "DETECTED": "DETECTS",
-    "MONITORED": "MONITORS",
-    "REQUIRED": "REQUIRES",
-    "DEPENDED_ON": "DEPENDS_ON",
-    "INTEGRATED": "INTEGRATES_WITH",
-    "GOVERNED": "GOVERNS",
-    "REGULATED": "REGULATES",
-    "COMPLIED_WITH": "COMPLIES_WITH",
-    # Present-tense gerund forms of canonical types
-    "PRODUCING": "PRODUCES",
-    "MEASURING": "MEASURES",
-    "AFFECTING": "AFFECTS",
-    "PREDICTING": "PREDICTS",
-    "DETECTING": "DETECTS",
-    "MONITORING": "MONITORS",
-    "REQUIRING": "REQUIRES",
-    "GOVERNING": "GOVERNS",
-    "REGULATING": "REGULATES",
-    # Other common near-misses
-    "TRAINED": "TRAINED_ON",
-    "EVALUATED": "EVALUATED_ON",
-    "DEPENDED": "DEPENDS_ON",
-}
+# --- Domain-derived constants (loaded from active domain profile) ---
+# Backward-compatible module-level names so existing code that does
+# `from extract import RELATION_NORMALIZATION` continues to work.
+_profile = get_active_profile()
+ENTITY_TYPES: list[str] = sorted(_profile["entity_types"])
+RELATION_TYPES: list[str] = sorted(_profile["relation_taxonomy"]["canonical"])
+RELATION_NORMALIZATION: dict[str, str] = dict(_profile["relation_taxonomy"]["normalization"])
 
 
 class ExtractionError(Exception):
@@ -267,20 +204,11 @@ def save_extraction(
 # Extraction quality scoring (for escalation mode)
 # ---------------------------------------------------------------------------
 
-# Thresholds represent "good extraction" targets — scores are proportional
-# to how close the extraction is to these targets.  A cheap model that
-# merely produces plausible-looking output shouldn't max out every signal.
-QUALITY_THRESHOLDS = {
-    "entity_density_target": 5.0,     # entities per 1000 chars — target, not floor
-    "evidence_coverage_min": 0.8,     # fraction of asserted relations with evidence
-    "avg_confidence_target": 0.85,    # cheap models output ~0.8; good ones are calibrated
-    "relation_entity_ratio_target": 0.5,  # semantic relations / entities — 1:2 is solid
-    "tech_terms_min": 2,              # AI articles should have ≥2 tech terms
-    "relation_type_diversity_target": 6,  # distinct semantic relation types used
-}
-
-# Combined score below this triggers escalation
-ESCALATION_THRESHOLD = 0.6
+# Loaded from domain profile — see domains/<slug>/domain.yaml
+QUALITY_THRESHOLDS: dict[str, Any] = dict(_profile["quality_thresholds"])
+ESCALATION_THRESHOLD: float = _profile.get("escalation_threshold", 0.6)
+_SCORING_WEIGHTS: dict[str, float] = dict(_profile["scoring_weights"])
+_BASE_RELATION: str = _profile["base_relation"]
 
 
 def score_extraction_quality(
@@ -307,8 +235,9 @@ def score_extraction_quality(
     n_relations = len(relations)
     n_tech = len(tech_terms)
 
-    # Semantic relations = everything except MENTIONS
-    semantic_relations = [r for r in relations if r.get("rel") != "MENTIONS"]
+    # Semantic relations = everything except the base relation
+    base_rel = _BASE_RELATION
+    semantic_relations = [r for r in relations if r.get("rel") != base_rel]
     n_semantic = len(semantic_relations)
 
     # 1. Entity density: entities per 1000 chars (proportional, not binary)
@@ -363,15 +292,15 @@ def score_extraction_quality(
     # 6. Tech terms presence
     tech_score = min(n_tech / QUALITY_THRESHOLDS["tech_terms_min"], 1.0)
 
-    # Combined score (weighted — diversity and connectivity are the hardest
-    # for cheap models to game, so they get the most weight)
+    # Combined score (weighted from domain profile)
+    w = _SCORING_WEIGHTS
     combined = (
-        0.15 * density_score
-        + 0.15 * evidence_score
-        + 0.10 * confidence_score
-        + 0.20 * connectivity_score
-        + 0.25 * diversity_score
-        + 0.15 * tech_score
+        w["density"] * density_score
+        + w["evidence"] * evidence_score
+        + w["confidence"] * confidence_score
+        + w["connectivity"] * connectivity_score
+        + w["diversity"] * diversity_score
+        + w["tech_terms"] * tech_score
     )
 
     return {
@@ -396,13 +325,9 @@ def score_extraction_quality(
 # Phase 1: Non-negotiable quality gates (CPU deterministic, zero tokens)
 # ---------------------------------------------------------------------------
 
-# Gate thresholds — start conservative, tune after calibration data
-GATE_THRESHOLDS = {
-    "evidence_fidelity_min": 0.70,  # fraction of asserted snippets found in source
-    "orphan_max": 0.0,              # fraction of relations with orphan endpoints
-    "zero_value_min_entities": 1,   # minimum entities for non-trivial docs
-    "zero_value_min_doc_chars": 500,  # docs shorter than this skip zero-value gate
-}
+# Gate thresholds — loaded from domain profile
+GATE_THRESHOLDS: dict[str, Any] = dict(_profile["gate_thresholds"])
+del _profile  # don't leak the full profile as a module attr
 
 
 def _normalize_for_match(text: str) -> str:
@@ -559,7 +484,8 @@ def check_high_confidence_bad_evidence(
     for rel in extraction.get("relations", []):
         if rel.get("kind") != "asserted":
             continue
-        if rel.get("confidence", 0) < 0.8:
+        high_conf_threshold = GATE_THRESHOLDS.get("high_confidence_threshold", 0.8)
+        if rel.get("confidence", 0) < high_conf_threshold:
             continue
 
         for ev in rel.get("evidence", []):

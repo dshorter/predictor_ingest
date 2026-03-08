@@ -11,6 +11,14 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
+from domain import get_active_profile
+
+# Load trend configuration from active domain profile
+_profile = get_active_profile()
+_BASE_RELATION: str = _profile["base_relation"]
+_TREND_WEIGHTS: dict[str, Any] = dict(_profile["trend_weights"])
+del _profile
+
 
 def count_mentions(
     conn: sqlite3.Connection,
@@ -35,18 +43,18 @@ def count_mentions(
     start_date = (as_of - timedelta(days=days)).isoformat()
     end_date = as_of.isoformat()
 
-    # Count MENTIONS relations where the source doc was published in the window
+    # Count base-relation edges where the source doc was published in the window
     cursor = conn.execute(
         """
         SELECT COUNT(*)
         FROM relations r
         JOIN documents d ON r.doc_id = d.doc_id
         WHERE r.target_id = ?
-        AND r.rel = 'MENTIONS'
+        AND r.rel = ?
         AND d.published_at >= ?
         AND d.published_at <= ?
         """,
-        (entity_id, start_date, end_date)
+        (entity_id, _BASE_RELATION, start_date, end_date)
     )
 
     row = cursor.fetchone()
@@ -85,9 +93,10 @@ def compute_velocity(
 
     if previous == 0:
         # First appearance — use Laplace-smoothed ratio: recent / 1
-        # Caps at 5.0 so brand-new entities don't dominate with
+        # Caps at velocity_cap so brand-new entities don't dominate with
         # nonsensical percentages (was: recent + 1, unbounded).
-        return min(float(recent), 5.0)
+        velocity_cap = float(_TREND_WEIGHTS.get("velocity_cap", 5.0))
+        return min(float(recent), velocity_cap)
 
     return recent / previous
 
@@ -95,7 +104,7 @@ def compute_velocity(
 def compute_novelty(
     conn: sqlite3.Connection,
     entity_id: str,
-    max_age_days: int = 365,
+    max_age_days: Optional[int] = None,
     as_of: Optional[date] = None,
 ) -> float:
     """Compute novelty score based on age and rarity.
@@ -109,6 +118,8 @@ def compute_novelty(
     Returns:
         Novelty score 0.0 to 1.0
     """
+    if max_age_days is None:
+        max_age_days = int(_TREND_WEIGHTS.get("max_age_days", 365))
     if as_of is None:
         as_of = date.today()
 
@@ -144,8 +155,10 @@ def compute_novelty(
         import math
         rarity = 1.0 / (1.0 + math.log1p(total_mentions))
 
-    # Combine age and rarity (weighted average)
-    novelty = 0.6 * age_novelty + 0.4 * rarity
+    # Combine age and rarity (weighted average from domain profile)
+    age_w = _TREND_WEIGHTS.get("novelty_age_weight", 0.6)
+    rarity_w = _TREND_WEIGHTS.get("novelty_rarity_weight", 0.4)
+    novelty = age_w * age_novelty + rarity_w * rarity
 
     return novelty
 
@@ -172,9 +185,9 @@ def compute_bridge_score(
         SELECT COUNT(DISTINCT target_id)
         FROM relations
         WHERE source_id = ?
-        AND rel != 'MENTIONS'
+        AND rel != ?
         """,
-        (entity_id,)
+        (entity_id, _BASE_RELATION)
     )
     outgoing = cursor.fetchone()[0] or 0
 
@@ -184,9 +197,9 @@ def compute_bridge_score(
         SELECT COUNT(DISTINCT source_id)
         FROM relations
         WHERE target_id = ?
-        AND rel != 'MENTIONS'
+        AND rel != ?
         """,
-        (entity_id,)
+        (entity_id, _BASE_RELATION)
     )
     incoming = cursor.fetchone()[0] or 0
 
@@ -270,17 +283,22 @@ class TrendScorer:
             if s["mention_count_7d"] >= min_mentions
         ]
 
-        # Compute combined trend score
+        # Compute combined trend score using domain profile weights
+        velocity_cap = float(_TREND_WEIGHTS.get("velocity_cap", 5.0))
+        activity_cap = float(_TREND_WEIGHTS.get("activity_cap", 20))
+        w_velocity = float(_TREND_WEIGHTS.get("velocity", 0.4))
+        w_novelty = float(_TREND_WEIGHTS.get("novelty", 0.3))
+        w_activity = float(_TREND_WEIGHTS.get("activity", 0.3))
+
         for scores in filtered:
-            # Combine velocity, novelty, and recent activity
-            velocity_factor = min(scores["velocity"], 5.0) / 5.0  # Cap at 5x
+            velocity_factor = min(scores["velocity"], velocity_cap) / velocity_cap
             novelty_factor = scores["novelty"]
-            activity_factor = min(scores["mention_count_7d"], 20) / 20.0  # Cap at 20
+            activity_factor = min(scores["mention_count_7d"], activity_cap) / activity_cap
 
             scores["trend_score"] = (
-                0.4 * velocity_factor +
-                0.3 * novelty_factor +
-                0.3 * activity_factor
+                w_velocity * velocity_factor +
+                w_novelty * novelty_factor +
+                w_activity * activity_factor
             )
 
         # Sort by trend score

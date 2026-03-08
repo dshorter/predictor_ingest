@@ -1,0 +1,12 @@
+Extract entities, relations, and tech terms from this document.
+
+## Document Metadata
+- docId: {docId}
+- Title: {title}
+- URL: {url}
+- Published: {published}
+
+## Document Text
+{text}
+
+Call the emit_extraction tool with the complete extraction results.
