@@ -19,7 +19,8 @@ set -euo pipefail
 
 TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
 DIAG_DIR="diagnostics/diag_${TIMESTAMP}"
-DB="${DB:-data/db/predictor.db}"
+DOMAIN="${DOMAIN:-ai}"
+DB="${DB:-data/db/${DOMAIN}.db}"
 
 mkdir -p "$DIAG_DIR"
 
@@ -72,7 +73,7 @@ log "Checking database..."
     else
         echo "NOT FOUND: $DB"
         echo "Searched paths:"
-        find . -name "predictor.db" -type f 2>/dev/null || echo "  none found"
+        find . -name "${DOMAIN}.db" -type f 2>/dev/null || echo "  none found"
     fi
 } > "$DIAG_DIR/db_file.txt" 2>&1
 
@@ -257,16 +258,16 @@ for k,v in m.items():
 
     echo ""
     echo "=== Extraction files (count + sample) ==="
-    ext_count=$(ls data/extractions/*.json 2>/dev/null | wc -l)
+    ext_count=$(ls data/extractions/${DOMAIN}/*.json 2>/dev/null | wc -l)
     echo "  total: $ext_count"
     if [ "$ext_count" -gt 0 ]; then
         echo "  newest 5:"
-        ls -t data/extractions/*.json 2>/dev/null | head -5 | while read -r f; do
+        ls -t data/extractions/${DOMAIN}/*.json 2>/dev/null | head -5 | while read -r f; do
             size=$(du -h "$f" | cut -f1)
             echo "    $f ($size)"
         done
         echo "  oldest 5:"
-        ls -tr data/extractions/*.json 2>/dev/null | head -5 | while read -r f; do
+        ls -tr data/extractions/${DOMAIN}/*.json 2>/dev/null | head -5 | while read -r f; do
             size=$(du -h "$f" | cut -f1)
             echo "    $f ($size)"
         done
@@ -286,12 +287,12 @@ for k,v in m.items():
 log "Collecting pipeline logs..."
 {
     echo "=== Pipeline log files ==="
-    ls -la data/logs/pipeline_*.json 2>/dev/null || echo "  no pipeline logs found"
+    ls -la data/logs/${DOMAIN}/pipeline_*.json 2>/dev/null || echo "  no pipeline logs found"
 } > "$DIAG_DIR/pipeline_log_list.txt" 2>&1
 
 # Copy last 7 pipeline logs
 mkdir -p "$DIAG_DIR/logs"
-for logfile in $(ls -t data/logs/pipeline_*.json 2>/dev/null | head -7); do
+for logfile in $(ls -t data/logs/${DOMAIN}/pipeline_*.json 2>/dev/null | head -7); do
     cp "$logfile" "$DIAG_DIR/logs/" 2>/dev/null
 done
 
@@ -314,11 +315,11 @@ log "Collecting sample extractions..."
 mkdir -p "$DIAG_DIR/sample_extractions"
 {
     # Newest 2
-    ls -t data/extractions/*.json 2>/dev/null | head -2 | while read -r f; do
+    ls -t data/extractions/${DOMAIN}/*.json 2>/dev/null | head -2 | while read -r f; do
         cp "$f" "$DIAG_DIR/sample_extractions/"
     done
     # Oldest 2
-    ls -tr data/extractions/*.json 2>/dev/null | head -2 | while read -r f; do
+    ls -tr data/extractions/${DOMAIN}/*.json 2>/dev/null | head -2 | while read -r f; do
         cp "$f" "$DIAG_DIR/sample_extractions/"
     done
 } 2>/dev/null
@@ -342,8 +343,8 @@ log "Running pipeline stage checks..."
 
     echo ""
     echo "=== Schema validation check ==="
-    if [ -f data/extractions/*.json ] 2>/dev/null; then
-        first_ext=$(ls data/extractions/*.json 2>/dev/null | head -1)
+    if [ -f data/extractions/${DOMAIN}/*.json ] 2>/dev/null; then
+        first_ext=$(ls data/extractions/${DOMAIN}/*.json 2>/dev/null | head -1)
         python3 -c "
 from schema import validate_extraction
 import json
@@ -396,7 +397,7 @@ conn.close()
 
     echo ""
     echo "=== Import dry-run ==="
-    python3 scripts/import_extractions.py --db "$DB" --dry-run 2>&1 || echo "  import dry-run failed"
+    python3 scripts/import_extractions.py --db "$DB" --domain "$DOMAIN" --dry-run 2>&1 || echo "  import dry-run failed"
 
 } > "$DIAG_DIR/stage_checks.txt" 2>&1
 
@@ -424,7 +425,7 @@ if [ -f "$DB" ]; then
         echo ""
         echo "--- Extracted docs without extraction files ---"
         sqlite3 "$DB" "SELECT doc_id FROM documents WHERE status = 'extracted';" 2>/dev/null | while read -r docid; do
-            if [ ! -f "data/extractions/${docid}.json" ]; then
+            if [ ! -f "data/extractions/${DOMAIN}/${docid}.json" ]; then
                 echo "  MISSING extraction: $docid"
             fi
         done
@@ -432,7 +433,7 @@ if [ -f "$DB" ]; then
 
         echo ""
         echo "--- Extraction files without matching doc in DB ---"
-        for f in data/extractions/*.json 2>/dev/null; do
+        for f in data/extractions/${DOMAIN}/*.json 2>/dev/null; do
             [ -f "$f" ] || continue
             docid=$(basename "$f" .json)
             found=$(sqlite3 "$DB" "SELECT COUNT(*) FROM documents WHERE doc_id = '$docid';" 2>/dev/null)

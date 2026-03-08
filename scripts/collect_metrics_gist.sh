@@ -13,19 +13,20 @@ if [ -z "$PYTHON" ]; then
 fi
 echo "Using: $PYTHON"
 
-DB="data/db/predictor.db"
+DOMAIN="${DOMAIN:-ai}"
+DB="data/db/${DOMAIN}.db"
 OUTDIR="data/metrics_snapshot_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUTDIR"
 
-echo "=== Collecting metrics into $OUTDIR ==="
+echo "=== Collecting metrics into $OUTDIR (domain: $DOMAIN) ==="
 
 # 1. Shadow report (escalation stats, model split, quality distribution)
 echo "[1/6] Shadow report..."
-$PYTHON scripts/shadow_report.py --db "$DB" > "$OUTDIR/01_shadow_report.txt" 2>&1 || true
+$PYTHON scripts/shadow_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/01_shadow_report.txt" 2>&1 || true
 
 # 2. Health report (docs per source, stage counts, errors)
 echo "[2/6] Health report..."
-$PYTHON scripts/health_report.py --db "$DB" > "$OUTDIR/02_health_report.txt" 2>&1 || true
+$PYTHON scripts/health_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/02_health_report.txt" 2>&1 || true
 
 # 3. Worst quality scores (bottom 50 by score)
 echo "[3/6] Quality metrics (worst 50)..."
@@ -61,7 +62,7 @@ ORDER BY quality_score ASC;
 
 # 6. Recent pipeline logs (last 7 days)
 echo "[6/6] Pipeline logs..."
-LOGDIR="data/logs"
+LOGDIR="data/logs/${DOMAIN}"
 if [ -d "$LOGDIR" ]; then
     # Grab the most recent 7 log files
     ls -1t "$LOGDIR"/pipeline_*.json 2>/dev/null | head -7 | while read -r f; do
@@ -114,7 +115,7 @@ fi
 
 echo "Creating gist..."
 if [ ${#NORMAL_FILES[@]} -gt 0 ]; then
-    GIST_URL=$(gh gist create --public -d "predictor_ingest metrics $(date '+%Y-%m-%d %H:%M')" "${NORMAL_FILES[@]}")
+    GIST_URL=$(gh gist create --public -d "predictor_ingest ${DOMAIN} metrics $(date '+%Y-%m-%d %H:%M')" "${NORMAL_FILES[@]}")
     echo "Gist created: $GIST_URL"
 fi
 
