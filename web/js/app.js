@@ -149,16 +149,18 @@ function toggleNavigator() {
 }
 
 /**
- * Get data URL for a view, based on current data source.
- * Live → data/graphs/live/{view}.json
+ * Get data URL for a view, based on current data source and domain.
+ * Live → data/graphs/live/{domain}/{view}.json
  * Sample → data/graphs/{tier}/{view}.json
  */
 function getDataUrl(view) {
   const basePath = 'data/graphs';
-  const folder = AppState.dataSource === 'sample'
-    ? (AppState.currentTier || 'medium')
-    : 'live';
-  return `${basePath}/${folder}/${view}.json`;
+  if (AppState.dataSource === 'sample') {
+    const tier = AppState.currentTier || 'medium';
+    return `${basePath}/${tier}/${view}.json`;
+  }
+  const domain = (AppState.domainConfig && AppState.domainConfig.domain) || 'ai';
+  return `${basePath}/live/${domain}/${view}.json`;
 }
 
 /**

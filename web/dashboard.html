@@ -577,9 +577,12 @@ async function loadAll() {
     fetchJSON(BASE + 'dashboard/runs.json'),
     fetchJSON(BASE + 'dashboard/quality.json'),
     fetchJSON(BASE + 'dashboard/feeds.json'),
-    // Try live/ first (daily pipeline output), fall back to latest/ (fixture data)
-    fetchJSON(BASE + 'graphs/live/trending.json')
-      .then(d => d || fetchJSON(BASE + 'graphs/latest/trending.json')),
+    // Try live/{domain}/ first (daily pipeline output), fall back to latest/ (fixture data)
+    (() => {
+      const domain = new URLSearchParams(window.location.search).get('domain') || 'ai';
+      return fetchJSON(BASE + `graphs/live/${domain}/trending.json`)
+        .then(d => d || fetchJSON(BASE + 'graphs/latest/trending.json'));
+    })(),
   ]);
 
   renderUpdated(status);
