@@ -554,7 +554,8 @@ def main() -> int:
     run_date = args.date
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     db_path = args.db
-    graphs_dir = args.graphs_dir
+    # Domain-scoped graph output: data/graphs/{domain}/
+    graphs_dir = f"{args.graphs_dir}/{args.domain}"
     docpack_path = f"data/docpacks/daily_bundle_{run_date}.jsonl"
     docpack_label = run_date
 
@@ -801,11 +802,13 @@ def main() -> int:
 
         # Copy graphs to live directory if requested
         if args.copy_to_live and overall_status != "failed":
+            # Copy to domain-scoped live directory
+            live_dir = project_root / args.web_live_dir / args.domain
             copied = copy_graphs_to_live(
-                Path(graphs_dir), run_date, project_root / args.web_live_dir
+                Path(graphs_dir), run_date, live_dir
             )
             if copied:
-                print(f"\nCopied graphs to {args.web_live_dir}/")
+                print(f"\nCopied graphs to {args.web_live_dir}/{args.domain}/")
             else:
                 print(f"\nWARNING: No graphs found for {run_date} to copy")
 

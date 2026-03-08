@@ -48,15 +48,15 @@ resolve:
 	python scripts/run_resolve.py --db $(DB)
 
 export:
-	python scripts/run_export.py --db $(DB) --output-dir $(GRAPHS_DIR) --date $(DATE)
+	python scripts/run_export.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DOMAIN) --date $(DATE)
 
 trending:
-	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE)
+	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DOMAIN)/$(DATE)
 
 copy-to-live:
-	@mkdir -p web/data/graphs/live
-	cp $(GRAPHS_DIR)/$(DATE)/*.json web/data/graphs/live/
-	@echo "Copied $(GRAPHS_DIR)/$(DATE)/ → web/data/graphs/live/"
+	@mkdir -p web/data/graphs/live/$(DOMAIN)
+	cp $(GRAPHS_DIR)/$(DOMAIN)/$(DATE)/*.json web/data/graphs/live/$(DOMAIN)/
+	@echo "Copied $(GRAPHS_DIR)/$(DOMAIN)/$(DATE)/ → web/data/graphs/live/$(DOMAIN)/"
 
 dashboard-data:
 	python scripts/generate_dashboard_json.py --db $(DB)
