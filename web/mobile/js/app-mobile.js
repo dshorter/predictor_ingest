@@ -614,19 +614,25 @@ async function initializeApp() {
     var sampleList = document.getElementById('sample-tier-list');
     if (sampleList) sampleList.classList.add('hidden');
 
-    // Load data — try live first, fall back to sample if live data not available
+    // Load data — try live first, fall back to sample only for AI domain
     var dataUrl = getDataUrl(AppState.currentView);
     var data;
     try {
       data = await loadGraphData(dataUrl);
     } catch (liveErr) {
-      console.warn('Live data not available (' + liveErr.message + '), falling back to sample');
-      AppState.dataSource = 'sample';
-      dataUrl = getDataUrl(AppState.currentView);
-      data = await loadGraphData(dataUrl);
-      // Sync radio button
-      var sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
-      if (sampleRadio) sampleRadio.checked = true;
+      if (AppState.domain === 'ai') {
+        // AI has sample data to fall back on
+        console.warn('Live data not available (' + liveErr.message + '), falling back to sample');
+        AppState.dataSource = 'sample';
+        dataUrl = getDataUrl(AppState.currentView);
+        data = await loadGraphData(dataUrl);
+        var sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
+        if (sampleRadio) sampleRadio.checked = true;
+      } else {
+        // Non-AI domains have no sample data — show empty graph
+        console.warn('No data available for domain ' + AppState.domain + ': ' + liveErr.message);
+        data = { elements: { nodes: [], edges: [] }, meta: {} };
+      }
     }
 
     // Initialize Cytoscape (no minimap, no navigator)
