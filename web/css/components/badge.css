@@ -117,6 +117,22 @@
   background-color: var(--gray-500);
 }
 
+/* Biosafety domain types */
+.badge-type-selectagent {
+  color: white;
+  background-color: var(--color-selectagent, #DC2626);
+}
+
+.badge-type-facility {
+  color: white;
+  background-color: var(--color-facility, #EA580C);
+}
+
+.badge-type-regulation {
+  color: white;
+  background-color: var(--color-regulation, #7C3AED);
+}
+
 /* Relationship kind badges */
 .badge-kind-asserted {
   color: var(--gray-700);
