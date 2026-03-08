@@ -16,6 +16,7 @@ const AppState = {
   currentView: 'trending',
   dataSource: 'live',       // 'live' | 'sample'
   currentTier: 'medium',    // sample tier (only used when dataSource === 'sample')
+  domain: new URLSearchParams(window.location.search).get('domain') || 'ai',
   anchorDate: null,          // ISO date string — the "as of" anchor for filtering
   activePresetDays: 30,      // which preset is active (7, 30, 90, or null for All)
   dateRange: null,           // { start, end } from meta — article publication dates
@@ -159,7 +160,7 @@ function getDataUrl(view) {
     const tier = AppState.currentTier || 'medium';
     return `${basePath}/${tier}/${view}.json`;
   }
-  const domain = (AppState.domainConfig && AppState.domainConfig.domain) || 'ai';
+  const domain = AppState.domain || 'ai';
   return `${basePath}/live/${domain}/${view}.json`;
 }
 
@@ -176,7 +177,14 @@ async function switchDataSource(source, tier) {
  * Initialize the application
  */
 async function initializeApp() {
-  console.log('Initializing AI Trend Graph...');
+  const domainLabels = { ai: 'AI Trend Graph', biosafety: 'Biosafety Trend Graph' };
+  const domainLabel = domainLabels[AppState.domain] || (AppState.domain + ' Trend Graph');
+  console.log('Initializing ' + domainLabel + '...');
+
+  // Set domain-aware title
+  document.title = domainLabel;
+  const titleEl = document.querySelector('.app-title');
+  if (titleEl) titleEl.textContent = domainLabel;
 
   // Initialize theme BEFORE any rendering
   initTheme();
