@@ -1,0 +1,14 @@
+# Graph view configuration
+# Defines which relation types belong to each Cytoscape export view.
+#
+# Populate these with canonical relation names from your domain.yaml.
+
+# Document-level relations (used for the "mentions" view)
+document_relations: []
+  # - MENTIONS
+  # - CITES
+
+# Dependency-style relations (used for the "dependencies" view)
+dependency_relations: []
+  # - DEPENDS_ON
+  # - REQUIRES

@@ -1,0 +1,13 @@
+# RSS feeds for domain ingestion
+# Runtime configuration - parsed by src/ingest/rss.py
+#
+# tier: 1 = primary/original source, 2 = secondary/aggregator, 3 = echo/mainstream
+# signal: primary | commentary | echo | community
+
+feeds: []
+  # - name: "Example Feed"
+  #   url: "https://example.com/feed.xml"
+  #   type: rss          # or atom
+  #   enabled: true
+  #   tier: 1
+  #   signal: primary

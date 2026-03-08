@@ -24,6 +24,37 @@ def _days_ago(n: int) -> str:
     return (date.today() - timedelta(days=n)).isoformat()
 
 
+class TestTrendDomainProfile:
+    """Test that trend module loads configuration from the domain profile."""
+
+    def test_base_relation_loaded(self):
+        """Trend module should load base_relation from domain profile."""
+        trend = _get_trend_module()
+        from domain import get_active_profile
+        profile = get_active_profile()
+        assert trend._BASE_RELATION == profile["base_relation"]
+
+    def test_trend_weights_loaded(self):
+        """Trend module should load trend_weights from domain profile."""
+        trend = _get_trend_module()
+        from domain import get_active_profile
+        profile = get_active_profile()
+        assert trend._TREND_WEIGHTS["velocity"] == profile["trend_weights"]["velocity"]
+        assert trend._TREND_WEIGHTS["novelty"] == profile["trend_weights"]["novelty"]
+        assert trend._TREND_WEIGHTS["activity"] == profile["trend_weights"]["activity"]
+
+    def test_velocity_cap_from_profile(self):
+        """Velocity cap should match domain profile."""
+        trend = _get_trend_module()
+        assert trend._TREND_WEIGHTS["velocity_cap"] == 5.0
+
+    def test_novelty_weights_from_profile(self):
+        """Novelty age/rarity weights should match domain profile."""
+        trend = _get_trend_module()
+        assert trend._TREND_WEIGHTS["novelty_age_weight"] == 0.6
+        assert trend._TREND_WEIGHTS["novelty_rarity_weight"] == 0.4
+
+
 class TestMentionCount:
     """Test mention counting functionality."""
 

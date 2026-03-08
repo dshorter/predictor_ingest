@@ -486,8 +486,8 @@ def main() -> int:
         description="Run the full daily pipeline with structured logging."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
         "--date", default=date.today().isoformat(),
@@ -532,10 +532,23 @@ def main() -> int:
         help="Disable all stage timeouts (useful for self-hosted servers)",
     )
     parser.add_argument(
+        "--domain", default="ai",
+        help="Domain slug to use (default: ai). Loads config from domains/<slug>/.",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
         help="Print what would be run without executing",
     )
     args = parser.parse_args()
+
+    # Set active domain before any module imports that read the profile
+    from domain import set_active_domain
+    os.environ["PREDICTOR_DOMAIN"] = args.domain
+    set_active_domain(args.domain)
+
+    # Derive DB path from domain if not explicitly provided
+    if args.db is None:
+        args.db = f"data/db/{args.domain}.db"
 
     project_root = Path(__file__).resolve().parents[1]
     run_date = args.date
@@ -575,7 +588,7 @@ def main() -> int:
             "name": "ingest",
             "cmd": [
                 sys.executable, "-m", "ingest.rss",
-                "--config", "config/feeds.yaml",
+                "--config", f"domains/{args.domain}/feeds.yaml",
                 "--db", db_path,
                 "--skip-existing",
             ],

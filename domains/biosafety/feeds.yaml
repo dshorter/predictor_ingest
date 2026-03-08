@@ -1,0 +1,113 @@
+# ==========================================================================
+# RSS Feeds: Biosafety & Select Agent Monitoring
+# ==========================================================================
+# Tier model (from source-selection-strategy.md):
+#   primary   — original research, policy, regulatory announcements
+#   secondary — expert analysis, commentary, synthesis
+#   echo      — news aggregation, velocity signal
+#
+# Signal types:
+#   regulatory  — rule changes, guidance, enforcement actions
+#   research    — papers, preprints, lab findings
+#   incident    — outbreaks, lab accidents, containment breaches
+#   policy      — governance changes, international agreements
+#   community   — expert commentary, practitioner perspectives
+# ==========================================================================
+
+feeds:
+  # ── Primary: Regulatory & Research ──────────────────────────────────
+
+  - name: "Federal Register - Biosafety"
+    url: "https://www.federalregister.gov/documents/search.atom?conditions%5Bterm%5D=select+agent+OR+biosafety+OR+FSAP&conditions%5Bagencies%5D%5B%5D=centers-for-disease-control-and-prevention&conditions%5Bagencies%5D%5B%5D=animal-and-plant-health-inspection-service"
+    tier: primary
+    signal: regulatory
+    limit: 30
+    notes: "Federal Register entries for CDC/APHIS select agent regulations"
+
+  - name: "Emerging Infectious Diseases"
+    url: "https://wwwnc.cdc.gov/eid/rss/en.xml"
+    tier: primary
+    signal: research
+    limit: 30
+    notes: "CDC's peer-reviewed journal on emerging infectious diseases"
+
+  - name: "WHO Disease Outbreak News"
+    url: "https://www.who.int/feeds/entity/don/en/rss.xml"
+    tier: primary
+    signal: incident
+    limit: 30
+    notes: "WHO official disease outbreak notifications"
+
+  - name: "WHO Weekly Epidemiological Record"
+    url: "https://www.who.int/wer/en/rss.xml"
+    tier: primary
+    signal: research
+    limit: 20
+    notes: "WHO epidemiological surveillance and policy updates"
+
+  - name: "mBio"
+    url: "https://journals.asm.org/action/showFeed?type=etoc&feed=rss&jc=mbio"
+    tier: primary
+    signal: research
+    limit: 30
+    notes: "ASM open-access journal; publishes high-impact microbiology research"
+
+  - name: "PNAS Microbiology"
+    url: "https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=micro-bio&tagCode=jcode%7Cpnas"
+    tier: primary
+    signal: research
+    limit: 20
+    notes: "PNAS papers tagged microbiology - includes biosafety-relevant research"
+
+  # ── Secondary: Analysis & Policy ────────────────────────────────────
+
+  - name: "CIDRAP News"
+    url: "https://www.cidrap.umn.edu/rss.xml"
+    tier: secondary
+    signal: community
+    limit: 30
+    notes: "Center for Infectious Disease Research and Policy at University of Minnesota"
+
+  - name: "Johns Hopkins Center for Health Security"
+    url: "https://centerforhealthsecurity.org/feeds/news.rss"
+    tier: secondary
+    signal: policy
+    limit: 20
+    notes: "Expert biosecurity analysis, pandemic preparedness policy"
+
+  - name: "Bulletin of the Atomic Scientists - Biosecurity"
+    url: "https://thebulletin.org/feed/"
+    tier: secondary
+    signal: policy
+    limit: 20
+    notes: "Biosecurity and dual-use research policy analysis"
+
+  - name: "NTI Biosecurity"
+    url: "https://www.nti.org/area/biosecurity/feed/"
+    tier: secondary
+    signal: policy
+    limit: 20
+    notes: "Nuclear Threat Initiative biosecurity program updates"
+
+  - name: "GAO Reports - Science & Technology"
+    url: "https://www.gao.gov/rss/topic/science_and_technology.xml"
+    tier: secondary
+    signal: regulatory
+    limit: 15
+    notes: "Government Accountability Office - includes select agent program audits"
+
+  # ── Echo: News & Velocity ───────────────────────────────────────────
+
+  - name: "STAT News - Infectious Disease"
+    url: "https://www.statnews.com/category/infectious-disease/feed/"
+    tier: echo
+    signal: community
+    limit: 20
+    notes: "Health and biotech news; covers biosafety incidents and policy"
+
+  - name: "Science - Biosecurity News"
+    url: "https://www.science.org/action/showFeed?type=searchTopic&taxonomyCode=topic-biosecurity"
+    tier: echo
+    signal: research
+    limit: 20
+    notes: "Science magazine biosecurity coverage"

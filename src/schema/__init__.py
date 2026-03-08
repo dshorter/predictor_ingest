@@ -2,18 +2,22 @@
 
 Validates extraction JSON against the schema defined in AGENTS.md.
 
-Type enums (ENTITY_TYPES, RELATION_TYPES, RELATION_KINDS) are loaded
-from schemas/extraction.json — the single source of truth.  Do NOT
-duplicate these lists elsewhere; import from this module instead.
+Type enums (ENTITY_TYPES, RELATION_TYPES) are loaded from the active
+domain profile.  RELATION_KINDS remains loaded from the base schema
+(domain-independent).  Do NOT duplicate these lists elsewhere; import
+from this module instead.
 """
 
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 from typing import Any
 
 import jsonschema
+
+from domain import get_active_profile
 
 
 class ValidationError(Exception):
@@ -35,21 +39,32 @@ def _load_schema() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Single source of truth: load type enums from schemas/extraction.json
+# Load base schema and domain profile
 # ---------------------------------------------------------------------------
-_SCHEMA = _load_schema()
+_BASE_SCHEMA = _load_schema()
+_profile = get_active_profile()
 
-ENTITY_TYPES: frozenset[str] = frozenset(
-    _SCHEMA["$defs"]["entityType"]["enum"]
-)
+# Entity and relation types come from the domain profile
+ENTITY_TYPES: frozenset[str] = frozenset(_profile["entity_types"])
 
 RELATION_TYPES: frozenset[str] = frozenset(
-    _SCHEMA["$defs"]["relationType"]["enum"]
+    _profile["relation_taxonomy"]["canonical"]
 )
 
+# Relation kinds are domain-independent
 RELATION_KINDS: frozenset[str] = frozenset(
-    _SCHEMA["$defs"]["relationKind"]["enum"]
+    _BASE_SCHEMA["$defs"]["relationKind"]["enum"]
 )
+
+del _profile
+
+
+def _build_domain_schema() -> dict:
+    """Build a validation schema with entity/relation enums from the domain profile."""
+    schema = copy.deepcopy(_BASE_SCHEMA)
+    schema["$defs"]["entityType"]["enum"] = sorted(ENTITY_TYPES)
+    schema["$defs"]["relationType"]["enum"] = sorted(RELATION_TYPES)
+    return schema
 
 
 def validate_extraction(data: dict[str, Any]) -> None:
@@ -61,7 +76,7 @@ def validate_extraction(data: dict[str, Any]) -> None:
     Raises:
         ValidationError: If validation fails
     """
-    schema = _load_schema()
+    schema = _build_domain_schema()
     try:
         jsonschema.validate(data, schema)
     except jsonschema.ValidationError as e:

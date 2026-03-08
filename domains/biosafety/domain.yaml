@@ -1,0 +1,280 @@
+# ==========================================================================
+# Domain Profile: Biosafety & Select Agent Monitoring
+# ==========================================================================
+# Tracks entities, regulations, incidents, and research related to the
+# Federal Select Agent Program (FSAP), dual-use research of concern (DURC),
+# and global biosafety/biosecurity governance.
+#
+# Framework: predictor_ingest (domain-agnostic pipeline)
+# Schema:    schemas/domain-profile.json
+# ==========================================================================
+
+domain:
+  name: "Biosafety & Select Agent Monitoring"
+  slug: "biosafety"
+  description: >
+    Monitors the biosafety and biosecurity landscape: Federal Select Agent
+    Program regulations, high-containment laboratory oversight, dual-use
+    research of concern, gain-of-function policy, and global health security
+    governance. Tracks regulatory changes, facility incidents, research
+    developments, and emerging biological threats.
+
+# --- Entity Types ---
+# PascalCase, must be valid across all pipeline modules.
+entity_types:
+  - Org             # CDC, APHIS, WHO, USAMRIID, universities, companies
+  - Person          # Researchers, officials, policy advisors
+  - SelectAgent     # Biological agents/toxins on the FSAP list
+  - Facility        # BSL-3/4 labs, registered entities
+  - Regulation      # Laws, rules, executive orders, guidance documents
+  - Program         # FSAP, GHSA, BWC, research programs
+  - Tech            # CRISPR, synthetic biology, sequencing platforms
+  - Location        # Countries, cities, regions with BSL infrastructure
+  - Event           # Outbreaks, incidents, inspections, conferences
+  - Paper           # Research publications, preprints
+  - Dataset         # Registries, surveillance datasets, genomic databases
+  - Topic           # Dual-use, gain-of-function, biosurveillance, biodefense
+  - Document        # Source documents (pipeline-internal)
+  - Other           # Catch-all
+
+# --- Relation Taxonomy ---
+relation_taxonomy:
+  # Canonical relation types for this domain
+  canonical:
+    # Document-level (base layer)
+    - MENTIONS
+    - CITES
+    - ANNOUNCES
+    - REPORTED_BY
+
+    # Regulatory / governance
+    - REGULATES          # Org/Regulation → SelectAgent/Facility/Program
+    - REGULATED_BY       # inverse
+    - ENFORCES           # Org → Regulation
+    - COMPLIES_WITH      # Facility/Org → Regulation
+    - AUTHORIZES         # Regulation/Org → activity/transfer
+    - INSPECTS           # Org → Facility
+    - CLASSIFIES         # Regulation/Org → SelectAgent (risk group assignment)
+    - LISTS              # Program → SelectAgent (on the select agent list)
+    - DELISTS            # Program → SelectAgent (removed from list)
+
+    # Research / science
+    - RESEARCHES         # Person/Org/Facility → SelectAgent/Topic
+    - PUBLISHES          # Person/Org → Paper
+    - USES_TECH          # Person/Org/Facility → Tech
+    - FUNDED             # Org → Program/Person/Facility
+    - COLLABORATES_WITH  # Org/Person ↔ Org/Person
+
+    # Containment / operations
+    - STORES             # Facility → SelectAgent
+    - TRANSFERS          # Facility/Org → SelectAgent (transfer between entities)
+    - CONTAINS           # Facility → SelectAgent (current possession)
+    - OPERATES           # Org → Facility
+
+    # Incident / response
+    - CAUSED             # SelectAgent/Event → Event (outbreak chain)
+    - DETECTED_IN        # SelectAgent → Location/Facility
+    - RESPONDS_TO        # Org/Program → Event
+    - MITIGATES          # Tech/Program → SelectAgent/Event
+    - MONITORS           # Org/Program → SelectAgent/Topic
+
+    # Capability / threat
+    - AFFECTS            # SelectAgent → Location/Org/Topic
+    - PRODUCES           # Tech/Org → SelectAgent/Dataset
+    - DEPENDS_ON         # Program/Tech → Tech/Dataset
+    - PREDICTS           # Model/Analysis → Event/Topic
+
+    # Organizational
+    - CREATED            # Person/Org → Program/Tech/Regulation
+    - GOVERNS            # Org → Org/Program
+    - PARTNERED_WITH     # Org ↔ Org
+
+  # LLM output normalization: map common phrasings to canonical types
+  normalization:
+    # Regulatory
+    OVERSEES: REGULATES
+    SUPERVISES: REGULATES
+    CONTROLS: REGULATES
+    REGISTERED_WITH: COMPLIES_WITH
+    APPROVED_BY: COMPLIES_WITH
+    LICENSED_BY: AUTHORIZES
+    PERMITS: AUTHORIZES
+    AUDITS: INSPECTS
+    REVIEWED_BY: INSPECTS
+    CATEGORIZES: CLASSIFIES
+    DESIGNATES: CLASSIFIES
+    ADDED_TO: LISTS
+    REMOVED_FROM: DELISTS
+
+    # Research
+    STUDIES: RESEARCHES
+    INVESTIGATES: RESEARCHES
+    ANALYZES: RESEARCHES
+    WROTE: PUBLISHES
+    AUTHORED: PUBLISHES
+    EMPLOYS: USES_TECH
+    UTILIZES: USES_TECH
+    APPLIES: USES_TECH
+    FINANCED: FUNDED
+    GRANTED: FUNDED
+    SPONSORED: FUNDED
+    PARTNERS: COLLABORATES_WITH
+    COOPERATES: COLLABORATES_WITH
+    WORKS_WITH: COLLABORATES_WITH
+
+    # Containment
+    POSSESSES: CONTAINS
+    HOLDS: CONTAINS
+    MAINTAINS: CONTAINS
+    SHIPS: TRANSFERS
+    SENDS: TRANSFERS
+    RECEIVES: TRANSFERS
+    IMPORTS: TRANSFERS
+    EXPORTS: TRANSFERS
+    MANAGES: OPERATES
+    RUNS: OPERATES
+    HOUSES: STORES
+    KEEPS: STORES
+
+    # Incident
+    TRIGGERED: CAUSED
+    LED_TO: CAUSED
+    RESULTED_IN: CAUSED
+    FOUND_IN: DETECTED_IN
+    IDENTIFIED_IN: DETECTED_IN
+    ISOLATED_FROM: DETECTED_IN
+    ADDRESSED: RESPONDS_TO
+    HANDLED: RESPONDS_TO
+    COUNTERS: MITIGATES
+    PREVENTS: MITIGATES
+    TRACKS: MONITORS
+    SURVEYS: MONITORS
+    WATCHES: MONITORS
+
+    # General
+    DEVELOPED: CREATED
+    ESTABLISHED: CREATED
+    FOUNDED: CREATED
+    BUILT: CREATED
+    LAUNCHED: CREATED
+    REPORTED: REPORTED_BY
+    ANNOUNCED: ANNOUNCES
+    REFERENCES: CITES
+    IMPACTS: AFFECTS
+    INFLUENCES: AFFECTS
+    GENERATES: PRODUCES
+
+# --- ID Prefixes ---
+# Map entity type → prefix for canonical IDs (type:slug format)
+id_prefixes:
+  Org: org
+  Person: person
+  SelectAgent: agent
+  Facility: facility
+  Regulation: regulation
+  Program: program
+  Tech: tech
+  Location: location
+  Event: event
+  Paper: paper
+  Dataset: dataset
+  Topic: topic
+  Document: doc
+  Other: other
+
+# --- Base Relation ---
+# The foundational document→entity relation used for mention counting,
+# trend scoring, and bridge exclusion. Must be in canonical list.
+base_relation: MENTIONS
+
+# --- Quality Thresholds ---
+quality_thresholds:
+  entity_density_target: 4.0                # entities per 1000 chars (biosafety docs are denser)
+  evidence_coverage_min: 0.8                # fraction of asserted relations with evidence
+  avg_confidence_target: 0.85               # target average confidence
+  relation_entity_ratio_target: 0.5         # semantic relations / entities
+  tech_terms_min: 2                         # domain articles should have >= 2 domain terms
+  relation_type_diversity_target: 5         # distinct semantic relation types used
+
+# --- Gate Thresholds (non-negotiable CPU quality gates) ---
+gate_thresholds:
+  evidence_fidelity_min: 0.70               # snippet must appear in source text
+  orphan_max: 0.0                           # zero tolerance for orphan relation endpoints
+  zero_value_min_entities: 1                # non-trivial docs must produce >= 1 entity
+  zero_value_min_doc_chars: 500             # docs shorter than this skip zero-value gate
+  high_confidence_threshold: 0.8            # confidence above this + bad evidence = escalate
+
+# Combined quality score below this triggers escalation to stronger model
+escalation_threshold: 0.6
+
+# --- Scoring Weights ---
+# Used by score_extraction_quality(). Must sum to 1.0.
+scoring_weights:
+  density: 0.10         # entity density vs target (lower weight; biosafety docs vary more)
+  evidence: 0.20        # evidence fidelity (higher weight; regulatory accuracy critical)
+  confidence: 0.10      # average relation confidence
+  connectivity: 0.20    # relation-to-entity ratio
+  diversity: 0.20       # entity type diversity
+  tech_terms: 0.20      # domain-specific term extraction (select agents, techniques)
+
+# --- Trend Weights ---
+# Used by TrendScorer. velocity+novelty+activity must sum to 1.0.
+trend_weights:
+  velocity: 0.35          # rate of mention increase (slightly lower; regulatory is steadier)
+  novelty: 0.35           # new agents/regulations get higher novelty weight
+  activity: 0.30          # raw mention volume
+  velocity_cap: 5.0
+  activity_cap: 15        # lower cap; fewer daily sources than AI domain
+  max_age_days: 730       # 2 years; regulatory changes have longer relevance cycles
+  novelty_age_weight: 0.5
+  novelty_rarity_weight: 0.5
+
+# --- Suppressed Entities ---
+# Generic terms the LLM tends to extract as entities but add noise.
+# These are filtered during import/resolution.
+suppressed_entities:
+  - biosafety
+  - biosecurity
+  - pathogen
+  - agent
+  - toxin
+  - laboratory
+  - lab
+  - research
+  - regulation
+  - safety
+  - security
+  - health
+  - public health
+  - government
+  - federal
+  - program
+  - United States
+  - US
+  - USA
+  - policy
+  - science
+  - biology
+  - microbiology
+  - infectious disease
+  - disease
+  - virus
+  - bacteria
+  - oversight
+  - compliance
+  - inspection
+  - risk
+  - threat
+  - biodefense
+  - dual-use
+  - containment
+  - protocol
+  - guideline
+  - standard
+
+# --- Prompts ---
+prompts:
+  dir: prompts
+  system_prompt: system.txt
+  user_prompt: user.txt
+  single_message_prompt: single_message.txt

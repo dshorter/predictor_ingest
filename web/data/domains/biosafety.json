@@ -1,0 +1,33 @@
+{
+  "domain": "biosafety",
+  "title": "Biosafety Trend Graph",
+  "titleShort": "Biosafety Trends",
+  "entityTypes": [
+    "Org", "Person", "SelectAgent", "Facility", "Regulation",
+    "Program", "Tech", "Location", "Event", "Paper",
+    "Dataset", "Topic", "Document", "Other"
+  ],
+  "typeGroups": [
+    { "label": "Actors", "types": ["Org", "Person", "Program"] },
+    { "label": "Agents & Facilities", "types": ["SelectAgent", "Facility", "Tech"] },
+    { "label": "Governance", "types": ["Regulation", "Location", "Event"] },
+    { "label": "Knowledge", "types": ["Paper", "Dataset", "Topic"] },
+    { "label": "Context", "types": ["Document", "Other"] }
+  ],
+  "typeColors": {
+    "Org": "#4A90D9",
+    "Person": "#50B4A8",
+    "SelectAgent": "#DC2626",
+    "Facility": "#EA580C",
+    "Regulation": "#7C3AED",
+    "Program": "#6366F1",
+    "Tech": "#EAB308",
+    "Location": "#0EA5E9",
+    "Event": "#F43F5E",
+    "Paper": "#10B981",
+    "Dataset": "#F59E0B",
+    "Topic": "#64748B",
+    "Document": "#9CA3AF",
+    "Other": "#A1A1AA"
+  }
+}

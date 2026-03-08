@@ -16,7 +16,6 @@ const AppState = {
   currentView: 'trending',
   dataSource: 'live',       // 'live' | 'sample'
   currentTier: 'medium',    // sample tier (only used when dataSource === 'sample')
-  domain: new URLSearchParams(window.location.search).get('domain') || 'ai',
   anchorDate: null,          // ISO date string — the "as of" anchor for filtering
   activePresetDays: 30,      // which preset is active (7, 30, 90, or null for All)
   dateRange: null,           // { start, end } from meta — article publication dates
@@ -24,8 +23,65 @@ const AppState = {
   cy: null,
   navigator: null,
   navigatorVisible: true,
-  filter: null               // GraphFilter instance, set during init
+  filter: null,              // GraphFilter instance, set during init
+  domainConfig: null         // Domain config loaded from data/domain.json
 };
+
+/**
+ * Load domain configuration.
+ * Checks ?domain=<slug> URL parameter first, then falls back to data/domain.json.
+ * Sets AppState.domainConfig and updates page title + CSS variables.
+ */
+async function loadDomainConfig() {
+  // Check URL parameter: ?domain=biosafety
+  const params = new URLSearchParams(window.location.search);
+  const domainParam = params.get('domain');
+
+  // Try domain-specific config first, then fall back to default
+  const urls = domainParam
+    ? [`data/domains/${domainParam}.json`, 'data/domain.json']
+    : ['data/domain.json'];
+
+  let loaded = false;
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) continue;
+      AppState.domainConfig = await resp.json();
+      loaded = true;
+      break;
+    } catch (e) {
+      continue;
+    }
+  }
+
+  if (!loaded) {
+    console.warn('No domain config found, using defaults');
+    AppState.domainConfig = {
+      domain: 'ai',
+      title: 'Trend Graph',
+      titleShort: 'Trends',
+      entityTypes: [],
+      typeGroups: [],
+      typeColors: {}
+    };
+  }
+
+  // Apply domain title to page
+  const title = AppState.domainConfig.title || 'Trend Graph';
+  document.title = title;
+  const titleEl = document.querySelector('.app-title');
+  if (titleEl) titleEl.textContent = title;
+
+  // Inject domain-specific CSS color variables
+  const colors = AppState.domainConfig.typeColors || {};
+  const root = document.documentElement;
+  for (const [type, color] of Object.entries(colors)) {
+    root.style.setProperty(`--color-${type.toLowerCase()}`, color);
+  }
+
+  return AppState.domainConfig;
+}
 
 /**
  * Initialize theme from OS preference or saved preference.
@@ -160,7 +216,7 @@ function getDataUrl(view) {
     const tier = AppState.currentTier || 'medium';
     return `${basePath}/${tier}/${view}.json`;
   }
-  const domain = AppState.domain || 'ai';
+  const domain = (AppState.domainConfig && AppState.domainConfig.domain) || 'ai';
   return `${basePath}/live/${domain}/${view}.json`;
 }
 
@@ -177,17 +233,18 @@ async function switchDataSource(source, tier) {
  * Initialize the application
  */
 async function initializeApp() {
-  const domainLabels = { ai: 'AI Trend Graph', biosafety: 'Biosafety Trend Graph' };
-  const domainLabel = domainLabels[AppState.domain] || (AppState.domain + ' Trend Graph');
-  console.log('Initializing ' + domainLabel + '...');
-
-  // Set domain-aware title
-  document.title = domainLabel;
-  const titleEl = document.querySelector('.app-title');
-  if (titleEl) titleEl.textContent = domainLabel;
-
   // Initialize theme BEFORE any rendering
   initTheme();
+
+  // Load domain config (title, entity types, colors)
+  await loadDomainConfig();
+  const domainName = AppState.domainConfig.title || 'Trend Graph';
+  console.log(`Initializing ${domainName}...`);
+
+  // Set domain-aware page title and toolbar heading
+  document.title = domainName;
+  const titleEl = document.querySelector('.app-title');
+  if (titleEl) titleEl.textContent = domainName;
 
   try {
     // Show loading state
