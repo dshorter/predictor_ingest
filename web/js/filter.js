@@ -191,13 +191,16 @@ class GraphFilter {
    * Reset all filters to defaults
    */
   reset() {
+    // Use domain config entity types if available, else fall back to AI defaults
+    const domainTypes = (typeof AppState !== 'undefined' && AppState.domainConfig
+      && AppState.domainConfig.entityTypes && AppState.domainConfig.entityTypes.length > 0)
+      ? AppState.domainConfig.entityTypes
+      : ['Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
+         'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'];
     this.filters = {
       dateStart: null,
       dateEnd: null,
-      types: new Set([
-        'Org', 'Person', 'Model', 'Tool', 'Dataset', 'Benchmark',
-        'Paper', 'Repo', 'Tech', 'Topic', 'Event', 'Program', 'Location', 'Document', 'Other'
-      ]),
+      types: new Set(domainTypes),
       // 'hypothesis' intentionally excluded — see constructor comment.
       kinds: new Set(['asserted', 'inferred']),
       minConfidence: 0.3,
@@ -212,7 +215,10 @@ class GraphFilter {
   getActiveFilterCount() {
     let count = 0;
     if (this.filters.dateStart || this.filters.dateEnd) count++;
-    if (this.filters.types.size < 15) count++;  // Less than all 15 types
+    const allTypeCount = (typeof AppState !== 'undefined' && AppState.domainConfig
+      && AppState.domainConfig.entityTypes && AppState.domainConfig.entityTypes.length > 0)
+      ? AppState.domainConfig.entityTypes.length : 15;
+    if (this.filters.types.size < allTypeCount) count++;
     if (this.filters.kinds.size < 3) count++;
     if (this.filters.minConfidence > 0) count++;
     if (this.filters.viewPreset !== 'all') count++;

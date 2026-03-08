@@ -261,8 +261,8 @@ function mobileCenterNode(nodeId) {
  * @param {GraphFilter} filter - The shared filter instance
  */
 function initializeMobileFilterPanel(filter) {
-  // Populate type filters dynamically
-  populateTypeFilters(filter.cy);
+  // Populate type filters dynamically (pass filter for event binding)
+  populateTypeFilters(filter.cy, filter);
 
   // --- Data source radios ---
   var dataSourceRadios = document.querySelectorAll('input[name="data-source"]');

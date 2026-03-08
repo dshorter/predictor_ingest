@@ -31,6 +31,7 @@ var AppState = {
   dataSource: 'live',
   currentTier: 'medium',
   domain: new URLSearchParams(window.location.search).get('domain') || 'ai',
+  domainConfig: null,
   anchorDate: null,
   activePresetDays: 30,
   dateRange: null,
@@ -44,6 +45,60 @@ window.MobileApp = {
   sheetTouch: null,
   longPress: null
 };
+
+/* ============================================================
+   Domain Config (ported from desktop app.js)
+   ============================================================ */
+
+async function loadDomainConfig() {
+  var domainParam = AppState.domain;
+  var urls = domainParam
+    ? ['../data/domains/' + domainParam + '.json', '../data/domain.json']
+    : ['../data/domain.json'];
+
+  var loaded = false;
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var resp = await fetch(urls[i]);
+      if (!resp.ok) continue;
+      AppState.domainConfig = await resp.json();
+      loaded = true;
+      break;
+    } catch (e) {
+      continue;
+    }
+  }
+
+  if (!loaded) {
+    console.warn('No domain config found, using defaults');
+    AppState.domainConfig = {
+      domain: 'ai',
+      title: 'AI Trend Graph',
+      titleShort: 'AI Trends',
+      entityTypes: [],
+      typeGroups: [],
+      typeColors: {}
+    };
+  }
+
+  // Apply domain title to page
+  var title = AppState.domainConfig.title || 'Trend Graph';
+  var titleShort = AppState.domainConfig.titleShort || title;
+  document.title = titleShort;
+  var titleEl = document.getElementById('app-title');
+  if (titleEl) titleEl.textContent = titleShort;
+
+  // Inject domain-specific CSS color variables
+  var colors = AppState.domainConfig.typeColors || {};
+  var root = document.documentElement;
+  for (var type in colors) {
+    if (colors.hasOwnProperty(type)) {
+      root.style.setProperty('--color-' + type.toLowerCase(), colors[type]);
+    }
+  }
+
+  return AppState.domainConfig;
+}
 
 /* ============================================================
    Theme
@@ -533,16 +588,12 @@ function hideHelpGuide() {
    ============================================================ */
 
 async function initializeApp() {
-  var domainLabels = { ai: 'AI Trends', biosafety: 'Biosafety Trends' };
-  var domainLabel = domainLabels[AppState.domain] || (AppState.domain + ' Trends');
-  console.log('Initializing ' + domainLabel + ' (mobile)...');
-
-  // Set domain-aware title
-  document.title = domainLabel;
-  var titleEl = document.getElementById('app-title');
-  if (titleEl) titleEl.textContent = domainLabel;
-
   initTheme();
+
+  // Load domain config (title, entity types, colors) before filter/graph init
+  await loadDomainConfig();
+  var domainLabel = AppState.domainConfig.titleShort || AppState.domainConfig.title || 'Trends';
+  console.log('Initializing ' + domainLabel + ' (mobile)...');
 
   try {
     showLoading('Initializing...');

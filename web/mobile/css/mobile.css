@@ -833,6 +833,11 @@ html, body {
 .badge-type-location { background: rgba(14, 165, 233, 0.15); color: #0EA5E9; }
 .badge-type-other { background: rgba(161, 161, 170, 0.15); color: #71717A; }
 
+/* Biosafety domain types */
+.badge-type-selectagent { background: rgba(220, 38, 38, 0.15); color: #DC2626; }
+.badge-type-facility { background: rgba(234, 88, 12, 0.15); color: #EA580C; }
+.badge-type-regulation { background: rgba(124, 58, 237, 0.15); color: #7C3AED; }
+
 /* Kind badges */
 .badge-kind-asserted { background: rgba(16, 185, 129, 0.15); color: #10B981; }
 .badge-kind-inferred { background: rgba(245, 158, 11, 0.15); color: #D97706; }
