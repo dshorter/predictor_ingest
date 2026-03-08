@@ -587,7 +587,7 @@ def main() -> int:
             "name": "ingest",
             "cmd": [
                 sys.executable, "-m", "ingest.rss",
-                "--config", "config/feeds.yaml",
+                "--config", f"domains/{args.domain}/feeds.yaml",
                 "--db", db_path,
                 "--skip-existing",
             ],

@@ -21,7 +21,7 @@ init-db:
 # ── Pipeline steps ─────────────────────────────────────────────────────
 
 ingest:
-	python -m ingest.rss --config config/feeds.yaml --db $(DB)
+	python -m ingest.rss --config domains/$(DOMAIN)/feeds.yaml --db $(DB)
 
 docpack:
 	python scripts/build_docpack.py --db $(DB) --all --label $(DATE)
