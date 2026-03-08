@@ -590,12 +590,12 @@ function hideHelpGuide() {
 async function initializeApp() {
   initTheme();
 
-  // Load domain config (title, entity types, colors) before filter/graph init
-  await loadDomainConfig();
-  var domainLabel = AppState.domainConfig.titleShort || AppState.domainConfig.title || 'Trends';
-  console.log('Initializing ' + domainLabel + ' (mobile)...');
-
   try {
+    // Load domain config (title, entity types, colors) before filter/graph init
+    await loadDomainConfig();
+    var domainLabel = AppState.domainConfig.titleShort || AppState.domainConfig.title || 'Trends';
+    console.log('Initializing ' + domainLabel + ' (mobile)...');
+
     showLoading('Initializing...');
 
     var container = document.getElementById('cy');
@@ -614,9 +614,20 @@ async function initializeApp() {
     var sampleList = document.getElementById('sample-tier-list');
     if (sampleList) sampleList.classList.add('hidden');
 
-    // Load data
+    // Load data — try live first, fall back to sample if live data not available
     var dataUrl = getDataUrl(AppState.currentView);
-    var data = await loadGraphData(dataUrl);
+    var data;
+    try {
+      data = await loadGraphData(dataUrl);
+    } catch (liveErr) {
+      console.warn('Live data not available (' + liveErr.message + '), falling back to sample');
+      AppState.dataSource = 'sample';
+      dataUrl = getDataUrl(AppState.currentView);
+      data = await loadGraphData(dataUrl);
+      // Sync radio button
+      var sampleRadio = document.querySelector('input[name="data-source"][value="sample"]');
+      if (sampleRadio) sampleRadio.checked = true;
+    }
 
     // Initialize Cytoscape (no minimap, no navigator)
     AppState.cy = initializeGraph(container, data, getCytoscapeStyles());
@@ -665,6 +676,7 @@ async function initializeApp() {
 
   } catch (error) {
     console.error('Failed to initialize mobile app:', error);
+    console.error('Stack:', error.stack);
     hideLoading();
     showError('Failed to initialize: ' + error.message);
   }
