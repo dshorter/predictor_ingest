@@ -494,12 +494,12 @@ def main() -> int:
         help="Pipeline date, YYYY-MM-DD (default: today)",
     )
     parser.add_argument(
-        "--graphs-dir", default="data/graphs",
-        help="Graph output directory (default: data/graphs)",
+        "--graphs-dir", default=None,
+        help="Graph output directory (default: data/graphs/{domain})",
     )
     parser.add_argument(
-        "--log-dir", default="data/logs",
-        help="Log output directory (default: data/logs)",
+        "--log-dir", default=None,
+        help="Log output directory (default: data/logs/{domain})",
     )
     parser.add_argument(
         "--web-live-dir", default="web/data/graphs/live",
@@ -546,17 +546,21 @@ def main() -> int:
     os.environ["PREDICTOR_DOMAIN"] = args.domain
     set_active_domain(args.domain)
 
-    # Derive DB path from domain if not explicitly provided
+    # Derive domain-scoped paths if not explicitly provided
+    from util.paths import get_db_path, get_docpacks_dir, get_graphs_dir, get_logs_dir
     if args.db is None:
-        args.db = f"data/db/{args.domain}.db"
+        args.db = str(get_db_path(args.domain))
 
     project_root = Path(__file__).resolve().parents[1]
     run_date = args.date
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     db_path = args.db
     # Domain-scoped graph output: data/graphs/{domain}/
-    graphs_dir = f"{args.graphs_dir}/{args.domain}"
-    docpack_path = f"data/docpacks/daily_bundle_{run_date}.jsonl"
+    graphs_dir = args.graphs_dir or str(get_graphs_dir(args.domain))
+    # Domain-scoped log output: data/logs/{domain}/
+    if args.log_dir is None:
+        args.log_dir = str(get_logs_dir(args.domain))
+    docpack_path = str(get_docpacks_dir(args.domain) / f"daily_bundle_{run_date}.jsonl")
     docpack_label = run_date
 
     # Initialize run log

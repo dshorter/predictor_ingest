@@ -25,12 +25,16 @@ def main() -> int:
         description="Export graph views to Cytoscape.js JSON."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
     )
     parser.add_argument(
-        "--output-dir", default="data/graphs",
-        help="Base output directory (default: data/graphs)",
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
+    )
+    parser.add_argument(
+        "--output-dir", default=None,
+        help="Base output directory (default: data/graphs/{domain})",
     )
     parser.add_argument(
         "--date", default=date.today().isoformat(),
@@ -50,6 +54,13 @@ def main() -> int:
         help="Explicit end date (ISO). Defaults to --date value.",
     )
     args = parser.parse_args()
+
+    # Resolve domain-scoped defaults
+    from util.paths import get_db_path, get_graphs_dir
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
+    if args.output_dir is None:
+        args.output_dir = str(get_graphs_dir(args.domain))
 
     # Resolve date range
     end_date = args.end_date or args.date

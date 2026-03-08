@@ -1,14 +1,18 @@
 .PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data pipeline post-extract daily test test-network test-all
 
+# Domain slug — all data paths derive from this
+DOMAIN ?= ai
+DOMAIN_FLAG = --domain $(DOMAIN)
+
 # Configurable paths (override with: make export DATE=2026-01-15)
 DB ?= data/db/$(DOMAIN).db
 DATE ?= $(shell date +%Y-%m-%d)
-GRAPHS_DIR ?= data/graphs
-DOCPACK ?= data/docpacks/daily_bundle_$(DATE).jsonl
+GRAPHS_DIR ?= data/graphs/$(DOMAIN)
+DOCPACK_DIR ?= data/docpacks/$(DOMAIN)
+DOCPACK ?= $(DOCPACK_DIR)/daily_bundle_$(DATE).jsonl
+EXTRACTIONS_DIR ?= data/extractions/$(DOMAIN)
 BUDGET ?= 20
 BUDGET_FLAG = $(if $(BUDGET),--budget $(BUDGET),)
-DOMAIN ?= ai
-DOMAIN_FLAG = --domain $(DOMAIN)
 
 # ── Setup ──────────────────────────────────────────────────────────────
 
@@ -21,45 +25,45 @@ init-db:
 # ── Pipeline steps ─────────────────────────────────────────────────────
 
 ingest:
-	python -m ingest.rss --config domains/$(DOMAIN)/feeds.yaml --db $(DB)
+	python -m ingest.rss --config domains/$(DOMAIN)/feeds.yaml --db $(DB) --raw-dir data/raw/$(DOMAIN) --text-dir data/text/$(DOMAIN)
 
 docpack:
-	python scripts/build_docpack.py --db $(DB) --all --label $(DATE)
+	python scripts/build_docpack.py --db $(DB) --all --label $(DATE) --output-dir $(DOCPACK_DIR) $(DOMAIN_FLAG)
 
 extract:
-	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB) $(DOMAIN_FLAG)
+	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB) --output-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
 
 extract-shadow:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB) $(DOMAIN_FLAG)
+	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB) --output-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
 
 shadow-only:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB) $(DOMAIN_FLAG)
+	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB) --output-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
 
 shadow-report:
-	python scripts/shadow_report.py --db $(DB)
+	python scripts/shadow_report.py --db $(DB) $(DOMAIN_FLAG)
 
 health-report:
-	python scripts/health_report.py --db $(DB)
+	python scripts/health_report.py --db $(DB) $(DOMAIN_FLAG)
 
 import:
-	python scripts/import_extractions.py --db $(DB)
+	python scripts/import_extractions.py --db $(DB) --extractions-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
 
 resolve:
-	python scripts/run_resolve.py --db $(DB)
+	python scripts/run_resolve.py --db $(DB) $(DOMAIN_FLAG)
 
 export:
-	python scripts/run_export.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DOMAIN) --date $(DATE)
+	python scripts/run_export.py --db $(DB) --output-dir $(GRAPHS_DIR) --date $(DATE) $(DOMAIN_FLAG)
 
 trending:
-	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DOMAIN)/$(DATE)
+	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE) $(DOMAIN_FLAG)
 
 copy-to-live:
 	@mkdir -p web/data/graphs/live/$(DOMAIN)
-	cp $(GRAPHS_DIR)/$(DOMAIN)/$(DATE)/*.json web/data/graphs/live/$(DOMAIN)/
-	@echo "Copied $(GRAPHS_DIR)/$(DOMAIN)/$(DATE)/ → web/data/graphs/live/$(DOMAIN)/"
+	cp $(GRAPHS_DIR)/$(DATE)/*.json web/data/graphs/live/$(DOMAIN)/
+	@echo "Copied $(GRAPHS_DIR)/$(DATE)/ → web/data/graphs/live/$(DOMAIN)/"
 
 dashboard-data:
-	python scripts/generate_dashboard_json.py --db $(DB)
+	python scripts/generate_dashboard_json.py --db $(DB) $(DOMAIN_FLAG)
 
 # ── Composites ─────────────────────────────────────────────────────────
 
@@ -78,6 +82,11 @@ daily:
 
 daily-manual:
 	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(BUDGET_FLAG) $(DOMAIN_FLAG) $(PIPELINE_FLAGS)
+
+# ── Data migration ────────────────────────────────────────────────────
+
+migrate:
+	python scripts/migrate_data_dirs.py
 
 # ── Testing ────────────────────────────────────────────────────────────
 

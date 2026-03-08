@@ -605,8 +605,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Pipeline health report: critical mass tracking and source quality."
     )
-    parser.add_argument("--db", default="data/db/predictor.db",
-                        help="Path to SQLite database")
+    parser.add_argument("--domain", default=None,
+                        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)")
+    parser.add_argument("--db", default=None,
+                        help="Path to SQLite database (default: data/db/{domain}.db)")
     parser.add_argument("--days", type=int, default=None,
                         help="Limit ingestion stats to last N days (default: all time)")
     parser.add_argument("--date", default=None,
@@ -614,6 +616,10 @@ def main() -> int:
     parser.add_argument("--summary", action="store_true",
                         help="Print only the one-liner summary")
     args = parser.parse_args()
+
+    from util.paths import get_db_path
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
 
     db_path = Path(args.db)
     if not db_path.exists():

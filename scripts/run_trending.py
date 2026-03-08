@@ -197,12 +197,16 @@ def main() -> int:
         description="Export trending view in Cytoscape.js format."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
+    )
+    parser.add_argument(
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
         "--output-dir", default=None,
-        help="Output directory (default: data/graphs/{today})",
+        help="Output directory (default: data/graphs/{domain}/{today})",
     )
     parser.add_argument(
         "--top-n", type=int, default=50,
@@ -215,7 +219,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    output_dir = Path(args.output_dir) if args.output_dir else Path("data/graphs") / date.today().isoformat()
+    from util.paths import get_db_path, get_graphs_dir
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
+    output_dir = Path(args.output_dir) if args.output_dir else get_graphs_dir(args.domain) / date.today().isoformat()
 
     export_trending(
         db_path=Path(args.db),

@@ -277,8 +277,12 @@ def main() -> int:
         description="Build daily document pack (JSONL + Markdown)."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
+    )
+    parser.add_argument(
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
         "--date", default=date.today().isoformat(),
@@ -289,8 +293,8 @@ def main() -> int:
         help="Maximum documents per bundle (default: 500)",
     )
     parser.add_argument(
-        "--output-dir", default="data/docpacks",
-        help="Output directory (default: data/docpacks)",
+        "--output-dir", default=None,
+        help="Output directory (default: data/docpacks/{domain})",
     )
     parser.add_argument(
         "--all", action="store_true",
@@ -316,6 +320,13 @@ def main() -> int:
              "(default: config/feeds.yaml)",
     )
     args = parser.parse_args()
+
+    # Resolve domain-scoped defaults
+    from util.paths import get_db_path, get_docpacks_dir
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
+    if args.output_dir is None:
+        args.output_dir = str(get_docpacks_dir(args.domain))
 
     # Resolve feeds config path
     feeds_config = None

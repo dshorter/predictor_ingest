@@ -21,8 +21,12 @@ def main() -> int:
         description="Run entity resolution pass on the database."
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
+    )
+    parser.add_argument(
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
         "--threshold", type=float, default=0.85,
@@ -33,6 +37,10 @@ def main() -> int:
         help="Report potential merges without applying",
     )
     args = parser.parse_args()
+
+    from util.paths import get_db_path
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
 
     conn = init_db(Path(args.db))
     resolver = EntityResolver(conn, threshold=args.threshold)

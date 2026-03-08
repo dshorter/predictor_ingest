@@ -20,6 +20,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Add src/ to import path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -245,10 +248,18 @@ def main() -> int:
         help="Upload snapshot as a GitHub gist (requires 'gh' CLI).",
     )
     parser.add_argument(
-        "--db", default="data/db/predictor.db",
-        help="Path to SQLite database (default: data/db/predictor.db)",
+        "--domain", default=None,
+        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)",
+    )
+    parser.add_argument(
+        "--db", default=None,
+        help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     args = parser.parse_args()
+
+    from util.paths import get_db_path
+    if args.db is None:
+        args.db = str(get_db_path(args.domain))
 
     timestamp = utc_now_compact()
     snapshot_name = f"snapshot_{timestamp}"
