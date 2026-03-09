@@ -89,6 +89,39 @@ directly (Option C). Cost delta is small (~$8 vs $25/month).
 
 **Details:** [docs/fix-details/ext4-cheap-model-escalation-analysis.md](docs/fix-details/ext4-cheap-model-escalation-analysis.md)
 
+### EXT-5: `LOCATED_IN` relation type not in canonical taxonomy
+
+**Observed:** 2026-03-08 | **Priority:** Low (monitor)
+
+AI domain extraction produced a `LOCATED_IN` relation that failed schema
+validation — this relation type is not in the V1 canonical taxonomy. The
+cheap model invented it rather than mapping to an existing type or omitting.
+
+**Options:**
+- Add `LOCATED_IN` to the canonical taxonomy if it recurs and is useful
+- Add a negative example to the extraction prompt ("do not invent relation types")
+- Rely on existing validation to catch and reject (current behavior)
+
+**Waiting on:** Monitor whether this recurs. If it's a one-off, no action needed.
+
+### EXT-6: Biosafety specialist prompt missing required relation field specs
+
+**Observed:** 2026-03-08 | **Priority:** High | **Status:** Fixed (prompt updated)
+
+All 5 biosafety specialist (claude-sonnet-4-5) escalation attempts failed
+schema validation with missing `rel` or `source` properties. Root cause:
+the biosafety `system.txt` and `single_message.txt` prompts did not
+explicitly list required relation fields (`source`, `rel`, `target`, `kind`,
+`confidence`, `evidence`), unlike the AI domain prompt which specifies each
+field with descriptions.
+
+**Fix applied:** Updated both biosafety prompt files to match the AI domain's
+explicit field-by-field specification structure. Added entity specificity
+guidance and critical rules section.
+
+**Verify:** Next biosafety pipeline run should show specialist validation
+pass rate > 0% (was 0/5 before fix).
+
 ---
 
 ## Entity Resolution

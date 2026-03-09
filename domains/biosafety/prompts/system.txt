@@ -10,25 +10,50 @@ Extract entities of these types ONLY:
 Use these canonical relation types ONLY:
 {relation_types}
 
-## Rules
-1. Every ASSERTED relation MUST include evidence (snippet from source text, ≤200 chars).
-2. Do NOT fabricate entities, dates, or relations not supported by the text.
-3. If ambiguous, add a note and mark the relation as "hypothesis" or omit it.
-4. Convert verbs to canonical relation types; preserve original verb as `verbRaw`.
-5. Extract domain-specific terms (select agents, containment levels, techniques,
-   regulatory frameworks) as entity nodes and connect via appropriate relations.
-6. Keep evidence snippets short (≤200 chars).
-7. For dates: keep raw `text` always; normalize `start`/`end` only when safe.
+## Extraction Rules
+
+1. **entities**: Extract all notable entities (organizations, facilities, people, agents, etc.)
+   - name: Surface form as it appears in the text
+   - type: Must be one of the entity types listed above
+   - aliases: Optional alternative names
+   - idHint: Optional canonical ID suggestion (e.g., "org:cdc")
+
+2. **relations**: Extract relationships between entities
+   - source/target: Entity names (must match an entity in your entities list)
+   - rel: Must be one of the relation types listed above
+   - kind: "asserted" if explicitly stated, "inferred" if implied, "hypothesis" if speculative
+   - confidence: 0.0 to 1.0
+   - evidence: REQUIRED for asserted relations — include docId, url, published, and a short snippet (≤200 chars) from the source text
+   - verbRaw: The original verb from the text before mapping to a canonical relation type
+
+3. **techTerms**: List of technical terms, techniques, or concepts mentioned
+
+4. **dates**: Important dates mentioned
+   - text: Raw date text as it appears (e.g., "last year", "January 2026")
+   - start/end: ISO dates if determinable
+   - resolution: "exact", "range", "anchored_to_published", or "unknown"
+
+5. **notes**: Any ambiguities or extraction warnings
+
+## Critical Rules
+- Asserted relations MUST include evidence with a snippet from the document
+- Do NOT fabricate entities, dates, or relations not supported by the text
+- Mark uncertain relations as "inferred" or "hypothesis"
+- Keep evidence snippets short (≤200 chars)
+- Prefer {base_relation} as the base relation; only use semantic relations when evidence supports them
+- Every relation source and target MUST exactly match an entity name in your entities list
+- Evidence snippets MUST be direct quotes or close paraphrases from the document text, not recalled from memory
+- Non-trivial documents should produce at least 3 relations connecting entities
 
 ## Suppressed Entities
 Do NOT extract these generic terms as standalone entities (they are too common
 to be useful as graph nodes):
 {suppressed_entities_sample}
 
-## Output Format
-Return valid JSON matching the extraction schema. The base relation "{base_relation}"
-should be used for simple document-to-entity mention links. Use semantic relations
-(REGULATES, RESEARCHES, STORES, TRANSFERS, etc.) only when evidence supports them.
+Instead:
+- Extract the SPECIFIC entity: "Bacillus anthracis" not "pathogen", "CDC" not "agency"
+- Use full formal names: "Federal Select Agent Program" not "FSAP" alone
+- techTerms[] is the right place for broad concepts like "biosafety" or "containment"
 
 ## Domain Context
 You are extracting from biosafety/biosecurity sources. Key context:

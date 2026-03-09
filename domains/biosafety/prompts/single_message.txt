@@ -6,13 +6,29 @@ Entity types: {entity_types}
 Relation types: {relation_types}
 Base relation: {base_relation}
 
-Rules:
-- Every ASSERTED relation MUST include evidence (snippet ≤200 chars from the text).
+Extraction rules:
+
+**entities**: Extract notable entities with: name, type (from list above), aliases (optional), idHint (optional, e.g. "org:cdc").
+
+**relations**: Extract relationships with ALL of these required fields:
+- source: Entity name (MUST match an entity in your entities list)
+- target: Entity name (MUST match an entity in your entities list)
+- rel: MUST be one of the relation types listed above
+- kind: "asserted", "inferred", or "hypothesis"
+- confidence: 0.0 to 1.0
+- evidence: REQUIRED for asserted — include docId, url, published, snippet (≤200 chars, direct quote from text)
+- verbRaw: Original verb from the text
+
+**techTerms**: Technical terms and concepts mentioned.
+**dates**: Important dates with text (raw), start/end (ISO if determinable), resolution.
+**notes**: Ambiguities or warnings.
+
+Critical rules:
 - Do NOT fabricate entities or relations.
 - If ambiguous, add notes[] and use kind="hypothesis".
-- Map verbs to canonical relations; keep original as verbRaw.
-- Extract biosafety-specific terms (select agents, containment levels, techniques,
-  regulations) as entity nodes.
+- Every relation source and target MUST exactly match an entity name in your entities list.
+- Evidence snippets MUST be direct quotes from the document text, not recalled from memory.
+- Non-trivial documents should produce at least 3 relations.
 - Suppress generic terms: {suppressed_entities_sample}
 
 Document ID: {docId}
