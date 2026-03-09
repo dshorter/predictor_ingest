@@ -16,7 +16,7 @@ Extraction rules:
 - rel: MUST be one of the relation types listed above
 - kind: "asserted", "inferred", or "hypothesis"
 - confidence: 0.0 to 1.0
-- evidence: REQUIRED for asserted — include docId, url, published, snippet (≤200 chars, direct quote from text)
+- evidence: REQUIRED for asserted — an ARRAY of objects: [{"docId": "...", "url": "...", "published": "...", "snippet": "≤200 chars, direct quote from text"}]
 - verbRaw: Original verb from the text
 
 **techTerms**: Technical terms and concepts mentioned.
