@@ -1,0 +1,73 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Predictor Ingest//Pipeline Schedule//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Predictor Ingest Pipeline
+X-WR-TIMEZONE:America/New_York
+BEGIN:VTIMEZONE
+TZID:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:daily-pipeline-run@predictor-ingest
+DTSTART;TZID=America/New_York:20260309T130000
+DTEND;TZID=America/New_York:20260309T133000
+RRULE:FREQ=DAILY
+SUMMARY:Run Daily Pipeline (AI + Biosafety)
+DESCRIPTION:Run both domain pipelines:\n\n  make daily\n  make daily DOMAIN=biosafety\n\nThen review extraction logs for errors.\nCheck data/extractions/ for new output.
+CATEGORIES:Pipeline
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:Pipeline run in 10 minutes
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:weekly-quality-review@predictor-ingest
+DTSTART;TZID=America/New_York:20260313T150000
+DTEND;TZID=America/New_York:20260313T160000
+RRULE:FREQ=WEEKLY;BYDAY=FR
+SUMMARY:Weekly Quality Review
+DESCRIPTION:Review extraction quality metrics for both domains:\n\n  python scripts/collect_metrics_gist.py\n  python scripts/collect_metrics_gist.py --domain biosafety\n\nCheck:\n- Evidence fidelity rates\n- Orphan endpoint counts\n- Entity resolution drift\n- Feed health / 404s\n- Trend scoring sanity
+CATEGORIES:Quality
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Quality review in 15 minutes
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-7-whats-hot@predictor-ingest
+DTSTART;TZID=America/New_York:20260310T090000
+DTEND;TZID=America/New_York:20260310T110000
+SUMMARY:Sprint 7 - What's Hot Feature
+DESCRIPTION:Next sprint: What's Hot feature (Days 12-15)\n\n7.1 Velocity delta computation in export script\n7.2 Include velocity delta in graph JSON export\n7.3 whats-hot.js ranked list UI component\n7.4 Toolbar button + keyboard shortcut (h)\n7.5 Fly-to-neighborhood on item click\n7.6 Panel CSS for hot list drawer\n\nSee: docs/project-plan.md Sprint 7
+CATEGORIES:Sprint
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+UID:target-completion@predictor-ingest
+DTSTART;TZID=America/New_York:20260315T000000
+DTEND;TZID=America/New_York:20260316T000000
+SUMMARY:V1 Target Completion (mid-March)
+DESCRIPTION:Revised target for completing Sprints 7-11.\n\nRemaining:\n- Sprint 7: What's Hot\n- Sprint 8: Discovery Rewards\n- Sprint 9: Guided Entry\n- Sprint 10: Medium Gap Features\n- Sprint 11: Branding & Wrap-up\n\nBackend track items (B.8-B.11) may extend beyond this date.\n\nSee: docs/project-plan.md Progress Summary
+CATEGORIES:Milestone
+STATUS:TENTATIVE
+END:VEVENT
+END:VCALENDAR
