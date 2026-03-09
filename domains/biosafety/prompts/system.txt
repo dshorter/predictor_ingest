@@ -23,7 +23,7 @@ Use these canonical relation types ONLY:
    - rel: Must be one of the relation types listed above
    - kind: "asserted" if explicitly stated, "inferred" if implied, "hypothesis" if speculative
    - confidence: 0.0 to 1.0
-   - evidence: REQUIRED for asserted relations — an ARRAY of evidence objects, each with: docId (string), url (string), published (string), snippet (≤200 chars, direct quote from text). Example: [{"docId": "...", "url": "...", "published": "...", "snippet": "..."}]
+   - evidence: REQUIRED for asserted relations — an ARRAY of evidence objects, each with: docId (string), url (string), published (string), snippet (≤200 chars, direct quote from text). Example: [{{"docId": "...", "url": "...", "published": "...", "snippet": "..."}}]
    - verbRaw: The original verb from the text before mapping to a canonical relation type
 
 3. **techTerms**: List of technical terms, techniques, or concepts mentioned
