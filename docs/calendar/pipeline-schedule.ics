@@ -54,19 +54,64 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:sprint-7-whats-hot@predictor-ingest
-DTSTART;TZID=America/New_York:20260310T090000
-DTEND;TZID=America/New_York:20260310T110000
-SUMMARY:Sprint 7 - What's Hot Feature
-DESCRIPTION:Next sprint: What's Hot feature (Days 12-15)\n\n7.1 Velocity delta computation in export script\n7.2 Include velocity delta in graph JSON export\n7.3 whats-hot.js ranked list UI component\n7.4 Toolbar button + keyboard shortcut (h)\n7.5 Fly-to-neighborhood on item click\n7.6 Panel CSS for hot list drawer\n\nSee: docs/project-plan.md Sprint 7
+DTSTART;TZID=America/New_York:20260309T090000
+DTEND;TZID=America/New_York:20260312T170000
+SUMMARY:Sprint 7 - What's Hot Feature (Mar 9-12)
+DESCRIPTION:What's Hot feature — cross-cutting backend + frontend\n\n7.1 Velocity delta computation in export script\n7.2 Include velocity delta in graph JSON export\n7.3 whats-hot.js — ranked list UI component\n7.4 Toolbar button + keyboard shortcut (h)\n7.5 Fly-to-neighborhood on item click\n7.6 Panel CSS for hot list drawer\n\nModel: [Opus] — cross-cutting feature\nSee: docs/project-plan.md Sprint 7
 CATEGORIES:Sprint
 STATUS:TENTATIVE
 END:VEVENT
 BEGIN:VEVENT
+UID:sprint-8-discovery@predictor-ingest
+DTSTART;TZID=America/New_York:20260313T090000
+DTEND;TZID=America/New_York:20260314T170000
+SUMMARY:Sprint 8 - Discovery Rewards (Mar 13-14)
+DESCRIPTION:Discovery reward animations and badges\n\n8.1 New-entity entrance glow (.new nodes) [Sonnet]\n8.2 "N new since yesterday" toolbar badge [Sonnet]\n8.3 Staggered neighborhood reveal animation [Opus]\n8.4 "What's New" temporal highlight toggle [Sonnet]\n\nDepends on: Sprint 1 (.new class), Sprint 7 (signals)\nSee: docs/project-plan.md Sprint 8
+CATEGORIES:Sprint
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-9-guided-entry@predictor-ingest
+DTSTART;TZID=America/New_York:20260315T090000
+DTEND;TZID=America/New_York:20260315T170000
+SUMMARY:Sprint 9 - Guided Entry (Mar 15)
+DESCRIPTION:First-load experience\n\n9.1 "Today's Highlights" overlay card (top 3) [Opus]\n9.2 localStorage flag per export date [Opus]\n\nDepends on: Sprint 7 (signal data)\nSee: docs/project-plan.md Sprint 9
+CATEGORIES:Sprint
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-10-gap-features@predictor-ingest
+DTSTART;TZID=America/New_York:20260316T090000
+DTEND;TZID=America/New_York:20260318T170000
+SUMMARY:Sprint 10 - Medium Gap Features (Mar 16-18)
+DESCRIPTION:Spec features not yet built (parallelizable)\n\n10.1 Context menu (right-click) [Opus]\n10.2 Colorblind-safe palette + toggle [Sonnet]\n10.3 Custom date range picker [Sonnet]\n10.4 Gzipped JSON export [Sonnet]\n\nSee: docs/project-plan.md Sprint 10
+CATEGORIES:Sprint
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-11-branding@predictor-ingest
+DTSTART;TZID=America/New_York:20260319T090000
+DTEND;TZID=America/New_York:20260319T170000
+SUMMARY:Sprint 11 - Branding & Wrap-up (Mar 19)
+DESCRIPTION:Final sprint\n\n11.1 App title/branding swap [Manual — blocked on decision]\n11.2 Minimap toggle animation [Sonnet]\n11.3 Final QA pass [Manual]\n\nSee: docs/project-plan.md Sprint 11
+CATEGORIES:Sprint
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+UID:backend-b9-insights@predictor-ingest
+DTSTART;TZID=America/New_York:20260313T000000
+DTEND;TZID=America/New_York:20260314T000000
+SUMMARY:Backend B.9 Unblocked (~14 days pipeline data)
+DESCRIPTION:Insight generator script (scripts/generate_insights.py)\nbecomes unblockable around mid-March when >=14 days of\npipeline data are available.\n\nSee: docs/research/trend-insights.md Phase B\nSee: docs/project-plan.md Backend Track B.9
+CATEGORIES:Backend,Milestone
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
 UID:target-completion@predictor-ingest
-DTSTART;TZID=America/New_York:20260315T000000
-DTEND;TZID=America/New_York:20260316T000000
-SUMMARY:V1 Target Completion (mid-March)
-DESCRIPTION:Revised target for completing Sprints 7-11.\n\nRemaining:\n- Sprint 7: What's Hot\n- Sprint 8: Discovery Rewards\n- Sprint 9: Guided Entry\n- Sprint 10: Medium Gap Features\n- Sprint 11: Branding & Wrap-up\n\nBackend track items (B.8-B.11) may extend beyond this date.\n\nSee: docs/project-plan.md Progress Summary
+DTSTART;TZID=America/New_York:20260319T000000
+DTEND;TZID=America/New_York:20260320T000000
+SUMMARY:V1 Target Completion (~Mar 19)
+DESCRIPTION:Target for completing all UI sprints (7-11).\n\nBackend track items (B.8-B.11) may extend beyond this.\nB.10 (backtest harness) blocked until ~late March (>=30 days data).\n\nSee: docs/project-plan.md Progress Summary
 CATEGORIES:Milestone
 STATUS:TENTATIVE
 END:VEVENT
