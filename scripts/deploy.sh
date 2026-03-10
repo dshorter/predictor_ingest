@@ -53,24 +53,9 @@ mkdir -p "$REPO_DIR/data/logs"
 mkdir -p "$REPO_DIR/data/reports"
 mkdir -p "$REPO_DIR/web/data/graphs/live"
 
-# If running inside docker compose (alongside ai-agent-platform),
-# rebuild and restart the predictor container
-COMPOSE_DIR="/opt/ai-agent-platform"
-if [ -f "$COMPOSE_DIR/docker-compose.yml" ] && \
-   grep -q "predictor" "$COMPOSE_DIR/docker-compose.yml" 2>/dev/null; then
-
-    log "Rebuilding predictor container..."
-    cd "$COMPOSE_DIR"
-    docker compose build predictor
-    docker compose up -d predictor
-    log "Predictor container restarted"
-
-# Otherwise, just install deps directly on the host
-else
-    log "No docker compose with predictor service found, running directly"
-    cd "$REPO_DIR"
-    pip install -e . --quiet
-    log "Dependencies updated"
-fi
+# Install/update dependencies
+cd "$REPO_DIR"
+pip install -e . --quiet
+log "Dependencies updated"
 
 log "Deploy complete"
