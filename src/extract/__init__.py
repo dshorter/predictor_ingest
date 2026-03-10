@@ -80,11 +80,23 @@ def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
                     break
 
     # Normalize dates - convert null start/end to empty strings or remove
+    _DATE_RESOLUTION_MAP = {
+        "day": "exact",
+        "daily": "exact",
+        "month": "exact",
+        "year": "exact",
+        "weekly": "range",
+        "approximate": "unknown",
+    }
     for date_obj in data.get("dates", []):
         if date_obj.get("start") is None:
             date_obj.pop("start", None)
         if date_obj.get("end") is None:
             date_obj.pop("end", None)
+        # Normalize non-standard resolution values
+        res = date_obj.get("resolution")
+        if res and res in _DATE_RESOLUTION_MAP:
+            date_obj["resolution"] = _DATE_RESOLUTION_MAP[res]
 
     # Normalize techTerms - handle objects with term/definition structure
     if "techTerms" in data:
