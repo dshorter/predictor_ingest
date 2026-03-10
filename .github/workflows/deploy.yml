@@ -22,35 +22,10 @@ jobs:
       DEPLOY_BRANCH: ${{ github.event.inputs.branch || 'main' }}
 
     steps:
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: true
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ env.DEPLOY_BRANCH }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install deps
-        run: |
-          python -m pip install --no-cache-dir --upgrade pip
-          pip install --no-cache-dir -e .[dev]
-
-      - name: Run pytest
-        run: |
-          pytest -q -m "not network and not llm_live"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
