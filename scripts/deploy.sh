@@ -59,6 +59,11 @@ COMPOSE_DIR="/opt/ai-agent-platform"
 if [ -f "$COMPOSE_DIR/docker-compose.yml" ] && \
    grep -q "predictor" "$COMPOSE_DIR/docker-compose.yml" 2>/dev/null; then
 
+    # Free disk space: remove dangling images/build cache to prevent "no space" errors
+    log "Cleaning up Docker resources..."
+    docker system prune -f --volumes 2>/dev/null || true
+    docker builder prune -f 2>/dev/null || true
+
     log "Rebuilding predictor container..."
     cd "$COMPOSE_DIR"
     docker compose build predictor
