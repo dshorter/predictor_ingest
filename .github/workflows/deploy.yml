@@ -22,11 +22,6 @@ jobs:
       DEPLOY_BRANCH: ${{ github.event.inputs.branch || 'main' }}
 
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          df -h /
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -36,18 +31,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Install deps
         run: |
-          python -m pip install --no-cache-dir --upgrade pip
-          pip install --no-cache-dir -e .[dev]
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
       - name: Run pytest
         run: |
           pytest -q -m "not network and not llm_live"
 
       - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: root
