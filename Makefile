@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data pipeline post-extract daily test test-network test-all
+.PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data pipeline post-extract daily daily-check test test-network test-all
 
 # Domain slug — all data paths derive from this
 DOMAIN ?= ai
@@ -79,6 +79,9 @@ post-extract:
 
 daily:
 	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --copy-to-live $(BUDGET_FLAG) $(DOMAIN_FLAG) $(PIPELINE_FLAGS)
+
+daily-check:
+	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) $(BUDGET_FLAG) $(DOMAIN_FLAG) --dry-run
 
 daily-manual:
 	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(BUDGET_FLAG) $(DOMAIN_FLAG) $(PIPELINE_FLAGS)

@@ -667,7 +667,21 @@ def main() -> int:
     ]
 
     if args.dry_run:
-        print("DRY RUN — would execute:")
+        print("DRY RUN — domain routing diagnostic:")
+        print(f"  args.domain:        {args.domain}")
+        print(f"  PREDICTOR_DOMAIN:   {os.environ.get('PREDICTOR_DOMAIN', '(not set)')}")
+        from domain import get_active_domain, get_active_profile
+        profile = get_active_profile()
+        print(f"  Active domain:      {get_active_domain()}")
+        print(f"  Profile name:       {profile.get('name', '?')}")
+        print(f"  Entity types:       {len(profile.get('entity_types', []))} types")
+        print(f"  Feeds config:       domains/{args.domain}/feeds.yaml")
+        feeds_path = project_root / "domains" / args.domain / "feeds.yaml"
+        print(f"  Feeds file exists:  {feeds_path.exists()}")
+        print(f"  DB path:            {db_path}")
+        print(f"  Graphs dir:         {graphs_dir}")
+        print()
+        print("Would execute:")
         for stage in stages:
             skip = stage.get("skip", False)
             label = " [SKIP]" if skip else ""
@@ -684,6 +698,12 @@ def main() -> int:
     docpack_bundled = None  # track whether docpack produced docs
 
     print(f"=== Pipeline run {run_id} ({run_date}) ===")
+    print(f"  Domain: {args.domain}")
+    print(f"  DB: {db_path}")
+    print(f"  Graphs: {graphs_dir}")
+    print(f"  Feeds: domains/{args.domain}/feeds.yaml")
+    print(f"  Docpack: {docpack_path}")
+    print(f"  PREDICTOR_DOMAIN env: {os.environ.get('PREDICTOR_DOMAIN', '(not set)')}")
     if args.no_timeout:
         print("  Stage timeouts: DISABLED")
 
