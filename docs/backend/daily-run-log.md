@@ -4,7 +4,7 @@ Structured JSON log produced by `scripts/run_pipeline.py` for monitoring pipelin
 
 ---
 
-## Log Format
+## Log Format  
 
 One file per day: `data/logs/pipeline_YYYY-MM-DD.json`
 
