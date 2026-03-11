@@ -72,9 +72,9 @@ async function loadDomainConfig() {
   if (!loaded) {
     console.warn('No domain config found, using defaults');
     AppState.domainConfig = {
-      domain: 'ai',
-      title: 'AI Trend Graph',
-      titleShort: 'AI Trends',
+      domain: AppState.domain || 'ai',
+      title: 'Trend Graph',
+      titleShort: 'Trends',
       entityTypes: [],
       typeGroups: [],
       typeColors: {}
@@ -595,6 +595,18 @@ async function initializeApp() {
     await loadDomainConfig();
     var domainLabel = AppState.domainConfig.titleShort || AppState.domainConfig.title || 'Trends';
     console.log('Initializing ' + domainLabel + ' (mobile)...');
+
+    // Preserve domain param in the desktop-version link
+    var desktopLink = document.getElementById('desktop-link');
+    if (desktopLink && AppState.domain && AppState.domain !== 'ai') {
+      desktopLink.href = '../index.html?desktop=1&domain=' + AppState.domain;
+    }
+
+    // Update graph container aria-label with actual domain title
+    var cyEl = document.getElementById('cy');
+    if (cyEl) {
+      cyEl.setAttribute('aria-label', domainLabel + ' visualization');
+    }
 
     showLoading('Initializing...');
 

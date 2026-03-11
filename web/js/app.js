@@ -16,6 +16,7 @@ const AppState = {
   currentView: 'trending',
   dataSource: 'live',       // 'live' | 'sample'
   currentTier: 'medium',    // sample tier (only used when dataSource === 'sample')
+  domain: new URLSearchParams(window.location.search).get('domain') || 'ai', // from URL param
   anchorDate: null,          // ISO date string — the "as of" anchor for filtering
   activePresetDays: 30,      // which preset is active (7, 30, 90, or null for All)
   dateRange: null,           // { start, end } from meta — article publication dates
@@ -216,7 +217,7 @@ function getDataUrl(view) {
     const tier = AppState.currentTier || 'medium';
     return `${basePath}/${tier}/${view}.json`;
   }
-  const domain = (AppState.domainConfig && AppState.domainConfig.domain) || 'ai';
+  const domain = AppState.domain || 'ai';
   return `${basePath}/live/${domain}/${view}.json`;
 }
 
