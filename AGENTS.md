@@ -13,7 +13,7 @@ Build a small, reliable, **domain-agnostic** pipeline that:
 
 The end product is a growing knowledge graph that can reveal **emerging trends early**, using velocity/novelty/bridge signals.
 
-### Active Domains
+### Active Domains 
 - **AI/ML** (`domains/ai/`) — the original domain, fully operational
 - **Biosafety** (`domains/biosafety/`) — second domain, added 2026-03-07. Monitors
   Federal Select Agent Program, dual-use research, gain-of-function policy, BSL
