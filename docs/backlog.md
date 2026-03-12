@@ -214,5 +214,9 @@ For the bio safety domain select agents need to be red
 
 for Docs or any domain specific documentation into its own space  
 
+For the search bar, if more than one candidate is found forward and backward buttons to move between the search results.  
+
+for motion in general pan and zooms should happen a little bit slower than there happening right now  
+
 
   
