@@ -54,5 +54,24 @@ cd "$REPO_DIR"
 # If you use a virtual environment, you would activate it here.
 # e.g., source venv/bin/activate 
 
+# ==========================================
+# NO MORE DOCKER! RUNNING STRICTLY ON METAL
+# ==========================================
+
+log "Updating dependencies on the host..."
+cd "$REPO_DIR"
+
+# Check if the virtual environment exists. If not, create it.
+if [ ! -d "venv" ]; then
+    log "Creating new Python virtual environment..."
+    # Make sure python3-venv is installed on the server (apt install python3-venv)
+    python3 -m venv venv
+fi
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Install dependencies inside the isolated environment
 pip install -e . --quiet
+
 log "Dependencies updated. Deploy complete."
