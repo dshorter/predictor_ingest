@@ -209,3 +209,5 @@ be correct (early morning, feeds hadn't rotated) but needs verification.
 **Diagnostic:** Run `python scripts/diagnose_feeds.py` during business hours
 to confirm feeds are returning new entries. If consistently showing 0 new,
 investigate whether feed caching or the dedup mechanism is too aggressive.
+
+For the bio safety domain select agents need to be red   
