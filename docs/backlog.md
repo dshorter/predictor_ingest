@@ -218,5 +218,6 @@ For the search bar, if more than one candidate is found forward and backward but
 
 for motion in general pan and zooms should happen a little bit slower than there happening right now  
 
+explore the six degrees of separation / oracle of bacon idea  
 
   
