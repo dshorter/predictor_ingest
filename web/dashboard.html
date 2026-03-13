@@ -101,7 +101,22 @@
 <!-- Chart.js (only external dependency) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <!-- Domain switcher + certificate (shared) -->
-<script src="js/domain-switcher.js?v=1"></script>
+<script src="js/domain-switcher.js?v=2"></script>
+<script>
+// Fallback if domain-switcher.js fails to load
+if (typeof KNOWN_DOMAINS === 'undefined') {
+  console.warn('[dashboard] domain-switcher.js did not load, using inline fallback');
+  window.KNOWN_DOMAINS = [
+    { slug: 'ai', label: 'AI / ML', title: 'AI Trend Graph' },
+    { slug: 'biosafety', label: 'Biosafety', title: 'Biosafety Trend Graph' },
+  ];
+}
+if (typeof escHtml === 'undefined') {
+  window.escHtml = function(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  };
+}
+</script>
 
 <script>
 /* ====================================================================
@@ -142,6 +157,8 @@ initTheme();
 const DASH_DOMAIN = new URLSearchParams(window.location.search).get('domain') || 'ai';
 
 (function initDashDomain() {
+  console.log('[dashboard] initDashDomain, KNOWN_DOMAINS defined:', typeof KNOWN_DOMAINS !== 'undefined');
+
   // Update title
   const domainEntry = (typeof KNOWN_DOMAINS !== 'undefined')
     ? KNOWN_DOMAINS.find(d => d.slug === DASH_DOMAIN)
