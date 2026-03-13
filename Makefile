@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data pipeline post-extract daily daily-check test test-network test-all
+.PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data export_ontology pipeline post-extract daily daily-check test test-network test-all
 
 # Domain slug — all data paths derive from this
 DOMAIN ?= ai
@@ -64,6 +64,9 @@ copy-to-live:
 
 dashboard-data:
 	python scripts/generate_dashboard_json.py --db $(DB) $(DOMAIN_FLAG)
+
+export_ontology:
+	python scripts/export_ontology.py --domain $(DOMAIN)
 
 # ── Composites ─────────────────────────────────────────────────────────
 

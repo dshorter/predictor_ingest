@@ -1,0 +1,490 @@
+{
+  "domain": {
+    "name": "AI and Machine Learning",
+    "slug": "ai",
+    "description": "Artificial intelligence, machine learning, and deep learning trends"
+  },
+  "baseRelation": "MENTIONS",
+  "entityTypes": [
+    {
+      "name": "Org",
+      "prefix": "org",
+      "canonicalIdPattern": "org:{slug}",
+      "color": "#4A90D9"
+    },
+    {
+      "name": "Person",
+      "prefix": "person",
+      "canonicalIdPattern": "person:{slug}",
+      "color": "#50B4A8"
+    },
+    {
+      "name": "Program",
+      "prefix": "program",
+      "canonicalIdPattern": "program:{slug}",
+      "color": "#6366F1"
+    },
+    {
+      "name": "Tool",
+      "prefix": "tool",
+      "canonicalIdPattern": "tool:{slug}",
+      "color": "#8B5CF6"
+    },
+    {
+      "name": "Model",
+      "prefix": "model",
+      "canonicalIdPattern": "model:{slug}",
+      "color": "#7C3AED"
+    },
+    {
+      "name": "Dataset",
+      "prefix": "dataset",
+      "canonicalIdPattern": "dataset:{slug}",
+      "color": "#F59E0B"
+    },
+    {
+      "name": "Benchmark",
+      "prefix": "benchmark",
+      "canonicalIdPattern": "benchmark:{slug}",
+      "color": "#D97706"
+    },
+    {
+      "name": "Paper",
+      "prefix": "paper",
+      "canonicalIdPattern": "paper:{slug}",
+      "color": "#10B981"
+    },
+    {
+      "name": "Repo",
+      "prefix": "repo",
+      "canonicalIdPattern": "repo:{slug}",
+      "color": "#059669"
+    },
+    {
+      "name": "Document",
+      "prefix": "doc",
+      "canonicalIdPattern": "doc:{slug}",
+      "color": "#9CA3AF"
+    },
+    {
+      "name": "Tech",
+      "prefix": "tech",
+      "canonicalIdPattern": "tech:{slug}",
+      "color": "#EAB308"
+    },
+    {
+      "name": "Topic",
+      "prefix": "topic",
+      "canonicalIdPattern": "topic:{slug}",
+      "color": "#64748B"
+    },
+    {
+      "name": "Event",
+      "prefix": "event",
+      "canonicalIdPattern": "event:{slug}",
+      "color": "#F43F5E"
+    },
+    {
+      "name": "Location",
+      "prefix": "location",
+      "canonicalIdPattern": "location:{slug}",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "Other",
+      "prefix": "other",
+      "canonicalIdPattern": "other:{slug}",
+      "color": "#A1A1AA"
+    }
+  ],
+  "typeGroups": [
+    {
+      "label": "People & Organizations",
+      "types": [
+        "Org",
+        "Person",
+        "Program"
+      ]
+    },
+    {
+      "label": "Technology",
+      "types": [
+        "Model",
+        "Tool",
+        "Tech",
+        "Dataset",
+        "Benchmark"
+      ]
+    },
+    {
+      "label": "Knowledge",
+      "types": [
+        "Paper",
+        "Repo",
+        "Topic"
+      ]
+    },
+    {
+      "label": "Context",
+      "types": [
+        "Document",
+        "Event",
+        "Location",
+        "Other"
+      ]
+    }
+  ],
+  "relationGroups": [
+    {
+      "key": "document",
+      "label": "Document",
+      "relations": [
+        {
+          "rel": "MENTIONS",
+          "isBase": true,
+          "aliases": [
+            "MENTIONED",
+            "MENTIONING"
+          ]
+        },
+        {
+          "rel": "CITES",
+          "isBase": false,
+          "aliases": [
+            "CITED",
+            "CITING"
+          ]
+        },
+        {
+          "rel": "ANNOUNCES",
+          "isBase": false,
+          "aliases": [
+            "ANNOUNCED",
+            "ANNOUNCING"
+          ]
+        },
+        {
+          "rel": "REPORTED_BY",
+          "isBase": false,
+          "aliases": []
+        }
+      ]
+    },
+    {
+      "key": "org_person",
+      "label": "Org / Person / Program",
+      "relations": [
+        {
+          "rel": "LAUNCHED",
+          "isBase": false,
+          "aliases": [
+            "LAUNCHED_BY",
+            "RELEASED",
+            "RELEASED_BY"
+          ]
+        },
+        {
+          "rel": "PUBLISHED",
+          "isBase": false,
+          "aliases": [
+            "PUBLISHED_BY"
+          ]
+        },
+        {
+          "rel": "UPDATED",
+          "isBase": false,
+          "aliases": [
+            "UPDATES"
+          ]
+        },
+        {
+          "rel": "FUNDED",
+          "isBase": false,
+          "aliases": [
+            "FUNDED_BY"
+          ]
+        },
+        {
+          "rel": "PARTNERED_WITH",
+          "isBase": false,
+          "aliases": [
+            "PARTNERING_WITH",
+            "PARTNERS_WITH"
+          ]
+        },
+        {
+          "rel": "ACQUIRED",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "HIRED",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "CREATED",
+          "isBase": false,
+          "aliases": [
+            "BUILT",
+            "BUILT_BY",
+            "CREATED_BY",
+            "CREATES",
+            "DEVELOPED",
+            "DEVELOPED_BY",
+            "DISCOVERED",
+            "FOUNDED",
+            "FOUNDED_BY"
+          ]
+        },
+        {
+          "rel": "OPERATES",
+          "isBase": false,
+          "aliases": [
+            "OPERATED",
+            "OPERATED_BY",
+            "OPERATES_ON"
+          ]
+        },
+        {
+          "rel": "GOVERNED_BY",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "GOVERNS",
+          "isBase": false,
+          "aliases": [
+            "GOVERNED",
+            "GOVERNING"
+          ]
+        },
+        {
+          "rel": "REGULATES",
+          "isBase": false,
+          "aliases": [
+            "REGULATED",
+            "REGULATING"
+          ]
+        },
+        {
+          "rel": "COMPLIES_WITH",
+          "isBase": false,
+          "aliases": [
+            "COMPLIED_WITH"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "tech_model",
+      "label": "Tech / Model / Tool / Dataset",
+      "relations": [
+        {
+          "rel": "USES_TECH",
+          "isBase": false,
+          "aliases": [
+            "USED",
+            "USES_TOOL",
+            "USING"
+          ]
+        },
+        {
+          "rel": "USES_MODEL",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "USES_DATASET",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "TRAINED_ON",
+          "isBase": false,
+          "aliases": [
+            "TRAINED"
+          ]
+        },
+        {
+          "rel": "EVALUATED_ON",
+          "isBase": false,
+          "aliases": [
+            "COMPETED_IN",
+            "EVALUATED"
+          ]
+        },
+        {
+          "rel": "INTEGRATES_WITH",
+          "isBase": false,
+          "aliases": [
+            "IMPLEMENTED",
+            "IMPLEMENTED_BY",
+            "IMPLEMENTING",
+            "IMPLEMENTS",
+            "INTEGRATED",
+            "INTEGRATED_WITH"
+          ]
+        },
+        {
+          "rel": "DEPENDS_ON",
+          "isBase": false,
+          "aliases": [
+            "DEPENDED",
+            "DEPENDED_ON"
+          ]
+        },
+        {
+          "rel": "REQUIRES",
+          "isBase": false,
+          "aliases": [
+            "REQUIRED",
+            "REQUIRING"
+          ]
+        },
+        {
+          "rel": "PRODUCES",
+          "isBase": false,
+          "aliases": [
+            "PRODUCED",
+            "PRODUCING",
+            "PROVIDES"
+          ]
+        },
+        {
+          "rel": "MEASURES",
+          "isBase": false,
+          "aliases": [
+            "MEASURED",
+            "MEASURING"
+          ]
+        },
+        {
+          "rel": "AFFECTS",
+          "isBase": false,
+          "aliases": [
+            "AFFECTED",
+            "AFFECTING"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "forecasting",
+      "label": "Forecasting",
+      "relations": [
+        {
+          "rel": "PREDICTS",
+          "isBase": false,
+          "aliases": [
+            "PREDICTED",
+            "PREDICTING"
+          ]
+        },
+        {
+          "rel": "DETECTS",
+          "isBase": false,
+          "aliases": [
+            "DETECTED",
+            "DETECTING"
+          ]
+        },
+        {
+          "rel": "MONITORS",
+          "isBase": false,
+          "aliases": [
+            "MONITORED",
+            "MONITORING"
+          ]
+        }
+      ]
+    }
+  ],
+  "ungroupedRelations": [],
+  "normalization": {
+    "ANNOUNCED": "ANNOUNCES",
+    "ANNOUNCING": "ANNOUNCES",
+    "MENTIONED": "MENTIONS",
+    "MENTIONING": "MENTIONS",
+    "CITED": "CITES",
+    "CITING": "CITES",
+    "LAUNCHED_BY": "LAUNCHED",
+    "PUBLISHED_BY": "PUBLISHED",
+    "CREATED_BY": "CREATED",
+    "FUNDED_BY": "FUNDED",
+    "USED": "USES_TECH",
+    "USING": "USES_TECH",
+    "USES_TOOL": "USES_TECH",
+    "DEVELOPED": "CREATED",
+    "DEVELOPED_BY": "CREATED",
+    "BUILT": "CREATED",
+    "BUILT_BY": "CREATED",
+    "FOUNDED": "CREATED",
+    "FOUNDED_BY": "CREATED",
+    "RELEASED": "LAUNCHED",
+    "RELEASED_BY": "LAUNCHED",
+    "PARTNERS_WITH": "PARTNERED_WITH",
+    "PARTNERING_WITH": "PARTNERED_WITH",
+    "OPERATED": "OPERATES",
+    "OPERATED_BY": "OPERATES",
+    "OPERATES_ON": "OPERATES",
+    "IMPLEMENTS": "INTEGRATES_WITH",
+    "IMPLEMENTED": "INTEGRATES_WITH",
+    "IMPLEMENTED_BY": "INTEGRATES_WITH",
+    "IMPLEMENTING": "INTEGRATES_WITH",
+    "INTEGRATED_WITH": "INTEGRATES_WITH",
+    "PROVIDES": "PRODUCES",
+    "UPDATES": "UPDATED",
+    "CREATES": "CREATED",
+    "DISCOVERED": "CREATED",
+    "COMPETED_IN": "EVALUATED_ON",
+    "PRODUCED": "PRODUCES",
+    "MEASURED": "MEASURES",
+    "AFFECTED": "AFFECTS",
+    "PREDICTED": "PREDICTS",
+    "DETECTED": "DETECTS",
+    "MONITORED": "MONITORS",
+    "REQUIRED": "REQUIRES",
+    "DEPENDED_ON": "DEPENDS_ON",
+    "INTEGRATED": "INTEGRATES_WITH",
+    "GOVERNED": "GOVERNS",
+    "REGULATED": "REGULATES",
+    "COMPLIED_WITH": "COMPLIES_WITH",
+    "PRODUCING": "PRODUCES",
+    "MEASURING": "MEASURES",
+    "AFFECTING": "AFFECTS",
+    "PREDICTING": "PREDICTS",
+    "DETECTING": "DETECTS",
+    "MONITORING": "MONITORS",
+    "REQUIRING": "REQUIRES",
+    "GOVERNING": "GOVERNS",
+    "REGULATING": "REGULATES",
+    "TRAINED": "TRAINED_ON",
+    "EVALUATED": "EVALUATED_ON",
+    "DEPENDED": "DEPENDS_ON"
+  },
+  "qualityThresholds": {
+    "entity_density_target": 5.0,
+    "evidence_coverage_min": 0.8,
+    "avg_confidence_target": 0.85,
+    "relation_entity_ratio_target": 0.5,
+    "tech_terms_min": 2,
+    "relation_type_diversity_target": 6
+  },
+  "gateThresholds": {
+    "evidence_fidelity_min": 0.7,
+    "orphan_max": 0.0,
+    "zero_value_min_entities": 1,
+    "zero_value_min_doc_chars": 500,
+    "high_confidence_threshold": 0.8
+  },
+  "scoringWeights": {
+    "density": 0.15,
+    "evidence": 0.15,
+    "confidence": 0.1,
+    "connectivity": 0.2,
+    "diversity": 0.25,
+    "tech_terms": 0.15
+  },
+  "escalationThreshold": 0.6
+}

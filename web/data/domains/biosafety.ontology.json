@@ -1,0 +1,531 @@
+{
+  "domain": {
+    "name": "Biosafety & Select Agent Monitoring",
+    "slug": "biosafety",
+    "description": "Monitors the biosafety and biosecurity landscape: Federal Select Agent Program regulations, high-containment laboratory oversight, dual-use research of concern, gain-of-function policy, and global health security governance. Tracks regulatory changes, facility incidents, research developments, and emerging biological threats.\n"
+  },
+  "baseRelation": "MENTIONS",
+  "entityTypes": [
+    {
+      "name": "Org",
+      "prefix": "org",
+      "canonicalIdPattern": "org:{slug}",
+      "color": "#4A90D9"
+    },
+    {
+      "name": "Person",
+      "prefix": "person",
+      "canonicalIdPattern": "person:{slug}",
+      "color": "#50B4A8"
+    },
+    {
+      "name": "SelectAgent",
+      "prefix": "agent",
+      "canonicalIdPattern": "agent:{slug}",
+      "color": "#F43F5E"
+    },
+    {
+      "name": "Facility",
+      "prefix": "facility",
+      "canonicalIdPattern": "facility:{slug}",
+      "color": "#0D9488"
+    },
+    {
+      "name": "Regulation",
+      "prefix": "regulation",
+      "canonicalIdPattern": "regulation:{slug}",
+      "color": "#7C3AED"
+    },
+    {
+      "name": "Program",
+      "prefix": "program",
+      "canonicalIdPattern": "program:{slug}",
+      "color": "#6366F1"
+    },
+    {
+      "name": "Tech",
+      "prefix": "tech",
+      "canonicalIdPattern": "tech:{slug}",
+      "color": "#EAB308"
+    },
+    {
+      "name": "Location",
+      "prefix": "location",
+      "canonicalIdPattern": "location:{slug}",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "Event",
+      "prefix": "event",
+      "canonicalIdPattern": "event:{slug}",
+      "color": "#F97316"
+    },
+    {
+      "name": "Paper",
+      "prefix": "paper",
+      "canonicalIdPattern": "paper:{slug}",
+      "color": "#10B981"
+    },
+    {
+      "name": "Dataset",
+      "prefix": "dataset",
+      "canonicalIdPattern": "dataset:{slug}",
+      "color": "#F59E0B"
+    },
+    {
+      "name": "Topic",
+      "prefix": "topic",
+      "canonicalIdPattern": "topic:{slug}",
+      "color": "#64748B"
+    },
+    {
+      "name": "Document",
+      "prefix": "doc",
+      "canonicalIdPattern": "doc:{slug}",
+      "color": "#9CA3AF"
+    },
+    {
+      "name": "Other",
+      "prefix": "other",
+      "canonicalIdPattern": "other:{slug}",
+      "color": "#A1A1AA"
+    }
+  ],
+  "typeGroups": [
+    {
+      "label": "Actors",
+      "types": [
+        "Org",
+        "Person",
+        "Program"
+      ]
+    },
+    {
+      "label": "Agents & Facilities",
+      "types": [
+        "SelectAgent",
+        "Facility",
+        "Tech"
+      ]
+    },
+    {
+      "label": "Governance",
+      "types": [
+        "Regulation",
+        "Location",
+        "Event"
+      ]
+    },
+    {
+      "label": "Knowledge",
+      "types": [
+        "Paper",
+        "Dataset",
+        "Topic"
+      ]
+    },
+    {
+      "label": "Context",
+      "types": [
+        "Document",
+        "Other"
+      ]
+    }
+  ],
+  "relationGroups": [
+    {
+      "key": "document",
+      "label": "Document",
+      "relations": [
+        {
+          "rel": "MENTIONS",
+          "isBase": true,
+          "aliases": []
+        },
+        {
+          "rel": "CITES",
+          "isBase": false,
+          "aliases": [
+            "REFERENCES"
+          ]
+        },
+        {
+          "rel": "ANNOUNCES",
+          "isBase": false,
+          "aliases": [
+            "ANNOUNCED"
+          ]
+        },
+        {
+          "rel": "REPORTED_BY",
+          "isBase": false,
+          "aliases": [
+            "REPORTED"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "regulatory",
+      "label": "Regulatory & Governance",
+      "relations": [
+        {
+          "rel": "REGULATES",
+          "isBase": false,
+          "aliases": [
+            "CONTROLS",
+            "OVERSEES",
+            "SUPERVISES"
+          ]
+        },
+        {
+          "rel": "REGULATED_BY",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "ENFORCES",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "COMPLIES_WITH",
+          "isBase": false,
+          "aliases": [
+            "APPROVED_BY",
+            "REGISTERED_WITH"
+          ]
+        },
+        {
+          "rel": "AUTHORIZES",
+          "isBase": false,
+          "aliases": [
+            "LICENSED_BY",
+            "PERMITS"
+          ]
+        },
+        {
+          "rel": "INSPECTS",
+          "isBase": false,
+          "aliases": [
+            "AUDITS",
+            "REVIEWED_BY"
+          ]
+        },
+        {
+          "rel": "CLASSIFIES",
+          "isBase": false,
+          "aliases": [
+            "CATEGORIZES",
+            "DESIGNATES"
+          ]
+        },
+        {
+          "rel": "LISTS",
+          "isBase": false,
+          "aliases": [
+            "ADDED_TO"
+          ]
+        },
+        {
+          "rel": "DELISTS",
+          "isBase": false,
+          "aliases": [
+            "REMOVED_FROM"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "research",
+      "label": "Research & Science",
+      "relations": [
+        {
+          "rel": "RESEARCHES",
+          "isBase": false,
+          "aliases": [
+            "ANALYZES",
+            "INVESTIGATES",
+            "STUDIES"
+          ]
+        },
+        {
+          "rel": "PUBLISHES",
+          "isBase": false,
+          "aliases": [
+            "AUTHORED",
+            "PUBLISHED_BY",
+            "WROTE"
+          ]
+        },
+        {
+          "rel": "USES_TECH",
+          "isBase": false,
+          "aliases": [
+            "APPLIES",
+            "EMPLOYS",
+            "UTILIZES"
+          ]
+        },
+        {
+          "rel": "FUNDED",
+          "isBase": false,
+          "aliases": [
+            "FINANCED",
+            "GRANTED",
+            "SPONSORED"
+          ]
+        },
+        {
+          "rel": "COLLABORATES_WITH",
+          "isBase": false,
+          "aliases": [
+            "COOPERATES",
+            "PARTNERS",
+            "WORKS_WITH"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "containment",
+      "label": "Containment & Operations",
+      "relations": [
+        {
+          "rel": "STORES",
+          "isBase": false,
+          "aliases": [
+            "HOUSES",
+            "KEEPS"
+          ]
+        },
+        {
+          "rel": "TRANSFERS",
+          "isBase": false,
+          "aliases": [
+            "EXPORTS",
+            "IMPORTS",
+            "RECEIVES",
+            "SENDS",
+            "SHIPS"
+          ]
+        },
+        {
+          "rel": "CONTAINS",
+          "isBase": false,
+          "aliases": [
+            "HOLDS",
+            "MAINTAINS",
+            "POSSESSES"
+          ]
+        },
+        {
+          "rel": "OPERATES",
+          "isBase": false,
+          "aliases": [
+            "MANAGES",
+            "RUNS"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "incident",
+      "label": "Incident & Response",
+      "relations": [
+        {
+          "rel": "CAUSED",
+          "isBase": false,
+          "aliases": [
+            "LED_TO",
+            "RESULTED_IN",
+            "TRIGGERED"
+          ]
+        },
+        {
+          "rel": "DETECTED_IN",
+          "isBase": false,
+          "aliases": [
+            "FOUND_IN",
+            "IDENTIFIED_IN",
+            "ISOLATED_FROM"
+          ]
+        },
+        {
+          "rel": "RESPONDS_TO",
+          "isBase": false,
+          "aliases": [
+            "ADDRESSED",
+            "HANDLED"
+          ]
+        },
+        {
+          "rel": "MITIGATES",
+          "isBase": false,
+          "aliases": [
+            "COUNTERS",
+            "PREVENTS"
+          ]
+        },
+        {
+          "rel": "MONITORS",
+          "isBase": false,
+          "aliases": [
+            "SURVEYS",
+            "TRACKS",
+            "WATCHES"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability",
+      "label": "Capability & Threat",
+      "relations": [
+        {
+          "rel": "AFFECTS",
+          "isBase": false,
+          "aliases": [
+            "IMPACTS",
+            "INFLUENCES"
+          ]
+        },
+        {
+          "rel": "PRODUCES",
+          "isBase": false,
+          "aliases": [
+            "GENERATES"
+          ]
+        },
+        {
+          "rel": "DEPENDS_ON",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "PREDICTS",
+          "isBase": false,
+          "aliases": []
+        }
+      ]
+    },
+    {
+      "key": "organizational",
+      "label": "Organizational",
+      "relations": [
+        {
+          "rel": "CREATED",
+          "isBase": false,
+          "aliases": [
+            "BUILT",
+            "DEVELOPED",
+            "ESTABLISHED",
+            "FOUNDED",
+            "LAUNCHED"
+          ]
+        },
+        {
+          "rel": "GOVERNS",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "PARTNERED_WITH",
+          "isBase": false,
+          "aliases": []
+        }
+      ]
+    }
+  ],
+  "ungroupedRelations": [],
+  "normalization": {
+    "OVERSEES": "REGULATES",
+    "SUPERVISES": "REGULATES",
+    "CONTROLS": "REGULATES",
+    "REGISTERED_WITH": "COMPLIES_WITH",
+    "APPROVED_BY": "COMPLIES_WITH",
+    "LICENSED_BY": "AUTHORIZES",
+    "PERMITS": "AUTHORIZES",
+    "AUDITS": "INSPECTS",
+    "REVIEWED_BY": "INSPECTS",
+    "CATEGORIZES": "CLASSIFIES",
+    "DESIGNATES": "CLASSIFIES",
+    "ADDED_TO": "LISTS",
+    "REMOVED_FROM": "DELISTS",
+    "STUDIES": "RESEARCHES",
+    "INVESTIGATES": "RESEARCHES",
+    "ANALYZES": "RESEARCHES",
+    "WROTE": "PUBLISHES",
+    "AUTHORED": "PUBLISHES",
+    "PUBLISHED_BY": "PUBLISHES",
+    "EMPLOYS": "USES_TECH",
+    "UTILIZES": "USES_TECH",
+    "APPLIES": "USES_TECH",
+    "FINANCED": "FUNDED",
+    "GRANTED": "FUNDED",
+    "SPONSORED": "FUNDED",
+    "PARTNERS": "COLLABORATES_WITH",
+    "COOPERATES": "COLLABORATES_WITH",
+    "WORKS_WITH": "COLLABORATES_WITH",
+    "POSSESSES": "CONTAINS",
+    "HOLDS": "CONTAINS",
+    "MAINTAINS": "CONTAINS",
+    "SHIPS": "TRANSFERS",
+    "SENDS": "TRANSFERS",
+    "RECEIVES": "TRANSFERS",
+    "IMPORTS": "TRANSFERS",
+    "EXPORTS": "TRANSFERS",
+    "MANAGES": "OPERATES",
+    "RUNS": "OPERATES",
+    "HOUSES": "STORES",
+    "KEEPS": "STORES",
+    "TRIGGERED": "CAUSED",
+    "LED_TO": "CAUSED",
+    "RESULTED_IN": "CAUSED",
+    "FOUND_IN": "DETECTED_IN",
+    "IDENTIFIED_IN": "DETECTED_IN",
+    "ISOLATED_FROM": "DETECTED_IN",
+    "ADDRESSED": "RESPONDS_TO",
+    "HANDLED": "RESPONDS_TO",
+    "COUNTERS": "MITIGATES",
+    "PREVENTS": "MITIGATES",
+    "TRACKS": "MONITORS",
+    "SURVEYS": "MONITORS",
+    "WATCHES": "MONITORS",
+    "DEVELOPED": "CREATED",
+    "ESTABLISHED": "CREATED",
+    "FOUNDED": "CREATED",
+    "BUILT": "CREATED",
+    "LAUNCHED": "CREATED",
+    "REPORTED": "REPORTED_BY",
+    "ANNOUNCED": "ANNOUNCES",
+    "REFERENCES": "CITES",
+    "IMPACTS": "AFFECTS",
+    "INFLUENCES": "AFFECTS",
+    "GENERATES": "PRODUCES"
+  },
+  "qualityThresholds": {
+    "entity_density_target": 4.0,
+    "evidence_coverage_min": 0.8,
+    "avg_confidence_target": 0.85,
+    "relation_entity_ratio_target": 0.5,
+    "tech_terms_min": 2,
+    "relation_type_diversity_target": 5
+  },
+  "gateThresholds": {
+    "evidence_fidelity_min": 0.7,
+    "orphan_max": 0.0,
+    "zero_value_min_entities": 1,
+    "zero_value_min_doc_chars": 500,
+    "high_confidence_threshold": 0.8
+  },
+  "scoringWeights": {
+    "density": 0.1,
+    "evidence": 0.2,
+    "confidence": 0.1,
+    "connectivity": 0.2,
+    "diversity": 0.2,
+    "tech_terms": 0.2
+  },
+  "escalationThreshold": 0.6
+}

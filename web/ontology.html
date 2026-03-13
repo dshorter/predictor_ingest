@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ontology Reference</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/ontology.css">
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header id="onto-header">
+  <h1 id="page-title">Ontology Reference <span id="domain-badge"></span></h1>
+  <div class="header-actions">
+    <button id="theme-toggle" class="btn-icon" title="Toggle dark/light mode"
+            aria-label="Toggle dark/light mode" onclick="toggleTheme()">
+      <svg class="icon-theme-light" xmlns="http://www.w3.org/2000/svg"
+           width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1"  x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22"  y1="4.22"  x2="5.64"  y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1"  y1="12" x2="3"  y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22"  y1="19.78" x2="5.64"  y2="18.36"/>
+        <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-theme-dark" xmlns="http://www.w3.org/2000/svg"
+           width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+    <a class="btn" href="index.html">Graph View →</a>
+  </div>
+</header>
+
+<!-- ── Body ────────────────────────────────────────────────────────────── -->
+<div id="onto-body">
+  <div id="onto-loading">Loading ontology…</div>
+  <div id="onto-error" style="display:none"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Theme (mirrors dashboard.html)
+// ---------------------------------------------------------------------------
+(function () {
+  const stored = localStorage.getItem('theme');
+  if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+
+// ---------------------------------------------------------------------------
+// Domain resolution (mirrors app.js pattern)
+// ---------------------------------------------------------------------------
+function getDomainSlug() {
+  return new URLSearchParams(window.location.search).get('domain') || 'ai';
+}
+
+// ---------------------------------------------------------------------------
+// Render helpers
+// ---------------------------------------------------------------------------
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function badge(text, cls) {
+  return `<span class="badge ${cls || ''}">${esc(text)}</span>`;
+}
+
+function renderDomainMeta(onto) {
+  const d = onto.domain;
+  const nClasses = onto.entityTypes.length;
+  const nProps   = onto.relationGroups.reduce((s, g) => s + g.relations.length, 0)
+                 + (onto.ungroupedRelations || []).length;
+  const nAliases = Object.keys(onto.normalization || {}).length;
+
+  return `
+    <div id="domain-meta">
+      <h2>${esc(d.name)}</h2>
+      <p id="domain-description">${esc(d.description || '')}</p>
+      <div class="meta-badges">
+        ${badge(nClasses + ' classes', 'badge-info')}
+        ${badge(nProps + ' object properties', 'badge-info')}
+        ${badge(nAliases + ' normalization aliases', 'badge-secondary')}
+        ${badge('base: ' + onto.baseRelation, 'badge-secondary')}
+        ${badge('escalation ≥ ' + onto.escalationThreshold, 'badge-secondary')}
+      </div>
+    </div>`;
+}
+
+function renderClasses(onto) {
+  // Build a lookup: type name → entity type object
+  const byName = {};
+  for (const et of onto.entityTypes) byName[et.name] = et;
+
+  // Render grouped; fall back to flat if no typeGroups
+  let groups = onto.typeGroups || [];
+  let allGroupedTypes = new Set(groups.flatMap(g => g.types));
+  let ungrouped = onto.entityTypes.filter(et => !allGroupedTypes.has(et.name));
+
+  function renderCard(et) {
+    return `
+      <div class="class-card">
+        <span class="class-swatch" style="background:${esc(et.color)}"></span>
+        <span class="class-name">${esc(et.name)}</span>
+        <span class="class-prefix">${esc(et.canonicalIdPattern)}</span>
+      </div>`;
+  }
+
+  let html = '';
+  for (const group of groups) {
+    const types = (group.types || []).map(n => byName[n]).filter(Boolean);
+    if (!types.length) continue;
+    html += `
+      <div class="type-group-section">
+        <p class="type-group-label">${esc(group.label)}</p>
+        ${types.map(renderCard).join('')}
+      </div>`;
+  }
+  if (ungrouped.length) {
+    html += `
+      <div class="type-group-section">
+        <p class="type-group-label">Other</p>
+        ${ungrouped.map(renderCard).join('')}
+      </div>`;
+  }
+
+  return `
+    <div id="classes-panel">
+      <div class="onto-section-header">
+        <h3>Classes</h3>
+        <span class="section-count">${onto.entityTypes.length} total</span>
+      </div>
+      ${html}
+    </div>`;
+}
+
+function renderProperties(onto) {
+  let html = '';
+  const allGroupProps = new Set(
+    onto.relationGroups.flatMap(g => g.relations.map(r => r.rel))
+  );
+
+  for (const group of onto.relationGroups) {
+    if (!group.relations.length) continue;
+    const rows = group.relations.map(r => {
+      const nameClass = r.isBase ? 'rel-name is-base' : 'rel-name';
+      const pills = r.aliases.map(a => `<span class="alias-pill">${esc(a)}</span>`).join('');
+      return `
+        <div class="rel-row">
+          <span class="${nameClass}">${esc(r.rel)}${r.isBase ? ' <span class="badge badge-info" style="font-size:10px;padding:1px 5px">base</span>' : ''}</span>
+          <span class="alias-pills">${pills}</span>
+        </div>`;
+    }).join('');
+
+    html += `
+      <div class="rel-group">
+        <p class="rel-group-header">${esc(group.label)}</p>
+        ${rows}
+      </div>`;
+  }
+
+  // Ungrouped safety net
+  const ungrouped = (onto.ungroupedRelations || []).filter(r => !allGroupProps.has(r));
+  if (ungrouped.length) {
+    const rows = ungrouped.map(r => `
+      <div class="rel-row">
+        <span class="rel-name">${esc(r)}</span>
+      </div>`).join('');
+    html += `
+      <div class="rel-group">
+        <p class="rel-group-header">Ungrouped</p>
+        ${rows}
+      </div>`;
+  }
+
+  const total = onto.relationGroups.reduce((s, g) => s + g.relations.length, 0)
+              + ungrouped.length;
+
+  return `
+    <div id="properties-panel">
+      <div class="onto-section-header">
+        <h3>Object Properties</h3>
+        <span class="section-count">${total} canonical · ${Object.keys(onto.normalization || {}).length} aliases</span>
+      </div>
+      ${html}
+    </div>`;
+}
+
+function fmtKey(k) {
+  return k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function renderQualityCard(title, data, extra) {
+  const rows = Object.entries(data).map(([k, v]) =>
+    `<tr><td>${esc(fmtKey(k))}</td><td>${esc(v)}</td></tr>`
+  ).join('');
+  return `
+    <div class="quality-card">
+      <h4>${esc(title)}</h4>
+      <table class="quality-table"><tbody>${rows}</tbody></table>
+      ${extra || ''}
+    </div>`;
+}
+
+function renderQuality(onto) {
+  const weightsWithPct = {};
+  for (const [k, v] of Object.entries(onto.scoringWeights || {})) {
+    weightsWithPct[k] = (v * 100).toFixed(0) + '%';
+  }
+
+  const escNote = `<div class="escalation-note">escalate if combined &lt; ${onto.escalationThreshold}</div>`;
+
+  return `
+    <div>
+      <div class="onto-section-header">
+        <h3>Extraction Quality Contract</h3>
+        <span class="section-count">gates · thresholds · weights</span>
+      </div>
+      <div id="quality-section">
+        ${renderQualityCard('Quality Thresholds', onto.qualityThresholds, escNote)}
+        ${renderQualityCard('Gate Thresholds', onto.gateThresholds)}
+        ${renderQualityCard('Scoring Weights', weightsWithPct)}
+      </div>
+    </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+async function load() {
+  const slug = getDomainSlug();
+  const url  = `data/domains/${slug}.ontology.json`;
+
+  let onto;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} — ${url}`);
+    onto = await resp.json();
+  } catch (err) {
+    document.getElementById('onto-loading').style.display = 'none';
+    const errEl = document.getElementById('onto-error');
+    errEl.style.display = '';
+    errEl.textContent = `Failed to load ontology: ${err.message}. Run: make export_ontology DOMAIN=${slug}`;
+    return;
+  }
+
+  // Update page title
+  document.title = `${onto.domain.name} — Ontology Reference`;
+  document.getElementById('domain-badge').textContent = onto.domain.slug;
+
+  // Render
+  const body = document.getElementById('onto-body');
+  body.innerHTML = `
+    ${renderDomainMeta(onto)}
+    <div id="onto-columns">
+      ${renderClasses(onto)}
+      ${renderProperties(onto)}
+    </div>
+    ${renderQuality(onto)}
+  `;
+}
+
+load();
+</script>
+</body>
+</html>

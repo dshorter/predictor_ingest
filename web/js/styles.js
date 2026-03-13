@@ -46,6 +46,8 @@ function getNodeTypeColors() {
     'Event': getCSSVar('--color-event', '#F97316'),
     'Location': getCSSVar('--color-location', '#0EA5E9'),
     'SelectAgent': getCSSVar('--color-select-agent', '#F43F5E'),
+    'Facility': getCSSVar('--color-facility', '#0D9488'),
+    'Regulation': getCSSVar('--color-regulation', '#7C3AED'),
     'Other': getCSSVar('--color-other', '#A1A1AA')
   };
 }
