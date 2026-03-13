@@ -87,6 +87,12 @@ const HelpContent = {
         </tr>
       </table>
     </div>
+
+    <div class="help-section">
+      <button class="btn btn-ghost" style="width:100%" onclick="if(typeof openDomainCertificate==='function'){closeHelpPanel();openDomainCertificate()}">
+        About this Domain
+      </button>
+    </div>
   `,
 
   // Topics Tab - Accordion sections

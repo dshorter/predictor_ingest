@@ -16,14 +16,14 @@
 
 <!-- ── Header ──────────────────────────────────────────────────────────── -->
 <header id="dash-header">
-  <h1>Pipeline Dashboard <span>AI Trend Graph</span></h1>
+  <h1 id="dash-title">Pipeline Dashboard <span id="dash-domain-label"></span></h1>
   <div class="header-actions">
     <span id="last-updated"></span>
-    <button class="btn" onclick="loadAll()">↻ Refresh</button>
+    <button id="btn-refresh" class="btn">↻ Refresh</button>
 
     <!-- Theme toggle — CSS swap handled by button.css .icon-theme-light / .icon-theme-dark -->
     <button id="theme-toggle" class="btn-icon" title="Toggle dark/light mode"
-            aria-label="Toggle dark/light mode" onclick="toggleTheme()">
+            aria-label="Toggle dark/light mode">
       <!-- Sun: visible in light mode -->
       <svg class="icon-theme-light" xmlns="http://www.w3.org/2000/svg"
            width="16" height="16" viewBox="0 0 24 24"
@@ -48,7 +48,7 @@
       </svg>
     </button>
 
-    <a class="btn" href="index.html">Graph View →</a>
+    <a id="graph-link" class="btn" href="index.html">Graph View</a>
   </div>
 </header>
 
@@ -100,6 +100,8 @@
 
 <!-- Chart.js (only external dependency) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Domain switcher + certificate (shared) -->
+<script src="js/domain-switcher.js?v=1"></script>
 
 <script>
 /* ====================================================================
@@ -133,6 +135,131 @@ function toggleTheme() {
 
 // Set theme before any paint
 initTheme();
+
+/* ====================================================================
+   Domain awareness
+   ==================================================================== */
+const DASH_DOMAIN = new URLSearchParams(window.location.search).get('domain') || 'ai';
+
+(function initDashDomain() {
+  // Update title
+  const domainEntry = (typeof KNOWN_DOMAINS !== 'undefined')
+    ? KNOWN_DOMAINS.find(d => d.slug === DASH_DOMAIN)
+    : null;
+  const domainLabel = domainEntry ? domainEntry.label : DASH_DOMAIN;
+
+  const labelEl = document.getElementById('dash-domain-label');
+  if (labelEl) labelEl.textContent = domainLabel;
+  document.title = `Pipeline Dashboard — ${domainLabel}`;
+
+  // Make Graph View link domain-aware
+  const graphLink = document.getElementById('graph-link');
+  if (graphLink && DASH_DOMAIN !== 'ai') {
+    graphLink.href = 'index.html?domain=' + DASH_DOMAIN;
+  }
+
+  // Wire refresh button (replacing inline onclick)
+  const refreshBtn = document.getElementById('btn-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', loadAll);
+
+  // Wire theme toggle (replacing inline onclick)
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+
+  // Init domain switcher dropdown on the title
+  // The dashboard doesn't have a .app-title element, so we create one inline
+  const titleEl = document.getElementById('dash-title');
+  if (titleEl && typeof KNOWN_DOMAINS !== 'undefined') {
+    // Build a compact dropdown in the header actions
+    const wrap = document.createElement('div');
+    wrap.className = 'app-title-wrap';
+    wrap.style.display = 'inline-flex';
+
+    const titleText = titleEl.firstChild; // "Pipeline Dashboard "
+    wrap.appendChild(document.createTextNode('Pipeline Dashboard '));
+
+    const domainSpan = document.createElement('span');
+    domainSpan.style.cssText = 'color:var(--color-text-secondary);font-weight:var(--weight-normal);font-size:var(--text-sm);margin-left:var(--space-2)';
+    domainSpan.textContent = domainLabel;
+    wrap.appendChild(domainSpan);
+
+    const caret = document.createElement('span');
+    caret.className = 'domain-caret';
+    caret.setAttribute('aria-hidden', 'true');
+    caret.textContent = '\u25BE';
+    wrap.appendChild(caret);
+
+    // Build dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'domain-dropdown';
+    dropdown.id = 'domain-dropdown';
+
+    for (const d of KNOWN_DOMAINS) {
+      const isActive = d.slug === DASH_DOMAIN;
+      const item = document.createElement('a');
+      item.className = 'domain-dropdown-item' + (isActive ? ' active' : '');
+      item.href = '?domain=' + d.slug;
+      item.dataset.domain = d.slug;
+      item.innerHTML =
+        '<span class="domain-item-check">' + (isActive ? '\u2713' : '') + '</span>' +
+        '<span>' + (typeof escHtml === 'function' ? escHtml(d.label) : d.label) + '</span>';
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (d.slug === DASH_DOMAIN) return;
+        const url = new URL(window.location);
+        url.searchParams.set('domain', d.slug);
+        window.location.href = url.toString();
+      });
+      dropdown.appendChild(item);
+    }
+
+    // "About this domain" action
+    const sep = document.createElement('div');
+    sep.className = 'domain-dropdown-sep';
+    dropdown.appendChild(sep);
+
+    const aboutBtn = document.createElement('button');
+    aboutBtn.className = 'domain-dropdown-action';
+    aboutBtn.type = 'button';
+    aboutBtn.innerHTML = '<span>About this domain\u2026</span>';
+    aboutBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.remove('open');
+      wrap.classList.remove('open');
+      if (typeof openDomainCertificate === 'function') openDomainCertificate();
+    });
+    dropdown.appendChild(aboutBtn);
+    wrap.appendChild(dropdown);
+
+    // Toggle
+    wrap.addEventListener('click', function(e) {
+      if (e.target.closest('.domain-dropdown-item')) return;
+      if (e.target.closest('.domain-dropdown-action')) return;
+      const isOpen = dropdown.classList.contains('open');
+      dropdown.classList.toggle('open', !isOpen);
+      wrap.classList.toggle('open', !isOpen);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!wrap.contains(e.target)) {
+        dropdown.classList.remove('open');
+        wrap.classList.remove('open');
+      }
+    });
+
+    // Replace title content
+    titleEl.textContent = '';
+    titleEl.appendChild(wrap);
+  }
+
+  // Inject certificate overlay
+  if (typeof injectCertificateOverlay === 'function') injectCertificateOverlay();
+
+  // Dashboard needs AppState-like object for certificate to read domain
+  if (typeof window.AppState === 'undefined') {
+    window.AppState = { domain: DASH_DOMAIN, domainConfig: { title: domainLabel + ' Trend Graph' } };
+  }
+})();
 
 /* ====================================================================
    Dashboard data + rendering
