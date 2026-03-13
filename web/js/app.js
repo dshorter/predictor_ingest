@@ -247,6 +247,9 @@ async function initializeApp() {
   const titleEl = document.querySelector('.app-title');
   if (titleEl) titleEl.textContent = domainName;
 
+  // Domain switcher dropdown (after title is set)
+  if (typeof initDomainSwitcher === 'function') initDomainSwitcher();
+
   try {
     // Show loading state
     showLoading('Initializing...');

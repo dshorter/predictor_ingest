@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/utilities.css">
   <link rel="stylesheet" href="../css/components/badge.css">
+  <link rel="stylesheet" href="../css/components/button.css">
+  <link rel="stylesheet" href="../css/components/domain-certificate.css">
 
   <!-- Mobile-specific styles (must load after utilities so overrides work) -->
   <link rel="stylesheet" href="css/mobile.css">
@@ -99,6 +101,14 @@
             <svg class="icon-theme-dark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             Toggle theme
           </button>
+        </section>
+
+        <section class="menu-section">
+          <h3>Domain</h3>
+          <div id="mobile-domain-switcher" class="menu-options">
+            <!-- Populated by domain-switcher.js -->
+          </div>
+          <button id="btn-about-domain" class="menu-action">About this domain</button>
         </section>
 
         <section class="menu-section">
@@ -310,9 +320,12 @@
   <!-- Help content -->
   <script src="../help/content.js?v=3"></script>
 
+  <!-- Domain switcher (shared) -->
+  <script src="../js/domain-switcher.js?v=1"></script>
+
   <!-- Mobile-specific scripts -->
   <script src="js/touch.js?v=3"></script>
   <script src="js/panels-mobile.js?v=3"></script>
-  <script src="js/app-mobile.js?v=3"></script>
+  <script src="js/app-mobile.js?v=4"></script>
 </body>
 </html>

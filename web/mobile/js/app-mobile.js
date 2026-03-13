@@ -608,6 +608,37 @@ async function initializeApp() {
       cyEl.setAttribute('aria-label', domainLabel + ' visualization');
     }
 
+    // Mobile domain switcher (in hamburger menu)
+    if (typeof KNOWN_DOMAINS !== 'undefined') {
+      var switcherEl = document.getElementById('mobile-domain-switcher');
+      if (switcherEl) {
+        KNOWN_DOMAINS.forEach(function(d) {
+          var btn = document.createElement('button');
+          btn.className = 'menu-option' + (d.slug === AppState.domain ? ' active' : '');
+          btn.textContent = d.label;
+          btn.dataset.domain = d.slug;
+          btn.addEventListener('click', function() {
+            if (d.slug === AppState.domain) return;
+            var url = new URL(window.location);
+            url.searchParams.set('domain', d.slug);
+            window.location.href = url.toString();
+          });
+          switcherEl.appendChild(btn);
+        });
+      }
+    }
+
+    // "About this domain" button in menu
+    var aboutBtn = document.getElementById('btn-about-domain');
+    if (aboutBtn && typeof openDomainCertificate === 'function') {
+      if (typeof injectCertificateOverlay === 'function') injectCertificateOverlay();
+      aboutBtn.addEventListener('click', function() {
+        var menuOverlay = document.getElementById('menu-overlay');
+        if (menuOverlay) menuOverlay.classList.add('hidden');
+        openDomainCertificate();
+      });
+    }
+
     showLoading('Initializing...');
 
     var container = document.getElementById('cy');

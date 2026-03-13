@@ -136,3 +136,16 @@
   color: var(--blue-700);
   text-decoration: underline;
 }
+
+/* Ghost variant — borderless, transparent until hover */
+.btn-ghost {
+  color: var(--color-text-secondary);
+  background: none;
+  border-color: var(--color-border-secondary);
+}
+
+.btn-ghost:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+}
