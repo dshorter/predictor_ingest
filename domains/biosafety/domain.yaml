@@ -89,6 +89,50 @@ relation_taxonomy:
     - GOVERNS            # Org → Org/Program
     - PARTNERED_WITH     # Org ↔ Org
 
+  # Semantic groupings for ontology display and UI filtering
+  groups:
+    document:
+      - MENTIONS
+      - CITES
+      - ANNOUNCES
+      - REPORTED_BY
+    regulatory:
+      - REGULATES
+      - REGULATED_BY
+      - ENFORCES
+      - COMPLIES_WITH
+      - AUTHORIZES
+      - INSPECTS
+      - CLASSIFIES
+      - LISTS
+      - DELISTS
+    research:
+      - RESEARCHES
+      - PUBLISHES
+      - USES_TECH
+      - FUNDED
+      - COLLABORATES_WITH
+    containment:
+      - STORES
+      - TRANSFERS
+      - CONTAINS
+      - OPERATES
+    incident:
+      - CAUSED
+      - DETECTED_IN
+      - RESPONDS_TO
+      - MITIGATES
+      - MONITORS
+    capability:
+      - AFFECTS
+      - PRODUCES
+      - DEPENDS_ON
+      - PREDICTS
+    organizational:
+      - CREATED
+      - GOVERNS
+      - PARTNERED_WITH
+
   # LLM output normalization: map common phrasings to canonical types
   normalization:
     # Regulatory
