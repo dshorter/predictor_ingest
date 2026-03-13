@@ -43,7 +43,7 @@ function getNodeTypeColors() {
     'Tech': getCSSVar('--color-tech', '#EAB308'),
     'Topic': getCSSVar('--color-topic', '#64748B'),
     'Document': getCSSVar('--color-document', '#9CA3AF'),
-    'Event': getCSSVar('--color-event', '#F43F5E'),
+    'Event': getCSSVar('--color-event', '#F97316'),
     'Location': getCSSVar('--color-location', '#0EA5E9'),
     'SelectAgent': getCSSVar('--color-select-agent', '#F43F5E'),
     'Other': getCSSVar('--color-other', '#A1A1AA')
