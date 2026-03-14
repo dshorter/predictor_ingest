@@ -346,6 +346,11 @@ Not scheduled. Documented so they're not forgotten.
 | 5 — Interaction Polish | ✓ Done | 2026-03-04 |
 | 6 — Domain Modularization | ✓ Done | 2026-03-07 |
 | 6B — Biosafety Domain (bonus) | ✓ Done | 2026-03-07 |
+| — Biosafety stabilization | ✓ Done | 2026-03-09 |
+| — CI/CD deploy fix | ✓ Done | 2026-03-10 |
+| — Pipeline dashboard | ✓ Done | 2026-03-01 |
+| — Ontology reference page | ✓ Done | 2026-03-13 |
+| — Domain switcher UI | ✓ Done | 2026-03-13 |
 | 7 — What's Hot | **Next** | — |
 | 8 — Discovery Rewards | Pending | — |
 | 9 — Guided Entry | Pending | — |
@@ -360,16 +365,35 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-07 (7 sprints done in 8 days, incl. bonus 6B) |
+| As of | 2026-03-14 (7 planned sprints + 5 unplanned items done in 15 days) |
 | Sprints remaining | 5 sprints (7–11) |
-| Backend track | Parallel, partially blocked on data |
-| **Revised target** | **~mid-March 2026** |
+| Backend track | Parallel, partially blocked on data (≥30 days data now available) |
+| **Revised target** | **~late March 2026** |
 
-**Milestone:** Sprint 6 + 6B delivered the domain plugin architecture AND its first
-proof-of-concept (biosafety). The framework is now domain-agnostic and validated
-with two distinct domains. This was the highest-risk refactoring sprint and it
-landed cleanly — all tests pass, grep-audit confirms no AI-specific strings in
-framework code.
+**Milestone (Sprint 6 + 6B, March 7):** Domain plugin architecture delivered AND
+validated with biosafety as second domain. Framework is domain-agnostic, grep-audit
+enforced in CI.
+
+**Post-Sprint-6B unplanned work (March 7–14):** Five significant items landed outside
+the original sprint plan:
+- **Biosafety stabilization (March 7–9):** Fixed 6 dead RSS feeds, extraction prompt
+  field specs, evidence array coercion, Python format string brace escaping,
+  normalization map gaps (PUBLISHED_BY, day resolution). See
+  [fix-details/README.md](fix-details/README.md).
+- **CI/CD disk exhaustion (March 9–10):** 7 PRs over 24 hours to resolve GitHub Actions
+  disk space failures caused by stale Docker context reference. See
+  [fix-details/README.md](fix-details/README.md).
+- **Pipeline dashboard (March 1):** `web/dashboard.html` + `scripts/generate_dashboard_json.py`
+  for pipeline health monitoring.
+- **Ontology reference page (March 13):** `web/ontology.html` + `scripts/export_ontology.py`
+  for specialist-facing taxonomy visualization.
+- **Domain switcher (March 13):** Interactive domain dropdown in toolbar with "About this
+  Domain" certificate modal. `web/js/domain-switcher.js` as single source of truth for
+  domain enumeration (`KNOWN_DOMAINS` registry).
+
+**Impact on timeline:** Unplanned stabilization and infrastructure work consumed ~4 days
+(March 7–10). Sprint 7 (What's Hot) is now next. Backend track items B.9–B.11 are
+unblocked (≥30 days pipeline data reached ~March 14).
 
 **Risks to timeline:**
 - DL-1 (What's Hot) velocity delta requires backend data design decisions that
@@ -377,11 +401,8 @@ framework code.
 - Context menu extension loading may have compatibility issues with current
   Cytoscape version
 - Branding decision (DL-6) is externally blocked
-- Backend items are data-dependent and may shift
-- Biosafety feed URLs need live testing — some institutional feeds may 404 or
-  have non-standard RSS
-
-**Buffer:** With current pace, completion by mid-March is on track with slack.
+- Biosafety feed reliability still being monitored (some institutional feeds
+  intermittently 404)
 
 ---
 
