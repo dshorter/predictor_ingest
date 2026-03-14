@@ -9,11 +9,29 @@ ingest → clean → docpack → extract → import → resolve → export.
 - Install dependencies: `make setup` or `pip install -e .`
 - Directories (`data/db/`, `data/raw/`, etc.) are created automatically by scripts
 
+## Domain Selection
+
+All pipeline commands support a `--domain` flag (or `DOMAIN=` Makefile variable,
+or `PREDICTOR_DOMAIN` env var). Default domain is `ai`.
+
+```bash
+# These are equivalent:
+make ingest DOMAIN=biosafety
+python scripts/run_pipeline.py --domain biosafety
+PREDICTOR_DOMAIN=biosafety make ingest
+```
+
+Databases are isolated per domain: `data/db/{domain}.db` (e.g., `data/db/ai.db`,
+`data/db/biosafety.db`).
+
 ## 1. Initialize the Database
 
 ```bash
 make init-db
-# Creates data/db/predictor.db with schema from schemas/sqlite.sql
+# Creates data/db/ai.db with schema from schemas/sqlite.sql
+
+make init-db DOMAIN=biosafety
+# Creates data/db/biosafety.db
 ```
 
 To use a custom path: `make init-db DB=path/to/custom.db`
@@ -22,9 +40,12 @@ To use a custom path: `make init-db DB=path/to/custom.db`
 
 ```bash
 make ingest
-# Fetches RSS feeds defined in config/feeds.yaml
+# Fetches RSS feeds defined in domains/ai/feeds.yaml
 # Stores raw HTML in data/raw/, cleaned text in data/text/
 # Inserts document records into DB with status='cleaned'
+
+make ingest DOMAIN=biosafety
+# Uses domains/biosafety/feeds.yaml
 ```
 
 To ingest a single feed URL:
@@ -32,7 +53,7 @@ To ingest a single feed URL:
 python -m ingest.rss --feed https://example.com/feed.xml
 ```
 
-To add new sources, edit `config/feeds.yaml`:
+To add new sources, edit `domains/{domain}/feeds.yaml`:
 ```yaml
 feeds:
   - name: "New Source"
@@ -144,7 +165,7 @@ python -m http.server 8000 --directory web
 ## Daily Routine (Cheat Sheet)
 
 ```bash
-# Morning: ingest and prepare for extraction
+# Morning: ingest and prepare for extraction (AI domain, default)
 make pipeline           # ingest + docpack
 
 # ... paste .md into ChatGPT, save extraction JSONs to data/extractions/ ...
@@ -154,6 +175,31 @@ make post-extract       # import + resolve + export + trending
 
 # Deploy to web client
 cp -r data/graphs/$(date +%Y-%m-%d)/* web/data/graphs/latest/
+
+# Full daily pipeline (automated, Mode A)
+make daily                        # AI domain (default)
+make daily DOMAIN=biosafety       # Biosafety domain
+
+# Verify domain routing is correct before a run
+make daily-check
+make daily-check DOMAIN=biosafety
+```
+
+## Additional Tools
+
+```bash
+# Export ontology JSON from domain profiles
+make export_ontology
+
+# Wipe all pipeline data for a domain (dry-run by default)
+python scripts/wipe_domain_data.py --domain biosafety
+python scripts/wipe_domain_data.py --domain biosafety --confirm  # actually delete
+
+# Generate dashboard JSON for the pipeline monitoring page
+python scripts/generate_dashboard_json.py
+
+# Diagnose feed freshness
+python scripts/diagnose_feeds.py
 ```
 
 ## Makefile Variables
@@ -164,11 +210,13 @@ All variables can be overridden:
 make export DATE=2026-01-15
 make import DB=data/db/custom.db
 make trending GRAPHS_DIR=/var/www/graphs
+make daily DOMAIN=biosafety
 ```
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DB` | `data/db/predictor.db` | SQLite database path |
+| `DOMAIN` | `ai` | Active domain (routes to `domains/{domain}/` and `data/db/{domain}.db`) |
+| `DB` | `data/db/{domain}.db` | SQLite database path (auto-derived from domain if not set) |
 | `DATE` | today | Date for filtering and output directories |
 | `DAYS` | `30` | Date window in days (0 = all data) |
 | `GRAPHS_DIR` | `data/graphs` | Base directory for graph exports |
@@ -186,12 +234,16 @@ match entries in the `entities[]` array exactly.
 
 ### Check database state
 ```bash
-sqlite3 data/db/predictor.db "SELECT count(*) FROM entities;"
-sqlite3 data/db/predictor.db "SELECT count(*) FROM relations;"
-sqlite3 data/db/predictor.db "SELECT count(*) FROM documents WHERE status='extracted';"
+# AI domain (default)
+sqlite3 data/db/ai.db "SELECT count(*) FROM entities;"
+sqlite3 data/db/ai.db "SELECT count(*) FROM relations;"
+sqlite3 data/db/ai.db "SELECT count(*) FROM documents WHERE status='extracted';"
+
+# Biosafety domain
+sqlite3 data/db/biosafety.db "SELECT count(*) FROM entities;"
 ```
 
 ### Re-import a single extraction
 ```bash
-python scripts/import_extractions.py --extractions-dir data/extractions --db data/db/predictor.db
+python scripts/import_extractions.py --extractions-dir data/extractions --db data/db/ai.db
 ```

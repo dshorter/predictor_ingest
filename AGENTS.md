@@ -254,6 +254,19 @@ for the boundary definition and enforcement rules.
 | [docs/ux/polish-strategy.md](docs/ux/polish-strategy.md) | Aesthetic mechanics: typography, toolbar, canvas, node depth |
 | [docs/ux/delight-backlog.md](docs/ux/delight-backlog.md) | Engagement & discovery: What's Hot, guided entry, visual reward. Desktop-first. |
 
+#### Web Pages & Tools
+
+| Page / Script | Purpose |
+|---------------|---------|
+| `web/index.html` | Main desktop graph explorer |
+| `web/mobile.html` | Mobile-adapted graph explorer |
+| `web/dashboard.html` | Pipeline health monitoring dashboard |
+| `web/ontology.html` | Specialist-facing taxonomy/ontology reference |
+| `web/js/domain-switcher.js` | Domain dropdown + "About this Domain" modal; `KNOWN_DOMAINS` registry is single source of truth for domain enumeration |
+| `scripts/export_ontology.py` | Generates ontology JSON from domain profiles (`make export_ontology`) |
+| `scripts/generate_dashboard_json.py` | Generates dashboard data from pipeline logs |
+| `scripts/wipe_domain_data.py` | Safely resets all pipeline data for a domain (dry-run by default) |
+
 #### Schema & Data
 
 | Document | Purpose |

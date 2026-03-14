@@ -145,3 +145,140 @@ limited headroom. Adding constraints must be balanced against the model's capaci
 to follow them all simultaneously.
 
 **Status:** IN PROGRESS — prompt tuning applied 2026-02-25, measuring over next ~100 extractions
+
+---
+
+## CI/CD Disk Exhaustion Saga (March 2026)
+
+**Problem:** GitHub Actions CI/CD runs began failing with disk space errors,
+preventing deployments for ~24 hours across PRs #141–#149.
+
+**Root Cause:** The deploy workflow's `docker build` step used a stale context
+referencing `/opt/ai-agent-platform/docker-compose.yml` — an unrelated Docker
+project on the VPS. Docker was pulling in a 664MB build context from a project
+that had nothing to do with predictor_ingest.
+
+**Investigation timeline (7 PRs over ~24 hours):**
+1. Disabled pip cache (`--no-cache-dir`) — no effect
+2. Removed .NET/Android/GHC/CodeQL toolcache — marginal improvement
+3. Added `docker image prune` — accidentally killed the `appleboy/ssh-action`
+   container used for deployment
+4. Added `.dockerignore` — discovered the real problem was the Docker context path
+5. Traced to stale Docker reference pulling in an unrelated project (664MB)
+6. Reverted all deploy fixes back to known working state
+7. Final fix: stripped deploy workflow to just checkout + SSH (removed Python/pip/pytest
+   from deploy entirely); switched to `jlumbroso/free-disk-space` action for CI
+
+**Key Takeaways:**
+- Multiple incremental fixes obscured the root cause. Each "improvement" masked
+  the real problem and introduced new side effects.
+- When disk space is the issue, investigate *what* is consuming it before optimizing
+  caching. The 664MB Docker context was the dominant factor.
+- The deploy workflow didn't need Python/pip/pytest — it just needed to SSH into the
+  VPS. Simplifying the workflow was the real fix.
+- `docker image prune` in CI can kill action containers (e.g., `appleboy/ssh-action`)
+  that are still running.
+
+**Status:** RESOLVED — 2026-03-10
+
+---
+
+## Orphan Edges in Graph Export (March 2026)
+
+**Problem:** Graph export produced edges referencing nodes that had been filtered
+out by view or date range, crashing the Cytoscape client with "target node not found"
+errors.
+
+**Root Cause:** The export pipeline filtered nodes (by view criteria or date range)
+but did not strip edges whose source or target was no longer in the filtered node set.
+
+**Resolution:** Added orphan edge stripping to both `scripts/run_export.py` and
+`scripts/run_trending.py` — after node filtering, any edge whose source or target
+is not in the final node set is removed before writing the JSON output.
+
+**Key Takeaway:** Whenever graph nodes are filtered, edges must be filtered in the
+same pass. This applies to every export path (mentions, claims, dependencies, trending).
+
+**Status:** RESOLVED — 2026-03-05
+
+---
+
+## Trending View Bridge Entity Isolation (March 2026)
+
+**Problem:** The trending view was rejecting "bridge" entities — non-trending entities
+that connect trending nodes to each other. Without bridges, trending nodes that shared
+connections through intermediate entities appeared as isolated clusters.
+
+**Root Cause:** The trending node selection algorithm only admitted entities with
+trending scores above threshold. Bridge entities (which may not be trending themselves
+but serve as connectors) were excluded, fragmenting the graph.
+
+**Resolution:** Added bridge entity support to the trending node selection: after
+selecting trending nodes, identify non-trending entities that connect 2+ trending nodes
+(where at least one would otherwise be isolated). Admit these as bridge nodes with
+`isBridge: true` metadata so the UI can style them differently (e.g., smaller, no
+velocity halo).
+
+**Key Takeaway:** Trend-filtering a graph requires both a relevance filter (trending
+score) and a connectivity filter (bridge detection). Pure relevance filtering produces
+fragmented views that lose the "why it matters" context.
+
+**Status:** RESOLVED — 2026-03-05
+
+---
+
+## Mobile Multi-Domain Routing Bugs (March 2026)
+
+**Problem:** After Sprint 6B added biosafety domain support, the mobile web client
+had five separate bugs related to domain routing and initialization.
+
+**Failure modes:**
+1. Mobile didn't load domain config or rebind filter panel entity types
+2. Safari "string did not match pattern" error on date parsing during init
+   (ISO date format with timezone offset)
+3. AI sample data shown when viewing non-AI domains (hardcoded sample data path)
+4. Mobile `?domain=biosafety` URL parameter ignored entirely (domain derived from
+   `AppState` which defaulted to AI)
+
+**Resolution:** Each was fixed independently:
+1. Domain config fetch + filter panel rebuild wired into mobile init
+2. Date parsing normalized to strip timezone suffixes before `new Date()`
+3. Sample data path made domain-aware
+4. URL parameter made authoritative source for domain selection on mobile
+
+**Key Takeaway:** When adding multi-domain support, test the mobile client separately —
+it has its own initialization path that doesn't share code with desktop. Desktop domain
+routing can work perfectly while mobile silently falls back to defaults.
+
+**Status:** RESOLVED — 2026-03-09
+
+---
+
+## Biosafety Extraction Template Bugs (March 2026)
+
+**Problem:** First biosafety domain extractions failed validation at multiple points.
+
+**Failure modes (in order of discovery):**
+1. **Missing relation field specs** (EXT-6): Biosafety prompts didn't explicitly list
+   required relation fields, causing LLM to omit `rel`, `source`, or `target` properties
+2. **Evidence field type mismatch:** LLM returned evidence as a single object instead of
+   an array, failing schema validation
+3. **Python format string collision:** Literal `{` and `}` characters in prompt templates
+   (used for JSON examples) were interpreted as Python `.format()` placeholders, causing
+   `KeyError` on cheap model extraction path
+4. **Missing normalization entries:** `PUBLISHED_BY` relation and `day` date resolution
+   not in biosafety domain's normalization maps
+
+**Resolutions:**
+1. Updated biosafety prompts to match AI domain's explicit field-by-field specification
+2. Schema validation updated to coerce single evidence objects to arrays
+3. Escaped literal braces in prompt templates (`{{` / `}}`)
+4. Added `PUBLISHED_BY` and `day` to biosafety `domain.yaml` normalization maps
+
+**Key Takeaway:** When creating extraction prompts for a new domain, start by copying
+the working domain's prompt structure verbatim, then customize vocabulary. The structure
+(field specs, JSON examples with properly escaped braces, critical rules section) is
+as important as the domain-specific content. The `domains/_template/` scaffolding should
+include prompt templates with all structural elements pre-populated.
+
+**Status:** RESOLVED — 2026-03-09

@@ -423,6 +423,56 @@ transitions are nice but secondary to the primary visual artifact.
 
 ---
 
+## Post-Sprint-5 Visual Patterns (March 2026)
+
+The following visual patterns were introduced after the original polish sprints
+and establish design precedents for future work:
+
+### Domain switcher dropdown + "About this Domain" certificate modal
+
+**Added:** 2026-03-13 | **Files:** `web/js/domain-switcher.js`
+
+Interactive domain dropdown in the toolbar. Selecting a domain triggers a
+reload with `?domain=` parameter. The "About this Domain" button opens a
+certificate-style modal with metallic/embossed CSS treatment showing:
+- Domain name, description
+- Entity type count, relation count, alias count
+- Visual metallic gradient background with subtle texture
+
+**Design precedent:** The certificate modal uses a metallic/embossed aesthetic
+(subtle gradients, inset text shadows, border effects) that differs from the
+flat panel style used elsewhere. This treatment is reserved for "about" or
+"meta" content — not for primary interaction surfaces.
+
+### Biosafety-specific node colors
+
+**Added:** 2026-03-13 | **Files:** `web/data/domains/biosafety.json`
+
+Domain-specific entity types get custom node colors:
+- `SelectAgent` = red (#F43F5E) — visually urgent, appropriate for hazard
+- `Facility` = teal (#0D9488)
+- `Regulation` = violet (#7C3AED)
+- `Event` reassigned to orange (#F97316) to distinguish from AI domain's usage
+
+**Design precedent:** Each domain can define its own color palette for entity
+types. The AI domain's 15-color palette is not universal. New domains should
+choose colors that match their domain semantics (e.g., red for hazards in
+biosafety).
+
+### Ontology reference page
+
+**Added:** 2026-03-13 | **Files:** `web/ontology.html`, `scripts/export_ontology.py`
+
+Specialist-facing taxonomy visualization showing entity classes, object
+properties (relations), and quality contract. Generated from domain profiles
+via `make export_ontology`.
+
+**Design precedent:** Reference/documentation pages use a different layout
+from the graph explorer — static content with navigation, not interactive
+canvas. Keep these pages simple and self-contained.
+
+---
+
 ## What NOT to Polish
 
 Explicit non-goals to avoid scope creep:

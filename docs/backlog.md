@@ -152,6 +152,11 @@ edges to only those connecting isolated trending entities (plus one edge
 to a non-isolated trending entity for connectivity). Drop edges to
 already-connected trending entities.
 
+**Update (2026-03-05):** Bridge entity support was added to the trending view
+(commit b64ea8b). Bridge entities that connect 2+ trending nodes (where at least
+one is isolated) are now admitted with `isBridge: true` metadata. The cap concern
+remains valid — monitor whether any bridge accumulates disproportionate degree.
+
 **Waiting on:** More daily pipeline runs to see whether any bridge entity
 accumulates disproportionate degree in practice.
 
@@ -210,14 +215,34 @@ be correct (early morning, feeds hadn't rotated) but needs verification.
 to confirm feeds are returning new entries. If consistently showing 0 new,
 investigate whether feed caching or the dedup mechanism is too aggressive.
 
-For the bio safety domain select agents need to be red 
+---
 
-for Docs or any domain specific documentation into its own space  
+## UI / UX Ideas (unstructured notes)
 
-For the search bar, if more than one candidate is found forward and backward buttons to move between the search results.  
+### ~~Biosafety select agents should be red~~ — DONE
 
-for motion in general pan and zooms should happen a little bit slower than there happening right now  
+**Resolved:** 2026-03-13. SelectAgent nodes now use red (#F43F5E) in biosafety
+domain config. See `web/data/domains/biosafety.json`.
 
-explore the six degrees of separation / oracle of bacon idea  
+### Domain-specific documentation space
 
-  
+Move domain-specific docs into their own space under each domain directory.
+
+### Search result navigation
+
+For the search bar, if more than one candidate is found, add forward/backward
+buttons to cycle between search results (like browser Ctrl+G / Ctrl+Shift+G).
+
+### Slower pan/zoom motion
+
+Pan and zoom animations should happen a little slower than current defaults.
+Investigate adjusting `cy.animate()` duration parameters for fly-to and fit
+operations. See Sprint 5 notes — `cy.animate` duration may need domain-specific
+tuning based on typical graph density.
+
+### Six degrees of separation / Oracle of Bacon
+
+Explore shortest-path discovery feature: select two nodes and show the shortest
+path between them, highlighting intermediate entities. Could use Cytoscape's
+built-in `eles.dijkstra()` or `eles.bfs()`. Low priority — would be a post-V1
+discovery feature.

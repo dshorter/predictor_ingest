@@ -6,12 +6,17 @@ Structured JSON log produced by `scripts/run_pipeline.py` for monitoring pipelin
 
 ## Log Format  
 
-One file per day: `data/logs/pipeline_YYYY-MM-DD.json`
+One file per day per domain: `data/logs/pipeline_YYYY-MM-DD.json`
+
+**Note:** With multi-domain support (Sprint 6+), each domain produces its own log.
+The `domain` field in the log identifies which domain the run was for. Feed counts
+vary by domain (AI: 7 feeds, biosafety: 13 feeds).
 
 ```json
 {
   "runDate": "2026-02-08",
   "runId": "20260208T060000Z",
+  "domain": "ai",
   "startedAt": "2026-02-08T06:00:00Z",
   "completedAt": "2026-02-08T06:02:22Z",
   "durationSec": 142.3,
@@ -99,7 +104,7 @@ OK 2026-02-08: 12 docs, 87 entities, 134 relations | 7/7 feeds | 142.3s
 | Check | Healthy | Investigate |
 |-------|---------|-------------|
 | `status` | `"success"` | `"partial"` or `"failed"` |
-| `ingest.feedsReachable` | = `feedsChecked` (7) | Any less means source down |
+| `ingest.feedsReachable` | = `feedsChecked` (varies by domain: AI=7, biosafety=13) | Any less means source down |
 | `ingest.newDocsFound` | 5-30 typical | 0 = stale or broken feeds |
 | `extract.validationErrors` | 0 | > 0 = schema or prompt drift |
 | `extract.escalated` | < 30% of docs (typical) | > 50% = cheap model underperforming |

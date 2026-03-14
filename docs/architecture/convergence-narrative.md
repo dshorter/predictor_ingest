@@ -1,7 +1,7 @@
 # ADR: Convergence of Four Vectors — March 2026
 
 **Status:** Active — living document, updated as vectors advance
-**Date:** 2026-03-04
+**Date:** 2026-03-04 (last updated 2026-03-14)
 **Context:** Five workstreams that were planned independently are converging on the same ~2-week window (mid-to-late March 2026). Each is straightforward alone; the risk is in their intersection. This document tracks how they weave together so that any session — human or AI — can pick up the thread.
 
 ---
@@ -62,6 +62,15 @@ architecture (`src/extract/__init__.py`, `ESCALATION_THRESHOLD = 0.6`) is built
 for exactly this: cheap model first → CPU gates → score → escalate to Sonnet only
 when needed. Estimated cost drop: ~$25 → ~$8/month if 70% of articles pass nano.
 
+**Reality check (2026-02-25 data):** The Feb 22–25 measurement period showed
+**80% escalation rate** — the cheap model (gpt-5-nano) failed quality gates on
+4 out of 5 documents. Dominant failure: orphan endpoints (relation target doesn't
+match entity name). Prompt tuning was applied Feb 25 (3 lightweight additions to
+Critical Rules). The 70%-pass / $8-month target is aspirational; actual calibration
+is ongoing. If escalation stays above ~50%, the fallback is to run Sonnet directly
+(~$25/month) — the cost delta is small enough that reliability may outweigh savings.
+See [ext4 analysis](../fix-details/ext4-cheap-model-escalation-analysis.md).
+
 **Where it converges:** This directly affects V1 (trend-insights uses a
 deterministic-first philosophy — templates before LLM) and V4 (each domain
 may have a different cost profile and sweet spot). The shadow mode comparison
@@ -77,12 +86,18 @@ domains (Biotech, Cybersecurity, Climate, Geopolitics). But today the separation
 is convention-based (framework in `src/extract/__init__.py`, domain content in
 `src/extract/prompts.py`) with no runtime enforcement.
 
-**Design response:** Sprint 6 in the [project plan](../project-plan.md) creates
+**Design response:** Sprint 6 in the [project plan](../project-plan.md) created
 `domains/ai/domain.yaml` — entity types, relation taxonomy, ID prefixes, quality
-thresholds, prompt paths — and parameterizes all framework modules to load from
+thresholds, prompt paths — and parameterized all framework modules to load from
 that profile instead of hardcoding. The approach is deliberately minimal: no
 abstract base classes, no plugin registry. A domain is a directory with a known
 file layout; adding one means adding a directory.
+
+**Current state (2026-03-14):** Sprint 6 + 6B completed 2026-03-07. Two domains
+operational (AI, biosafety). Grep-audit test enforces domain-agnostic framework.
+Domain switcher UI (`web/js/domain-switcher.js`) with `KNOWN_DOMAINS` registry
+deployed. Biosafety stabilization required ~4 days of follow-up fixes for extraction
+prompts, feed reliability, and mobile routing (see [fix-details/README.md](../fix-details/README.md)).
 
 ### V4.5 — Source Connectors (the `*.py` question)
 
@@ -149,22 +164,25 @@ These vectors are **not independent**. Here is where they touch:
 ## Sequencing (what depends on what)
 
 ```
-NOW (unblocked)
-  ├── B.8: Write insight template spec (pure doc, no code dependency)
-  └── Sprint 6 design: domain.yaml schema definition (6.1)
+DONE (as of 2026-03-14)
+  ├── Sprint 6: domain.yaml schema, domains/ai/, framework parameterization ✓
+  ├── Sprint 6B: biosafety domain + stabilization ✓
+  ├── Domain switcher UI + ontology reference page ✓
+  └── Pipeline dashboard ✓
 
-~MID-MARCH (≥14 days pipeline data)
-  ├── B.9: generate_insights.py (needs B.8 + data)
-  ├── Sprint 6 implementation: create domains/ai/, parameterize framework
+NOW (unblocked, mid-March)
+  ├── B.8: Write insight template spec (pure doc, no code dependency)
+  ├── B.9: generate_insights.py (needs B.8 + data — ≥14 days data now available)
   └── Sprint 7: What's Hot UI shell (can use raw scores, doesn't need B.9)
 
-~LATE MARCH (≥30 days data)
+~LATE MARCH (≥30 days data — reached ~March 14)
   ├── B.10: Backtest insight accuracy
   ├── B.11: Insight dedup + storage
   ├── Shadow mode evaluation: nano model vs Sonnet on real corpus
-  └── Sprint 7.3 upgrade: swap raw scores → insight artifacts
+  ├── Sprint 7.3 upgrade: swap raw scores → insight artifacts
+  └── V3 cost calibration: resolve 80% escalation rate or drop cheap-first
 
-POST-V1 (after framework is domain-parameterized)
+POST-V1 (framework is domain-parameterized ✓)
   ├── V4.5: Connector convention + first non-RSS source
   └── V2: Entity watchlist → curator-driven source expansion
 ```
@@ -179,6 +197,9 @@ POST-V1 (after framework is domain-parameterized)
 | 2026-03-04 | Sprint 7.3 accepts raw scores OR insight objects | Decouples UI ship date from insight generation readiness; upgrade in place | [project-plan.md](../project-plan.md) Sprint 7 |
 | 2026-03-04 | No abstract base classes for plugin/connector arch | Directory convention + function signatures are sufficient for V1; avoid premature abstraction | [domain-separation.md](domain-separation.md), [project-plan.md](../project-plan.md) Sprint 6 |
 | 2026-03-04 | This convergence narrative created as standalone ADR | Source docs stay stable; narrative links out instead of modifying them; new sessions can reconstruct the "why" from one place | (this document) |
+| 2026-03-07 | Sprint 6 + 6B delivered: domain modularization + biosafety proof-of-concept | V4 prerequisites met; framework is domain-agnostic with grep-audit enforcement | [project-plan.md](../project-plan.md) |
+| 2026-03-09 | Biosafety stabilization: prompt fixes, feed repairs, mobile routing | First non-AI domain required ~4 days of follow-up fixes; template scaffolding needs structural pre-population | [fix-details/README.md](../fix-details/README.md) |
+| 2026-03-13 | Domain switcher UI + ontology reference page shipped | `KNOWN_DOMAINS` registry in `domain-switcher.js` is now single source of truth for domain enumeration; ontology page visualizes domain taxonomy | [project-plan.md](../project-plan.md) |
 
 ---
 
