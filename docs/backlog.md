@@ -217,32 +217,72 @@ investigate whether feed caching or the dedup mechanism is too aggressive.
 
 ---
 
-## UI / UX Ideas (unstructured notes)
+## Graph Export & Visualization
+
+### GEV-2: Search result forward/backward navigation
+
+**Observed:** 2026-03-14 | **Priority:** Medium
+
+When the search bar finds multiple matching nodes, there is no way to cycle
+between them. Add forward/backward buttons (or keyboard shortcuts like
+Ctrl+G / Ctrl+Shift+G) to step through search results one at a time, flying
+the camera to each match in sequence.
+
+**Files likely affected:** `web/js/search.js` (result iteration state),
+`web/css/components/toolbar.css` (nav button styling)
+
+### GEV-3: Slower pan/zoom animation timing
+
+**Observed:** 2026-03-14 | **Priority:** Low
+
+Pan and zoom animations (fly-to on search, fit-to on double-tap, neighborhood
+zoom) happen too quickly. Increase `cy.animate()` duration parameters for a
+more deliberate feel. Consider making duration proportional to travel distance
+so short hops are snappy but long traversals feel smooth.
+
+**Files likely affected:** `web/js/app.js`, `web/js/search.js` (anywhere
+`cy.animate` is called)
+
+### GEV-4: Shortest path discovery ("Six Degrees")
+
+**Observed:** 2026-03-14 | **Priority:** Low (post-V1)
+
+Select two nodes and show the shortest path between them, highlighting
+intermediate entities and edges. Would surface non-obvious connections
+(e.g., how an org relates to a model through 3 intermediate entities).
+
+**Implementation:** Cytoscape.js has built-in `eles.dijkstra()` and
+`eles.bfs()` for path-finding. UI would need a "select second node" mode
+(e.g., shift-click after selecting the first node) and a path highlight
+style. Could display path length and intermediate entity names in the
+detail panel.
+
+**Inspiration:** Oracle of Bacon / Six Degrees of Kevin Bacon.
+
+---
+
+## Project Organization
+
+### ORG-1: Domain-specific documentation space
+
+**Observed:** 2026-03-14 | **Priority:** Low
+
+Move domain-specific documentation into each domain's directory
+(e.g., `domains/biosafety/docs/`). Currently all docs live in the
+top-level `docs/` directory which is domain-agnostic. As domains
+accumulate their own operational history, feed notes, and prompt
+tuning observations, a per-domain docs space would keep things
+organized.
+
+**Consideration:** Top-level `docs/` stays for framework-level docs
+(architecture, methodology, schema). Domain directories get their
+own `docs/` for domain-specific operational content.
+
+---
+
+## Resolved
 
 ### ~~Biosafety select agents should be red~~ — DONE
 
 **Resolved:** 2026-03-13. SelectAgent nodes now use red (#F43F5E) in biosafety
 domain config. See `web/data/domains/biosafety.json`.
-
-### Domain-specific documentation space
-
-Move domain-specific docs into their own space under each domain directory.
-
-### Search result navigation
-
-For the search bar, if more than one candidate is found, add forward/backward
-buttons to cycle between search results (like browser Ctrl+G / Ctrl+Shift+G).
-
-### Slower pan/zoom motion
-
-Pan and zoom animations should happen a little slower than current defaults.
-Investigate adjusting `cy.animate()` duration parameters for fly-to and fit
-operations. See Sprint 5 notes — `cy.animate` duration may need domain-specific
-tuning based on typical graph density.
-
-### Six degrees of separation / Oracle of Bacon
-
-Explore shortest-path discovery feature: select two nodes and show the shortest
-path between them, highlighting intermediate entities. Could use Cytoscape's
-built-in `eles.dijkstra()` or `eles.bfs()`. Low priority — would be a post-V1
-discovery feature.
