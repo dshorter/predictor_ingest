@@ -163,15 +163,39 @@ function injectCertificateOverlay() {
 async function openDomainCertificate() {
   const overlay = document.getElementById('domain-certificate-overlay');
   const container = document.getElementById('domain-cert-content');
-  if (!overlay || !container) return;
+  if (!overlay || !container) {
+    if (!document.getElementById('domain-certificate-overlay')) {
+      console.warn('[cert] overlay not found, injecting now');
+      injectCertificateOverlay();
+      // Re-query after injection
+      const retryOverlay = document.getElementById('domain-certificate-overlay');
+      const retryContainer = document.getElementById('domain-cert-content');
+      if (!retryOverlay || !retryContainer) {
+        console.error('[cert] injection failed');
+        return;
+      }
+      return openDomainCertificate();
+    }
+    console.error('[cert] container missing inside overlay');
+    return;
+  }
 
   const slug = (typeof AppState !== 'undefined' && AppState.domain) || 'ai';
 
   // Try to load the ontology JSON for richer data
+  // Resolve path relative to the site root (handles mobile/ subdirectory)
   let onto = null;
   try {
-    const resp = await fetch(`data/domains/${slug}.ontology.json`);
-    if (resp.ok) onto = await resp.json();
+    const base = document.querySelector('base')?.href || '';
+    const ontoPath = (base || '') + `data/domains/${slug}.ontology.json`;
+    const resp = await fetch(ontoPath);
+    if (!resp.ok) {
+      // Retry with ../ prefix for subdirectory pages (e.g. mobile/)
+      const altResp = await fetch(`../data/domains/${slug}.ontology.json`);
+      if (altResp.ok) onto = await altResp.json();
+    } else {
+      onto = await resp.json();
+    }
   } catch (_) { /* ontology is optional */ }
 
   // Fall back to AppState.domainConfig for basics
@@ -196,8 +220,9 @@ async function openDomainCertificate() {
     `<span class="cert-type-dot"><span class="dot" style="background:${escHtml(t.color)}"></span>${escHtml(t.name)}</span>`
   ).join('');
 
-  // Ontology link
-  const ontoHref = `ontology.html?domain=${slug}`;
+  // Ontology link (resolve from site root, not current directory)
+  const isSubdir = window.location.pathname.includes('/mobile/');
+  const ontoHref = (isSubdir ? '../' : '') + `ontology.html?domain=${slug}`;
 
   container.innerHTML = `
     <div class="domain-cert">
