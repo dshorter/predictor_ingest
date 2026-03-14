@@ -32,42 +32,62 @@
 
   /* Metallic surface — layered gradients for a brushed-steel feel */
   background:
+    /* Top-left highlight catch — simulates light source */
+    radial-gradient(
+      ellipse at 30% 0%,
+      rgba(255, 255, 255, 0.20) 0%,
+      transparent 60%
+    ),
+    /* Diagonal sheen — brushed metal sweep */
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(255, 255, 255, 0.04) 100%
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(0, 0, 0, 0.02) 60%,
+      rgba(255, 255, 255, 0.06) 100%
     ),
+    /* Vertical body gradient — subtle warm-to-cool shift */
     linear-gradient(
       to bottom,
-      var(--color-bg-primary) 0%,
-      var(--color-bg-secondary) 100%
+      #FCFCFD 0%,
+      #F4F5F7 100%
     );
-  border: var(--border-width) solid var(--color-border-secondary);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow:
     var(--shadow-xl),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    /* Top edge highlight — bright chamfer */
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    /* Bottom edge shadow — grounded weight */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.06),
+    /* Inner glow — soft ambient fill */
+    inset 0 0 40px rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="dark"] .domain-cert {
   background:
+    radial-gradient(
+      ellipse at 30% 0%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 60%
+    ),
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.04) 0%,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(255, 255, 255, 0.02) 100%
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(0, 0, 0, 0.05) 60%,
+      rgba(255, 255, 255, 0.03) 100%
     ),
     linear-gradient(
       to bottom,
-      var(--color-bg-tertiary) 0%,
-      var(--color-bg-secondary) 100%
+      #1E2533 0%,
+      #171D2A 100%
     );
-  border-color: var(--color-border-primary);
+  border-color: rgba(255, 255, 255, 0.08);
   box-shadow:
     var(--shadow-xl),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    inset 0 0 40px rgba(255, 255, 255, 0.03);
 }
 
 /* ── Close button ────────────────────────────────────────────────────── */
@@ -131,17 +151,18 @@
   border-radius: var(--radius-sm);
 }
 
-/* ── Divider — subtle embossed line ──────────────────────────────────── */
+/* ── Divider — embossed groove (two-tone line) ──────────────────────── */
 .cert-divider {
-  height: 1px;
+  height: 0;
   margin: var(--space-5) 0;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--color-border-primary) 20%,
-    var(--color-border-primary) 80%,
-    transparent
-  );
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .cert-divider {
+  border-top-color: rgba(0, 0, 0, 0.3);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 /* ── Stats grid ──────────────────────────────────────────────────────── */
