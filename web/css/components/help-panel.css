@@ -13,9 +13,9 @@
   /* Override panel-right positioning — help panel covers the full
      main-content area (positioned relative to #main-content). */
   position: absolute;
-  top: var(--space-1);
-  right: var(--space-1);
-  bottom: var(--space-1);
+  top: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
   width: 350px;
   background: var(--color-bg-primary);
   border: var(--border-width) solid var(--color-border-primary);
@@ -29,7 +29,7 @@
 }
 
 #help-panel.hidden {
-  transform: translateX(calc(100% + var(--space-1)));
+  transform: translateX(calc(100% + var(--space-2)));
   pointer-events: none;
 }
 

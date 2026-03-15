@@ -8,31 +8,34 @@
  * 4. Components
  * 5. Graph-specific
  * 6. Utilities (overrides)
+ *
+ * Cache busting: bump ?v= on each @import when changing sub-files.
+ * Cloudflare caches each @import URL independently.
  */
 
 /* 1. Design tokens — foundation for everything */
-@import 'tokens.css';
+@import 'tokens.css?v=2';
 
 /* 2. Reset — normalize browser defaults */
-@import 'reset.css';
+@import 'reset.css?v=2';
 
 /* 3. Base — typography, body, links */
-@import 'base.css';
+@import 'base.css?v=2';
 
 /* 4. Components — individual UI pieces */
-@import 'components/card.css';
-@import 'components/button.css';
-@import 'components/input.css';
-@import 'components/badge.css';
-@import 'components/panel.css';
-@import 'components/toolbar.css';
-@import 'components/tooltip.css';
-@import 'components/help-panel.css';
-@import 'components/domain-certificate.css';
+@import 'components/card.css?v=2';
+@import 'components/button.css?v=2';
+@import 'components/input.css?v=2';
+@import 'components/badge.css?v=2';
+@import 'components/panel.css?v=2';
+@import 'components/toolbar.css?v=2';
+@import 'components/tooltip.css?v=2';
+@import 'components/help-panel.css?v=2';
+@import 'components/domain-certificate.css?v=2';
 
 /* 5. Graph-specific */
-@import 'graph/cytoscape.css';
-@import 'graph/overlays.css';
+@import 'graph/cytoscape.css?v=2';
+@import 'graph/overlays.css?v=2';
 
 /* 6. Utilities — last, so they can override */
-@import 'utilities.css';
+@import 'utilities.css?v=2';
