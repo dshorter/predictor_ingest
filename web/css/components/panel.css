@@ -1,6 +1,9 @@
 /**
  * Panel Component
  *
+ * Panels float over the graph canvas with an 8px gap from edges,
+ * rounded corners, and an accent left border.
+ *
  * Usage:
  *   <aside class="panel panel-left">Left sidebar</aside>
  *   <aside class="panel panel-right collapsed">Right sidebar</aside>
@@ -13,7 +16,7 @@
   border: var(--border-width) solid var(--color-border-primary);
   border-left: 4px solid var(--color-primary);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   z-index: var(--z-dropdown);
   transition: transform var(--duration-slow) var(--easing-default);
   overflow: hidden;
@@ -50,40 +53,40 @@
   background-color: var(--gray-100);
 }
 
-/* Left panel (detail view) — floated off edge with card-elevated styling */
+/* Left panel (detail view) — 8px gap from edges */
 .panel-left {
-  top: var(--space-1);
-  left: var(--space-1);
-  bottom: var(--space-1);
+  top: var(--space-2);
+  left: var(--space-2);
+  bottom: var(--space-2);
   width: var(--panel-width);
 }
 
 .panel-left.hidden {
-  transform: translateX(calc(-100% - var(--space-1)));
+  transform: translateX(calc(-100% - var(--space-2)));
 }
 
-/* Right panel (filters) — floated off edge with card-elevated styling */
+/* Right panel (filters) — 8px gap from edges */
 .panel-right {
-  top: var(--space-1);
-  right: var(--space-1);
-  bottom: var(--space-1);
+  top: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
   width: var(--panel-width);
 }
 
 .panel-right.collapsed {
-  transform: translateX(calc(100% + var(--space-1)));
+  transform: translateX(calc(100% + var(--space-2)));
 }
 
-/* Bottom panel (evidence) — floated off edge with card-elevated styling */
+/* Bottom panel (evidence) — 8px gap from edges */
 .panel-bottom {
-  left: var(--space-1);
-  right: var(--space-1);
-  bottom: var(--space-1);
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
   max-height: 40vh;
 }
 
 .panel-bottom.hidden {
-  transform: translateY(calc(100% + var(--space-1)));
+  transform: translateY(calc(100% + var(--space-2)));
 }
 
 /* Panel sections */
