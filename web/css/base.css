@@ -20,19 +20,20 @@ body {
   overflow: hidden;
 }
 
-/* App container: fill viewport, clip transformed/off-screen panels */
+/* App container: flex column fills viewport, clips off-screen panels */
 #app {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
   overflow: hidden;
 }
 
-/* Main content area: positioned context for absolute children (#cy, panels) */
+/* Main content area: fills remaining space below toolbar, contains #cy + panels */
 #main-content {
   position: relative;
-  width: 100%;
-  height: calc(100vh - var(--toolbar-height));
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 

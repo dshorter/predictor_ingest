@@ -5,20 +5,16 @@
  */
 
 #toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--toolbar-height);
+  flex-shrink: 0;
+  min-height: var(--toolbar-height);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-4);
   background-color: var(--color-bg-secondary);
   border-bottom: var(--border-width) solid var(--border-color);
   z-index: var(--z-sticky);
-  gap: var(--space-3);
-  overflow: hidden;
+  gap: var(--space-2) var(--space-3);
 }
 
 /* Thin vertical divider between logical toolbar groups */
@@ -32,24 +28,25 @@
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-3);
   flex-shrink: 1;
   min-width: 0;
-  overflow: hidden;
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-1);
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .toolbar-center {
-  flex: 1;
+  /* When there's enough room, sits between left and right.
+     When the row is full, wraps to its own line at full width. */
+  flex: 1 1 200px;
   min-width: 120px;
   max-width: 400px;
-  margin: 0 var(--space-3);
 }
 
 /* App title */
@@ -197,8 +194,9 @@
 
 /* Toolbar buttons */
 .toolbar-right .btn-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
 }
 
 /* ── Domain switcher (dropdown from app title) ───────────────────────── */
