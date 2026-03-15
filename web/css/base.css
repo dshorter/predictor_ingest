@@ -17,6 +17,23 @@ body {
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
   line-height: var(--leading-normal);
+  overflow: hidden;
+}
+
+/* App container: fill viewport, clip transformed/off-screen panels */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Main content area: positioned context for absolute children (#cy, panels) */
+#main-content {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - var(--toolbar-height));
+  overflow: hidden;
 }
 
 /* ==========================================================================

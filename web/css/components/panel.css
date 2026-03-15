@@ -14,11 +14,13 @@
   box-shadow: var(--shadow-lg);
   z-index: var(--z-dropdown);
   transition: transform var(--duration-slow) var(--easing-default);
+  overflow: hidden;
 }
 
 .panel-content {
   padding: var(--space-4);
   overflow-y: auto;
+  max-height: 100%;
 }
 
 /* Close button */
@@ -48,7 +50,7 @@
 
 /* Left panel (detail view) */
 .panel-left {
-  top: var(--toolbar-height);
+  top: 0;
   left: 0;
   bottom: 0;
   width: var(--panel-width);
@@ -63,7 +65,7 @@
 
 /* Right panel (filters) */
 .panel-right {
-  top: var(--toolbar-height);
+  top: 0;
   right: 0;
   bottom: 0;
   width: var(--panel-width);
