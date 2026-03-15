@@ -60,13 +60,13 @@
 
   <!-- Run history chart + pipeline stage grid -->
   <div class="dash-grid-2">
-    <div class="dash-card">
+    <div class="dash-card card-elevated">
       <div class="dash-card-title">30-Day Run History</div>
       <div class="chart-wrap">
         <canvas id="runs-chart"></canvas>
       </div>
     </div>
-    <div class="dash-card">
+    <div class="dash-card card-elevated">
       <div class="dash-card-title">Pipeline Stages — Last Run</div>
       <div id="stages-list" class="stage-list"></div>
     </div>
@@ -74,24 +74,24 @@
 
   <!-- Quality gates + Rising Stars -->
   <div class="dash-grid-2">
-    <div class="dash-card">
+    <div class="dash-card card-elevated">
       <div class="dash-card-title">Quality Gates</div>
       <div id="gates-list" class="gate-list"></div>
     </div>
-    <div class="dash-card">
+    <div class="dash-card card-elevated">
       <div class="dash-card-title">Rising Stars — by Velocity</div>
       <div id="stars-list" class="star-list"></div>
     </div>
   </div>
 
   <!-- Feed health -->
-  <div class="dash-card">
+  <div class="dash-card card-elevated">
     <div class="dash-card-title">Feed Health</div>
     <div id="feeds-wrap"></div>
   </div>
 
   <!-- Model quality -->
-  <div class="dash-card">
+  <div class="dash-card card-elevated">
     <div class="dash-card-title">Model Quality</div>
     <div id="models-wrap"></div>
   </div>
@@ -351,7 +351,7 @@ async function fetchJSON(path) {
 function renderKPIs(status) {
   const row = document.getElementById('kpi-row');
   if (!status?.available) {
-    row.innerHTML = `<div class="dash-card" style="grid-column:1/-1">
+    row.innerHTML = `<div class="dash-card card-elevated" style="grid-column:1/-1">
       <div class="dash-empty">No pipeline logs found yet.
         Run <code>make daily</code> then <code>make dashboard-data</code>.</div>
     </div>`;
@@ -403,7 +403,7 @@ function renderKPIs(status) {
   ];
 
   row.innerHTML = cards.map(c => `
-    <div class="kpi-card ${c.cardCls || ''}">
+    <div class="kpi-card card-elevated ${c.cardCls || ''}">
       <div class="kpi-label">${c.label}</div>
       <div class="kpi-value ${c.valueCls || ''}">${c.value}</div>
       <div class="kpi-sub">${c.sub || ''}</div>
