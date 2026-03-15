@@ -18,6 +18,7 @@
   border-bottom: var(--border-width) solid var(--border-color);
   z-index: var(--z-sticky);
   gap: var(--space-3);
+  overflow: hidden;
 }
 
 /* Thin vertical divider between logical toolbar groups */
@@ -28,7 +29,15 @@
   flex-shrink: 0;
 }
 
-.toolbar-left,
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .toolbar-right {
   display: flex;
   align-items: center;
