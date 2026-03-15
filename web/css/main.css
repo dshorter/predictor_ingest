@@ -20,6 +20,7 @@
 @import 'base.css';
 
 /* 4. Components — individual UI pieces */
+@import 'components/card.css';
 @import 'components/button.css';
 @import 'components/input.css';
 @import 'components/badge.css';

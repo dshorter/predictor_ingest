@@ -9,9 +9,11 @@
 
 .panel {
   position: absolute;
-  background-color: var(--color-bg-primary);
-  border: var(--border-width) solid var(--border-color);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-bg-primary);
+  border: var(--border-width) solid var(--color-border-primary);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   z-index: var(--z-dropdown);
   transition: transform var(--duration-slow) var(--easing-default);
   overflow: hidden;
@@ -48,49 +50,40 @@
   background-color: var(--gray-100);
 }
 
-/* Left panel (detail view) */
+/* Left panel (detail view) — floated off edge with card-elevated styling */
 .panel-left {
-  top: 0;
-  left: 0;
-  bottom: 0;
+  top: var(--space-1);
+  left: var(--space-1);
+  bottom: var(--space-1);
   width: var(--panel-width);
-  border-left: none;
-  border-top: none;
-  border-bottom: none;
 }
 
 .panel-left.hidden {
-  transform: translateX(-100%);
+  transform: translateX(calc(-100% - var(--space-1)));
 }
 
-/* Right panel (filters) */
+/* Right panel (filters) — floated off edge with card-elevated styling */
 .panel-right {
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: var(--space-1);
+  right: var(--space-1);
+  bottom: var(--space-1);
   width: var(--panel-width);
-  border-right: none;
-  border-top: none;
-  border-bottom: none;
 }
 
 .panel-right.collapsed {
-  transform: translateX(100%);
+  transform: translateX(calc(100% + var(--space-1)));
 }
 
-/* Bottom panel (evidence) */
+/* Bottom panel (evidence) — floated off edge with card-elevated styling */
 .panel-bottom {
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: var(--space-1);
+  right: var(--space-1);
+  bottom: var(--space-1);
   max-height: 40vh;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
 }
 
 .panel-bottom.hidden {
-  transform: translateY(100%);
+  transform: translateY(calc(100% + var(--space-1)));
 }
 
 /* Panel sections */
