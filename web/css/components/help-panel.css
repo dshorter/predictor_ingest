@@ -10,9 +10,10 @@
    ======================================== */
 
 #help-panel {
-  /* Reuse panel base styles but override positioning */
-  position: fixed;
-  top: 60px; /* Below toolbar */
+  /* Override panel-right positioning — help panel covers the full
+     main-content area (positioned relative to #main-content). */
+  position: absolute;
+  top: 0;
   right: 0;
   bottom: 0;
   width: 350px;
