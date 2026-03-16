@@ -42,6 +42,14 @@ relation_taxonomy:
   # Map LLM output variations to canonical names.
   # Keys = non-canonical strings the LLM might produce.
   # Values = canonical relation they map to.
+  #
+  # Two categories of entries belong here:
+  #   1. Semantic synonyms (require domain judgment):
+  #      OVERSEES: REGULATES, SUPERVISES: REGULATES
+  #   2. Tense variants (auto-generated — run after defining canonicals):
+  #      python scripts/generate_normalization.py domains/<your-domain>/domain.yaml --apply
+  #
+  # See docs/fix-details/new-domain-lessons-learned.md for why both matter.
   normalization: {}
     # ANNOUNCED: MENTIONS
     # BUILT: CREATED
