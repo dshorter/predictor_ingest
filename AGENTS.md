@@ -238,6 +238,7 @@ for the boundary definition and enforcement rules.
 | Document | Purpose |
 |----------|---------|
 | [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step guide for running the full pipeline (Mode A and Mode B) |
+| [docs/backend/article-selection-scoring.md](docs/backend/article-selection-scoring.md) | Pre-extraction scoring signals, weights, bench backfill, thresholds, and change log |
 | [docs/backend/daily-run-log.md](docs/backend/daily-run-log.md) | Pipeline health monitoring: JSON log format, per-stage metrics, healthy thresholds |
 | [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs (build_docpack, import, resolve, export, trending) |
 | [docs/llm-selection.md](docs/llm-selection.md) | LLM model tiers, escalation mode architecture, shadow mode, cost model, quality scoring weights |
