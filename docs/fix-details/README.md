@@ -282,3 +282,42 @@ as important as the domain-specific content. The `domains/_template/` scaffoldin
 include prompt templates with all structural elements pre-populated.
 
 **Status:** RESOLVED — 2026-03-09
+
+---
+
+## Biosafety Normalization Gap & New Domain Lessons (March 2026)
+
+**Problem:** Biosafety domain had 32% nano accept rate (vs ~70% for AI domain).
+22 escalations to Sonnet in a single batch. Health report showed orphan endpoints
+and unknown relation types as top failure modes.
+
+**Root Cause:** The biosafety `domain.yaml` normalization map had good semantic
+synonyms (OVERSEES→REGULATES, SUPERVISES→REGULATES) but was completely missing
+tense variants (past tense, gerund, base form) that nano produces regardless of
+domain. The AI domain had accumulated these through months of iterative tuning.
+The biosafety domain was new and hadn't gone through that cycle yet.
+
+**What was NOT the problem:** Gate thresholds (identical between domains),
+framework code (domain-agnostic), the biosafety ontology itself (well-designed),
+or the LLM model (same behavior in both domains).
+
+**Resolution:**
+1. Added 34 manual tense entries to biosafety normalization (immediate fix)
+2. Built `scripts/generate_normalization.py` — auto-generates tense variants from
+   any domain's canonical relation list (prevents recurrence)
+3. Updated `domains/_template/` to include generator step in setup workflow
+4. Documented the "Shakespeare rule" in lessons learned
+
+**Documents:**
+- [new-domain-lessons-learned.md](new-domain-lessons-learned.md) — Full analysis,
+  the two-category framework (domain voice vs LLM grammar), setup checklist
+- `scripts/generate_normalization.py` — Tense variant generator
+- `scripts/test_normalization_coverage.py` — Normalization coverage analyzer
+- `scripts/compare_normalization.py` — Before/after quality gate comparison
+
+**Key Takeaway:** Separate "domain modeling" (creative, emergent — entity types,
+canonical relations, semantic synonyms, scoring weights) from "LLM output
+handling" (mechanical, predictable — tense variants, gerunds, \_BY inversions).
+Automate the latter. Let the former emerge from the source material.
+
+**Status:** RESOLVED — 2026-03-16
