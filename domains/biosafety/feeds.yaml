@@ -13,9 +13,12 @@
 #   policy      — governance changes, international agreements
 #   community   — expert commentary, practitioner perspectives
 #
-# Source viability note (2026-03-08):
-#   Biosafety/biosecurity has a much thinner RSS ecosystem than AI/ML.
-#   6 feeds removed (WHO, JHU CHS, NTI, PNAS, Science — no working RSS).
+# Source viability history:
+#   2026-03-08: 6 feeds removed (WHO, JHU CHS, NTI, PNAS, Science — no RSS).
+#   2026-03-14: 4 feeds disabled (mBio 403, Federal Register unreachable,
+#               Bulletin of Atomic Scientists 403, GAO empty). Replaced with
+#               bioRxiv, medRxiv, BMC Infectious Diseases, Eurosurveillance,
+#               Lancet Microbe, Frontiers Infectious Diseases, MMWR.
 #   Future expansion should prioritize APIs over RSS:
 #     - Federal Register API (regulations.gov)
 #     - PubMed/PMC API (research papers)
@@ -25,14 +28,7 @@
 # ==========================================================================
 
 feeds:
-  # ── Primary: Regulatory & Research ──────────────────────────────────
-
-  - name: "Federal Register - Biosafety"
-    url: "https://www.federalregister.gov/documents/search.atom?conditions%5Bterm%5D=select+agent+OR+biosafety+OR+FSAP&conditions%5Bagencies%5D%5B%5D=centers-for-disease-control-and-prevention&conditions%5Bagencies%5D%5B%5D=animal-and-plant-health-inspection-service"
-    tier: primary
-    signal: regulatory
-    limit: 30
-    notes: "Federal Register entries for CDC/APHIS select agent regulations"
+  # ── Primary: Research Journals & Preprints ────────────────────────────
 
   - name: "Emerging Infectious Diseases"
     url: "https://wwwnc.cdc.gov/eid/rss/upcoming.xml"
@@ -40,20 +36,43 @@ feeds:
     signal: research
     limit: 30
     notes: "CDC's peer-reviewed journal — upcoming/ahead-of-print articles"
-    # Fixed 2026-03-08: old URL /eid/rss/en.xml returned 403; CDC lists
-    # /eid/rss/upcoming.xml on their RSS feeds page.
 
-  - name: "mBio"
-    url: "https://journals.asm.org/action/showFeed?type=axatoc&feed=rss&jc=mbio"
+  - name: "bioRxiv Microbiology"
+    url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=microbiology"
     tier: primary
     signal: research
     limit: 30
-    notes: "ASM open-access journal; high-impact microbiology research"
-    # Fixed 2026-03-08: switched from type=etoc to type=axatoc (latest
-    # articles vs current issue TOC). Silverchair platform may still
-    # block automated fetchers — candidate for API source migration.
+    notes: "Preprint server — microbiology section. High volume, early signal."
 
-  # ── Secondary: Analysis & Policy ────────────────────────────────────
+  - name: "medRxiv Infectious Diseases"
+    url: "https://connect.medrxiv.org/medrxiv_xml.php?subject=Infectious+Diseases+(except+HIV/AIDS)"
+    tier: primary
+    signal: research
+    limit: 30
+    notes: "Health sciences preprints — infectious disease section."
+
+  - name: "BMC Infectious Diseases"
+    url: "https://bmcinfectdis.biomedcentral.com/articles/most-recent/rss.xml"
+    tier: primary
+    signal: research
+    limit: 20
+    notes: "Open-access peer-reviewed journal. Springer Nature platform — reliable RSS."
+
+  - name: "Lancet Microbe"
+    url: "https://www.thelancet.com/rssfeed/lanmic_current.xml"
+    tier: primary
+    signal: research
+    limit: 15
+    notes: "Gold open-access Lancet journal covering microbiology and infectious disease."
+
+  - name: "Frontiers Infectious Diseases"
+    url: "https://www.frontiersin.org/journals/microbiology/sections/infectious-agents-and-disease/rss"
+    tier: primary
+    signal: research
+    limit: 20
+    notes: "Frontiers in Microbiology — Infectious Agents and Disease section. Open access."
+
+  # ── Secondary: Surveillance & Policy ──────────────────────────────────
 
   - name: "CIDRAP - Biosecurity Issues"
     url: "https://www.cidrap.umn.edu/news/50/rss"
@@ -61,26 +80,22 @@ feeds:
     signal: community
     limit: 30
     notes: "CIDRAP biosecurity-specific topic feed (UMN)"
-    # Fixed 2026-03-08: old generic /rss.xml was stale; CIDRAP offers
-    # topic-specific feeds at /news/{id}/rss. ID 50 = Biosecurity Issues.
 
-  - name: "Bulletin of the Atomic Scientists"
-    url: "https://thebulletin.org/feed/"
+  - name: "Eurosurveillance"
+    url: "https://www.eurosurveillance.org/action/showFeed?type=etoc&feed=rss&jc=eurosurveillance"
     tier: secondary
-    signal: policy
+    signal: research
     limit: 20
-    notes: "Covers biosecurity, dual-use research, nuclear + bio policy"
-    # Note: general feed, not biosecurity-filtered. Content is mixed but
-    # includes strong biosecurity coverage (see their Dec 2025 special issue).
+    notes: "ECDC's journal on infectious disease surveillance, epidemiology, prevention. Weekly."
 
-  - name: "GAO Reports - Science & Technology"
-    url: "https://www.gao.gov/rss/topic/science_and_technology.xml"
+  - name: "CDC MMWR"
+    url: "https://tools.cdc.gov/podcasts/feed.asp?feedid=183"
     tier: secondary
     signal: regulatory
     limit: 15
-    notes: "Government Accountability Office — includes select agent program audits"
+    notes: "Morbidity and Mortality Weekly Report — CDC's primary surveillance publication."
 
-  # ── Echo: News & Velocity ───────────────────────────────────────────
+  # ── Echo: News & Velocity ─────────────────────────────────────────────
 
   - name: "STAT News - Infectious Disease"
     url: "https://www.statnews.com/topic/infectious-disease/feed/"
@@ -88,20 +103,27 @@ feeds:
     signal: community
     limit: 20
     notes: "Health/biotech news; covers biosafety incidents and policy"
-    # Fixed 2026-03-08: old URL /category/infectious-disease/feed/ was
-    # returning 403. STAT uses /topic/ not /category/ for RSS feeds.
+
+  - name: "Science Daily - Infectious Diseases"
+    url: "https://www.sciencedaily.com/rss/top/health/diseases_conditions/infectious_diseases.xml"
+    tier: echo
+    signal: community
+    limit: 15
+    notes: "Science news aggregator — infectious disease coverage. Echo/velocity signal."
 
 # ==========================================================================
-# Removed feeds (2026-03-08) — no working RSS available
+# Disabled feeds (2026-03-16) — confirmed broken after 3 run attempts
 # ==========================================================================
-# - WHO Disease Outbreak News: legacy /feeds/entity/don/en/rss.xml is dead;
-#   WHO restructured site, no replacement RSS found. Candidate for WHO API.
-# - WHO Weekly Epidemiological Record: same legacy URL pattern, dead.
-# - Johns Hopkins Center for Health Security: no RSS feed exists;
-#   centerforhealthsecurity.org is newsletter-only. Consider scraping or API.
-# - NTI Biosecurity: no RSS feed found; newsletter-only org.
-# - PNAS Microbiology: Silverchair platform blocks automated fetchers (403).
-#   Candidate for PubMed API.
-# - Science - Biosecurity: no dedicated biosecurity topic RSS on science.org.
-#   General Science RSS exists but would need filtering.
+# - Federal Register - Biosafety: unreachable on all runs. Candidate for
+#   regulations.gov API integration.
+# - mBio: journals.asm.org returns 403 on all article fetches. Silverchair
+#   platform blocks automated access. Candidate for PubMed API.
+# - Bulletin of the Atomic Scientists: thebulletin.org/feed/ returns 403.
+#   May have added bot blocking.
+# - GAO Reports - Science & Technology: feed parses but returns 0 entries
+#   consistently. Low-volume source, not worth maintaining.
+#
+# Removed feeds (2026-03-08) — no working RSS available
+# - WHO Disease Outbreak News, WHO Weekly Epi Record, JHU CHS, NTI,
+#   PNAS Microbiology, Science - Biosecurity. See git history for URLs.
 # ==========================================================================
