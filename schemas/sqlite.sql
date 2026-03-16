@@ -175,3 +175,18 @@ CREATE TABLE IF NOT EXISTS quality_metrics (
 
 CREATE INDEX IF NOT EXISTS idx_quality_metrics_name ON quality_metrics(metric_name);
 CREATE INDEX IF NOT EXISTS idx_quality_metrics_passed ON quality_metrics(passed);
+
+-- Bench table: qualified-but-budget-blocked articles for backfill on light days.
+-- Articles that scored well enough to be selected but were bumped because the
+-- daily budget cap was reached.  On days when fewer articles qualify than the
+-- budget allows, bench articles backfill the remaining slots.
+CREATE TABLE IF NOT EXISTS bench (
+  doc_id TEXT PRIMARY KEY,
+  quality_score REAL NOT NULL,
+  scored_at TEXT NOT NULL,       -- date the article was originally scored (ISO date)
+  expires_at TEXT NOT NULL,      -- date after which this bench entry is stale (ISO date)
+  FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bench_expires ON bench(expires_at);
+CREATE INDEX IF NOT EXISTS idx_bench_quality ON bench(quality_score DESC);

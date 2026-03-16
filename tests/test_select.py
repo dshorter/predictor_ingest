@@ -6,7 +6,9 @@ that controls extraction costs while ensuring feed representation.
 
 from __future__ import annotations
 
+import sqlite3
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -15,6 +17,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from doc_select import (
+    BENCH_EXPIRY_DAYS,
     DEFAULT_BUDGET,
     DEFAULT_STRETCH_MAX,
     MIN_QUALITY_THRESHOLD,
@@ -23,6 +26,11 @@ from doc_select import (
     WORDS_IDEAL,
     WORDS_LOW,
     ScoredDoc,
+    _recency_score,
+    clear_bench_doc,
+    expire_bench,
+    load_bench,
+    save_bench,
     score_document,
     select_for_extraction,
 )
@@ -56,6 +64,34 @@ def _make_candidate(
     }
 
 
+def _make_bench_db() -> sqlite3.Connection:
+    """Create an in-memory SQLite DB with documents + bench tables."""
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript("""
+        CREATE TABLE documents (
+            doc_id TEXT PRIMARY KEY,
+            url TEXT,
+            source TEXT,
+            title TEXT,
+            published_at TEXT,
+            fetched_at TEXT,
+            text_path TEXT,
+            status TEXT
+        );
+        CREATE TABLE bench (
+            doc_id TEXT PRIMARY KEY,
+            quality_score REAL NOT NULL,
+            scored_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
+        );
+        CREATE INDEX idx_bench_expires ON bench(expires_at);
+        CREATE INDEX idx_bench_quality ON bench(quality_score DESC);
+    """)
+    return conn
+
+
 # ---------------------------------------------------------------------------
 # score_document tests
 # ---------------------------------------------------------------------------
@@ -67,12 +103,14 @@ class TestScoreDocument:
         score, breakdown = score_document(
             text=text, title="Good Title", published_at="2026-02-28",
             tier=1, signal="primary",
+            reference_date=date(2026, 2, 28),
         )
         assert score > 0.85
         assert breakdown["word_count"] == 1.0
         assert breakdown["metadata"] == 1.0
         assert breakdown["source_tier"] == 1.0
         assert breakdown["signal_type"] == 1.0
+        assert breakdown["recency"] == 1.0
 
     def test_empty_text_scores_zero_on_word_count(self):
         """Empty text should score 0 on word count component."""
@@ -157,6 +195,88 @@ class TestScoreDocument:
         _, breakdown = score_document(text=text)
         assert breakdown["word_count_raw"] == 42
 
+    def test_breakdown_has_recency(self):
+        """Breakdown should include recency score."""
+        text = _make_text(500)
+        _, breakdown = score_document(text=text, published_at="2026-03-16",
+                                       reference_date=date(2026, 3, 16))
+        assert "recency" in breakdown
+        assert breakdown["recency"] == 1.0
+
+
+# ---------------------------------------------------------------------------
+# Recency scoring tests
+# ---------------------------------------------------------------------------
+
+class TestRecencyScore:
+    def test_same_day(self):
+        """Published today should get full credit."""
+        assert _recency_score("2026-03-16", date(2026, 3, 16)) == 1.0
+
+    def test_one_day_old(self):
+        """1 day old is within the 0-3 day full-credit window."""
+        assert _recency_score("2026-03-15", date(2026, 3, 16)) == 1.0
+
+    def test_three_days_old(self):
+        """3 days old is the edge of the full-credit window."""
+        assert _recency_score("2026-03-13", date(2026, 3, 16)) == 1.0
+
+    def test_five_days_old(self):
+        """5 days old should be in the 3-7 day decay band."""
+        score = _recency_score("2026-03-11", date(2026, 3, 16))
+        assert 0.5 < score < 1.0
+
+    def test_seven_days_old(self):
+        """7 days old should be at the bottom of the first decay band (~0.5)."""
+        score = _recency_score("2026-03-09", date(2026, 3, 16))
+        assert abs(score - 0.5) < 0.01
+
+    def test_ten_days_old(self):
+        """10 days old should be in the 7-14 day decay band."""
+        score = _recency_score("2026-03-06", date(2026, 3, 16))
+        assert 0.3 < score < 0.5
+
+    def test_fourteen_days_old(self):
+        """14 days old should be at the floor (~0.3)."""
+        score = _recency_score("2026-03-02", date(2026, 3, 16))
+        assert abs(score - 0.3) < 0.01
+
+    def test_very_old(self):
+        """30 days old should be at the floor (0.3)."""
+        assert _recency_score("2026-02-14", date(2026, 3, 16)) == 0.3
+
+    def test_future_date(self):
+        """Future dates (clock skew) treated as fresh."""
+        assert _recency_score("2026-03-18", date(2026, 3, 16)) == 1.0
+
+    def test_no_date(self):
+        """Missing date gets modest penalty (0.4)."""
+        assert _recency_score(None) == 0.4
+        assert _recency_score("") == 0.4
+
+    def test_invalid_date(self):
+        """Invalid date string gets modest penalty."""
+        assert _recency_score("not-a-date") == 0.4
+
+    def test_datetime_format(self):
+        """ISO datetime with time component should work."""
+        score = _recency_score("2026-03-16T14:30:00Z", date(2026, 3, 16))
+        assert score == 1.0
+
+    def test_recency_affects_overall_score(self):
+        """Fresh articles should score higher than old ones, all else equal."""
+        text = _make_text(800)
+        ref = date(2026, 3, 16)
+        score_fresh, _ = score_document(
+            text=text, title="Title", published_at="2026-03-16",
+            tier=1, signal="primary", reference_date=ref,
+        )
+        score_old, _ = score_document(
+            text=text, title="Title", published_at="2026-02-16",
+            tier=1, signal="primary", reference_date=ref,
+        )
+        assert score_fresh > score_old
+
 
 # ---------------------------------------------------------------------------
 # select_for_extraction tests
@@ -165,21 +285,38 @@ class TestScoreDocument:
 class TestSelectForExtraction:
     def test_empty_candidates(self):
         """Empty input returns empty output."""
-        result = select_for_extraction([], {}, {})
-        assert result == []
+        selected, overflow = select_for_extraction([], {}, {})
+        assert selected == []
+        assert overflow == []
 
     def test_under_budget_returns_all(self):
         """When candidates <= budget, all are returned."""
         candidates = [_make_candidate(f"doc{i}") for i in range(5)]
-        result = select_for_extraction(candidates, {}, {}, budget=10)
-        assert len(result) == 5
+        selected, overflow = select_for_extraction(candidates, {}, {}, budget=10)
+        assert len(selected) == 5
+        assert len(overflow) == 0
 
     def test_over_budget_selects_budget(self):
         """When candidates > budget, returns approximately budget docs."""
         candidates = [_make_candidate(f"doc{i}") for i in range(50)]
-        result = select_for_extraction(candidates, {}, {}, budget=20, stretch_max=25)
-        assert len(result) <= 25
-        assert len(result) >= 20
+        selected, overflow = select_for_extraction(candidates, {}, {}, budget=20, stretch_max=25)
+        assert len(selected) <= 25
+        assert len(selected) >= 20
+
+    def test_overflow_contains_remaining(self):
+        """Overflow should contain qualified docs that didn't make the cut."""
+        candidates = [_make_candidate(f"doc{i}", word_count=800) for i in range(50)]
+        selected, overflow = select_for_extraction(
+            candidates, {}, {}, budget=20, stretch_max=25,
+        )
+        total_qualified = len(selected) + len(overflow)
+        # All 50 candidates should be accounted for (minus any below min_quality)
+        assert total_qualified <= 50
+        assert len(overflow) > 0
+        # No overlap between selected and overflow
+        selected_ids = {s.doc_id for s in selected}
+        overflow_ids = {s.doc_id for s in overflow}
+        assert selected_ids.isdisjoint(overflow_ids)
 
     def test_feed_representation(self):
         """Each feed gets at least 1 doc when budget allows."""
@@ -193,13 +330,13 @@ class TestSelectForExtraction:
                     word_count=500 + j * 100,
                 ))
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, {}, {},
             budget=10, stretch_max=12,
         )
 
         # Every feed should have at least 1 doc
-        sources = {s.source for s in result}
+        sources = {s.source for s in selected}
         assert sources == set(feeds), f"Missing feeds: {set(feeds) - sources}"
 
     def test_quality_ranking(self):
@@ -221,13 +358,13 @@ class TestSelectForExtraction:
         feed_tiers = {"Primary Feed": 1, "Echo Feed": 2}
         feed_signals = {"Primary Feed": "primary", "Echo Feed": "echo"}
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, feed_tiers, feed_signals,
             budget=5, stretch_max=7,
         )
 
         # All 5 good docs should be selected
-        good_ids = {s.doc_id for s in result if s.doc_id.startswith("good_")}
+        good_ids = {s.doc_id for s in selected if s.doc_id.startswith("good_")}
         assert len(good_ids) == 5
 
     def test_stretch_behavior(self):
@@ -238,15 +375,15 @@ class TestSelectForExtraction:
             for i in range(30)
         ]
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, {"Good Feed": 1}, {"Good Feed": "primary"},
             budget=20, stretch_max=25,
             stretch_threshold=0.5,
         )
 
         # Should stretch beyond 20 because all docs are high quality
-        assert len(result) > 20
-        assert len(result) <= 25
+        assert len(selected) > 20
+        assert len(selected) <= 25
 
     def test_stretch_stops_at_threshold(self):
         """Stretch stops when quality drops below threshold."""
@@ -266,16 +403,16 @@ class TestSelectForExtraction:
                 published_at="",
             ))
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, {}, {},
             budget=20, stretch_max=30,
             stretch_threshold=0.8,
         )
 
         # Should get around 20-22 docs, NOT stretch to include the bad ones
-        assert len(result) <= 25
+        assert len(selected) <= 25
         # All selected should have decent quality
-        for doc in result:
+        for doc in selected:
             assert doc.quality_score > 0.3
 
     def test_min_quality_filter(self):
@@ -285,12 +422,12 @@ class TestSelectForExtraction:
             _make_candidate("terrible", word_count=1, title="", published_at=""),
         ]
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, {}, {},
             budget=10, min_quality=0.4,
         )
 
-        doc_ids = {s.doc_id for s in result}
+        doc_ids = {s.doc_id for s in selected}
         assert "good" in doc_ids
         # The terrible doc may or may not be included depending on exact score
 
@@ -301,18 +438,18 @@ class TestSelectForExtraction:
             for i in range(10)
         ]
 
-        result = select_for_extraction(candidates, {}, {}, budget=5)
+        selected, _overflow = select_for_extraction(candidates, {}, {}, budget=5)
 
-        scores = [s.quality_score for s in result]
+        scores = [s.quality_score for s in selected]
         assert scores == sorted(scores, reverse=True)
 
     def test_scored_doc_has_row_data(self):
         """ScoredDoc.row should contain the original candidate data."""
         candidates = [_make_candidate("doc_1")]
-        result = select_for_extraction(candidates, {}, {}, budget=10)
-        assert len(result) == 1
-        assert result[0].row["url"] == "https://example.com/doc_1"
-        assert result[0].row["doc_id"] == "doc_1"
+        selected, _overflow = select_for_extraction(candidates, {}, {}, budget=10)
+        assert len(selected) == 1
+        assert selected[0].row["url"] == "https://example.com/doc_1"
+        assert selected[0].row["doc_id"] == "doc_1"
 
     def test_single_feed_budget(self):
         """When all docs are from one feed, budget still limits selection."""
@@ -321,12 +458,12 @@ class TestSelectForExtraction:
             for i in range(40)
         ]
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, {}, {},
             budget=20, stretch_max=25,
         )
 
-        assert len(result) <= 25
+        assert len(selected) <= 25
 
     def test_many_feeds_few_budget(self):
         """When feeds > budget, each feed still gets representation up to budget."""
@@ -337,15 +474,15 @@ class TestSelectForExtraction:
                 f"doc_{feed}", source=feed, word_count=800,
             ))
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, {}, {},
             budget=20, stretch_max=25,
         )
 
         # Can't select from all 30 feeds with budget 25
-        assert len(result) <= 25
+        assert len(selected) <= 25
         # But should still select budget number of docs
-        assert len(result) >= 20
+        assert len(selected) >= 20
 
     def test_tier_preference_in_selection(self):
         """Tier 1 sources should be preferred over tier 2 in selection."""
@@ -364,13 +501,13 @@ class TestSelectForExtraction:
         feed_tiers = {"Tier1": 1, "Tier2": 2}
         feed_signals = {"Tier1": "primary", "Tier2": "echo"}
 
-        result = select_for_extraction(
+        selected, _overflow = select_for_extraction(
             candidates, feed_tiers, feed_signals,
             budget=10, stretch_max=12,
         )
 
         # All 5 tier-1 docs should be selected
-        t1_count = sum(1 for s in result if s.source == "Tier1")
+        t1_count = sum(1 for s in selected if s.source == "Tier1")
         assert t1_count == 5
 
     def test_default_budget_values(self):
@@ -379,6 +516,181 @@ class TestSelectForExtraction:
         assert DEFAULT_STRETCH_MAX == 25
         assert 0.0 < STRETCH_QUALITY_THRESHOLD < 1.0
         assert 0.0 < MIN_QUALITY_THRESHOLD < STRETCH_QUALITY_THRESHOLD
+
+    def test_reference_date_passed_through(self):
+        """reference_date should affect scoring via recency."""
+        ref = date(2026, 3, 16)
+        candidates_fresh = [_make_candidate("fresh", published_at="2026-03-16", word_count=800)]
+        candidates_old = [_make_candidate("old", published_at="2026-02-16", word_count=800)]
+
+        sel_fresh, _ = select_for_extraction(
+            candidates_fresh, {}, {}, budget=10, reference_date=ref,
+        )
+        sel_old, _ = select_for_extraction(
+            candidates_old, {}, {}, budget=10, reference_date=ref,
+        )
+
+        assert sel_fresh[0].quality_score > sel_old[0].quality_score
+
+
+# ---------------------------------------------------------------------------
+# Bench tests
+# ---------------------------------------------------------------------------
+
+class TestBench:
+    def test_save_bench(self):
+        """save_bench inserts overflow docs into bench table."""
+        conn = _make_bench_db()
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
+             "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
+        )
+        conn.commit()
+
+        overflow = [ScoredDoc(
+            doc_id="doc1", source="Feed", title="Title",
+            published_at="2026-03-16", text="some text",
+            word_count=500, quality_score=0.72,
+        )]
+
+        added = save_bench(conn, overflow, reference_date=date(2026, 3, 16))
+        assert added == 1
+
+        rows = conn.execute("SELECT * FROM bench").fetchall()
+        assert len(rows) == 1
+        assert rows[0]["doc_id"] == "doc1"
+        assert rows[0]["quality_score"] == 0.72
+        assert rows[0]["scored_at"] == "2026-03-16"
+        expected_expiry = (date(2026, 3, 16) + timedelta(days=BENCH_EXPIRY_DAYS)).isoformat()
+        assert rows[0]["expires_at"] == expected_expiry
+
+    def test_save_bench_ignores_duplicates(self):
+        """Inserting same doc_id twice should not fail."""
+        conn = _make_bench_db()
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
+             "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
+        )
+        conn.commit()
+
+        overflow = [ScoredDoc(
+            doc_id="doc1", source="Feed", title="Title",
+            published_at="2026-03-16", text="text",
+            word_count=500, quality_score=0.72,
+        )]
+
+        save_bench(conn, overflow, reference_date=date(2026, 3, 16))
+        save_bench(conn, overflow, reference_date=date(2026, 3, 17))
+
+        rows = conn.execute("SELECT * FROM bench").fetchall()
+        assert len(rows) == 1
+
+    def test_load_bench_excludes_extracted(self):
+        """load_bench should skip docs that have already been extracted."""
+        conn = _make_bench_db()
+        # One cleaned, one extracted
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
+             "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
+        )
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc2", "http://example.com/2", "Feed", "Title2", "2026-03-16",
+             "2026-03-16T12:00:00Z", "/tmp/doc2.txt", "extracted"),
+        )
+        conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                      ("doc1", 0.72, "2026-03-16", "2026-03-25"))
+        conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                      ("doc2", 0.68, "2026-03-16", "2026-03-25"))
+        conn.commit()
+
+        rows = load_bench(conn, reference_date=date(2026, 3, 17))
+        assert len(rows) == 1
+        assert rows[0]["doc_id"] == "doc1"
+
+    def test_load_bench_excludes_expired(self):
+        """load_bench should skip expired entries."""
+        conn = _make_bench_db()
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc1", "http://example.com", "Feed", "Title", "2026-03-10",
+             "2026-03-10T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
+        )
+        # Expired yesterday
+        conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                      ("doc1", 0.72, "2026-03-10", "2026-03-15"))
+        conn.commit()
+
+        rows = load_bench(conn, reference_date=date(2026, 3, 16))
+        assert len(rows) == 0
+
+    def test_load_bench_orders_by_quality(self):
+        """load_bench should return highest quality first."""
+        conn = _make_bench_db()
+        for i, score in enumerate([0.55, 0.82, 0.71]):
+            conn.execute(
+                "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"doc{i}", f"http://example.com/{i}", "Feed", "Title",
+                 "2026-03-16", "2026-03-16T12:00:00Z", f"/tmp/doc{i}.txt", "cleaned"),
+            )
+            conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                          (f"doc{i}", score, "2026-03-16", "2026-03-25"))
+        conn.commit()
+
+        rows = load_bench(conn, reference_date=date(2026, 3, 17))
+        scores = [r["quality_score"] for r in rows]
+        assert scores == sorted(scores, reverse=True)
+
+    def test_expire_bench(self):
+        """expire_bench should remove stale entries."""
+        conn = _make_bench_db()
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc1", "http://example.com", "Feed", "Title", "2026-03-10",
+             "2026-03-10T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
+        )
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc2", "http://example.com/2", "Feed", "Title2", "2026-03-14",
+             "2026-03-14T12:00:00Z", "/tmp/doc2.txt", "cleaned"),
+        )
+        # doc1 expired, doc2 still valid
+        conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                      ("doc1", 0.72, "2026-03-10", "2026-03-15"))
+        conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                      ("doc2", 0.68, "2026-03-14", "2026-03-19"))
+        conn.commit()
+
+        removed = expire_bench(conn, reference_date=date(2026, 3, 16))
+        assert removed == 1
+
+        remaining = conn.execute("SELECT * FROM bench").fetchall()
+        assert len(remaining) == 1
+        assert remaining[0]["doc_id"] == "doc2"
+
+    def test_clear_bench_doc(self):
+        """clear_bench_doc should remove a specific doc."""
+        conn = _make_bench_db()
+        conn.execute(
+            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
+             "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
+        )
+        conn.execute("INSERT INTO bench VALUES (?, ?, ?, ?)",
+                      ("doc1", 0.72, "2026-03-16", "2026-03-21"))
+        conn.commit()
+
+        clear_bench_doc(conn, "doc1")
+
+        remaining = conn.execute("SELECT * FROM bench").fetchall()
+        assert len(remaining) == 0
+
+    def test_bench_expiry_days_default(self):
+        """Default bench expiry should be 5 days."""
+        assert BENCH_EXPIRY_DAYS == 5
 
 
 # ---------------------------------------------------------------------------
@@ -437,17 +749,21 @@ class TestSelectionIntegration:
         total = len(candidates)
         assert total == 50  # sanity check
 
-        result = select_for_extraction(
+        selected, overflow = select_for_extraction(
             candidates, feed_tiers, feed_signals,
             budget=20, stretch_max=25,
         )
 
         # Should be within budget range
-        assert 20 <= len(result) <= 25
+        assert 20 <= len(selected) <= 25
+
+        # Overflow should contain the rest
+        assert len(overflow) > 0
+        assert len(selected) + len(overflow) <= 50
 
         # Every active feed should have representation
         active_feeds = {f for f, c in doc_counts.items() if c > 0}
-        selected_feeds = {s.source for s in result}
+        selected_feeds = {s.source for s in selected}
         assert active_feeds == selected_feeds, (
             f"Missing: {active_feeds - selected_feeds}"
         )
@@ -459,9 +775,10 @@ class TestSelectionIntegration:
             for i in range(8)
         ]
 
-        result = select_for_extraction(
+        selected, overflow = select_for_extraction(
             candidates, {"arXiv CS.AI": 1}, {"arXiv CS.AI": "primary"},
             budget=20,
         )
 
-        assert len(result) == 8
+        assert len(selected) == 8
+        assert len(overflow) == 0
