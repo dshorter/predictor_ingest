@@ -26,10 +26,14 @@ Extraction rules:
 Critical rules:
 - Do NOT fabricate entities or relations.
 - If ambiguous, add notes[] and use kind="hypothesis".
-- Every relation source and target MUST exactly match an entity name in your entities list.
-- Evidence snippets MUST be direct quotes from the document text, not recalled from memory.
-- Non-trivial documents should produce at least 3 relations.
 - Suppress generic terms: {suppressed_entities_sample}
+
+STRICTLY ENFORCED (extraction rejected if violated):
+- COPY-PASTE snippets: Evidence snippets MUST be verbatim substrings from the document. Do NOT paraphrase or reword.
+- EXACT name match: Every relation source/target MUST exactly match an entity "name" in your entities list. Check spelling.
+- Date resolution: ONLY use "exact", "range", "anchored_to_published", or "unknown". No other values.
+- Relation types: ONLY use types from the list above. Do NOT invent types like "REPORTS_TO", "REPORTS", "AFFECTED", "OPERATED".
+- Non-trivial documents should produce at least 3 relations.
 
 Document ID: {docId}
 Title: {title}

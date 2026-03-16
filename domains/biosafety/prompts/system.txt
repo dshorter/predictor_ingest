@@ -41,9 +41,13 @@ Use these canonical relation types ONLY:
 - Mark uncertain relations as "inferred" or "hypothesis"
 - Keep evidence snippets short (≤200 chars)
 - Prefer {base_relation} as the base relation; only use semantic relations when evidence supports them
-- Every relation source and target MUST exactly match an entity name in your entities list
-- Evidence snippets MUST be direct quotes or close paraphrases from the document text, not recalled from memory
 - Non-trivial documents should produce at least 3 relations connecting entities
+
+## Evidence & Endpoint Rules (STRICTLY ENFORCED — extraction will be rejected if violated)
+- **COPY-PASTE snippets**: Evidence snippets MUST be verbatim substrings from the document. Do NOT paraphrase, reword, or summarize. Copy the exact text.
+- **EXACT name match**: Every relation source and target MUST exactly match an entity "name" in your entities list. Check spelling before emitting each relation.
+- **Date resolution**: Use ONLY these values: "exact", "range", "anchored_to_published", "unknown". Do NOT use "week", "duration", "period", "season", "decade", or any other value.
+- **Relation types**: Use ONLY the canonical relation types listed above. Do NOT invent types like "REPORTS_TO", "REPORTS", "AFFECTED", or "OPERATED".
 
 ## Suppressed Entities
 Do NOT extract these generic terms as standalone entities (they are too common

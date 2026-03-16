@@ -86,6 +86,13 @@ def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
         "month": "exact",
         "year": "exact",
         "weekly": "range",
+        "week": "range",
+        "season": "range",
+        "decade": "range",
+        "duration": "range",
+        "period": "range",
+        "quarterly": "range",
+        "annual": "range",
         "approximate": "unknown",
     }
     for date_obj in data.get("dates", []):
