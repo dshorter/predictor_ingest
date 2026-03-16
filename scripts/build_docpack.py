@@ -166,7 +166,7 @@ def build_docpack(
 
     # --- Quality-based selection (when budget is set) ---
     if budget is not None and len(docs) > budget:
-        from doc_select import select_for_extraction
+        from doc_select import select_for_extraction, save_bench, load_bench, expire_bench
         from config import load_feeds
 
         effective_stretch = stretch_max if stretch_max is not None else budget + 5
@@ -178,6 +178,8 @@ def build_docpack(
             for fc in load_feeds(feeds_config, include_disabled=True):
                 feed_tiers[fc.name] = fc.tier
                 feed_signals[fc.name] = fc.signal
+
+        ref_date = date.fromisoformat(target_date) if not all_docs else None
 
         # Convert docs to candidate format for selection
         candidates = [
@@ -196,13 +198,25 @@ def build_docpack(
         print(f"Selection: {len(docs)} candidates, budget={budget}, "
               f"stretch_max={effective_stretch}")
 
-        selected = select_for_extraction(
+        selected, overflow = select_for_extraction(
             candidates=candidates,
             feed_tiers=feed_tiers,
             feed_signals=feed_signals,
             budget=budget,
             stretch_max=effective_stretch,
+            reference_date=ref_date,
         )
+
+        # Save overflow to bench for future backfill
+        if overflow:
+            bench_added = save_bench(conn, overflow, reference_date=ref_date)
+            print(f"Bench: {bench_added} qualified docs saved for backfill "
+                  f"({len(overflow)} overflow)")
+
+        # Expire old bench entries
+        expired = expire_bench(conn, reference_date=ref_date)
+        if expired:
+            print(f"Bench: expired {expired} stale entries")
 
         # Report per-feed breakdown
         feed_counts: dict[str, int] = {}
@@ -237,6 +251,51 @@ def build_docpack(
             print(f"No documents passed quality selection for {bundle_label}")
             conn.close()
             return 0
+
+    # --- Bench backfill: on light days, pull from bench to fill budget ---
+    elif budget is not None and len(docs) < budget:
+        from doc_select import load_bench, expire_bench, clear_bench_doc
+
+        ref_date = date.fromisoformat(target_date) if not all_docs else None
+
+        # Expire stale bench entries first
+        expired = expire_bench(conn, reference_date=ref_date)
+        if expired:
+            print(f"Bench: expired {expired} stale entries")
+
+        remaining_slots = budget - len(docs)
+        bench_rows = load_bench(conn, reference_date=ref_date, limit=remaining_slots)
+
+        if bench_rows:
+            bench_docs_added = 0
+            already_ids = {d["docId"] for d in docs}
+            for row in bench_rows:
+                if row["doc_id"] in already_ids:
+                    continue
+                text_path = row.get("text_path")
+                if not text_path:
+                    continue
+                text_file = Path(text_path)
+                if not text_file.exists():
+                    continue
+                text = text_file.read_text(encoding="utf-8")
+                docs.append({
+                    "docId": row["doc_id"],
+                    "url": row["url"],
+                    "source": row["source"],
+                    "title": row["title"],
+                    "published": row["published_at"],
+                    "fetched": row["fetched_at"],
+                    "text": text,
+                    "_bench": True,  # provenance marker
+                })
+                # Remove from bench since it's now being extracted
+                clear_bench_doc(conn, row["doc_id"])
+                bench_docs_added += 1
+
+            if bench_docs_added:
+                print(f"Bench backfill: added {bench_docs_added} docs "
+                      f"(today={len(docs) - bench_docs_added}, bench={bench_docs_added})")
 
     # Write JSONL
     jsonl_path = output_dir / f"daily_bundle_{bundle_label}.jsonl"
