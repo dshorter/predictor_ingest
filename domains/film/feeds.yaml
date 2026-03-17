@@ -97,7 +97,7 @@ feeds:
   - name: "Go Into The Story"
     url: "https://gointothestory.blcklst.com/feed"
     type: rss
-    enabled: true
+    enabled: false  # disabled 2026-03-17: persistent 403 Forbidden errors (10 failures in last run)
     tier: 2
     signal: community
     # Black List affiliated. Script analysis, writing craft, Hollywood.

@@ -378,9 +378,12 @@ function initializeFilterPanel(filter) {
     });
   });
 
-  // Quick-filter pill buttons
-  const TECH_TYPES = ['Model', 'Tool', 'Tech', 'Dataset', 'Benchmark'];
-  const ORG_TYPES  = ['Org', 'Person', 'Program'];
+  // Quick-filter pill buttons — pull from domain config groups when available
+  const _groups = getTypeGroups();
+  const TECH_TYPES = (_groups.find(g => /tech|craft/i.test(g.label)) || {}).types
+                     || ['Model', 'Tool', 'Tech', 'Dataset', 'Benchmark'];
+  const ORG_TYPES  = (_groups.find(g => /people|actor|org|compan/i.test(g.label)) || {}).types
+                     || ['Org', 'Person', 'Program'];
 
   function applyQuickFilter(enabledTypes) {
     const checkboxes = document.querySelectorAll('[data-type]:not([disabled])');
