@@ -629,6 +629,72 @@ class GraphExporter:
             }
         }
 
+    @staticmethod
+    def _apply_region_tags(
+        nodes: list[dict[str, Any]],
+        edges: list[dict[str, Any]],
+    ) -> None:
+        """Tag nodes with region[] arrays via 2-hop propagation from Locations.
+
+        Reads the `regions` config from the active domain profile. For each
+        Location node whose label matches a region entry, walks 2 hops through
+        the edge list and adds the region slug to every reached node's data.
+
+        Modifies nodes in place.
+        """
+        regions_config = _profile.get("regions")
+        if not regions_config:
+            return
+
+        # Build reverse lookup: lowercased location name → set of region slugs
+        name_to_regions: dict[str, set[str]] = {}
+        for region_slug, locations in regions_config.items():
+            if not isinstance(locations, list):
+                continue
+            for loc_name in locations:
+                name_to_regions.setdefault(loc_name.lower(), set()).add(region_slug)
+
+        # Find Location nodes that match a region entry
+        seed_regions: dict[str, set[str]] = {}  # node_id → {region_slugs}
+        for node in nodes:
+            d = node["data"]
+            if d.get("type") != "Location":
+                continue
+            label_lower = d.get("label", "").lower()
+            if label_lower in name_to_regions:
+                seed_regions[d["id"]] = name_to_regions[label_lower]
+
+        if not seed_regions:
+            return
+
+        # Build adjacency from edges
+        adj: dict[str, set[str]] = {}
+        for edge in edges:
+            s = edge["data"]["source"]
+            t = edge["data"]["target"]
+            adj.setdefault(s, set()).add(t)
+            adj.setdefault(t, set()).add(s)
+
+        # BFS 2 hops from each seed, collecting regions per node
+        node_regions: dict[str, set[str]] = {}
+        for seed_id, region_slugs in seed_regions.items():
+            # Hop 0: the Location itself
+            node_regions.setdefault(seed_id, set()).update(region_slugs)
+            # Hop 1
+            hop1 = adj.get(seed_id, set())
+            for nid in hop1:
+                node_regions.setdefault(nid, set()).update(region_slugs)
+            # Hop 2
+            for nid in hop1:
+                for nid2 in adj.get(nid, set()):
+                    node_regions.setdefault(nid2, set()).update(region_slugs)
+
+        # Write region[] onto node data
+        for node in nodes:
+            nid = node["data"]["id"]
+            if nid in node_regions:
+                node["data"]["region"] = sorted(node_regions[nid])
+
     def _build_meta(
         self,
         view: str,
@@ -693,6 +759,12 @@ class GraphExporter:
             data = self.export_all(**export_kwargs)
         else:
             raise ValueError(f"Unknown view: {view}")
+
+        # Apply region tags (2-hop propagation from Location nodes)
+        self._apply_region_tags(
+            data["elements"]["nodes"],
+            data["elements"]["edges"],
+        )
 
         # Add meta block
         data["meta"] = self._build_meta(
