@@ -19,6 +19,7 @@
 const KNOWN_DOMAINS = [
   { slug: 'ai',        label: 'AI / ML',    title: 'AI Trend Graph' },
   { slug: 'biosafety', label: 'Biosafety',  title: 'Biosafety Trend Graph' },
+  { slug: 'film',      label: 'Film',       title: 'Film & Indie Cinema Trend Graph' },
 ];
 
 // ---------------------------------------------------------------------------
