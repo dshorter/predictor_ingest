@@ -54,9 +54,10 @@ def init_db(db_path: Path) -> sqlite3.Connection:
     conn.executescript(schema)
     conn.commit()
 
-    # Migration: add extraction metadata columns to documents table
+    # Migrations: add new columns to existing databases
     if is_existing:
         _migrate_documents_extraction_cols(conn)
+        _migrate_documents_source_type(conn)
 
     return conn
 
@@ -76,6 +77,19 @@ def _migrate_documents_extraction_cols(conn: sqlite3.Connection) -> None:
         if col_name not in cols:
             conn.execute(f"ALTER TABLE documents ADD COLUMN {col_name} {col_type}")
     conn.commit()
+
+
+def _migrate_documents_source_type(conn: sqlite3.Connection) -> None:
+    """Add source_type column if missing. Defaults to 'rss' for existing rows."""
+    cols = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(documents)").fetchall()
+    }
+    if "source_type" not in cols:
+        conn.execute(
+            "ALTER TABLE documents ADD COLUMN source_type TEXT NOT NULL DEFAULT 'rss'"
+        )
+        conn.commit()
 
 
 def insert_entity(
