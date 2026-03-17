@@ -1,0 +1,36 @@
+{
+  "domain": "film",
+  "title": "Film & Indie Cinema Trend Graph",
+  "titleShort": "Film Trends",
+  "entityTypes": [
+    "Person", "Studio", "Production", "Festival", "Distributor",
+    "Agency", "Fund", "Network", "Genre", "Tech",
+    "Award", "Org", "Topic", "Event", "Location", "Other"
+  ],
+  "typeGroups": [
+    { "label": "People & Companies", "types": ["Person", "Studio", "Agency", "Org"] },
+    { "label": "Productions",        "types": ["Production", "Network", "Distributor"] },
+    { "label": "Industry",           "types": ["Festival", "Award", "Fund", "Event"] },
+    { "label": "Craft & Culture",    "types": ["Genre", "Tech", "Topic"] },
+    { "label": "Context",            "types": ["Location", "Document", "Other"] }
+  ],
+  "typeColors": {
+    "Person": "#50B4A8",
+    "Studio": "#4A90D9",
+    "Production": "#7C3AED",
+    "Festival": "#F43F5E",
+    "Distributor": "#6366F1",
+    "Agency": "#8B5CF6",
+    "Fund": "#059669",
+    "Network": "#0D9488",
+    "Genre": "#EAB308",
+    "Tech": "#F59E0B",
+    "Award": "#D97706",
+    "Org": "#0EA5E9",
+    "Topic": "#64748B",
+    "Event": "#F97316",
+    "Location": "#10B981",
+    "Document": "#9CA3AF",
+    "Other": "#A1A1AA"
+  }
+}
