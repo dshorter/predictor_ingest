@@ -1,0 +1,56 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Predictor Ingest//Calendar//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260318
+DTEND;VALUE=DATE:20260319
+SUMMARY:Retry Southeast Film Source Research
+DESCRIPTION:Web search was unavailable 2026-03-17. Retry source discovery:\n\nGeorgia: AJC film beat\, Georgia.org/Film Office\, Trilith Studios\, Oz Magazine\nLouisiana: NOLA.com film/TV\, Louisiana Entertainment (LED)\, New Orleans Film Society\nNorth Carolina: Wilmington Star-News entertainment\, NC Film Office\nTennessee: Nashville Film Festival\, Tennessee Entertainment Commission\nSouth Carolina: SC Film Commission\, Charleston City Paper\nRegional: Southeast Film Alliance\, Production Hub Southeast\n\nGoal: Validate RSS feed availability\, estimate daily article volume.
+CATEGORIES:Sprint 7,Research
+PRIORITY:1
+STATUS:NEEDS-ACTION
+UID:predictor-ingest-20260318-source-research@predictor
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260318
+DTEND;VALUE=DATE:20260319
+SUMMARY:Evaluate Social Media Chatter Options
+DESCRIPTION:Research low-cost chatter sources for film domain:\n\n- Bluesky firehose (free\, AT Protocol) — top pick\n- Reddit r/Atlanta\, r/Filmmakers\, r/boxoffice (free tier)\n- Substack newsletters (native RSS\, zero code) — quick win\n- Mastodon film communities (free)\n- Letterboxd (RSS feeds)\n- YouTube comments (free tier: 10k units/day)\n\nConstraint: hundredths-of-a-cent per transaction or free.\nSee ADR-006 for decision rationale.
+CATEGORIES:Sprint 7,Research
+PRIORITY:2
+STATUS:NEEDS-ACTION
+UID:predictor-ingest-20260318-chatter-eval@predictor
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260318
+DTEND;VALUE=DATE:20260322
+SUMMARY:Sprint 7A — Chatter Source Ingestion
+DESCRIPTION:Add new source types beyond RSS:\n\n7A.1 Substack feeds for film domain (zero code changes)\n7A.2 Bluesky AT Protocol fetcher (src/ingest/bluesky.py)\n7A.3 Reddit API fetcher (src/ingest/reddit.py)\n7A.4 Source type field in documents table (migration)\n\nSee ADR-006 for architecture decisions.
+CATEGORIES:Sprint 7,Development
+PRIORITY:1
+STATUS:NEEDS-ACTION
+UID:predictor-ingest-sprint7a@predictor
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260318
+DTEND;VALUE=DATE:20260321
+SUMMARY:Sprint 7B — Export-Time Region Tagging
+DESCRIPTION:Add region[] field to Cytoscape export nodes:\n\n7B.1 Region lookup table in domains/film/domain.yaml\n7B.2 Export-time 2-hop propagation from Location nodes\n\nCPU deterministic\, no LLM cost. See ADR-005.
+CATEGORIES:Sprint 7,Development
+PRIORITY:2
+STATUS:NEEDS-ACTION
+UID:predictor-ingest-sprint7b@predictor
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260320
+DTEND;VALUE=DATE:20260323
+SUMMARY:Sprint 7C — Client-Side Lens UI
+DESCRIPTION:Lens dropdown in toolbar for geographic focus:\n\n7C.1 Lens dropdown UI (toolbar\, .region-dimmed CSS class)\n7C.2 Lens config in web/data/domains/film.json\n\nDomain-agnostic design. No server calls. See ADR-005.
+CATEGORIES:Sprint 7,Development
+PRIORITY:3
+STATUS:NEEDS-ACTION
+UID:predictor-ingest-sprint7c@predictor
+END:VEVENT
+END:VCALENDAR
