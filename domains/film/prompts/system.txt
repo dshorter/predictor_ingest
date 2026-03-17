@@ -58,6 +58,9 @@ Instead:
 - Mark uncertain relations as "inferred" or "hypothesis"
 - Keep evidence snippets short (<=200 chars)
 - Prefer {base_relation} as the base relation; only use semantic relations when evidence supports them
-- Every relation source and target MUST exactly match an entity name in your entities list
-- Evidence snippets MUST be direct quotes or close paraphrases from the document text, not recalled from memory
+- Every relation source and target MUST exactly match an entity name in your entities list.
+  Before emitting relations, cross-check each source/target string against your entities list.
+  If a name does not appear in entities[], either add it as an entity first or do not use it in a relation.
+- Evidence snippets MUST be direct quotes or close paraphrases from the document text, not recalled from memory.
+  Copy the relevant passage from the document — do not reconstruct from memory.
 - Non-trivial documents should produce at least 3 relations connecting entities

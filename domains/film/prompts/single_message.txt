@@ -62,7 +62,10 @@ as standalone entities. Extract SPECIFIC names (e.g., "Greta Gerwig" not "direct
 techTerms[] instead.
 
 ## Critical Rules
-- Asserted relations MUST include evidence with a snippet from the document
+- Asserted relations MUST include evidence with a snippet COPIED from the document text (not paraphrased from memory)
 - Do not fabricate entities or relations not supported by the text
 - Mark uncertain relations as "inferred" or "hypothesis"
 - Keep evidence snippets short (<=200 chars)
+- Every relation source and target MUST exactly match an entity name in your entities list.
+  Before emitting relations, cross-check each source/target string against your entities list.
+  If a name is missing from entities[], add it first or omit the relation.

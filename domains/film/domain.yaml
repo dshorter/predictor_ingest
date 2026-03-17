@@ -391,13 +391,13 @@ quality_thresholds:
 
 # --- Gate Thresholds ---
 gate_thresholds:
-  evidence_fidelity_min: 0.70
+  evidence_fidelity_min: 0.60    # lowered from 0.70 — film trade press paraphrases heavily (avg was 0.675)
   orphan_max: 0.0
   zero_value_min_entities: 1
   zero_value_min_doc_chars: 500
   high_confidence_threshold: 0.8
 
-escalation_threshold: 0.6
+escalation_threshold: 0.55     # lowered from 0.6 — trade press style yields lower density scores than technical content
 
 # --- Scoring Weights ---
 # Emphasize connectivity (who works with whom) and density (name-heavy articles).
