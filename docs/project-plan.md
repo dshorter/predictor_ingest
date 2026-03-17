@@ -201,19 +201,53 @@ have changed structure since last verified.
 
 ---
 
-## Sprint 7 — "What's Hot" Feature (Days 12–15)
+## Sprint 7 — Regional Lens + Chatter Sources (Days 12–15)
+
+Three sub-features that extend the pipeline's reach and give users geographic
+focus. Motivated by narrowing the film domain to the Southeast US production
+scene. See [ADR-005](architecture/adr-005-regional-lens.md) and
+[ADR-006](architecture/adr-006-chatter-sources.md) for decision rationale.
+
+**Key design decision:** No additive scoring signal for regional relevance.
+Regional content enters via feeds (supply-side); user controls focus via lens
+(demand-side). Scoring layer stays domain-neutral. See ADR-005 §Alternatives.
+
+| # | Item | What changes | Lines | Model |
+|---|------|-------------|-------|-------|
+| 7A.1 | Substack feeds for film domain | Add 3–5 Southeast film Substack RSS URLs to `feeds.yaml`. Zero code changes — already RSS-compatible | ~15 YAML | [Sonnet] |
+| 7A.2 | Bluesky AT Protocol fetcher | New `src/ingest/bluesky.py`: subscribe to keyword-filtered firehose, normalize posts to document schema, store in DB | ~150 Python | [Opus] |
+| 7A.3 | Reddit API fetcher | New `src/ingest/reddit.py`: fetch posts/comments from target subreddits via free API tier, normalize to document schema | ~120 Python | [Opus] |
+| 7A.4 | Source type field in documents table | Add `source_type` column (`rss`, `bluesky`, `reddit`) to distinguish provenance. Migration script | ~30 Python+SQL | [Sonnet] |
+| 7B.1 | Region lookup table in domain config | Add `regions:` section to `domains/film/domain.yaml` mapping Location entity names → region slugs (e.g., `Atlanta: southeast`, `New Orleans: southeast`) | ~30 YAML | [Sonnet] |
+| 7B.2 | Export-time region tagging | In `src/graph/export.py`: after building graph, propagate region tags from Location nodes through 2 hops. Write `region[]` array onto each node's data | ~80 Python | [Opus] |
+| 7C.1 | Lens dropdown UI | New toolbar dropdown reading lens config from domain JSON. Toggles `.region-dimmed` class on nodes without matching region tag | ~60 JS+CSS | [Opus] |
+| 7C.2 | Lens config in domain web JSON | Add `lenses[]` to `web/data/domains/film.json` defining available region filters | ~15 JSON | [Sonnet] |
+
+**Risk:** Moderate. New ingest source types (7A.2, 7A.3) are the riskiest — external
+API integration with rate limits and schema mapping. Region tagging (7B) and lens UI
+(7C) are low risk — deterministic graph traversal and CSS class toggling.
+**Why Opus for 7A.2/3, 7B.2, 7C.1:** New integration code + cross-cutting export
+changes need holistic design. Substack (7A.1) and config items are straightforward.
+**Stability gate:** Existing RSS ingest unaffected. New source types produce valid
+document records. Region tags appear in exported JSON. Lens UI dims/undims correctly.
+Grep-audit still passes (no domain-specific strings in framework).
+**Dependency:** Southeast feed URLs need web search validation (scheduled 2026-03-18).
+
+---
+
+## Sprint 8 — "What's Hot" Feature (Days 16–19)
 
 The first genuinely new feature. Requires backend changes (velocity delta
 computation) and a new frontend component. Highest complexity in the plan.
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 7.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] |
-| 7.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] |
-| 7.3 | `whats-hot.js` — ranked list UI component | delight §DL-1 | ~120 JS | [Opus] |
-| 7.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] |
-| 7.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] |
-| 7.6 | Panel CSS for hot list drawer | delight §DL-1 | ~40 CSS | [Opus] |
+| 8.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] |
+| 8.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] |
+| 8.3 | `whats-hot.js` — ranked list UI component | delight §DL-1 | ~120 JS | [Opus] |
+| 8.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] |
+| 8.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] |
+| 8.6 | Panel CSS for hot list drawer | delight §DL-1 | ~40 CSS | [Opus] |
 
 **Risk:** Moderate. Backend data flow change + new UI component. But isolated —
 if it breaks, it only breaks the hot list.
@@ -222,17 +256,17 @@ integration, and fly-to animation. Needs holistic understanding of the data flow
 **Stability gate:** Verify hot list populates from real export data, fly-to works,
 drawer opens/closes cleanly. Confirm existing views are unaffected.
 
-**Content upgrade path (B.8 → B.9):** Sprint 7 ships with raw velocity-ranked
+**Content upgrade path (B.8 → B.9):** Sprint 8 ships with raw velocity-ranked
 entities. B.8–B.9 later produce structured insight artifacts (title, category,
-evidence, "so what") that slot into the same panel. Design 7.3 (`whats-hot.js`)
+evidence, "so what") that slot into the same panel. Design 8.3 (`whats-hot.js`)
 to accept either raw scores or insight objects — start simple, upgrade in place.
 
 ```
-Sprint 7 (UI shell)          B.8 (insight templates)
+Sprint 8 (UI shell)          B.8 (insight templates)
       │                            │
       │     ┌──────────────────────┘
       ▼     ▼
-Sprint 7.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
+Sprint 8.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
                                            │
                                       B.11 (dedup so daily users
                                             don't see repeats)
@@ -243,62 +277,62 @@ Sprint 7.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
 
 ---
 
-## Sprint 8 — Discovery Rewards (Days 16–18)
+## Sprint 9 — Discovery Rewards (Days 20–22)
 
-Builds on Sprint 1 (`.new` class wiring) and Sprint 7 (hot list signals).
+Builds on Sprint 1 (`.new` class wiring) and Sprint 8 (hot list signals).
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 8.1 | New-entity entrance glow (one-time pulse on `.new` nodes) | delight §DL-2a | ~20 JS+CSS | [Sonnet] |
-| 8.2 | "N new since yesterday" toolbar badge | delight §DL-2b | ~30 JS+HTML+CSS | [Sonnet] |
-| 8.3 | Staggered neighborhood reveal animation (desktop only) | delight §DL-2c | ~40 JS | [Opus] |
-| 8.4 | "What's New" temporal highlight toggle | polish-strategy §P3 | ~50 JS | [Sonnet] |
+| 9.1 | New-entity entrance glow (one-time pulse on `.new` nodes) | delight §DL-2a | ~20 JS+CSS | [Sonnet] |
+| 9.2 | "N new since yesterday" toolbar badge | delight §DL-2b | ~30 JS+HTML+CSS | [Sonnet] |
+| 9.3 | Staggered neighborhood reveal animation (desktop only) | delight §DL-2c | ~40 JS | [Opus] |
+| 9.4 | "What's New" temporal highlight toggle | polish-strategy §P3 | ~50 JS | [Sonnet] |
 
 **Risk:** Moderate. Animation timing is fiddly. Must respect `prefers-reduced-motion`.
-**Dependency:** Sprint 1 (`.new` class), Sprint 7 (signals for badge counts).
+**Dependency:** Sprint 1 (`.new` class), Sprint 8 (signals for badge counts).
 
 ---
 
-## Sprint 9 — Guided Entry Point (Day 19)
+## Sprint 10 — Guided Entry Point (Day 23)
 
 Ties together What's Hot signals + discovery into a first-load experience.
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 9.1 | "Today's Highlights" overlay card (top 3 items, auto-dismiss) | delight §DL-3 | ~80 JS+CSS+HTML | [Opus] |
-| 9.2 | `localStorage` flag per export date (don't re-show on refresh) | delight §DL-3 | ~10 JS | [Opus] |
+| 10.1 | "Today's Highlights" overlay card (top 3 items, auto-dismiss) | delight §DL-3 | ~80 JS+CSS+HTML | [Opus] |
+| 10.2 | `localStorage` flag per export date (don't re-show on refresh) | delight §DL-3 | ~10 JS | [Opus] |
 
 **Risk:** Low-moderate. Overlay is additive. `localStorage` is straightforward.
-**Dependency:** Sprint 7 (same signal data).
+**Dependency:** Sprint 8 (same signal data).
 
 ---
 
-## Sprint 10 — Medium Gap Features (Days 20–23)
+## Sprint 11 — Medium Gap Features (Days 24–27)
 
 Spec features that were never built. Each is independent. Can be parallelized.
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 10.1 | Context menu (right-click: expand, hide, pin, select) | gap-remediation §3.1 | ~150 JS+HTML | [Opus] |
-| 10.2 | Colorblind-safe palette + toggle | gap-remediation §3.2 | ~80 CSS+JS | [Sonnet] |
-| 10.3 | Custom date range picker inputs | gap-remediation §3.3 | ~70 HTML+JS | [Sonnet] |
-| 10.4 | Gzipped JSON export (build step) | gap-remediation §2.1 | ~20 script | [Sonnet] |
+| 11.1 | Context menu (right-click: expand, hide, pin, select) | gap-remediation §3.1 | ~150 JS+HTML | [Opus] |
+| 11.2 | Colorblind-safe palette + toggle | gap-remediation §3.2 | ~80 CSS+JS | [Sonnet] |
+| 11.3 | Custom date range picker inputs | gap-remediation §3.3 | ~70 HTML+JS | [Sonnet] |
+| 11.4 | Gzipped JSON export (build step) | gap-remediation §2.1 | ~20 script | [Sonnet] |
 
 **Risk:** Context menu is moderate (extension loading, pin/hide state). Others are low.
-**Why Opus for 10.1:** Pin-position and hide-node logic need layout integration + state
+**Why Opus for 11.1:** Pin-position and hide-node logic need layout integration + state
 tracking that cross-cuts filter and layout modules.
 
 ---
 
-## Sprint 11 — Branding & Wrap-up (Day 24)
+## Sprint 12 — Branding & Wrap-up (Day 28)
 
 | # | Item | Source | Lines | Model |
 |---|------|--------|-------|-------|
-| 11.1 | App title/branding swap (when name is decided) | delight §DL-6 | ~5 HTML+CSS | [Manual] |
-| 11.2 | Minimap toggle animation (scale from corner) | polish-strategy §P3 | ~10 CSS | [Sonnet] |
-| 11.3 | Final QA pass across all views, both themes, desktop | — | — | [Manual] |
+| 12.1 | App title/branding swap (when name is decided) | delight §DL-6 | ~5 HTML+CSS | [Manual] |
+| 12.2 | Minimap toggle animation (scale from corner) | polish-strategy §P3 | ~10 CSS | [Sonnet] |
+| 12.3 | Final QA pass across all views, both themes, desktop | — | — | [Manual] |
 
-**Dependency:** 11.1 blocked on branding decision (external).
+**Dependency:** 12.1 blocked on branding decision (external).
 
 ---
 
@@ -351,11 +385,14 @@ Not scheduled. Documented so they're not forgotten.
 | — Pipeline dashboard | ✓ Done | 2026-03-01 |
 | — Ontology reference page | ✓ Done | 2026-03-13 |
 | — Domain switcher UI | ✓ Done | 2026-03-13 |
-| 7 — What's Hot | **Next** | — |
-| 8 — Discovery Rewards | Pending | — |
-| 9 — Guided Entry | Pending | — |
-| 10 — Medium Gap Features | Pending | — |
-| 11 — Branding & Wrap-up | Pending | — |
+| — Film domain launch | ✓ Done | 2026-03-17 |
+| — Film quality gate tuning | ✓ Done | 2026-03-17 |
+| 7 — Regional Lens + Chatter Sources | **Next** | — |
+| 8 — What's Hot | Pending | — |
+| 9 — Discovery Rewards | Pending | — |
+| 10 — Guided Entry | Pending | — |
+| 11 — Medium Gap Features | Pending | — |
+| 12 — Branding & Wrap-up | Pending | — |
 
 ---
 
@@ -365,10 +402,10 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-14 (7 planned sprints + 5 unplanned items done in 15 days) |
-| Sprints remaining | 5 sprints (7–11) |
+| As of | 2026-03-17 (7 planned sprints + 7 unplanned items done in 18 days) |
+| Sprints remaining | 6 sprints (7–12) |
 | Backend track | Parallel, partially blocked on data (≥30 days data now available) |
-| **Revised target** | **~late March 2026** |
+| **Revised target** | **~early April 2026** |
 
 **Milestone (Sprint 6 + 6B, March 7):** Domain plugin architecture delivered AND
 validated with biosafety as second domain. Framework is domain-agnostic, grep-audit
@@ -392,12 +429,17 @@ the original sprint plan:
   domain enumeration (`KNOWN_DOMAINS` registry).
 
 **Impact on timeline:** Unplanned stabilization and infrastructure work consumed ~4 days
-(March 7–10). Sprint 7 (What's Hot) is now next. Backend track items B.9–B.11 are
-unblocked (≥30 days pipeline data reached ~March 14).
+(March 7–10). Film domain launched March 17 with quality gate tuning. Sprint 7
+(Regional Lens + Chatter Sources) inserted before What's Hot based on strategic
+decision to focus film domain on Southeast US production scene. See ADR-005, ADR-006.
 
 **Risks to timeline:**
-- DL-1 (What's Hot) velocity delta requires backend data design decisions that
-  could expand scope
+- Sprint 7 (Regional Lens + Chatter) depends on web search to validate Southeast
+  RSS feed availability (scheduled 2026-03-18 retry)
+- Bluesky/Reddit API integration (7A.2/3) are new integration surface area —
+  rate limits, schema mapping, error handling
+- DL-1 (What's Hot, now Sprint 8) velocity delta requires backend data design
+  decisions that could expand scope
 - Context menu extension loading may have compatibility issues with current
   Cytoscape version
 - Branding decision (DL-6) is externally blocked
