@@ -1,0 +1,28 @@
+# Graph view configuration for Film & Independent Cinema
+#
+# Defines which relation types belong to each Cytoscape export view.
+# The export module loads these at import time.
+
+# Document-level relations (used for the "mentions" view)
+document_relations:
+  - MENTIONS
+  - CITES
+  - ANNOUNCES
+  - REPORTED_BY
+
+# Dependency-style relations (used for the "dependencies" view)
+# For film: this captures the production pipeline and business relationships
+dependency_relations:
+  - DIRECTS
+  - WRITES
+  - PRODUCES
+  - STARS_IN
+  - ACQUIRES
+  - DISTRIBUTES
+  - FINANCES
+  - DEVELOPS
+  - ADAPTS
+  - BASED_ON
+  - USES_TECH
+  - REPRESENTS
+  - PARTNERS_WITH

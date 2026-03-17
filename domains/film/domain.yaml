@@ -1,0 +1,464 @@
+# Domain Profile: Film & Independent Cinema
+# Schema: schemas/domain-profile.json
+#
+# Tracks the independent film landscape: projects moving through
+# development → production → festival → distribution, the people
+# and companies driving them, and emerging trends in indie cinema.
+#
+# Sources are trade press (Deadline, Variety, IndieWire) and craft
+# blogs (No Film School, John August) — news-format content that
+# performs well with cost-conscious extraction models.
+
+domain:
+  name: "Film & Independent Cinema"
+  slug: "film"
+  description: "Independent film production, screenwriting, festivals, and distribution trends"
+
+# --- Entity Types ---
+# Discovered from reading trade press: what nouns recur?
+# Productions are the central node; people, companies, and festivals
+# are the connective tissue.
+entity_types:
+  - Person          # Directors, writers, producers, actors, agents
+  - Studio          # A24, Blumhouse, Neon, Searchlight, etc.
+  - Production      # Specific film/show projects (in dev or released)
+  - Festival        # Sundance, TIFF, Cannes, SXSW, Tribeca, etc.
+  - Distributor     # Netflix, Amazon, Apple, theatrical chains
+  - Agency          # CAA, WME, UTA, Verve, ICM
+  - Fund            # Sundance Labs, Film Independent, state incentives
+  - Network         # HBO, FX, A&E — TV/streaming networks
+  - Genre           # Horror, drama, documentary, sci-fi, etc.
+  - Tech            # LED volume, Unreal Engine, AI tools, cameras
+  - Award           # Oscar, Spirit Award, Palme d'Or, etc.
+  - Org             # Guilds (WGA, DGA, SAG), MPAA, academies
+  - Topic           # Themes: representation, AI in film, labor, etc.
+  - Event           # Markets, panels, strikes, industry events
+  - Location        # Shooting locations, production hubs
+  - Other           # Catch-all
+
+# --- Relation Taxonomy ---
+relation_taxonomy:
+  canonical:
+    # Document-level (base layer)
+    - MENTIONS
+    - CITES
+    - ANNOUNCES
+    - REPORTED_BY
+
+    # Creative roles
+    - DIRECTS           # Person → Production
+    - WRITES            # Person → Production (screenplay)
+    - PRODUCES          # Person/Studio → Production
+    - STARS_IN          # Person → Production
+    - SCORES            # Person → Production (composer)
+    - EDITS             # Person → Production
+
+    # Deal flow / business
+    - ACQUIRES          # Distributor/Studio → Production
+    - DISTRIBUTES       # Distributor → Production
+    - FINANCES          # Fund/Studio/Person → Production
+    - GREENLIGHTS       # Studio/Network → Production
+    - OPTIONED          # Studio/Person → Production (rights option)
+    - COMMISSIONS       # Network/Studio → Production
+
+    # Festival circuit
+    - PREMIERES_AT      # Production → Festival
+    - SELECTED_BY       # Production → Festival
+    - WINS              # Production/Person → Award
+    - NOMINATED_FOR     # Production/Person → Award
+
+    # Industry relationships
+    - REPRESENTS        # Agency → Person
+    - SIGNS_WITH        # Person → Agency/Studio
+    - PARTNERS_WITH     # Studio ↔ Studio, Studio ↔ Distributor
+    - HIRES             # Studio/Production → Person
+    - FOUNDED           # Person → Studio/Fund
+
+    # Production pipeline
+    - DEVELOPS          # Studio/Person → Production
+    - ADAPTS            # Production → Production/Other (source material)
+    - BASED_ON          # Production → Other (book, article, IP)
+    - SHOOTS_IN         # Production → Location
+    - USES_TECH         # Production/Studio → Tech
+
+    # Industry / meta
+    - GOVERNS           # Org (guild) → Topic/Industry practice
+    - REGULATES         # Org → Topic
+    - CREATED           # Person/Studio → Production/Fund/Org
+    - OPERATES          # Studio → Fund/Program
+
+  groups:
+    document:
+      - MENTIONS
+      - CITES
+      - ANNOUNCES
+      - REPORTED_BY
+    creative:
+      - DIRECTS
+      - WRITES
+      - PRODUCES
+      - STARS_IN
+      - SCORES
+      - EDITS
+    business:
+      - ACQUIRES
+      - DISTRIBUTES
+      - FINANCES
+      - GREENLIGHTS
+      - OPTIONED
+      - COMMISSIONS
+    festival:
+      - PREMIERES_AT
+      - SELECTED_BY
+      - WINS
+      - NOMINATED_FOR
+    industry:
+      - REPRESENTS
+      - SIGNS_WITH
+      - PARTNERS_WITH
+      - HIRES
+      - FOUNDED
+    production:
+      - DEVELOPS
+      - ADAPTS
+      - BASED_ON
+      - SHOOTS_IN
+      - USES_TECH
+    governance:
+      - GOVERNS
+      - REGULATES
+      - CREATED
+      - OPERATES
+
+  # Map LLM output variations to canonical relation types.
+  # Semantic synonyms first (require domain judgment), then
+  # tense variants are auto-generated via generate_normalization.py.
+  normalization:
+    # Creative role synonyms
+    DIRECTED: DIRECTS
+    DIRECTED_BY: DIRECTS
+    WRITTEN: WRITES
+    WRITTEN_BY: WRITES
+    WROTE: WRITES
+    SCREENWRITER: WRITES
+    PRODUCED: PRODUCES
+    PRODUCED_BY: PRODUCES
+    STARRED: STARS_IN
+    STARRING: STARS_IN
+    ACTED_IN: STARS_IN
+    APPEARS_IN: STARS_IN
+    CAST_IN: STARS_IN
+    COMPOSED: SCORES
+    COMPOSED_BY: SCORES
+    EDITED: EDITS
+    EDITED_BY: EDITS
+    CUT: EDITS
+
+    # Deal flow synonyms
+    ACQUIRED: ACQUIRES
+    ACQUIRED_BY: ACQUIRES
+    BOUGHT: ACQUIRES
+    PICKED_UP: ACQUIRES
+    SOLD_TO: ACQUIRES
+    DISTRIBUTED: DISTRIBUTES
+    DISTRIBUTED_BY: DISTRIBUTES
+    RELEASED: DISTRIBUTES
+    RELEASED_BY: DISTRIBUTES
+    FINANCED: FINANCES
+    FINANCED_BY: FINANCES
+    FUNDED: FINANCES
+    FUNDED_BY: FINANCES
+    BACKED: FINANCES
+    BACKED_BY: FINANCES
+    INVESTED_IN: FINANCES
+    GREENLIT: GREENLIGHTS
+    GREENLIT_BY: GREENLIGHTS
+    ORDERED: COMMISSIONS
+    ORDERED_BY: COMMISSIONS
+    COMMISSIONED: COMMISSIONS
+
+    # Festival / award synonyms
+    PREMIERED: PREMIERES_AT
+    PREMIERED_AT: PREMIERES_AT
+    DEBUTED: PREMIERES_AT
+    DEBUTED_AT: PREMIERES_AT
+    SCREENED: PREMIERES_AT
+    SCREENED_AT: PREMIERES_AT
+    SELECTED: SELECTED_BY
+    ACCEPTED: SELECTED_BY
+    WON: WINS
+    AWARDED: WINS
+    NOMINATED: NOMINATED_FOR
+
+    # Industry synonyms
+    REPRESENTED: REPRESENTS
+    REPRESENTED_BY: REPRESENTS
+    REPS: REPRESENTS
+    SIGNED: SIGNS_WITH
+    SIGNED_WITH: SIGNS_WITH
+    PARTNERED: PARTNERS_WITH
+    PARTNERED_WITH: PARTNERS_WITH
+    HIRED: HIRES
+    HIRED_BY: HIRES
+    TAPPED: HIRES
+    ATTACHED: HIRES
+    BOARDED: HIRES
+    JOINED: HIRES
+
+    # Production pipeline synonyms
+    DEVELOPING: DEVELOPS
+    DEVELOPED: DEVELOPS
+    IN_DEVELOPMENT: DEVELOPS
+    ADAPTED: ADAPTS
+    ADAPTED_FROM: ADAPTS
+    INSPIRED_BY: BASED_ON
+    REMAKE_OF: BASED_ON
+    SEQUEL_TO: BASED_ON
+    SHOOTING: SHOOTS_IN
+    SHOT: SHOOTS_IN
+    FILMED: SHOOTS_IN
+    FILMED_IN: SHOOTS_IN
+    FILMING_IN: SHOOTS_IN
+
+    # General
+    ANNOUNCED: ANNOUNCES
+    ANNOUNCING: ANNOUNCES
+    MENTIONED: MENTIONS
+    CITED: CITES
+    REPORTED: REPORTED_BY
+    REPORTS: REPORTED_BY
+    BUILT: CREATED
+    ESTABLISHED: CREATED
+    LAUNCHED: CREATED
+    OPERATED: OPERATES
+    GOVERNED: GOVERNS
+    REGULATED: REGULATES
+
+    # --- Auto-generated tense variants (generate_normalization.py) ---
+    # Review these entries. Remove any that collide with domain-specific
+    # meanings (e.g., if CONTAINED means something different from CONTAINS).
+    ACQUIRE: ACQUIRES
+    ACQUIRES_BY: ACQUIRES
+    ACQUIRING: ACQUIRES
+    ADAPT: ADAPTS
+    ADAPTING: ADAPTS
+    ADAPTS_BY: ADAPTS
+    ANNOUNCE: ANNOUNCES
+    ANNOUNCES_BY: ANNOUNCES
+    BASES_ON: BASED_ON
+    BASE_ON: BASED_ON
+    BASING_ON: BASED_ON
+    CITE: CITES
+    CITES_BY: CITES
+    CITING: CITES
+    COMMISSION: COMMISSIONS
+    COMMISSIONING: COMMISSIONS
+    COMMISSIONS_BY: COMMISSIONS
+    CREATE: CREATED
+    CREATED_BY: CREATED
+    CREATES: CREATED
+    CREATING: CREATED
+    DEVELOP: DEVELOPS
+    DEVELOPS_BY: DEVELOPS
+    DIRECT: DIRECTS
+    DIRECTING: DIRECTS
+    DIRECTS_BY: DIRECTS
+    DISTRIBUTE: DISTRIBUTES
+    DISTRIBUTES_BY: DISTRIBUTES
+    DISTRIBUTING: DISTRIBUTES
+    EDIT: EDITS
+    EDITS_BY: EDITS
+    EDITING: EDITS
+    FINANCE: FINANCES
+    FINANCES_BY: FINANCES
+    FINANCING: FINANCES
+    FOUNDED_BY: FOUNDED
+    FOUNDS: FOUNDED
+    FOUNDING: FOUNDED
+    GOVERN: GOVERNS
+    GOVERNING: GOVERNS
+    GOVERNS_BY: GOVERNS
+    GREENLIGHT: GREENLIGHTS
+    GREENLIGHTED: GREENLIGHTS
+    GREENLIGHTING: GREENLIGHTS
+    GREENLIGHTS_BY: GREENLIGHTS
+    HIRE: HIRES
+    HIRES_BY: HIRES
+    HIRING: HIRES
+    MENTION: MENTIONS
+    MENTIONING: MENTIONS
+    MENTIONS_BY: MENTIONS
+    NOMINATES_FOR: NOMINATED_FOR
+    NOMINATE_FOR: NOMINATED_FOR
+    NOMINATING_FOR: NOMINATED_FOR
+    OPERATE: OPERATES
+    OPERATES_BY: OPERATES
+    OPERATING: OPERATES
+    OPTION: OPTIONED
+    OPTIONED_BY: OPTIONED
+    OPTIONS: OPTIONED
+    OPTIONING: OPTIONED
+    PARTNERING_WITH: PARTNERS_WITH
+    PARTNER_WITH: PARTNERS_WITH
+    PREMIERE_AT: PREMIERES_AT
+    PREMIERING_AT: PREMIERES_AT
+    PRODUCE: PRODUCES
+    PRODUCES_BY: PRODUCES
+    PRODUCING: PRODUCES
+    REGULATE: REGULATES
+    REGULATES_BY: REGULATES
+    REGULATING: REGULATES
+    REPORTING_BY: REPORTED_BY
+    REPORTS_BY: REPORTED_BY
+    REPORT_BY: REPORTED_BY
+    REPRESENT: REPRESENTS
+    REPRESENTING: REPRESENTS
+    REPRESENTS_BY: REPRESENTS
+    SCORE: SCORES
+    SCORED: SCORES
+    SCORES_BY: SCORES
+    SCORING: SCORES
+    SELECTS_BY: SELECTED_BY
+    SELECT_BY: SELECTED_BY
+    SELECTING_BY: SELECTED_BY
+    SHOT_IN: SHOOTS_IN
+    SHOOTING_IN: SHOOTS_IN
+    SHOOT_IN: SHOOTS_IN
+    SIGNING_WITH: SIGNS_WITH
+    SIGN_WITH: SIGNS_WITH
+    STARRED_IN: STARS_IN
+    STARRING_IN: STARS_IN
+    STAR_IN: STARS_IN
+    USED_TECH: USES_TECH
+    USES_TECH_BY: USES_TECH
+    USE_TECH: USES_TECH
+    USING_TECH: USES_TECH
+    WIN: WINS
+    WINNING: WINS
+    WINS_BY: WINS
+    WRITE: WRITES
+    WRITES_BY: WRITES
+    WRITING: WRITES
+
+# --- Relation metadata enums ---
+relation_kinds:
+  - asserted
+  - inferred
+  - hypothesis
+
+polarity_values:
+  - pos
+  - neg
+  - unclear
+
+modality_values:
+  - observed
+  - planned
+  - speculative
+
+# --- ID Prefixes ---
+id_prefixes:
+  Person: person
+  Studio: studio
+  Production: prod
+  Festival: fest
+  Distributor: dist
+  Agency: agency
+  Fund: fund
+  Network: net
+  Genre: genre
+  Tech: tech
+  Award: award
+  Org: org
+  Topic: topic
+  Event: event
+  Location: location
+  Other: other
+
+# --- Base Relation ---
+base_relation: MENTIONS
+
+# --- Quality Thresholds ---
+# Trade press is entity-dense (lots of names per article) but
+# relations are often implicit. Tuned accordingly.
+quality_thresholds:
+  entity_density_target: 6.0       # trade press name-drops heavily
+  evidence_coverage_min: 0.8
+  avg_confidence_target: 0.85
+  relation_entity_ratio_target: 0.4  # slightly lower — many MENTIONS, fewer semantic
+  tech_terms_min: 1                  # not every article mentions tech
+  relation_type_diversity_target: 5
+
+# --- Gate Thresholds ---
+gate_thresholds:
+  evidence_fidelity_min: 0.70
+  orphan_max: 0.0
+  zero_value_min_entities: 1
+  zero_value_min_doc_chars: 500
+  high_confidence_threshold: 0.8
+
+escalation_threshold: 0.6
+
+# --- Scoring Weights ---
+# Emphasize connectivity (who works with whom) and density (name-heavy articles).
+# Lower weight on tech_terms since not every film article has technical content.
+scoring_weights:
+  density: 0.20
+  evidence: 0.15
+  confidence: 0.10
+  connectivity: 0.25
+  diversity: 0.20
+  tech_terms: 0.10
+
+# --- Trend Weights ---
+trend_weights:
+  velocity: 0.4
+  novelty: 0.3
+  activity: 0.3
+  velocity_cap: 5.0
+  activity_cap: 20
+  max_age_days: 365
+  novelty_age_weight: 0.6
+  novelty_rarity_weight: 0.4
+
+# --- Suppressed Entities ---
+# Too generic for a film knowledge graph.
+suppressed_entities:
+  - film
+  - movie
+  - show
+  - series
+  - project
+  - production
+  - studio
+  - actor
+  - actress
+  - director
+  - writer
+  - producer
+  - story
+  - script
+  - screenplay
+  - industry
+  - entertainment
+  - Hollywood
+  - cinema
+  - audience
+  - viewer
+  - character
+  - role
+  - cast
+  - crew
+  - set
+  - content
+  - platform
+  - streaming
+  - media
+  - company
+
+# --- Prompts ---
+prompts:
+  dir: prompts
+  system_prompt: system.txt
+  user_prompt: user.txt
+  single_message_prompt: single_message.txt

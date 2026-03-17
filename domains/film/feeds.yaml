@@ -1,0 +1,129 @@
+# RSS feeds for Film & Independent Cinema trend graph
+# Runtime configuration — parsed by src/ingest/rss.py
+#
+# Sources selected for nano-friendliness: trade press and craft blogs
+# written in clear journalistic prose. No academic papers.
+#
+# tier: 1 = primary/original source, 2 = secondary/analysis, 3 = echo
+# signal: primary | commentary | echo | community
+
+feeds:
+  # --- Tier 1: Major trades (breaking news, deal announcements) ---
+
+  - name: "Deadline"
+    url: "https://deadline.com/feed/"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 1
+    signal: primary
+    # Breaking deal news, casting, acquisitions. High volume.
+
+  - name: "Variety Film"
+    url: "https://variety.com/v/film/feed"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 1
+    signal: primary
+    # Film industry news, box office, festival coverage.
+
+  - name: "The Hollywood Reporter"
+    url: "https://www.hollywoodreporter.com/feed"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 1
+    signal: primary
+    # Industry news, awards coverage, executive moves.
+
+  - name: "IndieWire"
+    url: "https://www.indiewire.com/feed"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 1
+    signal: primary
+    # Independent film focus. Reviews, festival coverage, craft.
+
+  # --- Tier 1: Indie/craft (original content, practitioner voice) ---
+
+  - name: "No Film School"
+    url: "https://nofilmschool.com/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: community
+    # Filmmaking craft, gear, tutorials, career advice.
+    # Practitioner perspective — early signal on production tech trends.
+
+  - name: "Filmmaker Magazine"
+    url: "https://filmmakermagazine.com/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Working filmmaker perspective, indie focus, festival dispatches.
+
+  # --- Tier 1: Festival / institutional ---
+
+  - name: "Sundance Institute"
+    url: "https://sundance.org/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: primary
+    # Festival selections, lab announcements, grants, artist resources.
+
+  - name: "Film Independent"
+    url: "https://filmindependent.org/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: primary
+    # Spirit Awards, Project Involve, fiscal sponsorship, LA Film Fest.
+
+  # --- Tier 2: Screenwriting / craft ---
+
+  - name: "John August"
+    url: "https://johnaugust.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: community
+    # Veteran screenwriter blog. Industry commentary, craft advice.
+    # Companion to Scriptnotes podcast.
+
+  - name: "Go Into The Story"
+    url: "https://gointothestory.blcklst.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: community
+    # Black List affiliated. Script analysis, writing craft, Hollywood.
+
+  - name: "Script Magazine"
+    url: "https://scriptmag.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: commentary
+    # Screenwriting craft, industry insights, interviews with writers.
+
+  # --- Tier 2: Echo / mainstream (creates entity overlap for velocity) ---
+
+  - name: "Save the Cat"
+    url: "https://savethecat.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: community
+    # Story structure, beat sheets, writing methodology.
+
+  - name: "ScreenAnarchy"
+    url: "https://screenanarchy.com/atom.xml"
+    type: atom
+    enabled: true
+    tier: 2
+    signal: echo
+    # International / indie cinema reviews, festival coverage.
