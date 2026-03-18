@@ -242,6 +242,15 @@ function getCytoscapeStyles() {
       }
     },
 
+    // Region-dimmed nodes (lens filter — Sprint 7C)
+    {
+      selector: 'node.region-dimmed',
+      style: {
+        'opacity': 0.12,
+        'label': ''
+      }
+    },
+
     // New nodes (added in last 7 days)
     {
       selector: 'node.new',
@@ -370,6 +379,16 @@ function getCytoscapeStyles() {
         'line-color': edgeColors.dimmed,
         'target-arrow-color': edgeColors.dimmed,
         'opacity': 0.1
+      }
+    },
+
+    // Region-dimmed edges (lens filter — Sprint 7C)
+    {
+      selector: 'edge.region-dimmed',
+      style: {
+        'line-color': edgeColors.dimmed,
+        'target-arrow-color': edgeColors.dimmed,
+        'opacity': 0.08
       }
     }
   ];
