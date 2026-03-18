@@ -76,7 +76,14 @@ def _make_session() -> tuple[requests.Session, str]:
         token = _get_oauth_token(client_id, client_secret)
         if token:
             session.headers["Authorization"] = f"Bearer {token}"
+            print("  [reddit] authenticated via OAuth (100 req/min)", flush=True)
             return session, OAUTH_BASE
+        print("  [reddit] WARNING: OAuth token request failed, falling back to "
+              "unauthenticated API", file=sys.stderr, flush=True)
+    else:
+        print("  [reddit] WARNING: no credentials (REDDIT_CLIENT_ID not set). "
+              "Unauthenticated access may return 403. "
+              "See https://www.reddit.com/wiki/api/", file=sys.stderr, flush=True)
 
     return session, REDDIT_BASE
 
