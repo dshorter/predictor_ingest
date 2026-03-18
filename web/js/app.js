@@ -303,6 +303,11 @@ async function initializeApp() {
     initializeHelp();
     initializeToolbar(AppState.cy);
 
+    // Lens dropdown (geographic focus — Sprint 7C)
+    if (typeof initLens === 'function') {
+      initLens(AppState.cy, AppState.domainConfig);
+    }
+
     // Wire theme toggle button
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
@@ -646,6 +651,9 @@ async function switchView(view) {
       syncFilterUI(AppState.filter);
       applyDateFilterFromAnchor();
     }
+
+    // Re-apply lens after view switch
+    if (typeof applyLens === 'function') applyLens(AppState.cy);
 
     // Update stats
     updateStatsDisplay(AppState.cy);

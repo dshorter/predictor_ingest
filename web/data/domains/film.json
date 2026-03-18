@@ -14,6 +14,10 @@
     { "label": "Craft & Culture",    "types": ["Genre", "Tech", "Topic"] },
     { "label": "Context",            "types": ["Location", "Document", "Other"] }
   ],
+  "lenses": [
+    { "slug": "all", "label": "All Regions" },
+    { "slug": "southeast", "label": "Southeast US" }
+  ],
   "typeColors": {
     "Person": "#50B4A8",
     "Studio": "#4A90D9",

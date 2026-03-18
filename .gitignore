@@ -39,6 +39,12 @@ web/data/**/*.zip
 # Live graph data is populated at runtime by the pipeline — never commit
 web/data/graphs/live/
 
+# Node.js (Playwright test dependencies)
+node_modules/
+package.json
+package-lock.json
+test-results/
+
 # Editors and OS files
 .vscode/
 .idea/
