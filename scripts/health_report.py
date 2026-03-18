@@ -12,8 +12,8 @@ Answers "are we on track to a useful graph?" by measuring:
 Output goes to both stdout and data/reports/health_YYYY-MM-DD.txt.
 
 Usage:
-    python scripts/health_report.py [--db data/db/predictor.db] [--days 30]
-    python scripts/health_report.py --date 2026-02-16
+    python scripts/health_report.py [--domain ai] [--days 30]
+    python scripts/health_report.py --domain biosafety --date 2026-02-16
     python scripts/health_report.py --summary  # one-liner for cron/grep
 
 Grep recipes:
@@ -566,12 +566,14 @@ def section_summary_line(
     return line
 
 
-def run_report(db_path: Path, days: int | None, summary_only: bool = False) -> int:
+def run_report(db_path: Path, days: int | None, summary_only: bool = False,
+               domain: str | None = None) -> int:
     """Generate the full health report."""
+    from util.paths import get_extractions_dir
     conn = init_db(db_path)
     w = ReportWriter()
     report_date = date.today().isoformat()
-    extractions_dir = db_path.parent.parent / "extractions"
+    extractions_dir = get_extractions_dir(domain)
 
     window = f"last {days} days" if days else "all time"
     w.print(f"Pipeline Health Report — {report_date} ({window})")
@@ -627,7 +629,7 @@ def main() -> int:
         print("Run the pipeline first to create it.")
         return 1
 
-    return run_report(db_path, args.days, args.summary)
+    return run_report(db_path, args.days, args.summary, domain=args.domain)
 
 
 if __name__ == "__main__":
