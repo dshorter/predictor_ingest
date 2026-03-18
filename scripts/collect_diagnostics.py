@@ -174,7 +174,7 @@ def dump_db_summary(db_path: Path, dest_dir: Path, *, compact: bool = False) -> 
     return True
 
 
-def create_gist(snapshot_dir: Path, snapshot_name: str) -> str | None:
+def create_gist(snapshot_dir: Path, snapshot_name: str, domain: str = "ai") -> str | None:
     """Upload snapshot text files directly as a multi-file GitHub gist.
 
     GitHub gists don't support binary files, so we upload the individual
@@ -222,7 +222,7 @@ def create_gist(snapshot_dir: Path, snapshot_name: str) -> str | None:
     try:
         cmd = [
             "gh", "gist", "create",
-            "--desc", f"predictor_ingest diagnostics {snapshot_name}",
+            "--desc", f"predictor_ingest {domain} diagnostics {snapshot_name}",
         ] + [str(p) for p in flat_paths]
         result = subprocess.run(
             cmd, capture_output=True, text=True, check=True, timeout=120,
@@ -257,22 +257,23 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    from util.paths import get_db_path
+    from util.paths import get_db_path, _resolve_domain
+    domain = _resolve_domain(args.domain)
     if args.db is None:
-        args.db = str(get_db_path(args.domain))
+        args.db = str(get_db_path(domain))
 
     timestamp = utc_now_compact()
     snapshot_name = f"snapshot_{timestamp}"
     diag_dir = PROJECT_ROOT / "diagnostics"
     snapshot_dir = diag_dir / snapshot_name
 
-    print(f"Collecting diagnostics → diagnostics/{snapshot_name}/")
+    print(f"Collecting diagnostics → diagnostics/{snapshot_name}/ (domain: {domain})")
     print()
 
     is_gist = args.gist
 
     # 1. Pipeline logs (gist: latest only; full: all)
-    log_dir = PROJECT_ROOT / "data" / "logs"
+    log_dir = PROJECT_ROOT / "data" / "logs" / domain
     if args.date:
         collect_file(log_dir / f"pipeline_{args.date}.json", snapshot_dir / "logs", "logs")
     elif is_gist:
@@ -286,12 +287,12 @@ def main() -> int:
         collect_glob(log_dir, "pipeline_*.json", snapshot_dir / "logs", "logs")
 
     # 2. Live graph JSON (what the client is actually rendering)
-    live_dir = PROJECT_ROOT / "web" / "data" / "graphs" / "live"
+    live_dir = PROJECT_ROOT / "web" / "data" / "graphs" / "live" / domain
     collect_glob(live_dir, "*.json", snapshot_dir / "graphs_live", "live graphs")
 
     # 3. Dated graph output (gist: skip; full: last 3 dates)
     if not is_gist:
-        graphs_dir = PROJECT_ROOT / "data" / "graphs"
+        graphs_dir = PROJECT_ROOT / "data" / "graphs" / domain
         if args.date:
             collect_glob(
                 graphs_dir / args.date, "*.json",
@@ -308,14 +309,14 @@ def main() -> int:
 
     # 5. Extractions (gist: skip — these are huge; full: all)
     if not is_gist:
-        ext_dir = PROJECT_ROOT / "data" / "extractions"
+        ext_dir = PROJECT_ROOT / "data" / "extractions" / domain
         collect_glob(ext_dir, "*.json", snapshot_dir / "extractions", "extractions")
     else:
         print("  [extractions] skipped (gist mode)")
 
     # 6. Docpacks (gist: skip; full: included)
     if not is_gist:
-        docpack_dir = PROJECT_ROOT / "data" / "docpacks"
+        docpack_dir = PROJECT_ROOT / "data" / "docpacks" / domain
         if args.date:
             collect_file(
                 docpack_dir / f"daily_bundle_{args.date}.jsonl",
@@ -330,12 +331,16 @@ def main() -> int:
     else:
         print("  [docpacks] skipped (gist mode)")
 
-    # 7. Feed config (for context)
-    collect_file(PROJECT_ROOT / "config" / "feeds.yaml", snapshot_dir, "config")
+    # 7. Feed config (for context) — domain-specific feeds file
+    domain_feeds = PROJECT_ROOT / "domains" / domain / "feeds.yaml"
+    legacy_feeds = PROJECT_ROOT / "config" / "feeds.yaml"
+    feeds_file = domain_feeds if domain_feeds.exists() else legacy_feeds
+    collect_file(feeds_file, snapshot_dir, "config")
 
     # Write manifest
     manifest = {
         "snapshot": snapshot_name,
+        "domain": domain,
         "collected_at": datetime.now(timezone.utc).isoformat(),
         "date_filter": args.date,
     }
@@ -347,7 +352,7 @@ def main() -> int:
     # Upload gist if requested (before archiving, needs the raw files)
     gist_url = None
     if args.gist:
-        gist_url = create_gist(snapshot_dir, snapshot_name)
+        gist_url = create_gist(snapshot_dir, snapshot_name, domain)
         print()
 
     # Always create tar.gz (for local sharing / backup)
