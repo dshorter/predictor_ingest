@@ -149,7 +149,7 @@ class TestFeedConfig:
     """Test FeedConfig dataclass."""
 
     def test_required_fields(self):
-        """Should require name and url."""
+        """Should require only name; url defaults to empty string."""
         feed = FeedConfig(name="Test", url="https://example.com/feed.xml")
         assert feed.name == "Test"
         assert feed.url == "https://example.com/feed.xml"
@@ -173,6 +173,96 @@ class TestFeedConfig:
         assert feed.type == "atom"
         assert feed.enabled is False
         assert feed.limit == 25
+
+    def test_bluesky_feed_no_url(self):
+        """Bluesky feeds have no url — should construct without error."""
+        feed = FeedConfig(
+            name="Bluesky SE Film",
+            type="bluesky",
+            keywords=["indie film Georgia", "Atlanta film"],
+            limit=25,
+        )
+        assert feed.url == ""
+        assert feed.keywords == ["indie film Georgia", "Atlanta film"]
+
+    def test_reddit_feed_no_url(self):
+        """Reddit feeds have no url — should construct without error."""
+        feed = FeedConfig(
+            name="Reddit r/Filmmakers",
+            type="reddit",
+            subreddit="Filmmakers",
+            listing="new",
+            limit=25,
+        )
+        assert feed.url == ""
+        assert feed.subreddit == "Filmmakers"
+        assert feed.listing == "new"
+
+
+class TestLoadFeedsNonRss:
+    """Tests for loading non-RSS feed types (bluesky, reddit)."""
+
+    def test_loads_bluesky_feed(self, tmp_path):
+        """Should parse a bluesky feed entry without url."""
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "Bluesky SE Film"
+    type: bluesky
+    enabled: true
+    limit: 25
+    keywords:
+      - "indie film Georgia"
+      - "Atlanta film production"
+""")
+        feeds = load_feeds(config_file)
+        assert len(feeds) == 1
+        assert feeds[0].name == "Bluesky SE Film"
+        assert feeds[0].type == "bluesky"
+        assert feeds[0].url == ""
+        assert feeds[0].keywords == ["indie film Georgia", "Atlanta film production"]
+
+    def test_loads_reddit_feed(self, tmp_path):
+        """Should parse a reddit feed entry without url."""
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "Reddit r/Filmmakers"
+    type: reddit
+    enabled: true
+    subreddit: "Filmmakers"
+    listing: new
+    limit: 25
+""")
+        feeds = load_feeds(config_file)
+        assert len(feeds) == 1
+        assert feeds[0].type == "reddit"
+        assert feeds[0].url == ""
+        assert feeds[0].subreddit == "Filmmakers"
+        assert feeds[0].listing == "new"
+
+    def test_mixed_feed_types_load_without_error(self, tmp_path):
+        """A config with rss, bluesky, and reddit feeds should all load cleanly."""
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "RSS Feed"
+    url: "https://example.com/feed.xml"
+    type: rss
+    enabled: true
+  - name: "Bluesky"
+    type: bluesky
+    enabled: true
+    keywords: ["test keyword"]
+  - name: "Reddit"
+    type: reddit
+    enabled: true
+    subreddit: "indiefilm"
+""")
+        feeds = load_feeds(config_file)
+        assert len(feeds) == 3
+        types = {f.type for f in feeds}
+        assert types == {"rss", "bluesky", "reddit"}
 
 
 class TestLoadFeedsIntegration:

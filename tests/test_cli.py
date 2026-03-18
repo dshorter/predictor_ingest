@@ -163,6 +163,36 @@ feeds:
         assert len(feeds) == 1
         assert feeds[0][0] == "https://enabled.com/feed.xml"
 
+    def test_non_rss_feeds_excluded_from_rss_list(self, tmp_path):
+        """Bluesky/reddit feeds should not appear in get_feeds_from_args (dispatched separately)."""
+        from ingest.rss import get_feeds_from_args
+
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "RSS Feed"
+    url: "https://example.com/feed.xml"
+    type: rss
+    enabled: true
+  - name: "Bluesky"
+    type: bluesky
+    enabled: true
+    keywords: ["test"]
+  - name: "Reddit"
+    type: reddit
+    enabled: true
+    subreddit: "indiefilm"
+""")
+
+        args = MagicMock()
+        args.config = str(config_file)
+        args.feed = None
+
+        feeds = get_feeds_from_args(args)
+
+        assert len(feeds) == 1
+        assert feeds[0][0] == "https://example.com/feed.xml"
+
 
 @pytest.mark.network
 class TestDefaultConfigPath:
