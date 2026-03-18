@@ -175,6 +175,7 @@ feeds:
     tier: 2
     signal: primary
     # Official SC production news, grants, festivals. ~2-4/month.
+    # NOTE: returns Content-Type: text/html (server misconfigured). Verify feedparser handles it.
 
   - name: "Charleston City Paper"
     url: "https://charlestoncitypaper.com/feed"
@@ -187,7 +188,7 @@ feeds:
   - name: "Nashville Scene"
     url: "https://nashvillescene.com/search/?f=rss&t=article&l=25&s=start_time&sd=desc"
     type: rss
-    enabled: true
+    enabled: false  # disabled 2026-03-18: HTTP 429 rate limiting — revisit with simpler RSS URL
     tier: 2
     signal: community
     # Alt-weekly; arts, entertainment, music, some film. ~2-4/month.
