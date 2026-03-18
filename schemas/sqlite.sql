@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS documents (
   doc_id TEXT PRIMARY KEY,
   url TEXT,
   source TEXT,
+  source_type TEXT NOT NULL DEFAULT 'rss',  -- rss, bluesky, reddit, substack
   title TEXT,
   published_at TEXT,
   fetched_at TEXT,

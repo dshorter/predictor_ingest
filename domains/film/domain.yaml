@@ -456,6 +456,33 @@ suppressed_entities:
   - media
   - company
 
+# --- Region Lookup ---
+# Maps Location entity names to region slugs for export-time tagging.
+# See ADR-005: regional focus is a client-side lens, not a scoring signal.
+# 2-hop propagation at export time tags connected nodes with region[].
+regions:
+  southeast:
+    # Georgia — primary hub
+    - Atlanta
+    - Savannah
+    - Georgia
+    - Trilith Studios
+    # Louisiana
+    - New Orleans
+    - Baton Rouge
+    - Louisiana
+    # North Carolina
+    - Wilmington
+    - Charlotte
+    - North Carolina
+    # Tennessee
+    - Nashville
+    - Memphis
+    - Tennessee
+    # South Carolina
+    - Charleston
+    - South Carolina
+
 # --- Prompts ---
 prompts:
   dir: prompts

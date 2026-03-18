@@ -72,6 +72,7 @@ def upsert_document(
     content_hash: Optional[str],
     status: str,
     error: Optional[str],
+    source_type: str = "rss",
 ) -> None:
     conn.execute(
         """
@@ -79,6 +80,7 @@ def upsert_document(
             doc_id,
             url,
             source,
+            source_type,
             title,
             published_at,
             fetched_at,
@@ -87,12 +89,13 @@ def upsert_document(
             content_hash,
             status,
             error
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             doc_id,
             url,
             source,
+            source_type,
             title,
             published_at,
             fetched_at,

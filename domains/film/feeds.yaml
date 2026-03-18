@@ -127,3 +127,94 @@ feeds:
     tier: 2
     signal: echo
     # International / indie cinema reviews, festival coverage.
+
+  # --- Tier 1: Southeast regional (added Sprint 7, 2026-03-18) ---
+  # These feeds focus on the Southeast US production corridor.
+  # See ADR-005 for regional focus rationale.
+
+  - name: "Project Casting"
+    url: "https://projectcasting.com/feed"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 1
+    signal: primary
+    # Casting calls + production news. Strong GA/Atlanta section.
+    # Highest-volume regional source (~3-5 articles/day all regions).
+
+  - name: "ArtsATL"
+    url: "https://artsatl.org/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Atlanta arts including film/TV, theater, culture. ~10-15/month.
+
+  - name: "Atlanta Film and TV"
+    url: "https://atlantafilmandtv.com/blog-feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: primary
+    # Dedicated Atlanta film industry news, interviews. ~4-8/month.
+
+  - name: "Georgia Entertainment"
+    url: "https://georgiaentertainment.com/feed"
+    type: rss
+    enabled: false  # needs live verification — WordPress standard pattern
+    tier: 1
+    signal: primary
+    # Dedicated GA film/TV news; "Now Filming" monthly lists. ~8-12/month.
+
+  # --- Tier 2: Southeast regional ---
+
+  - name: "SC Film Commission"
+    url: "https://filmsc.com/news/rss/default.aspx"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: primary
+    # Official SC production news, grants, festivals. ~2-4/month.
+
+  - name: "Charleston City Paper"
+    url: "https://charlestoncitypaper.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: community
+    # Alt-weekly; culture, arts, entertainment. ~2-4/month entertainment.
+
+  - name: "Nashville Scene"
+    url: "https://nashvillescene.com/search/?f=rss&t=article&l=25&s=start_time&sd=desc"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: community
+    # Alt-weekly; arts, entertainment, music, some film. ~2-4/month.
+
+  # --- Substack: Practitioner voices (added Sprint 7, 2026-03-18) ---
+  # See ADR-006 for chatter source rationale. Zero code changes — native RSS.
+
+  - name: "Hope For Film (Ted Hope)"
+    url: "https://tedhope.substack.com/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Major indie producer. Distribution, industry insights, career advice.
+
+  - name: "Jon Reiss"
+    url: "https://jonreiss.substack.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: commentary
+    # Independent film distribution strategy, marketing for filmmakers.
+
+  - name: "On the Fest Circuit"
+    url: "https://onthefestcircuit.substack.com/feed"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: community
+    # Film festival circuit trends, strategy, filmmaker perspective.
