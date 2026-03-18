@@ -5,7 +5,7 @@ criteria tracking per docs/llm-selection.md. Also reports per-source
 content freshness to flag stale feeds.
 
 Usage:
-    python scripts/shadow_report.py [--db data/db/predictor.db] [--days 7]
+    python scripts/shadow_report.py [--domain ai] [--days 7]
 """
 
 from __future__ import annotations
@@ -166,14 +166,15 @@ def run_escalation_stats(extractions_dir: Path) -> None:
     print()
 
 
-def run_report(db_path: Path, days: int | None) -> int:
+def run_report(db_path: Path, days: int | None, domain: str | None = None) -> int:
+    from util.paths import get_extractions_dir
     conn = init_db(db_path)
 
     # Source freshness first — always useful
     run_source_freshness(conn)
 
     # Escalation stats from extraction files
-    extractions_dir = db_path.parent.parent / "extractions"
+    extractions_dir = get_extractions_dir(domain)
     run_escalation_stats(extractions_dir)
 
     models = list_understudy_models(conn)
@@ -294,7 +295,7 @@ def main() -> int:
         print("Run the pipeline first to create it.")
         return 1
 
-    return run_report(db_path, args.days)
+    return run_report(db_path, args.days, domain=args.domain)
 
 
 if __name__ == "__main__":

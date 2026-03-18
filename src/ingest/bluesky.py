@@ -1,7 +1,10 @@
-"""Bluesky ingest fetcher — polls the public search API for keyword-matched posts.
+"""Bluesky ingest fetcher — polls the search API for keyword-matched posts.
 
-Uses the public AppView REST endpoint (no auth required):
-  GET https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts
+Authenticates via AT Protocol session (BSKY_HANDLE + BSKY_APP_PASSWORD env vars).
+Falls back to the public AppView endpoint, which may return 403 for search.
+
+Authenticated requests go through the PDS (bsky.social), which proxies to the
+AppView.  See: https://docs.bsky.app/docs/advanced-guides/api-directory
 
 Posts are mapped to the standard document schema and stored via upsert_document().
 Deduplication is handled by content_hash (SHA-256 of post text).
@@ -12,6 +15,7 @@ See ADR-006 for design rationale.
 from __future__ import annotations
 
 import hashlib
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -22,8 +26,12 @@ import requests
 
 from ingest.rss import upsert_document
 
-# Public Bluesky AppView — no auth, no account needed.
-SEARCH_ENDPOINT = "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts"
+# Endpoints
+PDS_HOST = "https://bsky.social"
+PUBLIC_HOST = "https://public.api.bsky.app"
+SEARCH_PATH = "/xrpc/app.bsky.feed.searchPosts"
+CREATE_SESSION_PATH = "/xrpc/com.atproto.server.createSession"
+REFRESH_SESSION_PATH = "/xrpc/com.atproto.server.refreshSession"
 
 # Rate limit: ~3,000 requests per 5 minutes.  We're polite: 200ms between requests.
 REQUEST_DELAY = 0.2
@@ -104,6 +112,56 @@ def _post_to_doc(post: dict, feed_name: str) -> dict:
     }
 
 
+def _create_session() -> tuple[Optional[str], Optional[str]]:
+    """Authenticate with Bluesky via AT Protocol createSession.
+
+    Reads BSKY_HANDLE and BSKY_APP_PASSWORD from environment.
+
+    Returns:
+        Tuple of (accessJwt, refreshJwt), or (None, None) if auth unavailable.
+    """
+    handle = os.environ.get("BSKY_HANDLE")
+    password = os.environ.get("BSKY_APP_PASSWORD")
+
+    if not handle or not password:
+        return None, None
+
+    try:
+        resp = requests.post(
+            f"{PDS_HOST}{CREATE_SESSION_PATH}",
+            json={"identifier": handle, "password": password},
+            headers={"User-Agent": "predictor-ingest/0.1"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("accessJwt"), data.get("refreshJwt")
+    except requests.RequestException as exc:
+        print(f"  [bluesky] auth failed: {exc}", file=sys.stderr, flush=True)
+        return None, None
+
+
+def _make_session() -> tuple[requests.Session, str]:
+    """Create a requests session with Bluesky auth if credentials are available.
+
+    Returns:
+        Tuple of (session, search_endpoint_url).
+        Authenticated sessions use the PDS host; unauthenticated use the public host.
+    """
+    session = requests.Session()
+    session.headers["User-Agent"] = "predictor-ingest/0.1"
+
+    access_jwt, _ = _create_session()
+    if access_jwt:
+        session.headers["Authorization"] = f"Bearer {access_jwt}"
+        print("  [bluesky] authenticated via BSKY_HANDLE", flush=True)
+        return session, f"{PDS_HOST}{SEARCH_PATH}"
+
+    print("  [bluesky] no credentials (BSKY_HANDLE not set), using public API",
+          flush=True)
+    return session, f"{PUBLIC_HOST}{SEARCH_PATH}"
+
+
 def search_posts(
     query: str,
     limit: int = 50,
@@ -111,8 +169,9 @@ def search_posts(
     since: Optional[str] = None,
     until: Optional[str] = None,
     session: Optional[requests.Session] = None,
+    endpoint: Optional[str] = None,
 ) -> list[dict]:
-    """Search Bluesky posts via the public API.
+    """Search Bluesky posts via the AT Protocol search API.
 
     Args:
         query: Search query (Lucene syntax supported).
@@ -121,13 +180,13 @@ def search_posts(
         since: ISO datetime string for start of date range.
         until: ISO datetime string for end of date range.
         session: Optional requests session for connection reuse.
+        endpoint: Full URL for searchPosts endpoint.
 
     Returns:
         List of post objects from the API response.
     """
-    if session is None:
-        session = requests.Session()
-        session.headers["User-Agent"] = "predictor-ingest/0.1"
+    if session is None or endpoint is None:
+        session, endpoint = _make_session()
 
     params: dict = {
         "q": query,
@@ -148,7 +207,7 @@ def search_posts(
         if cursor:
             params["cursor"] = cursor
 
-        resp = session.get(SEARCH_ENDPOINT, params=params, timeout=15)
+        resp = session.get(endpoint, params=params, timeout=15)
         resp.raise_for_status()
         data = resp.json()
 
@@ -193,8 +252,7 @@ def ingest_bluesky(
     keywords = feed_config.get("keywords", DEFAULT_KEYWORDS)
     limit_per_keyword = feed_config.get("limit", 25)
 
-    session = requests.Session()
-    session.headers["User-Agent"] = "predictor-ingest/0.1"
+    session, endpoint = _make_session()
 
     fetched = 0
     skipped = 0
@@ -212,6 +270,7 @@ def ingest_bluesky(
                 limit=limit_per_keyword,
                 sort="latest",
                 session=session,
+                endpoint=endpoint,
             )
         except requests.RequestException as exc:
             print(f"  [bluesky] FAIL query='{keyword}': {exc}", file=sys.stderr, flush=True)

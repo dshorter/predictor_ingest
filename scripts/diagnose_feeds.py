@@ -2,6 +2,7 @@
 
 Run on VPS:
     python scripts/diagnose_feeds.py
+    python scripts/diagnose_feeds.py --domain biosafety
 
 Shows per-feed breakdown of:
 - Total entries in feed right now
@@ -12,6 +13,7 @@ Shows per-feed breakdown of:
 
 from __future__ import annotations
 
+import argparse
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,18 +23,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import feedparser
 from config import load_feeds
 from util import parse_entry_date, short_hash, slugify, utc_now_iso
+from util.paths import _resolve_domain, get_raw_dir, get_text_dir
 
 
 def main() -> int:
-    config_path = Path("config/feeds.yaml")
+    parser = argparse.ArgumentParser(
+        description="Diagnose feed freshness vs already-fetched articles."
+    )
+    parser.add_argument("--domain", default=None,
+                        help="Domain slug (default: ai or PREDICTOR_DOMAIN env var)")
+    args = parser.parse_args()
+
+    domain = _resolve_domain(args.domain)
+
+    # Prefer domain-specific feeds config; fall back to legacy
+    config_path = Path("domains") / domain / "feeds.yaml"
+    if not config_path.exists():
+        config_path = Path("config/feeds.yaml")
     if not config_path.exists():
         config_path = Path(__file__).resolve().parents[1] / "config" / "feeds.yaml"
 
     feeds = load_feeds(config_path)
-    raw_dir = Path("data/raw")
-    text_dir = Path("data/text")
+    raw_dir = get_raw_dir(domain)
+    text_dir = get_text_dir(domain)
 
-    print(f"Diagnostic run at {utc_now_iso()}")
+    print(f"Diagnostic run at {utc_now_iso()} (domain: {domain})")
     print(f"raw_dir: {raw_dir.resolve()} (exists={raw_dir.exists()})")
     print(f"text_dir: {text_dir.resolve()} (exists={text_dir.exists()})")
     print()
@@ -130,10 +145,10 @@ def main() -> int:
         print("WARNING: Zero new articles found. Possible causes:")
         print("  1. Pipeline ran recently and all current feed entries are already fetched")
         print("  2. Feeds are stale or caching old results")
-        print("  3. File paths in data/raw/ and data/text/ don't match expected layout")
+        print(f"  3. File paths in {raw_dir}/ and {text_dir}/ don't match expected layout")
         print()
-        print("Check: ls data/raw/ | wc -l    (should match ~document count)")
-        print("Check: ls data/raw/ | tail -5  (show most recent files)")
+        print(f"Check: ls {raw_dir}/ | wc -l    (should match ~document count)")
+        print(f"Check: ls {raw_dir}/ | tail -5  (show most recent files)")
 
     return 0
 
