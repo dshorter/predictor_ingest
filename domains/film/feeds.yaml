@@ -225,7 +225,7 @@ feeds:
 
   - name: "Bluesky SE Film"
     type: bluesky
-    enabled: false  # disabled 2026-03-18: pending BSKY_HANDLE + BSKY_APP_PASSWORD credentials
+    enabled: true
     tier: 2
     signal: community
     limit: 25
