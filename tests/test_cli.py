@@ -97,8 +97,8 @@ feeds:
         feeds = get_feeds_from_args(args)
 
         assert len(feeds) == 2
-        assert feeds[0] == ("https://example.com/feed1.xml", "Test Feed 1")
-        assert feeds[1] == ("https://example.com/feed2.xml", "Test Feed 2")
+        assert feeds[0] == ("https://example.com/feed1.xml", "Test Feed 1", 0)
+        assert feeds[1] == ("https://example.com/feed2.xml", "Test Feed 2", 0)
 
     def test_feeds_from_feed_flag_only(self):
         """Should use --feed URLs directly."""
@@ -111,7 +111,7 @@ feeds:
         feeds = get_feeds_from_args(args)
 
         assert len(feeds) == 1
-        assert feeds[0] == ("https://example.com/feed.xml", None)
+        assert feeds[0] == ("https://example.com/feed.xml", None, 0)
 
     def test_feeds_combined(self, tmp_path):
         """Should combine config feeds with --feed URLs."""
@@ -134,8 +134,8 @@ feeds:
 
         assert len(feeds) == 2
         # Config feeds first, then CLI feeds
-        assert feeds[0] == ("https://config.com/feed.xml", "Config Feed")
-        assert feeds[1] == ("https://extra.com/feed.xml", None)
+        assert feeds[0] == ("https://config.com/feed.xml", "Config Feed", 0)
+        assert feeds[1] == ("https://extra.com/feed.xml", None, 0)
 
     def test_disabled_feeds_excluded(self, tmp_path):
         """Should exclude disabled feeds from config."""

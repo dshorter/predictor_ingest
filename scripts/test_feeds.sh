@@ -83,32 +83,33 @@ print(ftype)
         TAG="enabled"
     fi
 
-    {
-        printf "%-35s [%s] (%s)\n" "$NAME" "$TAG" "$FTYPE"
-        printf "  URL: %s\n" "$URL"
+    # Build output and update counters in the current shell (not a subshell)
+    BLOCK=""
+    BLOCK+="$(printf "%-35s [%s] (%s)\n" "$NAME" "$TAG" "$FTYPE")"$'\n'
+    BLOCK+="$(printf "  URL: %s\n" "$URL")"$'\n'
 
-        if [[ "$ENABLED" == "false" ]]; then
-            printf "  Skipped (disabled)\n\n"
+    if [[ "$ENABLED" == "false" ]]; then
+        BLOCK+="$(printf "  Skipped (disabled)\n")"$'\n'
+    else
+        # Single request: grab both http_code and content_type
+        CURL_OUT=$(curl -sL -o /dev/null \
+            -w "%{http_code} %{content_type}" \
+            --max-time 15 \
+            -H "User-Agent: predictor-ingest/0.1 (feed-test)" \
+            "$URL" 2>/dev/null) || CURL_OUT="FAIL unknown"
+        HTTP_CODE=$(echo "$CURL_OUT" | awk '{print $1}')
+        CONTENT_TYPE=$(echo "$CURL_OUT" | awk '{print $2}')
+
+        if [[ "$HTTP_CODE" == "200" ]]; then
+            BLOCK+="$(printf "  HTTP: %s  Content-Type: %s\n" "$HTTP_CODE" "$CONTENT_TYPE")"$'\n'
+            RSS_OK=$((RSS_OK + 1))
         else
-            # Single request: grab both http_code and content_type
-            CURL_OUT=$(curl -sL -o /dev/null \
-                -w "%{http_code} %{content_type}" \
-                --max-time 15 \
-                -H "User-Agent: predictor-ingest/0.1 (feed-test)" \
-                "$URL" 2>/dev/null) || CURL_OUT="FAIL unknown"
-            HTTP_CODE=$(echo "$CURL_OUT" | awk '{print $1}')
-            CONTENT_TYPE=$(echo "$CURL_OUT" | awk '{print $2}')
-
-            if [[ "$HTTP_CODE" == "200" ]]; then
-                printf "  HTTP: %s  Content-Type: %s\n" "$HTTP_CODE" "$CONTENT_TYPE"
-                RSS_OK=$((RSS_OK + 1))
-            else
-                printf "  HTTP: %s  *** PROBLEM ***\n" "$HTTP_CODE"
-                RSS_PROBLEMS=$((RSS_PROBLEMS + 1))
-            fi
-            printf "\n"
+            BLOCK+="$(printf "  HTTP: %s  *** PROBLEM ***\n" "$HTTP_CODE")"$'\n'
+            RSS_PROBLEMS=$((RSS_PROBLEMS + 1))
         fi
-    } | tee -a "$OUTFILE"
+    fi
+
+    printf "%s\n" "$BLOCK" | tee -a "$OUTFILE"
 done
 
 {

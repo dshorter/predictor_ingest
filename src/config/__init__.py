@@ -27,27 +27,23 @@ class FeedConfig:
 
     Attributes:
         name: Human-readable name for the feed
-        url: URL of the RSS/Atom feed (empty string for non-URL feed types)
-        type: Feed type ('rss', 'atom', 'bluesky', 'reddit'), defaults to 'rss'
+        url: URL of the RSS/Atom feed (None for non-RSS types like Bluesky)
+        type: Feed type ('rss', 'atom', 'bluesky', 'reddit')
         enabled: Whether to include this feed in ingestion, defaults to True
         limit: Max items per ingestion run (0 = unlimited), defaults to 0
         tier: Source tier (1=primary/original, 2=secondary/aggregator, 3=echo/mainstream)
         signal: Signal type hint (e.g. 'primary', 'echo', 'commentary', 'community')
-        keywords: Keyword search terms (Bluesky feeds only)
-        subreddit: Subreddit name without r/ prefix (Reddit feeds only)
-        listing: Reddit listing type ('new', 'hot', 'top'), defaults to 'new'
+        extra: Additional type-specific config (keywords, subreddit, listing, etc.)
     """
 
     name: str
-    url: str = ""
+    url: Optional[str] = None
     type: str = "rss"
     enabled: bool = True
     limit: int = 0
     tier: int = 1
     signal: str = "primary"
-    keywords: list = field(default_factory=list)
-    subreddit: str = ""
-    listing: str = "new"
+    extra: dict = field(default_factory=dict)
 
 
 def load_feeds(
@@ -82,19 +78,21 @@ def load_feeds(
     if not feeds_data:
         return []
 
+    # Keys consumed by FeedConfig directly; everything else goes into extra.
+    _KNOWN_KEYS = {"name", "url", "type", "enabled", "limit", "tier", "signal"}
+
     feeds = []
     for feed_dict in feeds_data:
+        extra = {k: v for k, v in feed_dict.items() if k not in _KNOWN_KEYS}
         feed = FeedConfig(
             name=feed_dict["name"],
-            url=feed_dict.get("url", ""),
+            url=feed_dict.get("url"),
             type=feed_dict.get("type", "rss"),
             enabled=feed_dict.get("enabled", True),
             limit=feed_dict.get("limit", 0),
             tier=feed_dict.get("tier", 1),
             signal=feed_dict.get("signal", "primary"),
-            keywords=feed_dict.get("keywords", []),
-            subreddit=feed_dict.get("subreddit", ""),
-            listing=feed_dict.get("listing", "new"),
+            extra=extra,
         )
         if include_disabled or feed.enabled:
             feeds.append(feed)

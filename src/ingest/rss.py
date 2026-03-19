@@ -392,15 +392,15 @@ def validate_args(args: argparse.Namespace) -> None:
 def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str], int]]:
     """Get list of (feed_url, source_name, per_feed_limit) for RSS/Atom feeds only.
 
-    Non-URL feed types (bluesky, reddit) are excluded here; rss.main() dispatches
-    them separately via their dedicated ingest modules.
+    Non-URL feed types (bluesky, reddit) are excluded here; they are handled
+    by ingest.run_all which dispatches to their dedicated ingest modules.
 
     Args:
         args: Parsed arguments
 
     Returns:
-        List of (url, source_name, limit) tuples. source_name is None for CLI feeds.
-        limit is 0 (unlimited) for CLI feeds.
+        List of (url, source_name, limit) tuples.
+        source_name is None for CLI feeds. limit is 0 (unlimited) for CLI feeds.
     """
     RSS_TYPES = {"rss", "atom"}
     feeds: list[tuple[str, Optional[str], int]] = []
@@ -410,7 +410,7 @@ def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[st
         config_path = Path(args.config)
         config_feeds = load_feeds(config_path)
         for feed in config_feeds:
-            if feed.type.lower() in RSS_TYPES:
+            if feed.type.lower() in RSS_TYPES and feed.url:
                 feeds.append((feed.url, feed.name, feed.limit))
 
     # Add CLI feeds (no per-feed limit; assumed rss/atom)
@@ -537,70 +537,6 @@ def main(argv: Optional[list[str]] = None) -> int:
         else:
             print(f"    Feed errors: {errors} fetch errors, {fetched} saved, "
                   f"{skipped} duplicates skipped", flush=True)
-
-    # Dispatch non-RSS feeds (bluesky, reddit) from the same config file
-    if args.config:
-        from config import load_feeds as _load_feeds
-        _ALT_TYPES = {"bluesky", "reddit"}
-        alt_feeds = [
-            f for f in _load_feeds(Path(args.config))
-            if f.type.lower() in _ALT_TYPES
-        ]
-        if alt_feeds:
-            from ingest.bluesky import ingest_bluesky
-            from ingest.reddit import ingest_reddit
-            n_alt = len(alt_feeds)
-            print(f"Ingesting {n_alt} social feed(s)...", flush=True)
-            for alt_idx, feed_cfg in enumerate(alt_feeds):
-                feed_type = feed_cfg.type.lower()
-                elapsed = time.monotonic() - ingest_start
-                print(
-                    f"  [{alt_idx+1}/{n_alt}] Processing feed: "
-                    f"{feed_cfg.name}  (elapsed {elapsed:.0f}s)",
-                    flush=True,
-                )
-                try:
-                    feed_dict = {
-                        "name": feed_cfg.name,
-                        "type": feed_cfg.type,
-                        "limit": feed_cfg.limit,
-                        "keywords": feed_cfg.keywords,
-                        "subreddit": feed_cfg.subreddit,
-                        "listing": feed_cfg.listing,
-                    }
-                    if feed_type == "bluesky":
-                        f, s, e = ingest_bluesky(
-                            feed_dict, conn, raw_dir, text_dir, repo,
-                            skip_existing=args.skip_existing,
-                        )
-                    elif feed_type == "reddit":
-                        f, s, e = ingest_reddit(
-                            feed_dict, conn, raw_dir, text_dir, repo,
-                            skip_existing=args.skip_existing,
-                        )
-                    else:
-                        print(
-                            f"    Unsupported feed type '{feed_type}', skipping",
-                            file=sys.stderr,
-                        )
-                        continue
-                except Exception as exc:
-                    print(
-                        f"    Feed CRASHED: {type(exc).__name__}: {exc}",
-                        file=sys.stderr, flush=True,
-                    )
-                    total_errors += 1
-                    n_feeds += 1
-                    continue
-                total_fetched += f
-                total_skipped += s
-                total_errors += e
-                total_reachable += 1
-                n_feeds += 1
-                print(
-                    f"    Feed OK: {f} new documents, {s} duplicates skipped",
-                    flush=True,
-                )
 
     if conn is not None:
         conn.close()

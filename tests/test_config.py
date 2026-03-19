@@ -149,7 +149,7 @@ class TestFeedConfig:
     """Test FeedConfig dataclass."""
 
     def test_required_fields(self):
-        """Should require only name; url defaults to empty string."""
+        """Should require only name; url defaults to None."""
         feed = FeedConfig(name="Test", url="https://example.com/feed.xml")
         assert feed.name == "Test"
         assert feed.url == "https://example.com/feed.xml"
@@ -179,24 +179,23 @@ class TestFeedConfig:
         feed = FeedConfig(
             name="Bluesky SE Film",
             type="bluesky",
-            keywords=["indie film Georgia", "Atlanta film"],
             limit=25,
+            extra={"keywords": ["indie film Georgia", "Atlanta film"]},
         )
-        assert feed.url == ""
-        assert feed.keywords == ["indie film Georgia", "Atlanta film"]
+        assert feed.url is None
+        assert feed.extra["keywords"] == ["indie film Georgia", "Atlanta film"]
 
     def test_reddit_feed_no_url(self):
         """Reddit feeds have no url — should construct without error."""
         feed = FeedConfig(
             name="Reddit r/Filmmakers",
             type="reddit",
-            subreddit="Filmmakers",
-            listing="new",
             limit=25,
+            extra={"subreddit": "Filmmakers", "listing": "new"},
         )
-        assert feed.url == ""
-        assert feed.subreddit == "Filmmakers"
-        assert feed.listing == "new"
+        assert feed.url is None
+        assert feed.extra["subreddit"] == "Filmmakers"
+        assert feed.extra["listing"] == "new"
 
 
 class TestLoadFeedsNonRss:
@@ -219,8 +218,8 @@ feeds:
         assert len(feeds) == 1
         assert feeds[0].name == "Bluesky SE Film"
         assert feeds[0].type == "bluesky"
-        assert feeds[0].url == ""
-        assert feeds[0].keywords == ["indie film Georgia", "Atlanta film production"]
+        assert feeds[0].url is None
+        assert feeds[0].extra["keywords"] == ["indie film Georgia", "Atlanta film production"]
 
     def test_loads_reddit_feed(self, tmp_path):
         """Should parse a reddit feed entry without url."""
@@ -237,9 +236,9 @@ feeds:
         feeds = load_feeds(config_file)
         assert len(feeds) == 1
         assert feeds[0].type == "reddit"
-        assert feeds[0].url == ""
-        assert feeds[0].subreddit == "Filmmakers"
-        assert feeds[0].listing == "new"
+        assert feeds[0].url is None
+        assert feeds[0].extra["subreddit"] == "Filmmakers"
+        assert feeds[0].extra["listing"] == "new"
 
     def test_mixed_feed_types_load_without_error(self, tmp_path):
         """A config with rss, bluesky, and reddit feeds should all load cleanly."""
