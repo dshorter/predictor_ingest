@@ -500,6 +500,71 @@ def section_quality_gates(w: ReportWriter, conn: sqlite3.Connection) -> dict:
     }
 
 
+def section_selection_efficiency(w: ReportWriter, logs_dir: Path, n: int = 14) -> dict:
+    """Article selection budget efficiency from recent pipeline logs.
+
+    Shows how many articles qualified for extraction but were excluded due
+    to the daily budget cap — i.e. signal left on the table for cost reasons.
+    """
+    log_files = sorted(logs_dir.glob("pipeline_*.json"), reverse=True)[:n] if logs_dir.exists() else []
+
+    if not log_files:
+        return {}
+
+    runs_with_data = []
+    for f in log_files:
+        try:
+            data = json.loads(f.read_text())
+            docpack = data.get("stages", {}).get("docpack", {})
+            qualified_total = docpack.get("qualifiedTotal", 0)
+            qualified_excluded = docpack.get("qualifiedExcluded", 0)
+            # Only include runs where selection was active (qualifiedTotal > 0)
+            if qualified_total > 0:
+                runs_with_data.append({
+                    "date": data.get("runDate", "?"),
+                    "domain": data.get("domain", "?"),
+                    "bundled": docpack.get("docsBundled", 0),
+                    "qualified_total": qualified_total,
+                    "qualified_excluded": qualified_excluded,
+                })
+        except Exception:
+            pass
+
+    if not runs_with_data:
+        return {}
+
+    w.print("Article Selection Efficiency")
+    w.print("=" * 72)
+    w.print(f"  {'Date':<12} {'Domain':<12} {'Bundled':>8} {'Qualified':>10} {'Excluded':>9} {'% Left':>7}")
+    w.print(f"  {'─' * 60}")
+
+    total_qualified = 0
+    total_excluded = 0
+    for r in runs_with_data:
+        pct = r["qualified_excluded"] / r["qualified_total"] * 100 if r["qualified_total"] else 0
+        total_qualified += r["qualified_total"]
+        total_excluded += r["qualified_excluded"]
+        w.print(
+            f"  {r['date']:<12} {r['domain']:<12} {r['bundled']:>8} "
+            f"{r['qualified_total']:>10} {r['qualified_excluded']:>9} {pct:>6.0f}%"
+        )
+
+    if len(runs_with_data) > 1:
+        avg_pct = total_excluded / total_qualified * 100 if total_qualified else 0
+        w.print(f"  {'─' * 60}")
+        w.print(
+            f"  {'TOTAL':<12} {'':<12} {'':<8} "
+            f"{total_qualified:>10} {total_excluded:>9} {avg_pct:>6.0f}%"
+        )
+
+    w.print()
+    return {
+        "runs_with_selection": len(runs_with_data),
+        "total_qualified": total_qualified,
+        "total_excluded": total_excluded,
+    }
+
+
 def section_trajectory(
     w: ReportWriter,
     ingestion: dict,
@@ -569,14 +634,20 @@ def section_summary_line(
 def run_report(db_path: Path, days: int | None, summary_only: bool = False,
                domain: str | None = None) -> int:
     """Generate the full health report."""
-    from util.paths import get_extractions_dir
+    from util.paths import get_extractions_dir, get_logs_dir
     conn = init_db(db_path)
     w = ReportWriter()
     report_date = date.today().isoformat()
     extractions_dir = get_extractions_dir(domain)
+    logs_dir = get_logs_dir(domain)
+
+    # Resolve display domain
+    from util.paths import _resolve_domain
+    display_domain = _resolve_domain(domain)
 
     window = f"last {days} days" if days else "all time"
     w.print(f"Pipeline Health Report — {report_date} ({window})")
+    w.print(f"Domain: {display_domain}")
     w.print("=" * 72)
     w.print()
 
@@ -585,6 +656,7 @@ def run_report(db_path: Path, days: int | None, summary_only: bool = False,
     graph = section_graph_density(w, conn)
     overlap = section_entity_overlap(w, conn)
     section_quality_gates(w, conn)
+    section_selection_efficiency(w, logs_dir)
     section_source_contribution(w, conn)
     section_source_freshness(w, conn)
     section_trajectory(w, ingestion, extraction, graph, overlap)

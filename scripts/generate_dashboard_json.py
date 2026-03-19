@@ -71,13 +71,15 @@ def build_status(logs: list[dict], graphs_live: Path) -> dict:
                 except Exception:
                     pass
 
-    docs_bundled = stages.get("docpack", {}).get("docsBundled", 0) or 0
+    docpack_stage = stages.get("docpack", {})
+    docs_bundled = docpack_stage.get("docsBundled", 0) or 0
     docs_extracted = extract.get("docsExtracted", 0) or 0
     backlog = max(0, docs_bundled - docs_extracted) if (docs_bundled or docs_extracted) else None
 
     return {
         "available": True,
         "generatedAt": _now(),
+        "domain": latest.get("domain"),
         "lastRunDate": latest.get("runDate"),
         "lastRunStatus": latest.get("status", "unknown"),
         "lastRunDurationSec": latest.get("durationSec"),
@@ -91,6 +93,8 @@ def build_status(logs: list[dict], graphs_live: Path) -> dict:
         "entitiesLastRun": extract.get("entitiesFound") or imp.get("entitiesNew"),
         "relationsLastRun": extract.get("relationsFound") or imp.get("relations"),
         "backlog": backlog,
+        "qualifiedTotal": docpack_stage.get("qualifiedTotal"),
+        "qualifiedExcluded": docpack_stage.get("qualifiedExcluded"),
     }
 
 
@@ -111,11 +115,16 @@ def build_runs(logs: list[dict]) -> dict:
                 "duration_sec": s.get("duration_sec"),
             }
 
+        docpack_s = stages.get("docpack", {})
         runs.append({
             "date": log.get("runDate"),
+            "domain": log.get("domain"),
             "status": log.get("status", "unknown"),
             "durationSec": log.get("durationSec"),
             "newDocs": ingest.get("newDocsFound", 0),
+            "docsBundled": docpack_s.get("docsBundled", 0),
+            "qualifiedTotal": docpack_s.get("qualifiedTotal"),
+            "qualifiedExcluded": docpack_s.get("qualifiedExcluded"),
             "feedsReachable": ingest.get("feedsReachable"),
             "feedsChecked": ingest.get("feedsChecked"),
             "entities": extract.get("entitiesFound") or imp.get("entitiesNew"),
