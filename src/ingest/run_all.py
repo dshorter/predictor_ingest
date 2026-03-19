@@ -44,7 +44,24 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _load_dotenv() -> None:
+    """Load .env from project root if it exists (for BSKY/Reddit credentials)."""
+    import os
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.replace("\r", "").strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip("\"'").strip()
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+
+
 def main(argv: list[str] | None = None) -> int:
+    _load_dotenv()
     parser = build_arg_parser()
     args = parser.parse_args(argv)
 

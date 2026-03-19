@@ -222,7 +222,7 @@ feeds:
 
   # --- Bluesky: Keyword search (added Sprint 7) ---
   # See ADR-006 for chatter source rationale.
-  # Uses public search API — no auth required.
+  # Requires BSKY_HANDLE + BSKY_APP_PASSWORD env vars in .env.
 
   - name: "Bluesky SE Film"
     type: bluesky
@@ -244,7 +244,7 @@ feeds:
 
   - name: "Reddit r/Atlanta"
     type: reddit
-    enabled: true
+    enabled: false  # disabled 2026-03-18: pending REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET credentials
     tier: 2
     signal: community
     subreddit: "Atlanta"
@@ -254,7 +254,7 @@ feeds:
 
   - name: "Reddit r/Filmmakers"
     type: reddit
-    enabled: true
+    enabled: false  # disabled 2026-03-18: pending credentials
     tier: 2
     signal: community
     subreddit: "Filmmakers"
@@ -264,7 +264,7 @@ feeds:
 
   - name: "Reddit r/indiefilm"
     type: reddit
-    enabled: true
+    enabled: false  # disabled 2026-03-18: pending credentials
     tier: 2
     signal: community
     subreddit: "indiefilm"

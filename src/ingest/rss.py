@@ -389,26 +389,31 @@ def validate_args(args: argparse.Namespace) -> None:
             raise SystemExit(1)
 
 
-def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[Optional[str], Optional[str], int]]:
-    """Get list of (feed_url, source_name, per_feed_limit) from args.
+def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str], int]]:
+    """Get list of (feed_url, source_name, per_feed_limit) for RSS/Atom feeds only.
+
+    Non-URL feed types (bluesky, reddit) are excluded here; they are handled
+    by ingest.run_all which dispatches to their dedicated ingest modules.
 
     Args:
         args: Parsed arguments
 
     Returns:
-        List of (url, source_name, limit) tuples. url is None for non-RSS feeds.
+        List of (url, source_name, limit) tuples.
         source_name is None for CLI feeds. limit is 0 (unlimited) for CLI feeds.
     """
-    feeds: list[tuple[Optional[str], Optional[str], int]] = []
+    RSS_TYPES = {"rss", "atom"}
+    feeds: list[tuple[str, Optional[str], int]] = []
 
-    # Load from config file
+    # Load from config file — only rss/atom types
     if args.config:
         config_path = Path(args.config)
         config_feeds = load_feeds(config_path)
         for feed in config_feeds:
-            feeds.append((feed.url, feed.name, feed.limit))
+            if feed.type.lower() in RSS_TYPES and feed.url:
+                feeds.append((feed.url, feed.name, feed.limit))
 
-    # Add CLI feeds (no per-feed limit)
+    # Add CLI feeds (no per-feed limit; assumed rss/atom)
     if args.feed:
         for url in args.feed:
             feeds.append((url, None, 0))
@@ -416,7 +421,24 @@ def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[Optional[str], O
     return feeds
 
 
+def _load_dotenv() -> None:
+    """Load .env from project root if it exists (for BSKY/Reddit credentials)."""
+    import os
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.replace("\r", "").strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip("\"'").strip()
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+
+
 def main(argv: Optional[list[str]] = None) -> int:
+    _load_dotenv()
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     validate_args(args)
@@ -464,12 +486,6 @@ def main(argv: Optional[list[str]] = None) -> int:
     total_reachable = 0
 
     for feed_idx, (feed_url, feed_name, feed_limit) in enumerate(feeds):
-        # Skip non-RSS feeds (Bluesky, Reddit) — handled by ingest.run_all
-        if feed_url is None:
-            print(f"  [{feed_idx+1}/{n_feeds}] Skipping non-RSS feed: {feed_name or '(unnamed)'}",
-                  flush=True)
-            continue
-
         # Use feed name from config, or CLI --source override, or let ingest_feed detect
         source = args.source or feed_name
 

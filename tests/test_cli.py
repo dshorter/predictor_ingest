@@ -97,8 +97,8 @@ feeds:
         feeds = get_feeds_from_args(args)
 
         assert len(feeds) == 2
-        assert feeds[0] == ("https://example.com/feed1.xml", "Test Feed 1")
-        assert feeds[1] == ("https://example.com/feed2.xml", "Test Feed 2")
+        assert feeds[0] == ("https://example.com/feed1.xml", "Test Feed 1", 0)
+        assert feeds[1] == ("https://example.com/feed2.xml", "Test Feed 2", 0)
 
     def test_feeds_from_feed_flag_only(self):
         """Should use --feed URLs directly."""
@@ -111,7 +111,7 @@ feeds:
         feeds = get_feeds_from_args(args)
 
         assert len(feeds) == 1
-        assert feeds[0] == ("https://example.com/feed.xml", None)
+        assert feeds[0] == ("https://example.com/feed.xml", None, 0)
 
     def test_feeds_combined(self, tmp_path):
         """Should combine config feeds with --feed URLs."""
@@ -134,8 +134,8 @@ feeds:
 
         assert len(feeds) == 2
         # Config feeds first, then CLI feeds
-        assert feeds[0] == ("https://config.com/feed.xml", "Config Feed")
-        assert feeds[1] == ("https://extra.com/feed.xml", None)
+        assert feeds[0] == ("https://config.com/feed.xml", "Config Feed", 0)
+        assert feeds[1] == ("https://extra.com/feed.xml", None, 0)
 
     def test_disabled_feeds_excluded(self, tmp_path):
         """Should exclude disabled feeds from config."""
@@ -162,6 +162,36 @@ feeds:
 
         assert len(feeds) == 1
         assert feeds[0][0] == "https://enabled.com/feed.xml"
+
+    def test_non_rss_feeds_excluded_from_rss_list(self, tmp_path):
+        """Bluesky/reddit feeds should not appear in get_feeds_from_args (dispatched separately)."""
+        from ingest.rss import get_feeds_from_args
+
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "RSS Feed"
+    url: "https://example.com/feed.xml"
+    type: rss
+    enabled: true
+  - name: "Bluesky"
+    type: bluesky
+    enabled: true
+    keywords: ["test"]
+  - name: "Reddit"
+    type: reddit
+    enabled: true
+    subreddit: "indiefilm"
+""")
+
+        args = MagicMock()
+        args.config = str(config_file)
+        args.feed = None
+
+        feeds = get_feeds_from_args(args)
+
+        assert len(feeds) == 1
+        assert feeds[0][0] == "https://example.com/feed.xml"
 
 
 @pytest.mark.network

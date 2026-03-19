@@ -136,28 +136,85 @@ for f in feeds:
 ")
 
 if [[ -n "$BSKY_KEYWORDS" ]]; then
+    # Authenticate if BSKY_HANDLE + BSKY_APP_PASSWORD are set
+    BSKY_AUTH_HEADER=""
+    BSKY_ENDPOINT="https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts"
+    if [[ -n "${BSKY_HANDLE:-}" && -n "${BSKY_APP_PASSWORD:-}" ]]; then
+        BSKY_TOKEN=$(curl -s --max-time 10 \
+            -H "Content-Type: application/json" \
+            -d "{\"identifier\": \"${BSKY_HANDLE}\", \"password\": \"${BSKY_APP_PASSWORD}\"}" \
+            "https://bsky.social/xrpc/com.atproto.server.createSession" \
+            2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('accessJwt',''))" 2>/dev/null) || BSKY_TOKEN=""
+        if [[ -n "$BSKY_TOKEN" ]]; then
+            BSKY_AUTH_HEADER="Authorization: Bearer ${BSKY_TOKEN}"
+            BSKY_ENDPOINT="https://bsky.social/xrpc/app.bsky.feed.searchPosts"
+            printf "  Bluesky: authenticated via BSKY_HANDLE\n" | tee -a "$OUTFILE"
+        else
+            printf "  Bluesky: auth failed, falling back to public API\n" | tee -a "$OUTFILE"
+        fi
+    else
+        printf "  Bluesky: no credentials (BSKY_HANDLE not set), using public API\n" | tee -a "$OUTFILE"
+        printf "  Note: public API may return 403 for search. Set BSKY_HANDLE + BSKY_APP_PASSWORD.\n" | tee -a "$OUTFILE"
+    fi
+
     {
-        printf "%-35s\n" "Bluesky Public Search API"
-        printf "  Endpoint: https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts\n"
+        printf "%-35s\n" "Bluesky Search API"
+        printf "  Endpoint: %s\n" "$BSKY_ENDPOINT"
     } | tee -a "$OUTFILE"
 
+    BSKY_OK=0
+    BSKY_FAIL=0
     while IFS= read -r KW; do
         ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$KW'))")
-        BSKY_RESP=$(curl -s --max-time 15 \
-            -H "User-Agent: predictor-ingest/0.1 (feed-test)" \
-            "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${ENCODED}&limit=3&sort=latest" \
-            2>/dev/null) || BSKY_RESP="FAIL"
+        BSKY_URL="${BSKY_ENDPOINT}?q=${ENCODED}&limit=3&sort=latest"
 
-        if echo "$BSKY_RESP" | grep -q '"posts"'; then
-            POST_COUNT=$(echo "$BSKY_RESP" | grep -o '"uri"' | wc -l)
-            printf "  Keyword %-30s %d posts\n" "'${KW}':" "$POST_COUNT"
-        elif echo "$BSKY_RESP" | grep -q '"error"'; then
+        # Build curl args (with or without auth header)
+        CURL_AUTH_ARGS=()
+        if [[ -n "$BSKY_AUTH_HEADER" ]]; then
+            CURL_AUTH_ARGS=(-H "$BSKY_AUTH_HEADER")
+        fi
+
+        # Retry up to 3 times with backoff for transient failures
+        BSKY_RESP=""
+        for ATTEMPT in 1 2 3; do
+            BSKY_HTTP=$(curl -s -o /tmp/bsky_resp.json -w "%{http_code}" \
+                --max-time 15 \
+                -H "User-Agent: predictor-ingest/0.1 (feed-test)" \
+                "${CURL_AUTH_ARGS[@]}" \
+                "$BSKY_URL" 2>/dev/null) || BSKY_HTTP="000"
+            if [[ "$BSKY_HTTP" == "200" ]]; then
+                BSKY_RESP=$(cat /tmp/bsky_resp.json)
+                break
+            elif [[ "$BSKY_HTTP" == "429" || "$BSKY_HTTP" == "000" || "$BSKY_HTTP" == "5"* ]]; then
+                # Retryable: rate limit, network error, server error
+                if [[ $ATTEMPT -lt 3 ]]; then
+                    DELAY=$((ATTEMPT * 2))
+                    printf "  Keyword '%s': HTTP %s, retry %d in %ds...\n" "$KW" "$BSKY_HTTP" "$ATTEMPT" "$DELAY" >&2
+                    sleep "$DELAY"
+                fi
+            else
+                break  # Non-retryable error (4xx other than 429)
+            fi
+        done
+
+        if [[ "$BSKY_HTTP" == "200" ]] && echo "$BSKY_RESP" | grep -q '"posts"'; then
+            # grep -o can return exit 1 if no matches; guard with || true
+            POST_COUNT=$(echo "$BSKY_RESP" | grep -o '"uri"' | wc -l || true)
+            printf "  Keyword %-30s %d posts (HTTP %s)\n" "'${KW}':" "$POST_COUNT" "$BSKY_HTTP"
+            BSKY_OK=$((BSKY_OK + 1))
+        elif [[ "$BSKY_HTTP" == "200" ]] && echo "$BSKY_RESP" | grep -q '"error"'; then
             ERROR_MSG=$(echo "$BSKY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('message','unknown'))" 2>/dev/null || echo "parse error")
             printf "  Keyword %-30s ERROR: %s\n" "'${KW}':" "$ERROR_MSG"
+            BSKY_FAIL=$((BSKY_FAIL + 1))
+        elif [[ "$BSKY_HTTP" != "200" && "$BSKY_HTTP" != "000" ]]; then
+            printf "  Keyword %-30s HTTP %s *** PROBLEM ***\n" "'${KW}':" "$BSKY_HTTP"
+            BSKY_FAIL=$((BSKY_FAIL + 1))
         else
-            printf "  Keyword %-30s FAIL (unreachable)\n" "'${KW}':"
+            printf "  Keyword %-30s FAIL (unreachable after 3 attempts)\n" "'${KW}':"
+            BSKY_FAIL=$((BSKY_FAIL + 1))
         fi
-    done <<< "$BSKY_KEYWORDS" | tee -a "$OUTFILE"
+    done <<< "$BSKY_KEYWORDS" > >(tee -a "$OUTFILE")
+    rm -f /tmp/bsky_resp.json
 
     echo "" | tee -a "$OUTFILE"
 else
@@ -174,61 +231,92 @@ for f in feeds:
 ")
 
 if [[ -n "$REDDIT_SUBS" ]]; then
+    # Authenticate if REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET are set
+    REDDIT_AUTH_HEADER=""
+    REDDIT_API_BASE="https://www.reddit.com"
+    if [[ -n "${REDDIT_CLIENT_ID:-}" && -n "${REDDIT_CLIENT_SECRET:-}" ]]; then
+        REDDIT_TOKEN=$(curl -s --max-time 10 \
+            -u "${REDDIT_CLIENT_ID}:${REDDIT_CLIENT_SECRET}" \
+            -d "grant_type=client_credentials" \
+            -H "User-Agent: predictor-ingest/0.1 (feed-test; non-commercial research)" \
+            "https://www.reddit.com/api/v1/access_token" \
+            2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null) || REDDIT_TOKEN=""
+        if [[ -n "$REDDIT_TOKEN" ]]; then
+            REDDIT_AUTH_HEADER="Authorization: Bearer ${REDDIT_TOKEN}"
+            REDDIT_API_BASE="https://oauth.reddit.com"
+            printf "  Reddit: authenticated via OAuth (100 req/min)\n" | tee -a "$OUTFILE"
+        else
+            printf "  Reddit: OAuth token request failed, using unauthenticated API\n" | tee -a "$OUTFILE"
+        fi
+    else
+        printf "  Reddit: no credentials (REDDIT_CLIENT_ID not set)\n" | tee -a "$OUTFILE"
+        printf "  Note: unauthenticated access may return 403. See https://www.reddit.com/wiki/api/\n" | tee -a "$OUTFILE"
+    fi
+
     {
-        printf "%-35s\n" "Reddit JSON API"
-        printf "  Endpoint: https://www.reddit.com/r/{subreddit}/new.json\n"
+        printf "%-35s\n" "Reddit API"
+        printf "  Endpoint: %s/r/{subreddit}/new.json\n" "$REDDIT_API_BASE"
     } | tee -a "$OUTFILE"
 
+    REDDIT_OK=0
+    REDDIT_FAIL=0
     while IFS= read -r SUB; do
         [[ -z "$SUB" ]] && continue
 
-        REDDIT_RESP=$(curl -s --max-time 15 \
-            -H "User-Agent: predictor-ingest/0.1 (feed-test; non-commercial research)" \
-            "https://www.reddit.com/r/${SUB}/new.json?limit=3&raw_json=1" \
-            2>/dev/null) || REDDIT_RESP="FAIL"
+        REDDIT_URL="${REDDIT_API_BASE}/r/${SUB}/new.json?limit=3&raw_json=1"
 
-        REDDIT_HTTP=$(echo "$REDDIT_RESP" | python3 -c "
+        # Build curl args (with or without auth header)
+        RCURL_AUTH_ARGS=(-H "User-Agent: predictor-ingest/0.1 (feed-test; non-commercial research)")
+        if [[ -n "$REDDIT_AUTH_HEADER" ]]; then
+            RCURL_AUTH_ARGS+=(-H "$REDDIT_AUTH_HEADER")
+        fi
+
+        # Retry up to 3 times with backoff for transient/rate-limit failures
+        R_HTTP_CODE="000"
+        REDDIT_RESP=""
+        for ATTEMPT in 1 2 3; do
+            R_HTTP_CODE=$(curl -s -o /tmp/reddit_resp.json -w "%{http_code}" \
+                --max-time 15 \
+                "${RCURL_AUTH_ARGS[@]}" \
+                "$REDDIT_URL" 2>/dev/null) || R_HTTP_CODE="000"
+            if [[ "$R_HTTP_CODE" == "200" ]]; then
+                REDDIT_RESP=$(cat /tmp/reddit_resp.json)
+                break
+            elif [[ "$R_HTTP_CODE" == "429" || "$R_HTTP_CODE" == "000" || "$R_HTTP_CODE" == "5"* ]]; then
+                if [[ $ATTEMPT -lt 3 ]]; then
+                    DELAY=$((ATTEMPT * 2))
+                    printf "  r/%s: HTTP %s, retry %d in %ds...\n" "$SUB" "$R_HTTP_CODE" "$ATTEMPT" "$DELAY" >&2
+                    sleep "$DELAY"
+                fi
+            else
+                break
+            fi
+        done
+
+        if [[ "$R_HTTP_CODE" == "200" ]]; then
+            R_COUNT=$(echo "$REDDIT_RESP" | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
     posts = d.get('data', {}).get('children', [])
-    print(f'200 {len(posts)}')
+    print(len(posts))
 except:
-    print('FAIL 0')
-" 2>/dev/null) || REDDIT_HTTP="FAIL 0"
-
-        R_STATUS=$(echo "$REDDIT_HTTP" | awk '{print $1}')
-        R_COUNT=$(echo "$REDDIT_HTTP" | awk '{print $2}')
-
-        if [[ "$R_STATUS" == "200" ]]; then
-            printf "  r/%-20s OK — %s posts returned\n" "$SUB" "$R_COUNT"
+    print(0)
+" 2>/dev/null) || R_COUNT="0"
+            printf "  r/%-20s OK — %s posts returned (HTTP %s)\n" "$SUB" "$R_COUNT" "$R_HTTP_CODE"
+            REDDIT_OK=$((REDDIT_OK + 1))
+        elif [[ "$R_HTTP_CODE" != "000" ]]; then
+            printf "  r/%-20s HTTP %s *** PROBLEM ***\n" "$SUB" "$R_HTTP_CODE"
+            REDDIT_FAIL=$((REDDIT_FAIL + 1))
         else
-            printf "  r/%-20s *** PROBLEM ***\n" "$SUB"
+            printf "  r/%-20s FAIL (unreachable after 3 attempts)\n" "$SUB"
+            REDDIT_FAIL=$((REDDIT_FAIL + 1))
         fi
 
         # Be polite — Reddit rate limits aggressively
         sleep 1
-    done <<< "$REDDIT_SUBS" | tee -a "$OUTFILE"
-
-    echo "" | tee -a "$OUTFILE"
-
-    # Reddit OAuth check
-    {
-        if [[ -n "${REDDIT_CLIENT_ID:-}" && -n "${REDDIT_CLIENT_SECRET:-}" ]]; then
-            printf "  Reddit OAuth: credentials found (REDDIT_CLIENT_ID set)\n"
-            TOKEN_HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
-                --max-time 10 \
-                -u "${REDDIT_CLIENT_ID}:${REDDIT_CLIENT_SECRET}" \
-                -d "grant_type=client_credentials" \
-                -H "User-Agent: predictor-ingest/0.1 (feed-test)" \
-                "https://www.reddit.com/api/v1/access_token" \
-                2>/dev/null || echo "FAIL")
-            printf "  OAuth token request: HTTP %s\n" "$TOKEN_HTTP"
-        else
-            printf "  Reddit OAuth: no credentials (REDDIT_CLIENT_ID not set)\n"
-            printf "  Using unauthenticated JSON API (10 req/min limit)\n"
-        fi
-    } | tee -a "$OUTFILE"
+    done <<< "$REDDIT_SUBS" > >(tee -a "$OUTFILE")
+    rm -f /tmp/reddit_resp.json
 
     echo "" | tee -a "$OUTFILE"
 else
@@ -240,8 +328,8 @@ fi
     echo "================================"
     echo "Summary"
     echo "  Section 1: RSS/Atom feeds — ${RSS_OK} OK, ${RSS_PROBLEMS} problems, ${RSS_DISABLED} disabled"
-    echo "  Section 2: Bluesky keyword search API"
-    echo "  Section 3: Reddit subreddit JSON API"
+    echo "  Section 2: Bluesky keyword search — ${BSKY_OK:-0} OK, ${BSKY_FAIL:-0} problems"
+    echo "  Section 3: Reddit subreddit JSON — ${REDDIT_OK:-0} OK, ${REDDIT_FAIL:-0} problems"
     echo ""
     echo "Entries returning FAIL or PROBLEM need investigation."
 } | tee -a "$OUTFILE"
