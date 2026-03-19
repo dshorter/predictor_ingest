@@ -328,13 +328,25 @@ def parse_ingest_output(stdout: str, stderr: str = "") -> dict:
 
 def parse_docpack_output(stdout: str) -> dict:
     """Parse docpack stage stdout for stats."""
-    stats = {"docsBundled": 0}
+    stats = {"docsBundled": 0, "qualifiedTotal": 0, "qualifiedExcluded": 0}
     for line in stdout.splitlines():
         if "bundled" in line.lower():
             for word in line.split():
                 if word.isdigit():
                     stats["docsBundled"] = int(word)
                     break
+        # "Qualified: 42 total, 17 excluded by budget"
+        if line.startswith("Qualified:"):
+            parts = line.split(",")
+            for part in parts:
+                part = part.strip()
+                for word in part.split():
+                    if word.isdigit():
+                        if "total" in part:
+                            stats["qualifiedTotal"] = int(word)
+                        elif "excluded" in part:
+                            stats["qualifiedExcluded"] = int(word)
+                        break
     return stats
 
 
@@ -585,6 +597,7 @@ def main() -> int:
     run_log: dict = {
         "runDate": run_date,
         "runId": run_id,
+        "domain": args.domain,
         "startedAt": utc_now(),
         "durationSec": 0,
         "status": "running",

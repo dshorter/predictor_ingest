@@ -233,6 +233,13 @@ def build_docpack(
         else:
             print("Selection: no docs met quality threshold")
 
+        # Report qualified-but-excluded count (articles that passed quality
+        # threshold but were cut due to budget).  This lets operators see
+        # how much signal is being left on the table for cost reasons.
+        total_qualified = len(selected) + len(overflow)
+        qualified_excluded = len(overflow)
+        print(f"Qualified: {total_qualified} total, {qualified_excluded} excluded by budget")
+
         # Rebuild docs list from selection
         docs = [
             {
