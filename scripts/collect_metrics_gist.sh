@@ -60,8 +60,30 @@ WHERE escalation_failed IS NOT NULL
 ORDER BY quality_score ASC;
 " > "$OUTDIR/05_escalation_failures.csv" 2>&1 || echo "(column not yet migrated — run import once first)" > "$OUTDIR/05_escalation_failures.csv"
 
-# 6. Recent pipeline logs (last 7 days)
-echo "[6/6] Pipeline logs..."
+# 6. Article selection efficiency (qualified vs excluded by budget)
+echo "[6/7] Selection efficiency..."
+LOGDIR_SEL="data/logs/${DOMAIN}"
+if [ -d "$LOGDIR_SEL" ]; then
+    echo "Date,Domain,Bundled,QualifiedTotal,QualifiedExcluded" > "$OUTDIR/06_selection_efficiency.csv"
+    for f in $(ls -1t "$LOGDIR_SEL"/pipeline_*.json 2>/dev/null | head -14); do
+        $PYTHON -c "
+import json, sys
+d = json.load(open('$f'))
+dp = d.get('stages', {}).get('docpack', {})
+qt = dp.get('qualifiedTotal', 0)
+if qt > 0:
+    print(','.join(str(x) for x in [
+        d.get('runDate','?'), d.get('domain','?'),
+        dp.get('docsBundled',0), qt, dp.get('qualifiedExcluded',0)
+    ]))
+" >> "$OUTDIR/06_selection_efficiency.csv" 2>/dev/null || true
+    done
+else
+    echo "(no pipeline logs found at $LOGDIR_SEL)" > "$OUTDIR/06_selection_efficiency.csv"
+fi
+
+# 7. Recent pipeline logs (last 7 days)
+echo "[7/7] Pipeline logs..."
 LOGDIR="data/logs/${DOMAIN}"
 if [ -d "$LOGDIR" ]; then
     # Grab the most recent 7 log files
@@ -69,9 +91,9 @@ if [ -d "$LOGDIR" ]; then
         echo "--- $(basename "$f") ---"
         cat "$f"
         echo
-    done > "$OUTDIR/06_pipeline_logs.txt"
+    done > "$OUTDIR/07_pipeline_logs.txt"
 else
-    echo "(no pipeline logs found at $LOGDIR)" > "$OUTDIR/06_pipeline_logs.txt"
+    echo "(no pipeline logs found at $LOGDIR)" > "$OUTDIR/07_pipeline_logs.txt"
 fi
 
 echo
