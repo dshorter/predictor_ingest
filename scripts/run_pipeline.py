@@ -29,6 +29,24 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
+def load_dotenv() -> None:
+    """Load .env file from project root if it exists."""
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.replace("\r", "").strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip("\"'").strip()
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+
+
+load_dotenv()
+
+
 def utc_now() -> str:
     """Return current UTC time in ISO-8601 format."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

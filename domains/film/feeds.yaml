@@ -221,7 +221,7 @@ feeds:
 
   # --- Bluesky: Keyword search (added Sprint 7) ---
   # See ADR-006 for chatter source rationale.
-  # Uses public search API — no auth required.
+  # Requires BSKY_HANDLE + BSKY_APP_PASSWORD env vars in .env.
 
   - name: "Bluesky SE Film"
     type: bluesky
