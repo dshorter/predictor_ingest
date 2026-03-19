@@ -591,14 +591,14 @@ def main() -> int:
         {
             "name": "ingest",
             "cmd": [
-                sys.executable, "-m", "ingest.rss",
+                sys.executable, "-m", "ingest.run_all",
                 "--config", f"domains/{args.domain}/feeds.yaml",
                 "--db", db_path,
                 "--skip-existing",
             ],
             "parse": parse_ingest_output,
             "fatal": True,
-            "timeout": 2700,  # 45 min — 12 feeds × 5s delay; extra buffer for slow networks
+            "timeout": 2700,  # 45 min — feeds × delay; extra buffer for slow networks
             "stream": True,  # show per-article progress in real-time
         },
         {

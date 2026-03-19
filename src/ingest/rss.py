@@ -389,17 +389,17 @@ def validate_args(args: argparse.Namespace) -> None:
             raise SystemExit(1)
 
 
-def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str], int]]:
+def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[Optional[str], Optional[str], int]]:
     """Get list of (feed_url, source_name, per_feed_limit) from args.
 
     Args:
         args: Parsed arguments
 
     Returns:
-        List of (url, source_name, limit) tuples. source_name is None for CLI feeds.
-        limit is 0 (unlimited) for CLI feeds.
+        List of (url, source_name, limit) tuples. url is None for non-RSS feeds.
+        source_name is None for CLI feeds. limit is 0 (unlimited) for CLI feeds.
     """
-    feeds: list[tuple[str, Optional[str], int]] = []
+    feeds: list[tuple[Optional[str], Optional[str], int]] = []
 
     # Load from config file
     if args.config:
@@ -464,6 +464,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     total_reachable = 0
 
     for feed_idx, (feed_url, feed_name, feed_limit) in enumerate(feeds):
+        # Skip non-RSS feeds (Bluesky, Reddit) — handled by ingest.run_all
+        if feed_url is None:
+            print(f"  [{feed_idx+1}/{n_feeds}] Skipping non-RSS feed: {feed_name or '(unnamed)'}",
+                  flush=True)
+            continue
+
         # Use feed name from config, or CLI --source override, or let ingest_feed detect
         source = args.source or feed_name
 
