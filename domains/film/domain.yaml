@@ -483,6 +483,39 @@ regions:
     - Charleston
     - South Carolina
 
+# --- LLM Leverage Features ---
+# Framework features configured per-domain. See docs/guides/new-domain-features.md.
+features:
+  llm_disambiguation:
+    enabled: true
+    similarity_lower_bound: 0.40
+    similarity_upper_bound: 0.85
+    max_pairs_per_run: 50
+    batch_size: 15
+    entity_types_to_disambiguate: [Person, Studio, Production]
+
+  relation_inference:
+    enabled: true
+    confidence_discount: 0.8
+    max_inferences_per_run: 500
+    rules_file: "inference_rules.yaml"
+
+  cross_document_synthesis:
+    enabled: true
+    batch_size: 5
+    min_shared_entities: 1
+    max_batches_per_run: 10
+    synthesis_patterns:
+      - "corroboration"
+      - "implicit_relations"
+      - "event_clustering"
+
+  trend_narratives:
+    enabled: true
+    top_n: 10
+    max_tokens_per_narrative: 100
+    style: "concise"
+
 # --- Prompts ---
 prompts:
   dir: prompts
