@@ -60,6 +60,26 @@ def _load_dotenv() -> None:
                         os.environ[key] = value
 
 
+def _log_feed_stats(
+    conn, run_date: str, feed_name: str, source_type: str,
+    fetched: int, new: int, skipped: int, errors: int,
+    error_message: str | None = None,
+) -> None:
+    """Persist per-feed ingest stats to feed_stats table."""
+    try:
+        conn.execute(
+            """INSERT OR REPLACE INTO feed_stats
+               (run_date, feed_name, source_type, docs_fetched, docs_new,
+                docs_skipped, fetch_errors, error_message)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (run_date, feed_name, source_type, fetched, new, skipped, errors,
+             error_message),
+        )
+        conn.commit()
+    except Exception:
+        pass  # table may not exist in older DBs
+
+
 def main(argv: list[str] | None = None) -> int:
     _load_dotenv()
     parser = build_arg_parser()
@@ -85,6 +105,10 @@ def main(argv: list[str] | None = None) -> int:
     import requests
     session = requests.Session()
     session.headers.update({"User-Agent": args.user_agent})
+
+    # Determine run_date for feed_stats tracking
+    from datetime import date as _date
+    _run_date = _date.today().isoformat()
 
     n_feeds = len(feeds)
     print(f"Ingesting {n_feeds} feed(s)...", flush=True)
@@ -131,6 +155,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"    Feed CRASHED: {type(exc).__name__}: {exc}",
                       file=sys.stderr, flush=True)
                 print(f"    Feed CRASHED: {feed.name}", flush=True)
+                _log_feed_stats(conn, _run_date, feed.name, feed_type,
+                                0, 0, 0, 1, str(exc)[:500])
                 total_errors += 1
                 continue
 
@@ -139,6 +165,10 @@ def main(argv: list[str] | None = None) -> int:
             total_errors += errors
             if reachable:
                 total_reachable += 1
+
+            _log_feed_stats(conn, _run_date, feed.name, feed_type,
+                            fetched + skipped, fetched, skipped, errors,
+                            None if reachable else "unreachable")
 
             if not reachable:
                 print(f"    Feed UNREACHABLE: {feed.name}", flush=True)
@@ -169,6 +199,8 @@ def main(argv: list[str] | None = None) -> int:
                 total_fetched += fetched
                 total_skipped += skipped
                 total_errors += errors
+                _log_feed_stats(conn, _run_date, feed.name, "bluesky",
+                                fetched + skipped, fetched, skipped, errors)
                 if fetched > 0 or skipped > 0:
                     total_reachable += 1
                     print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped",
@@ -182,6 +214,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"    Feed CRASHED: {type(exc).__name__}: {exc}",
                       file=sys.stderr, flush=True)
                 print(f"    Feed CRASHED: {feed.name}", flush=True)
+                _log_feed_stats(conn, _run_date, feed.name, "bluesky",
+                                0, 0, 0, 1, str(exc)[:500])
                 total_errors += 1
 
         elif feed_type == "reddit":
@@ -203,6 +237,8 @@ def main(argv: list[str] | None = None) -> int:
                 total_fetched += fetched
                 total_skipped += skipped
                 total_errors += errors
+                _log_feed_stats(conn, _run_date, feed.name, "reddit",
+                                fetched + skipped, fetched, skipped, errors)
                 if fetched > 0 or skipped > 0:
                     total_reachable += 1
                     print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped",
@@ -216,6 +252,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"    Feed CRASHED: {type(exc).__name__}: {exc}",
                       file=sys.stderr, flush=True)
                 print(f"    Feed CRASHED: {feed.name}", flush=True)
+                _log_feed_stats(conn, _run_date, feed.name, "reddit",
+                                0, 0, 0, 1, str(exc)[:500])
                 total_errors += 1
 
         else:

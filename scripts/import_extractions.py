@@ -48,6 +48,8 @@ def import_extractions(
         "evidence_records": 0,
         "errors": 0,
     }
+    # Per-source aggregation for source_extraction_quality table
+    stats_by_source: dict[str, dict] = {}
 
     json_files = sorted(extractions_dir.glob("*.json"))
     if not json_files:
@@ -75,15 +77,16 @@ def import_extractions(
             stats["files_processed"] += 1
             continue
 
-        # Look up document's published date and URL for entity timestamps
-        # and evidence URL override (LLMs often corrupt URLs)
+        # Look up document's published date, URL, and source for tracking
         cursor = conn.execute(
-            "SELECT published_at, url FROM documents WHERE doc_id = ?",
+            "SELECT published_at, url, source, source_type FROM documents WHERE doc_id = ?",
             (doc_id,)
         )
         row = cursor.fetchone()
         doc_published = row[0] if row else None
         doc_url = row[1] if row else None
+        doc_source = row[2] if row else "unknown"
+        doc_source_type = row[3] if row else "rss"
 
         # Resolve entities — get name-to-ID mapping
         # Track which are new vs resolved to existing
@@ -201,13 +204,56 @@ def import_extractions(
         )
         conn.commit()
 
+        # Accumulate per-source stats
+        src_stats = stats_by_source.setdefault(doc_source, {
+            "source_type": doc_source_type, "docs": 0, "escalated": 0,
+            "failed": 0, "quality_sum": 0.0, "entities": 0, "relations": 0,
+        })
+        src_stats["docs"] += 1
+        src_stats["entities"] += len(name_to_id)
+        doc_rels = sum(1 for r in extraction.get("relations", [])
+                       if name_to_id.get(r.get("source")) and name_to_id.get(r.get("target")))
+        src_stats["relations"] += doc_rels
+        if quality_score is not None:
+            src_stats["quality_sum"] += quality_score
+        if escalation_failed:
+            src_stats["failed"] += 1
+        if extracted_by and "sonnet" in (extracted_by or "").lower():
+            src_stats["escalated"] += 1
+
         stats["files_processed"] += 1
         print(f"  Imported: {len(name_to_id)} entities, "
               f"{sum(1 for r in extraction.get('relations', []) if name_to_id.get(r.get('source')) and name_to_id.get(r.get('target')))} relations, "
               f"{stats['mentions_generated']} mentions")
 
+    # Log per-source extraction quality to source_extraction_quality table
+    _log_source_extraction_quality(conn, stats_by_source)
+
     conn.close()
     return stats
+
+
+def _log_source_extraction_quality(
+    conn, stats_by_source: dict[str, dict],
+) -> None:
+    """Persist per-source extraction outcomes."""
+    from datetime import date
+    run_date = date.today().isoformat()
+    for source, s in stats_by_source.items():
+        try:
+            conn.execute(
+                """INSERT OR REPLACE INTO source_extraction_quality
+                   (run_date, source, source_type, docs_extracted, docs_escalated,
+                    docs_failed, avg_quality_score, entities_produced, relations_produced)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (run_date, source, s.get("source_type", "rss"),
+                 s.get("docs", 0), s.get("escalated", 0), s.get("failed", 0),
+                 s.get("quality_sum", 0) / max(s.get("docs", 1), 1),
+                 s.get("entities", 0), s.get("relations", 0)),
+            )
+        except Exception:
+            pass  # table may not exist in older DBs
+    conn.commit()
 
 
 def main() -> int:
