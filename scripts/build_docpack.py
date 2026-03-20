@@ -23,6 +23,77 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from db import init_db
 
 
+def _log_selection_decisions(
+    conn,
+    run_date,
+    candidates: list[dict],
+    selected: list,
+    overflow: list,
+    feed_tiers: dict[str, int],
+    feed_signals: dict[str, str],
+    min_quality: float,
+) -> None:
+    """Persist per-candidate scoring to doc_selection_log table."""
+    from doc_select import score_document
+
+    selected_ids = {s.doc_id for s in selected}
+    overflow_ids = {s.doc_id for s in overflow}
+    run_date_str = run_date.isoformat() if hasattr(run_date, "isoformat") else str(run_date)
+
+    for cand in candidates:
+        doc_id = cand.get("doc_id", "")
+        source = cand.get("source", "")
+        tier = feed_tiers.get(source, 1)
+        signal = feed_signals.get(source, "primary")
+        combined, breakdown = score_document(
+            text=cand.get("text", ""),
+            title=cand.get("title"),
+            published_at=cand.get("published_at"),
+            tier=tier,
+            signal=signal,
+            reference_date=run_date if hasattr(run_date, "isoformat") else None,
+        )
+
+        if doc_id in selected_ids:
+            outcome = "selected"
+            reason = None
+        elif doc_id in overflow_ids:
+            outcome = "benched"
+            reason = "budget_exceeded"
+        elif combined < min_quality:
+            outcome = "rejected"
+            reason = "below_min_quality"
+        else:
+            outcome = "rejected"
+            reason = "budget_exceeded"
+
+        # Look up source_type from documents table
+        row = conn.execute(
+            "SELECT source_type FROM documents WHERE doc_id = ?", (doc_id,)
+        ).fetchone()
+        source_type = row[0] if row else "rss"
+
+        try:
+            conn.execute(
+                """INSERT OR REPLACE INTO doc_selection_log
+                   (doc_id, run_date, source, source_type, word_count,
+                    word_count_score, metadata_score, source_tier_score,
+                    signal_type_score, recency_score, combined_score,
+                    outcome, rejection_reason)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (doc_id, run_date_str, source, source_type,
+                 int(breakdown.get("word_count_raw", 0)),
+                 breakdown.get("word_count"), breakdown.get("metadata"),
+                 breakdown.get("source_tier"), breakdown.get("signal_type"),
+                 breakdown.get("recency"), combined,
+                 outcome, reason),
+            )
+        except Exception:
+            pass  # table may not exist in older DBs; don't block pipeline
+
+    conn.commit()
+
+
 def build_docpack(
     db_path: Path,
     target_date: str,
@@ -166,6 +237,7 @@ def build_docpack(
 
     # --- Quality-based selection (when budget is set) ---
     if budget is not None and len(docs) > budget:
+        import doc_select
         from doc_select import select_for_extraction, save_bench, load_bench, expire_bench
         from config import load_feeds
 
@@ -205,6 +277,12 @@ def build_docpack(
             budget=budget,
             stretch_max=effective_stretch,
             reference_date=ref_date,
+        )
+
+        # Log selection decisions to doc_selection_log table
+        _log_selection_decisions(
+            conn, ref_date or date.today(), candidates, selected, overflow,
+            feed_tiers, feed_signals, min_quality=doc_select.MIN_QUALITY_THRESHOLD,
         )
 
         # Save overflow to bench for future backfill

@@ -304,7 +304,51 @@ class TrendScorer:
         # Sort by trend score
         filtered.sort(key=lambda x: x["trend_score"], reverse=True)
 
-        return filtered[:limit]
+        top = filtered[:limit]
+
+        # Persist trend scores to trend_history table
+        self._save_trend_history(all_scores, top)
+
+        return top
+
+    def _save_trend_history(
+        self,
+        all_scores: dict[str, dict[str, Any]],
+        trending: list[dict[str, Any]],
+    ) -> None:
+        """Persist trend scores to trend_history table."""
+        run_date = date.today().isoformat()
+        trending_ids = {s["entity_id"] for s in trending}
+
+        # Only save entities with at least one mention (skip the dormant mass)
+        to_save = [
+            s for s in all_scores.values()
+            if s.get("mention_count_30d", 0) > 0
+        ]
+
+        for scores in to_save:
+            try:
+                self.conn.execute(
+                    """INSERT OR REPLACE INTO trend_history
+                       (entity_id, run_date, mention_count_7d, mention_count_30d,
+                        velocity, novelty, bridge_score, trend_score, in_trending_view)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (scores["entity_id"], run_date,
+                     scores.get("mention_count_7d", 0),
+                     scores.get("mention_count_30d", 0),
+                     scores.get("velocity", 0),
+                     scores.get("novelty", 0),
+                     scores.get("bridge_score", 0),
+                     scores.get("trend_score", 0),
+                     1 if scores["entity_id"] in trending_ids else 0),
+                )
+            except Exception:
+                pass  # table may not exist in older DBs; don't block pipeline
+
+        try:
+            self.conn.commit()
+        except Exception:
+            pass
 
     def export_trending(
         self,

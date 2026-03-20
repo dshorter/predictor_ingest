@@ -511,6 +511,83 @@ def copy_graphs_to_live(graphs_dir: Path, run_date: str, web_live_dir: Path) -> 
     return True
 
 
+def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
+    """Write pipeline_runs and funnel_stats rows to the database."""
+    try:
+        import sqlite3
+        if not db_path.exists():
+            return
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+
+        stages = run_log.get("stages", {})
+        ingest = stages.get("ingest", {})
+        docpack = stages.get("docpack", {})
+        extract = stages.get("extract", {})
+        imp = stages.get("import", {})
+        export = stages.get("export", {})
+        trending = stages.get("trending", {})
+
+        run_date = run_log.get("runDate", "")
+
+        # pipeline_runs
+        conn.execute(
+            """INSERT OR REPLACE INTO pipeline_runs
+               (run_date, domain, status, duration_sec, started_at, completed_at,
+                docs_ingested, docs_selected, docs_excluded, docs_extracted,
+                docs_escalated, entities_new, entities_resolved, relations_added,
+                nodes_exported, edges_exported, trending_nodes, error_message)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (run_date, domain, run_log.get("status", "unknown"),
+             run_log.get("durationSec"), run_log.get("startedAt"),
+             run_log.get("completedAt"),
+             ingest.get("newDocsFound", 0),
+             docpack.get("docsBundled", 0),
+             docpack.get("qualifiedExcluded", 0),
+             extract.get("docsExtracted", 0),
+             extract.get("escalated", 0),
+             imp.get("entitiesNew", 0),
+             imp.get("entitiesResolved", 0),
+             imp.get("relations", 0),
+             export.get("totalNodes", 0),
+             export.get("totalEdges", 0),
+             trending.get("trendingNodes", 0),
+             "; ".join(run_log.get("failedStages", []))),
+        )
+
+        # funnel_stats — one row per stage
+        funnel_data = [
+            ("ingest", ingest.get("newDocsFound", 0) + ingest.get("duplicatesSkipped", 0),
+             ingest.get("newDocsFound", 0), ingest.get("duplicatesSkipped", 0) + ingest.get("fetchErrors", 0),
+             json.dumps({"duplicates": ingest.get("duplicatesSkipped", 0),
+                         "fetch_errors": ingest.get("fetchErrors", 0)})),
+            ("select", docpack.get("qualifiedTotal", 0), docpack.get("docsBundled", 0),
+             docpack.get("qualifiedExcluded", 0),
+             json.dumps({"budget_exceeded": docpack.get("qualifiedExcluded", 0)})),
+            ("extract", docpack.get("docsBundled", 0), extract.get("docsExtracted", 0),
+             extract.get("validationErrors", 0),
+             json.dumps({"validation_errors": extract.get("validationErrors", 0),
+                         "escalated": extract.get("escalated", 0)})),
+            ("import", extract.get("docsExtracted", 0), imp.get("filesImported", 0),
+             imp.get("errors", 0) if isinstance(imp.get("errors"), int) else 0,
+             None),
+            ("export", imp.get("filesImported", 0), export.get("totalNodes", 0), 0, None),
+            ("trending", export.get("totalNodes", 0), trending.get("trendingNodes", 0), 0, None),
+        ]
+        for stage, docs_in, docs_out, docs_dropped, drop_reasons in funnel_data:
+            conn.execute(
+                """INSERT OR REPLACE INTO funnel_stats
+                   (run_date, domain, stage, docs_in, docs_out, docs_dropped, drop_reasons)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (run_date, domain, stage, docs_in, docs_out, docs_dropped, drop_reasons),
+            )
+
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass  # analytics should never break the pipeline
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Run the full daily pipeline with structured logging."
@@ -888,6 +965,9 @@ def main() -> int:
     log_path = log_dir / f"pipeline_{run_date}.json"
     with open(log_path, "w", encoding="utf-8") as f:
         json.dump(run_log, f, indent=2, ensure_ascii=False)
+
+    # Persist pipeline_runs and funnel_stats to DB
+    _persist_run_stats(project_root / db_path, run_log, args.domain)
 
     # Print summary
     print()

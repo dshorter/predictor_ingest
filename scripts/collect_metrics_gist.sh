@@ -21,15 +21,15 @@ mkdir -p "$OUTDIR"
 echo "=== Collecting metrics into $OUTDIR (domain: $DOMAIN) ==="
 
 # 1. Shadow report (escalation stats, model split, quality distribution)
-echo "[1/6] Shadow report..."
+echo "[1/10] Shadow report..."
 $PYTHON scripts/shadow_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/01_shadow_report.txt" 2>&1 || true
 
 # 2. Health report (docs per source, stage counts, errors)
-echo "[2/6] Health report..."
+echo "[2/10] Health report..."
 $PYTHON scripts/health_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/02_health_report.txt" 2>&1 || true
 
 # 3. Worst quality scores (bottom 50 by score)
-echo "[3/6] Quality metrics (worst 50)..."
+echo "[3/10] Quality metrics (worst 50)..."
 sqlite3 -header -csv "$DB" "
 SELECT qr.doc_id, qr.pipeline_stage, qr.model, qr.quality_score,
        qr.decision, qr.decision_reason
@@ -40,7 +40,7 @@ LIMIT 50;
 " > "$OUTDIR/03_worst_quality_scores.csv" 2>&1 || echo "(no quality_runs data)" > "$OUTDIR/03_worst_quality_scores.csv"
 
 # 4. Per-metric breakdown for escalated docs (orphans, evidence, density)
-echo "[4/6] Gate failure details..."
+echo "[4/10] Gate failure details..."
 sqlite3 -header -csv "$DB" "
 SELECT qr.doc_id, qm.metric_name, qm.metric_value, qm.passed,
        qm.threshold_value, substr(qm.notes, 1, 300) as notes_trunc
@@ -52,7 +52,7 @@ LIMIT 100;
 " > "$OUTDIR/04_gate_failures.csv" 2>&1 || echo "(no quality_metrics data)" > "$OUTDIR/04_gate_failures.csv"
 
 # 5. Escalation failures (docs where specialist failed, cheap result kept)
-echo "[5/6] Escalation failures..."
+echo "[5/10] Escalation failures..."
 sqlite3 -header -csv "$DB" "
 SELECT doc_id, extracted_by, quality_score, escalation_failed
 FROM documents
@@ -60,41 +60,66 @@ WHERE escalation_failed IS NOT NULL
 ORDER BY quality_score ASC;
 " > "$OUTDIR/05_escalation_failures.csv" 2>&1 || echo "(column not yet migrated — run import once first)" > "$OUTDIR/05_escalation_failures.csv"
 
-# 6. Article selection efficiency (qualified vs excluded by budget)
-echo "[6/7] Selection efficiency..."
-LOGDIR_SEL="data/logs/${DOMAIN}"
-if [ -d "$LOGDIR_SEL" ]; then
-    echo "Date,Domain,Bundled,QualifiedTotal,QualifiedExcluded" > "$OUTDIR/06_selection_efficiency.csv"
-    for f in $(ls -1t "$LOGDIR_SEL"/pipeline_*.json 2>/dev/null | head -14); do
-        $PYTHON -c "
-import json, sys
-d = json.load(open('$f'))
-dp = d.get('stages', {}).get('docpack', {})
-qt = dp.get('qualifiedTotal', 0)
-if qt > 0:
-    print(','.join(str(x) for x in [
-        d.get('runDate','?'), d.get('domain','?'),
-        dp.get('docsBundled',0), qt, dp.get('qualifiedExcluded',0)
-    ]))
-" >> "$OUTDIR/06_selection_efficiency.csv" 2>/dev/null || true
-    done
-else
-    echo "(no pipeline logs found at $LOGDIR_SEL)" > "$OUTDIR/06_selection_efficiency.csv"
-fi
+# 6. Selection efficiency — from doc_selection_log table (DB-backed)
+echo "[6/10] Selection efficiency (from DB)..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, source_type,
+       COUNT(*) as candidates,
+       SUM(CASE WHEN outcome='selected' THEN 1 ELSE 0 END) as selected,
+       SUM(CASE WHEN outcome='benched' THEN 1 ELSE 0 END) as benched,
+       SUM(CASE WHEN outcome='rejected' THEN 1 ELSE 0 END) as rejected,
+       ROUND(AVG(combined_score), 3) as avg_score,
+       ROUND(MIN(combined_score), 3) as min_score
+FROM doc_selection_log
+GROUP BY run_date, source_type
+ORDER BY run_date DESC, source_type
+LIMIT 100;
+" > "$OUTDIR/06_selection_efficiency.csv" 2>&1 || echo "(doc_selection_log not yet populated)" > "$OUTDIR/06_selection_efficiency.csv"
 
-# 7. Recent pipeline logs (last 7 days)
-echo "[7/7] Pipeline logs..."
-LOGDIR="data/logs/${DOMAIN}"
-if [ -d "$LOGDIR" ]; then
-    # Grab the most recent 7 log files
-    ls -1t "$LOGDIR"/pipeline_*.json 2>/dev/null | head -7 | while read -r f; do
-        echo "--- $(basename "$f") ---"
-        cat "$f"
-        echo
-    done > "$OUTDIR/07_pipeline_logs.txt"
-else
-    echo "(no pipeline logs found at $LOGDIR)" > "$OUTDIR/07_pipeline_logs.txt"
-fi
+# 7. Feed health — from feed_stats table (DB-backed)
+echo "[7/10] Feed health (from DB)..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, feed_name, source_type,
+       docs_fetched, docs_new, docs_skipped, fetch_errors, error_message
+FROM feed_stats
+ORDER BY run_date DESC, feed_name
+LIMIT 200;
+" > "$OUTDIR/07_feed_health.csv" 2>&1 || echo "(feed_stats not yet populated)" > "$OUTDIR/07_feed_health.csv"
+
+# 8. Source extraction quality — from source_extraction_quality table
+echo "[8/10] Source extraction quality (from DB)..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, source, source_type,
+       docs_extracted, docs_escalated, docs_failed,
+       ROUND(avg_quality_score, 3) as avg_quality,
+       entities_produced, relations_produced
+FROM source_extraction_quality
+ORDER BY run_date DESC, source
+LIMIT 200;
+" > "$OUTDIR/08_source_quality.csv" 2>&1 || echo "(source_extraction_quality not yet populated)" > "$OUTDIR/08_source_quality.csv"
+
+# 9. Pipeline run history — from pipeline_runs table
+echo "[9/10] Pipeline run history (from DB)..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, status, ROUND(duration_sec, 0) as duration,
+       docs_ingested, docs_selected, docs_excluded, docs_extracted,
+       docs_escalated, entities_new, relations_added,
+       nodes_exported, trending_nodes, error_message
+FROM pipeline_runs
+WHERE domain = '${DOMAIN}'
+ORDER BY run_date DESC
+LIMIT 30;
+" > "$OUTDIR/09_pipeline_history.csv" 2>&1 || echo "(pipeline_runs not yet populated)" > "$OUTDIR/09_pipeline_history.csv"
+
+# 10. Document funnel (last 7 days) — from funnel_stats table
+echo "[10/10] Document funnel (from DB)..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, stage, docs_in, docs_out, docs_dropped, drop_reasons
+FROM funnel_stats
+WHERE domain = '${DOMAIN}'
+ORDER BY run_date DESC, stage
+LIMIT 100;
+" > "$OUTDIR/10_document_funnel.csv" 2>&1 || echo "(funnel_stats not yet populated)" > "$OUTDIR/10_document_funnel.csv"
 
 echo
 echo "=== Files collected ==="

@@ -191,3 +191,123 @@ CREATE TABLE IF NOT EXISTS bench (
 
 CREATE INDEX IF NOT EXISTS idx_bench_expires ON bench(expires_at);
 CREATE INDEX IF NOT EXISTS idx_bench_quality ON bench(quality_score DESC);
+
+-- =========================================================================
+-- Operational analytics tables (Sprint 7)
+-- These tables persist stats that were previously ephemeral (stdout / JSON
+-- log files only).  They enable SQL-based debugging of the full document
+-- funnel — from ingestion through trending — without log-file archaeology.
+-- =========================================================================
+
+-- Per-candidate scoring log — why each doc was selected, benched, or rejected.
+-- One row per candidate per pipeline run.  Enables auditing "why didn't my
+-- Bluesky articles get extracted?" by querying source_type + outcome.
+CREATE TABLE IF NOT EXISTS doc_selection_log (
+  doc_id            TEXT NOT NULL,
+  run_date          TEXT NOT NULL,        -- ISO date of the pipeline run
+  source            TEXT,
+  source_type       TEXT,
+  word_count        INTEGER,
+  word_count_score  REAL,
+  metadata_score    REAL,
+  source_tier_score REAL,
+  signal_type_score REAL,
+  recency_score     REAL,
+  combined_score    REAL,
+  outcome           TEXT NOT NULL,        -- 'selected', 'benched', 'rejected'
+  rejection_reason  TEXT,                 -- 'below_min_quality', 'budget_exceeded'
+  PRIMARY KEY (doc_id, run_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dsl_outcome ON doc_selection_log(outcome);
+CREATE INDEX IF NOT EXISTS idx_dsl_source_type ON doc_selection_log(source_type);
+CREATE INDEX IF NOT EXISTS idx_dsl_run_date ON doc_selection_log(run_date);
+
+-- Per-feed health stats — one row per feed per pipeline run.
+-- Tracks chronic feed problems and content volume by source.
+CREATE TABLE IF NOT EXISTS feed_stats (
+  run_date        TEXT NOT NULL,
+  feed_name       TEXT NOT NULL,
+  source_type     TEXT,
+  docs_fetched    INTEGER DEFAULT 0,
+  docs_new        INTEGER DEFAULT 0,
+  docs_skipped    INTEGER DEFAULT 0,
+  fetch_errors    INTEGER DEFAULT 0,
+  error_message   TEXT,
+  PRIMARY KEY (run_date, feed_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_feed_stats_date ON feed_stats(run_date);
+
+-- Per-source extraction quality — aggregated extraction outcomes by source.
+-- Answers "which feeds produce the worst extractions?" without manual joins.
+CREATE TABLE IF NOT EXISTS source_extraction_quality (
+  run_date           TEXT NOT NULL,
+  source             TEXT NOT NULL,
+  source_type        TEXT,
+  docs_extracted     INTEGER DEFAULT 0,
+  docs_escalated     INTEGER DEFAULT 0,
+  docs_failed        INTEGER DEFAULT 0,
+  avg_quality_score  REAL,
+  entities_produced  INTEGER DEFAULT 0,
+  relations_produced INTEGER DEFAULT 0,
+  PRIMARY KEY (run_date, source)
+);
+
+CREATE INDEX IF NOT EXISTS idx_seq_date ON source_extraction_quality(run_date);
+
+-- Entity trend scores over time — one row per entity per pipeline run.
+-- Enables "how has velocity changed over 2 weeks?" queries and tracking
+-- when entities enter/leave the trending view.
+CREATE TABLE IF NOT EXISTS trend_history (
+  entity_id         TEXT NOT NULL,
+  run_date          TEXT NOT NULL,
+  mention_count_7d  INTEGER,
+  mention_count_30d INTEGER,
+  velocity          REAL,
+  novelty           REAL,
+  bridge_score      REAL,
+  trend_score       REAL,
+  in_trending_view  INTEGER DEFAULT 0,  -- 1 if included in top-N export
+  PRIMARY KEY (entity_id, run_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_th_run_date ON trend_history(run_date);
+CREATE INDEX IF NOT EXISTS idx_th_trending ON trend_history(in_trending_view);
+
+-- Durable pipeline run log — one row per daily run per domain.
+-- Replaces ephemeral JSON log files for long-term health monitoring.
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+  run_date          TEXT NOT NULL,
+  domain            TEXT NOT NULL,
+  status            TEXT NOT NULL,       -- 'success', 'partial', 'failed'
+  duration_sec      REAL,
+  started_at        TEXT,
+  completed_at      TEXT,
+  docs_ingested     INTEGER DEFAULT 0,
+  docs_selected     INTEGER DEFAULT 0,
+  docs_excluded     INTEGER DEFAULT 0,
+  docs_extracted    INTEGER DEFAULT 0,
+  docs_escalated    INTEGER DEFAULT 0,
+  entities_new      INTEGER DEFAULT 0,
+  entities_resolved INTEGER DEFAULT 0,
+  relations_added   INTEGER DEFAULT 0,
+  nodes_exported    INTEGER DEFAULT 0,
+  edges_exported    INTEGER DEFAULT 0,
+  trending_nodes    INTEGER DEFAULT 0,
+  error_message     TEXT,
+  PRIMARY KEY (run_date, domain)
+);
+
+-- Per-stage funnel stats — tracks doc counts at each pipeline stage.
+-- Answers "where did the 691 ingested docs go?" in a single query.
+CREATE TABLE IF NOT EXISTS funnel_stats (
+  run_date      TEXT NOT NULL,
+  domain        TEXT NOT NULL,
+  stage         TEXT NOT NULL,           -- 'ingest', 'select', 'extract', 'import', 'export', 'trending'
+  docs_in       INTEGER DEFAULT 0,
+  docs_out      INTEGER DEFAULT 0,
+  docs_dropped  INTEGER DEFAULT 0,
+  drop_reasons  TEXT,                    -- JSON: {"budget_exceeded": 12, "below_quality": 3}
+  PRIMARY KEY (run_date, domain, stage)
+);
