@@ -354,12 +354,16 @@ class TrendScorer:
         self,
         output_dir: Path,
         limit: int = 50,
+        generate_narratives: bool = False,
+        narrative_model: str = "gpt-5-nano",
     ) -> Path:
         """Export trending entities to JSON file.
 
         Args:
             output_dir: Directory to write to
             limit: Maximum entities to include
+            generate_narratives: If True, generate "WHY" narratives via LLM
+            narrative_model: Model to use for narrative generation
 
         Returns:
             Path to created file
@@ -378,6 +382,21 @@ class TrendScorer:
             if row:
                 item["name"] = row[0]
                 item["type"] = row[1]
+
+        # Generate trend narratives ("What's Hot and WHY")
+        if generate_narratives and trending:
+            try:
+                from trend.narratives import generate_narratives as _gen_narratives
+                narratives = _gen_narratives(
+                    self.conn, trending, model=narrative_model,
+                )
+                for item in trending:
+                    narrative = narratives.get(item["entity_id"])
+                    if narrative:
+                        item["narrative"] = narrative
+            except Exception as e:
+                # Graceful degradation: export without narratives
+                print(f"  [trending] Narrative generation failed: {e}")
 
         output = {
             "generated_at": date.today().isoformat(),
