@@ -36,6 +36,14 @@ def main() -> int:
         "--dry-run", action="store_true",
         help="Report potential merges without applying",
     )
+    parser.add_argument(
+        "--llm-disambiguate", action="store_true",
+        help="Enable LLM-powered disambiguation for gray-zone pairs",
+    )
+    parser.add_argument(
+        "--disambiguate-model", default="gpt-5-nano",
+        help="Model for LLM disambiguation (default: gpt-5-nano)",
+    )
     args = parser.parse_args()
 
     from util.paths import get_db_path
@@ -54,11 +62,21 @@ def main() -> int:
         conn.close()
         return 0
 
-    stats = resolver.run_resolution_pass()
+    stats = resolver.run_resolution_pass(
+        llm_disambiguate=args.llm_disambiguate,
+        disambiguate_model=args.disambiguate_model,
+        dry_run=args.dry_run,
+    )
 
     print("Resolution pass complete:")
     print(f"  - {stats['entities_checked']} entities checked")
     print(f"  - {stats['merges_performed']} merges performed")
+
+    if args.llm_disambiguate:
+        print(f"  - {stats.get('disambig_pairs_evaluated', 0)} gray-zone pairs evaluated by LLM")
+        print(f"  - {stats.get('disambig_merges', 0)} LLM-confirmed merges")
+        print(f"  - {stats.get('disambig_kept_separate', 0)} kept separate")
+        print(f"  - {stats.get('disambig_uncertain', 0)} uncertain")
 
     conn.close()
     return 0

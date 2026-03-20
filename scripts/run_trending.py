@@ -26,6 +26,8 @@ def export_trending(
     db_path: Path,
     output_dir: Path,
     top_n: int,
+    generate_narratives: bool = False,
+    narrative_model: str = "gpt-5-nano",
 ) -> Path:
     """Export trending entities in Cytoscape.js format.
 
@@ -33,6 +35,8 @@ def export_trending(
         db_path: Path to SQLite database
         output_dir: Directory to write trending.json
         top_n: Maximum trending entities
+        generate_narratives: If True, add LLM-generated "WHY" narratives
+        narrative_model: Model for narrative generation
 
     Returns:
         Path to created file
@@ -161,6 +165,21 @@ def export_trending(
     edges = exporter._build_aggregated_edges(merged_relations)
     edges = GraphExporter._strip_orphan_edges(nodes, edges)
 
+    # Step 3b: Generate trend narratives ("What's Hot and WHY")
+    if generate_narratives and trending:
+        try:
+            from trend.narratives import generate_narratives as _gen_narratives
+            narratives = _gen_narratives(conn, trending, model=narrative_model)
+            for node in nodes:
+                eid = node["data"]["id"]
+                narrative = narratives.get(eid)
+                if narrative:
+                    node["data"]["narrative"] = narrative
+            if narratives:
+                print(f"  - Generated narratives for {len(narratives)} entities")
+        except Exception as e:
+            print(f"  - Narrative generation failed (non-fatal): {e}")
+
     # Step 4: Compute date range
     date_start = min(first_seen_dates) if first_seen_dates else None
     date_end = max(last_seen_dates) if last_seen_dates else date.today().isoformat()
@@ -217,6 +236,14 @@ def main() -> int:
         help=f"Date window for meta.dateRange (default: {DEFAULT_DATE_WINDOW_DAYS}). "
              "0 = compute range from entity dates.",
     )
+    parser.add_argument(
+        "--narratives", action="store_true",
+        help="Generate LLM-powered trend narratives (What's Hot and WHY)",
+    )
+    parser.add_argument(
+        "--narrative-model", default="gpt-5-nano",
+        help="Model for narrative generation (default: gpt-5-nano)",
+    )
     args = parser.parse_args()
 
     from util.paths import get_db_path, get_graphs_dir
@@ -228,6 +255,8 @@ def main() -> int:
         db_path=Path(args.db),
         output_dir=output_dir,
         top_n=args.top_n,
+        generate_narratives=args.narratives,
+        narrative_model=args.narrative_model,
     )
 
     return 0

@@ -1,13 +1,15 @@
 """Orchestrate the full daily pipeline and produce a structured run log.
 
 Runs all stages in order:
-  1. ingest  — fetch RSS feeds
-  2. docpack — bundle cleaned docs for extraction
-  3. extract — LLM extraction (if API key available)
-  4. import  — import extraction JSON into DB
-  5. resolve — entity resolution / deduplication
-  6. export  — export Cytoscape.js graph views
-  7. trending — compute and export trending view
+  1. ingest     — fetch RSS feeds
+  2. docpack    — bundle cleaned docs for extraction
+  3. extract    — LLM extraction (if API key available)
+  4. import     — import extraction JSON into DB
+  5. synthesize — cross-document synthesis (LLM, domain-configurable)
+  6. resolve    — entity resolution / deduplication + LLM disambiguation
+  7. infer      — rule-based relation inference (domain-configurable)
+  8. export     — export Cytoscape.js graph views
+  9. trending   — compute and export trending view with narratives
 
 Writes a JSON run log to data/logs/pipeline_YYYY-MM-DD.json and prints
 a one-liner summary suitable for cron email capture.
@@ -743,10 +745,33 @@ def main() -> int:
             "fatal": False,
         },
         {
+            "name": "synthesize",
+            "cmd": [
+                sys.executable, "scripts/run_synthesize.py",
+                "--db", db_path,
+                "--run-date", run_date,
+                "--domain", args.domain,
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
+        },
+        {
             "name": "resolve",
             "cmd": [
                 sys.executable, "scripts/run_resolve.py",
                 "--db", db_path,
+                "--llm-disambiguate",
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
+        },
+        {
+            "name": "infer",
+            "cmd": [
+                sys.executable, "scripts/run_infer.py",
+                "--db", db_path,
+                "--run-date", run_date,
+                "--domain", args.domain,
             ],
             "parse": lambda s: {},
             "fatal": False,
@@ -768,6 +793,7 @@ def main() -> int:
                 sys.executable, "scripts/run_trending.py",
                 "--db", db_path,
                 "--output-dir", f"{graphs_dir}/{run_date}",
+                "--narratives",
             ],
             "parse": parse_trending_output,
             "fatal": False,

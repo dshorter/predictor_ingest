@@ -294,6 +294,30 @@ suppressed_entities:
   - industry
   - market
 
+# --- LLM Leverage Features ---
+# Framework features configured per-domain. See docs/guides/new-domain-features.md.
+# AI domain: strict semantic extraction — inference and synthesis disabled.
+features:
+  llm_disambiguation:
+    enabled: true
+    similarity_lower_bound: 0.40
+    similarity_upper_bound: 0.85
+    max_pairs_per_run: 50
+    batch_size: 15
+    entity_types_to_disambiguate: [Org, Model, Tool]
+
+  relation_inference:
+    enabled: false          # strict semantic rules — born from this domain
+
+  cross_document_synthesis:
+    enabled: false          # low ROI for AI trade press (articles self-contained)
+
+  trend_narratives:
+    enabled: true
+    top_n: 10
+    max_tokens_per_narrative: 100
+    style: "technical"
+
 # --- Prompts ---
 # Paths are relative to this domain directory (domains/ai/).
 prompts:

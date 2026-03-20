@@ -1,0 +1,60 @@
+# Film domain inference rules
+# Evaluated by src/infer/__init__.py against the knowledge graph.
+# Each rule defines antecedent relation patterns and a consequent relation
+# to infer when the pattern is matched.
+
+inference_rules:
+  - name: "director_studio_via_production"
+    description: "If Person directs Production and Production is distributed by Studio, infer Person works with Studio"
+    antecedents:
+      - {source_type: Person, rel: DIRECTS, target_type: Production}
+      - {source_type: Production, rel: DISTRIBUTES, target_type: Distributor}
+    consequent:
+      rel: PARTNERS_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.8
+
+  - name: "actor_award_via_production"
+    description: "If Person stars in Production and Production wins Award, infer Person nominated for Award"
+    antecedents:
+      - {source_type: Person, rel: STARS_IN, target_type: Production}
+      - {source_type: Production, rel: WINS, target_type: Award}
+    consequent:
+      rel: NOMINATED_FOR
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.7
+
+  - name: "studio_festival_via_production"
+    description: "If Studio produces Production and Production premieres at Festival, infer Studio participates at Festival"
+    antecedents:
+      - {source_type: Studio, rel: PRODUCES, target_type: Production}
+      - {source_type: Production, rel: PREMIERES_AT, target_type: Festival}
+    consequent:
+      rel: PARTNERS_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.75
+
+  - name: "director_festival_via_production"
+    description: "If Person directs Production and Production is selected by Festival, infer Person participates at Festival"
+    antecedents:
+      - {source_type: Person, rel: DIRECTS, target_type: Production}
+      - {source_type: Production, rel: SELECTED_BY, target_type: Festival}
+    consequent:
+      rel: PARTNERS_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.75
+
+  - name: "agency_studio_via_person"
+    description: "If Agency represents Person and Person signs with Studio, infer Agency partners with Studio"
+    antecedents:
+      - {source_type: Agency, rel: REPRESENTS, target_type: Person}
+      - {source_type: Person, rel: SIGNS_WITH, target_type: Studio}
+    consequent:
+      rel: PARTNERS_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.65

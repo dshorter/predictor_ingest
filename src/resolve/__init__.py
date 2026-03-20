@@ -459,10 +459,24 @@ class EntityResolver:
 
         return resolved
 
-    def run_resolution_pass(self) -> dict[str, int]:
+    def run_resolution_pass(
+        self,
+        llm_disambiguate: bool = False,
+        disambiguate_model: str = "gpt-5-nano",
+        run_date: Optional[str] = None,
+        dry_run: bool = False,
+    ) -> dict[str, int]:
         """Run resolution on all entities in database.
 
-        Finds and merges duplicate entities.
+        Finds and merges duplicate entities.  When *llm_disambiguate* is
+        True, a second pass sends "gray zone" pairs to an LLM for
+        disambiguation (see ``resolve.disambiguate``).
+
+        Args:
+            llm_disambiguate: Enable LLM disambiguation pass.
+            disambiguate_model: Model to use for LLM disambiguation.
+            run_date: ISO date for logging (defaults to today).
+            dry_run: If True, evaluate but don't merge (disambiguation only).
 
         Returns:
             Statistics dict with counts
@@ -508,5 +522,21 @@ class EntityResolver:
                 stats["merges_performed"] += 1
 
             processed.add(entity["entity_id"])
+
+        # --- LLM disambiguation pass (Feature 1) ---
+        if llm_disambiguate:
+            from resolve.disambiguate import run_llm_disambiguation
+            dr = run_llm_disambiguation(
+                self.conn,
+                model=disambiguate_model,
+                run_date=run_date,
+                dry_run=dry_run,
+            )
+            stats["disambig_pairs_evaluated"] = dr.pairs_evaluated
+            stats["disambig_merges"] = dr.merges_performed
+            stats["disambig_kept_separate"] = dr.kept_separate
+            stats["disambig_uncertain"] = dr.uncertain
+            stats["disambig_llm_calls"] = dr.llm_calls
+            stats["merges_performed"] += dr.merges_performed
 
         return stats
