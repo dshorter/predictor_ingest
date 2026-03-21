@@ -223,6 +223,37 @@
    What's Hot panel (Sprint 8)
    ========================================================================= */
 
+/* Flame gradient left border — overrides the default panel accent */
+#hot-panel {
+  border-left: none;
+  overflow: visible;
+}
+
+#hot-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    #ff4500 0%,    /* red-orange */
+    #ff8c00 30%,   /* dark orange */
+    #ffd700 60%,   /* gold */
+    #ff8c00 80%,
+    #ff4500 100%
+  );
+  background-size: 100% 200%;
+  animation: flame-border 3s ease-in-out infinite;
+}
+
+@keyframes flame-border {
+  0%, 100% { background-position: 0% 0%; }
+  50%      { background-position: 0% 100%; }
+}
+
 .hot-header {
   display: flex;
   align-items: baseline;
@@ -341,6 +372,14 @@
   text-align: center;
   color: var(--gray-400);
   font-size: var(--text-sm);
+}
+
+/* Full narrative in detail panel (no line clamp) */
+.detail-narrative {
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+  line-height: var(--leading-relaxed);
+  margin: 0;
 }
 
 /* Hidden utility for panels */
