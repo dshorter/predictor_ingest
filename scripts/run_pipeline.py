@@ -478,7 +478,7 @@ def parse_export_output(stdout: str) -> dict:
 
 def parse_trending_output(stdout: str) -> dict:
     """Parse trending stage stdout for stats."""
-    stats = {"trendingNodes": 0, "trendingEdges": 0}
+    stats = {"trendingNodes": 0, "trendingEdges": 0, "narrativesGenerated": 0}
     for line in stdout.splitlines():
         if "nodes" in line.lower() and "edges" in line.lower():
             for i, word in enumerate(line.split()):
@@ -489,6 +489,144 @@ def parse_trending_output(stdout: str) -> dict:
                         stats["trendingNodes"] = int(word)
                     elif idx + 1 < len(words) and "edge" in words[idx + 1]:
                         stats["trendingEdges"] = int(word)
+        # "Generated narratives for 10 entities"
+        if "generated narratives" in line.lower():
+            for word in line.split():
+                if word.isdigit():
+                    stats["narrativesGenerated"] = int(word)
+                    break
+    return stats
+
+
+def parse_synthesize_output(stdout: str) -> dict:
+    """Parse synthesize stage stdout for stats.
+
+    Expected output format from run_synthesize.py:
+        Synthesis complete:
+          - 3 document clusters processed
+          - 5 entities corroborated
+          - 2 relations inferred
+          - 3 LLM calls
+          - 1234ms
+    """
+    import re
+    stats = {
+        "batchesProcessed": 0,
+        "entitiesCorroborated": 0,
+        "relationsInferred": 0,
+        "llmCalls": 0,
+        "durationMs": 0,
+    }
+    for line in stdout.splitlines():
+        lower = line.strip().lower()
+        if "document clusters processed" in lower or "clusters processed" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["batchesProcessed"] = int(m.group(1))
+        elif "entities corroborated" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["entitiesCorroborated"] = int(m.group(1))
+        elif "relations inferred" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["relationsInferred"] = int(m.group(1))
+        elif "llm calls" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["llmCalls"] = int(m.group(1))
+        elif lower.endswith("ms") and lower.startswith("-"):
+            m = re.search(r"(\d+)ms", lower)
+            if m:
+                stats["durationMs"] = int(m.group(1))
+    return stats
+
+
+def parse_resolve_output(stdout: str) -> dict:
+    """Parse resolve stage stdout for stats.
+
+    Expected output format from run_resolve.py:
+        Resolution pass complete:
+          - 42 entities checked
+          - 3 merges performed
+          - 12 gray-zone pairs evaluated by LLM
+          - 2 LLM-confirmed merges
+          - 8 kept separate
+          - 2 uncertain
+    """
+    import re
+    stats = {
+        "entitiesChecked": 0,
+        "mergesPerformed": 0,
+        "disambigPairsEvaluated": 0,
+        "disambigMerges": 0,
+        "disambigKeptSeparate": 0,
+        "disambigUncertain": 0,
+    }
+    for line in stdout.splitlines():
+        lower = line.strip().lower()
+        if "entities checked" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["entitiesChecked"] = int(m.group(1))
+        elif "merges performed" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["mergesPerformed"] = int(m.group(1))
+        elif "gray-zone pairs evaluated" in lower or "pairs evaluated" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["disambigPairsEvaluated"] = int(m.group(1))
+        elif "llm-confirmed merges" in lower or "confirmed merges" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["disambigMerges"] = int(m.group(1))
+        elif "kept separate" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["disambigKeptSeparate"] = int(m.group(1))
+        elif "uncertain" in lower and "merges" not in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["disambigUncertain"] = int(m.group(1))
+    return stats
+
+
+def parse_infer_output(stdout: str) -> dict:
+    """Parse infer stage stdout for stats.
+
+    Expected output format from run_infer.py:
+        Inference pass complete:
+          - 5 rules evaluated
+          - 12 relations inferred
+          - 3 skipped (already existed)
+          - 450ms
+    """
+    import re
+    stats = {
+        "rulesEvaluated": 0,
+        "relationsInferred": 0,
+        "relationsSkipped": 0,
+        "durationMs": 0,
+    }
+    for line in stdout.splitlines():
+        lower = line.strip().lower()
+        if "rules evaluated" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["rulesEvaluated"] = int(m.group(1))
+        elif "relations inferred" in lower:
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["relationsInferred"] = int(m.group(1))
+        elif "skipped" in lower and ("already existed" in lower or "relations" in lower):
+            m = re.search(r"(\d+)", line)
+            if m:
+                stats["relationsSkipped"] = int(m.group(1))
+        elif lower.endswith("ms") and lower.startswith("-"):
+            m = re.search(r"(\d+)ms", lower)
+            if m:
+                stats["durationMs"] = int(m.group(1))
     return stats
 
 
@@ -527,19 +665,30 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
         docpack = stages.get("docpack", {})
         extract = stages.get("extract", {})
         imp = stages.get("import", {})
+        synthesize = stages.get("synthesize", {})
+        resolve = stages.get("resolve", {})
+        infer = stages.get("infer", {})
         export = stages.get("export", {})
         trending = stages.get("trending", {})
 
         run_date = run_log.get("runDate", "")
 
-        # pipeline_runs
+        # Ensure new columns exist (additive migration — safe to repeat)
+        _ensure_pipeline_runs_columns(conn)
+
+        # pipeline_runs — core columns + new feature columns
         conn.execute(
             """INSERT OR REPLACE INTO pipeline_runs
                (run_date, domain, status, duration_sec, started_at, completed_at,
                 docs_ingested, docs_selected, docs_excluded, docs_extracted,
                 docs_escalated, entities_new, entities_resolved, relations_added,
-                nodes_exported, edges_exported, trending_nodes, error_message)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                nodes_exported, edges_exported, trending_nodes, error_message,
+                synthesis_batches, synthesis_corroborated, synthesis_relations,
+                disambig_pairs, disambig_merges, disambig_kept_separate,
+                infer_rules, infer_relations, infer_skipped,
+                narratives_generated, resolve_merges)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                       ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (run_date, domain, run_log.get("status", "unknown"),
              run_log.get("durationSec"), run_log.get("startedAt"),
              run_log.get("completedAt"),
@@ -554,10 +703,22 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
              export.get("totalNodes", 0),
              export.get("totalEdges", 0),
              trending.get("trendingNodes", 0),
-             "; ".join(run_log.get("failedStages", []))),
+             "; ".join(run_log.get("failedStages", [])),
+             # New feature columns
+             synthesize.get("batchesProcessed", 0),
+             synthesize.get("entitiesCorroborated", 0),
+             synthesize.get("relationsInferred", 0),
+             resolve.get("disambigPairsEvaluated", 0),
+             resolve.get("disambigMerges", 0),
+             resolve.get("disambigKeptSeparate", 0),
+             infer.get("rulesEvaluated", 0),
+             infer.get("relationsInferred", 0),
+             infer.get("relationsSkipped", 0),
+             trending.get("narrativesGenerated", 0),
+             resolve.get("mergesPerformed", 0)),
         )
 
-        # funnel_stats — one row per stage
+        # funnel_stats — one row per stage (now includes synthesize, resolve, infer)
         funnel_data = [
             ("ingest", ingest.get("newDocsFound", 0) + ingest.get("duplicatesSkipped", 0),
              ingest.get("newDocsFound", 0), ingest.get("duplicatesSkipped", 0) + ingest.get("fetchErrors", 0),
@@ -573,8 +734,28 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
             ("import", extract.get("docsExtracted", 0), imp.get("filesImported", 0),
              imp.get("errors", 0) if isinstance(imp.get("errors"), int) else 0,
              None),
+            ("synthesize", synthesize.get("batchesProcessed", 0),
+             synthesize.get("relationsInferred", 0) + synthesize.get("entitiesCorroborated", 0),
+             0,
+             json.dumps({"llm_calls": synthesize.get("llmCalls", 0),
+                         "entities_corroborated": synthesize.get("entitiesCorroborated", 0),
+                         "relations_inferred": synthesize.get("relationsInferred", 0)})),
+            ("resolve", resolve.get("entitiesChecked", 0),
+             resolve.get("mergesPerformed", 0) + resolve.get("disambigMerges", 0),
+             0,
+             json.dumps({"fuzzy_merges": resolve.get("mergesPerformed", 0),
+                         "disambig_pairs": resolve.get("disambigPairsEvaluated", 0),
+                         "disambig_merges": resolve.get("disambigMerges", 0),
+                         "disambig_kept_separate": resolve.get("disambigKeptSeparate", 0)})),
+            ("infer", infer.get("rulesEvaluated", 0),
+             infer.get("relationsInferred", 0),
+             infer.get("relationsSkipped", 0),
+             json.dumps({"rules_evaluated": infer.get("rulesEvaluated", 0),
+                         "relations_skipped": infer.get("relationsSkipped", 0)})),
             ("export", imp.get("filesImported", 0), export.get("totalNodes", 0), 0, None),
-            ("trending", export.get("totalNodes", 0), trending.get("trendingNodes", 0), 0, None),
+            ("trending", export.get("totalNodes", 0), trending.get("trendingNodes", 0), 0,
+             json.dumps({"narratives": trending.get("narrativesGenerated", 0)})
+             if trending.get("narrativesGenerated", 0) else None),
         ]
         for stage, docs_in, docs_out, docs_dropped, drop_reasons in funnel_data:
             conn.execute(
@@ -588,6 +769,34 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
         conn.close()
     except Exception:
         pass  # analytics should never break the pipeline
+
+
+def _ensure_pipeline_runs_columns(conn: sqlite3.Connection) -> None:
+    """Add new feature columns to pipeline_runs if they don't exist yet.
+
+    Safe to call repeatedly — each ALTER TABLE is wrapped in a try/except
+    that silently handles the 'duplicate column' case.
+    """
+    new_columns = [
+        ("synthesis_batches", "INTEGER DEFAULT 0"),
+        ("synthesis_corroborated", "INTEGER DEFAULT 0"),
+        ("synthesis_relations", "INTEGER DEFAULT 0"),
+        ("disambig_pairs", "INTEGER DEFAULT 0"),
+        ("disambig_merges", "INTEGER DEFAULT 0"),
+        ("disambig_kept_separate", "INTEGER DEFAULT 0"),
+        ("infer_rules", "INTEGER DEFAULT 0"),
+        ("infer_relations", "INTEGER DEFAULT 0"),
+        ("infer_skipped", "INTEGER DEFAULT 0"),
+        ("narratives_generated", "INTEGER DEFAULT 0"),
+        ("resolve_merges", "INTEGER DEFAULT 0"),
+    ]
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(pipeline_runs)").fetchall()}
+    for col_name, col_def in new_columns:
+        if col_name not in existing:
+            try:
+                conn.execute(f"ALTER TABLE pipeline_runs ADD COLUMN {col_name} {col_def}")
+            except Exception:
+                pass  # column already exists (race condition or schema mismatch)
 
 
 def main() -> int:
@@ -752,7 +961,7 @@ def main() -> int:
                 "--run-date", run_date,
                 "--domain", args.domain,
             ],
-            "parse": lambda s: {},
+            "parse": parse_synthesize_output,
             "fatal": False,
         },
         {
@@ -762,7 +971,7 @@ def main() -> int:
                 "--db", db_path,
                 "--llm-disambiguate",
             ],
-            "parse": lambda s: {},
+            "parse": parse_resolve_output,
             "fatal": False,
         },
         {
@@ -773,7 +982,7 @@ def main() -> int:
                 "--run-date", run_date,
                 "--domain", args.domain,
             ],
-            "parse": lambda s: {},
+            "parse": parse_infer_output,
             "fatal": False,
         },
         {
@@ -1001,6 +1210,10 @@ def main() -> int:
     ingest = run_log["stages"].get("ingest", {})
     extract = run_log["stages"].get("extract", {})
     export = run_log["stages"].get("export", {})
+    synthesize_s = run_log["stages"].get("synthesize", {})
+    resolve_s = run_log["stages"].get("resolve", {})
+    infer_s = run_log["stages"].get("infer", {})
+    trending_s = run_log["stages"].get("trending", {})
 
     new_docs = ingest.get("newDocsFound", "?")
     entities = extract.get("entitiesFound", "?")
@@ -1019,6 +1232,24 @@ def main() -> int:
         f"{feeds} feeds | {run_log['durationSec']}s"
     )
     print(summary)
+
+    # Feature highlights (non-zero only)
+    feature_parts = []
+    synth_batches = synthesize_s.get("batchesProcessed", 0)
+    if synth_batches:
+        feature_parts.append(f"synth={synth_batches}batches/{synthesize_s.get('relationsInferred', 0)}rels")
+    merges = resolve_s.get("mergesPerformed", 0) + resolve_s.get("disambigMerges", 0)
+    if merges:
+        feature_parts.append(f"resolve={merges}merges")
+    infer_rels = infer_s.get("relationsInferred", 0)
+    if infer_rels:
+        feature_parts.append(f"infer={infer_rels}rels")
+    narr = trending_s.get("narrativesGenerated", 0)
+    if narr:
+        feature_parts.append(f"narratives={narr}")
+    if feature_parts:
+        print(f"  Features: {' | '.join(feature_parts)}")
+
     print(f"Log: {log_path}")
 
     return 0 if overall_status == "success" else 1

@@ -360,6 +360,51 @@ suppressed_entities:
   - guideline
   - standard
 
+# --- LLM Leverage Features ---
+# Framework features configured per-domain. See docs/guides/new-domain-features.md.
+#
+# Biosafety domain rationale:
+# - Disambiguation: HIGH value — regulatory entities appear under many aliases
+#   ("CDC", "Centers for Disease Control and Prevention", "CDC/ATSDR")
+# - Inference: HIGH value — regulatory chains are structurally predictable
+#   (Org REGULATES Facility + Facility STORES SelectAgent → oversight link)
+# - Synthesis: MEDIUM value — academic/regulatory articles reference the same
+#   agents and facilities across documents; corroboration strengthens confidence
+# - Narratives: MEDIUM value — regulatory/technical style suits the audience
+features:
+  llm_disambiguation:
+    enabled: true
+    similarity_lower_bound: 0.40
+    similarity_upper_bound: 0.85
+    max_pairs_per_run: 50
+    batch_size: 15
+    # Regulatory entities are prime disambiguation targets:
+    # Orgs have many abbreviations, Facilities have formal/informal names,
+    # SelectAgents have common names vs scientific names
+    entity_types_to_disambiguate: [Org, Facility, SelectAgent, Person]
+
+  relation_inference:
+    enabled: true
+    confidence_discount: 0.75       # slightly lower than film — regulatory chains are strong but indirect
+    max_inferences_per_run: 500
+    rules_file: "inference_rules.yaml"
+
+  cross_document_synthesis:
+    enabled: true
+    batch_size: 5
+    min_shared_entities: 1
+    max_batches_per_run: 10
+    synthesis_patterns:
+      - "corroboration"
+      - "implicit_relations"
+      - "regulatory_chain"           # biosafety-specific: connect oversight relationships across docs
+
+  trend_narratives:
+    enabled: true
+    top_n: 10
+    max_tokens_per_narrative: 120    # slightly longer — regulatory context needs more words
+    style: "regulatory"              # formal/factual tone appropriate for biosafety domain
+
 # --- Prompts ---
 prompts:
   dir: prompts

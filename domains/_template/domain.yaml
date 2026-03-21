@@ -132,9 +132,56 @@ suppressed_entities: []
   # - "system"
   # - "platform"
 
+# --- LLM Leverage Features ---
+# Optional features that use LLM or rule-based inference to enrich the graph.
+# Each feature is independently toggleable. Disabled by default — enable after
+# your domain has a baseline extraction pipeline producing entities and relations.
+#
+# Decision guide: see docs/guides/new-domain-features.md
+#
+# Quick heuristics:
+#   Disambiguation → enable if entities have aliases/abbreviations (most domains)
+#   Inference      → enable if your relation taxonomy has transitive chains
+#   Synthesis      → enable if your sources cover overlapping topics (trade press, news)
+#   Narratives     → enable if the UI shows a trending view
+features:
+  llm_disambiguation:
+    enabled: false
+    similarity_lower_bound: 0.40     # pairs below this are auto-skipped (clearly different)
+    similarity_upper_bound: 0.85     # pairs above this are auto-merged (clearly same)
+    max_pairs_per_run: 50
+    batch_size: 15
+    entity_types_to_disambiguate: [] # e.g., [Org, Person] — which types to evaluate
+
+  relation_inference:
+    enabled: false
+    confidence_discount: 0.8         # multiply source confidence by this for inferred relations
+    max_inferences_per_run: 500
+    rules_file: "inference_rules.yaml"  # must exist in domains/<slug>/
+
+  cross_document_synthesis:
+    enabled: false
+    batch_size: 5
+    min_shared_entities: 1           # minimum shared entities to form a document cluster
+    max_batches_per_run: 10
+    synthesis_patterns:              # which patterns to look for
+      - "corroboration"
+      - "implicit_relations"
+      # - "event_clustering"         # add domain-specific patterns as needed
+
+  trend_narratives:
+    enabled: false
+    top_n: 10                        # generate narratives for top N trending entities
+    max_tokens_per_narrative: 100
+    style: "concise"                 # options: "concise", "technical", "regulatory"
+
 # --- Prompts ---
 # Paths are relative to this domain directory.
 # See domains/ai/prompts/ for examples of the expected template format.
+# Feature prompts (optional — defaults used if not present):
+#   disambiguate_system.txt — disambiguation LLM prompt
+#   narrative_system.txt    — trend narrative LLM prompt
+#   synthesis_system.txt    — cross-document synthesis LLM prompt
 prompts:
   dir: prompts
   system_prompt: system.txt

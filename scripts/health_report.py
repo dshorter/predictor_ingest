@@ -500,6 +500,221 @@ def section_quality_gates(w: ReportWriter, conn: sqlite3.Connection) -> dict:
     }
 
 
+def section_llm_features(w: ReportWriter, conn: sqlite3.Connection, logs_dir: Path) -> dict:
+    """LLM feature health: disambiguation, synthesis, inference, narratives.
+
+    Checks all four new pipeline features and reports their activity,
+    effectiveness, and any potential issues.
+    """
+    stats: dict = {}
+
+    w.print("LLM Feature Health")
+    w.print("=" * 72)
+
+    # --- 1. Entity Disambiguation ---
+    try:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM disambiguation_decisions").fetchone()
+        total_decisions = row["cnt"]
+    except Exception:
+        total_decisions = 0
+
+    if total_decisions > 0:
+        cursor = conn.execute(
+            """SELECT llm_verdict, COUNT(*) as cnt
+               FROM disambiguation_decisions
+               GROUP BY llm_verdict ORDER BY cnt DESC"""
+        )
+        verdict_rows = cursor.fetchall()
+
+        # Recent decisions (last 7 days)
+        cursor = conn.execute(
+            """SELECT COUNT(*) as cnt FROM disambiguation_decisions
+               WHERE run_date >= DATE('now', '-7 days')"""
+        )
+        recent = cursor.fetchone()["cnt"]
+
+        w.print(f"\n  Entity Disambiguation ({total_decisions} total decisions, {recent} last 7d)")
+        for r in verdict_rows:
+            pct = r["cnt"] / total_decisions * 100
+            w.print(f"    {r['llm_verdict']:<20} {r['cnt']:>5}  ({pct:.0f}%)")
+
+        merge_count = sum(r["cnt"] for r in verdict_rows if r["llm_verdict"] == "merge")
+        stats["disambig_total"] = total_decisions
+        stats["disambig_merges"] = merge_count
+        stats["disambig_recent"] = recent
+
+        if merge_count == 0 and total_decisions > 10:
+            w.print(f"    WARN: zero merges from {total_decisions} evaluations — check similarity bounds")
+    else:
+        w.print("\n  Entity Disambiguation")
+        w.print("    No disambiguation data yet (enable llm_disambiguation in domain.yaml)")
+
+    # --- 2. Cross-Document Synthesis ---
+    try:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM synthesis_runs").fetchone()
+        total_synth = row["cnt"]
+    except Exception:
+        total_synth = 0
+
+    if total_synth > 0:
+        cursor = conn.execute(
+            """SELECT COUNT(*) as runs,
+                      SUM(entities_corroborated) as total_corroborated,
+                      SUM(relations_inferred) as total_relations,
+                      AVG(duration_ms) as avg_duration
+               FROM synthesis_runs"""
+        )
+        synth = cursor.fetchone()
+
+        # Recent runs
+        cursor = conn.execute(
+            """SELECT COUNT(*) as cnt, SUM(entities_corroborated) as corr,
+                      SUM(relations_inferred) as rels
+               FROM synthesis_runs WHERE run_date >= DATE('now', '-7 days')"""
+        )
+        recent_synth = cursor.fetchone()
+
+        w.print(f"\n  Cross-Document Synthesis ({synth['runs']} batches)")
+        w.print(f"    Entities corroborated: {synth['total_corroborated'] or 0}")
+        w.print(f"    Relations inferred:    {synth['total_relations'] or 0}")
+        w.print(f"    Avg batch duration:    {synth['avg_duration']:.0f}ms" if synth['avg_duration'] else "    Avg batch duration:    --")
+        w.print(f"    Last 7d: {recent_synth['cnt']} batches, "
+                f"{recent_synth['corr'] or 0} corroborated, {recent_synth['rels'] or 0} relations")
+
+        stats["synthesis_batches"] = synth["runs"]
+        stats["synthesis_corroborated"] = synth["total_corroborated"] or 0
+        stats["synthesis_relations"] = synth["total_relations"] or 0
+    else:
+        w.print("\n  Cross-Document Synthesis")
+        w.print("    No synthesis data yet (enable cross_document_synthesis in domain.yaml)")
+
+    # --- 3. Relation Inference ---
+    try:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM inference_runs").fetchone()
+        total_infer = row["cnt"]
+    except Exception:
+        total_infer = 0
+
+    if total_infer > 0:
+        cursor = conn.execute(
+            """SELECT SUM(rules_evaluated) as total_rules,
+                      SUM(relations_inferred) as total_inferred,
+                      SUM(relations_skipped) as total_skipped,
+                      AVG(duration_ms) as avg_duration
+               FROM inference_runs"""
+        )
+        inf = cursor.fetchone()
+
+        w.print(f"\n  Relation Inference ({total_infer} runs)")
+        w.print(f"    Total rules evaluated: {inf['total_rules'] or 0}")
+        w.print(f"    Relations inferred:    {inf['total_inferred'] or 0}")
+        w.print(f"    Relations skipped:     {inf['total_skipped'] or 0} (already existed)")
+        w.print(f"    Avg run duration:      {inf['avg_duration']:.0f}ms" if inf['avg_duration'] else "    Avg run duration:      --")
+
+        # Inferred relation share of total
+        try:
+            total_rels = conn.execute("SELECT COUNT(*) as cnt FROM relations").fetchone()["cnt"]
+            inferred_rels = conn.execute(
+                "SELECT COUNT(*) as cnt FROM relations WHERE kind = 'inferred'"
+            ).fetchone()["cnt"]
+            if total_rels > 0:
+                pct = inferred_rels / total_rels * 100
+                w.print(f"    Inferred share:        {inferred_rels}/{total_rels} ({pct:.1f}%)")
+        except Exception:
+            pass
+
+        stats["infer_runs"] = total_infer
+        stats["infer_relations"] = inf["total_inferred"] or 0
+    else:
+        w.print("\n  Relation Inference")
+        w.print("    No inference data yet (enable relation_inference in domain.yaml)")
+
+    # --- 4. Trend Narratives ---
+    try:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM trend_narratives").fetchone()
+        total_narratives = row["cnt"]
+    except Exception:
+        total_narratives = 0
+
+    if total_narratives > 0:
+        cursor = conn.execute(
+            """SELECT COUNT(DISTINCT run_date) as run_days,
+                      COUNT(DISTINCT entity_id) as unique_entities,
+                      COUNT(*) as total
+               FROM trend_narratives"""
+        )
+        narr = cursor.fetchone()
+
+        # Most recent narratives
+        cursor = conn.execute(
+            """SELECT COUNT(*) as cnt FROM trend_narratives
+               WHERE run_date >= DATE('now', '-7 days')"""
+        )
+        recent_narr = cursor.fetchone()["cnt"]
+
+        w.print(f"\n  Trend Narratives ({narr['total']} total)")
+        w.print(f"    Unique entities narrated: {narr['unique_entities']}")
+        w.print(f"    Run days with narratives: {narr['run_days']}")
+        w.print(f"    Last 7d narratives:       {recent_narr}")
+
+        stats["narratives_total"] = narr["total"]
+        stats["narratives_entities"] = narr["unique_entities"]
+    else:
+        w.print("\n  Trend Narratives")
+        w.print("    No narrative data yet (enable trend_narratives in domain.yaml)")
+
+    # --- Island entity rate (key metric for inference + synthesis) ---
+    try:
+        total_entities = conn.execute("SELECT COUNT(*) as cnt FROM entities").fetchone()["cnt"]
+        # Entities with zero non-MENTIONS semantic relations
+        island_entities = conn.execute(
+            """SELECT COUNT(*) as cnt FROM entities e
+               WHERE NOT EXISTS (
+                   SELECT 1 FROM relations r
+                   WHERE (r.source_id = e.entity_id OR r.target_id = e.entity_id)
+                   AND r.rel != 'MENTIONS'
+               )"""
+        ).fetchone()["cnt"]
+        if total_entities > 0:
+            island_rate = island_entities / total_entities * 100
+            w.print(f"\n  Island Entity Rate: {island_entities}/{total_entities} ({island_rate:.1f}%)")
+            if island_rate > 30:
+                w.print(f"    Target: <25% — enable inference and synthesis to reduce")
+            else:
+                w.print(f"    OK (target: <25%)")
+            stats["island_rate"] = round(island_rate, 1)
+    except Exception:
+        pass
+
+    # --- Corroboration rate (key metric for synthesis) ---
+    try:
+        total_entities = conn.execute("SELECT COUNT(*) as cnt FROM entities").fetchone()["cnt"]
+        corroborated = conn.execute(
+            """SELECT COUNT(DISTINCT entity_id) as cnt FROM (
+                   SELECT source_id as entity_id, COUNT(DISTINCT doc_id) as dc
+                   FROM relations WHERE doc_id IS NOT NULL
+                   GROUP BY source_id HAVING dc >= 2
+                   UNION
+                   SELECT target_id as entity_id, COUNT(DISTINCT doc_id) as dc
+                   FROM relations WHERE doc_id IS NOT NULL
+                   GROUP BY target_id HAVING dc >= 2
+               )"""
+        ).fetchone()["cnt"]
+        if total_entities > 0:
+            uncorroborated_rate = (total_entities - corroborated) / total_entities * 100
+            w.print(f"  Uncorroborated Rate: {total_entities - corroborated}/{total_entities} ({uncorroborated_rate:.1f}%)")
+            if uncorroborated_rate > 70:
+                w.print(f"    Target: <70% — cross-document synthesis helps")
+            else:
+                w.print(f"    OK (target: <70%)")
+            stats["uncorroborated_rate"] = round(uncorroborated_rate, 1)
+    except Exception:
+        pass
+
+    w.print()
+    return stats
+
+
 def section_selection_efficiency(w: ReportWriter, logs_dir: Path, n: int = 14) -> dict:
     """Article selection budget efficiency from recent pipeline logs.
 
@@ -656,6 +871,7 @@ def run_report(db_path: Path, days: int | None, summary_only: bool = False,
     graph = section_graph_density(w, conn)
     overlap = section_entity_overlap(w, conn)
     section_quality_gates(w, conn)
+    section_llm_features(w, conn, logs_dir)
     section_selection_efficiency(w, logs_dir)
     section_source_contribution(w, conn)
     section_source_freshness(w, conn)
