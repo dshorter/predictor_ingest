@@ -1,0 +1,76 @@
+# Biosafety domain inference rules
+# Evaluated by src/infer/__init__.py against the knowledge graph.
+# Each rule defines antecedent relation patterns and a consequent relation
+# to infer when the pattern is matched.
+#
+# Biosafety domain rationale: regulatory oversight chains are highly
+# predictable. If Org A regulates Facility B, and Facility B stores
+# SelectAgent C, we can confidently infer Org A has oversight of C.
+# These chains are the structural backbone of the FSAP regulatory graph.
+
+inference_rules:
+  - name: "oversight_via_facility"
+    description: "If Org regulates Facility and Facility stores SelectAgent, infer Org monitors SelectAgent"
+    antecedents:
+      - {source_type: Org, rel: REGULATES, target_type: Facility}
+      - {source_type: Facility, rel: STORES, target_type: SelectAgent}
+    consequent:
+      rel: MONITORS
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.80
+
+  - name: "inspection_via_regulation"
+    description: "If Org enforces Regulation and Regulation regulates Facility, infer Org inspects Facility"
+    antecedents:
+      - {source_type: Org, rel: ENFORCES, target_type: Regulation}
+      - {source_type: Regulation, rel: REGULATES, target_type: Facility}
+    consequent:
+      rel: INSPECTS
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.75
+
+  - name: "researcher_agent_via_facility"
+    description: "If Person researches at Facility and Facility contains SelectAgent, infer Person researches SelectAgent"
+    antecedents:
+      - {source_type: Person, rel: COLLABORATES_WITH, target_type: Facility}
+      - {source_type: Facility, rel: CONTAINS, target_type: SelectAgent}
+    consequent:
+      rel: RESEARCHES
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.60
+
+  - name: "funding_chain"
+    description: "If Org funds Program and Program uses Tech, infer Org funds the technology development"
+    antecedents:
+      - {source_type: Org, rel: FUNDED, target_type: Program}
+      - {source_type: Program, rel: USES_TECH, target_type: Tech}
+    consequent:
+      rel: FUNDED
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.55
+
+  - name: "mitigation_via_detection"
+    description: "If Program monitors SelectAgent and Tech mitigates SelectAgent, infer Program uses Tech"
+    antecedents:
+      - {source_type: Program, rel: MONITORS, target_type: SelectAgent}
+      - {source_type: Tech, rel: MITIGATES, target_type: SelectAgent}
+    consequent:
+      rel: USES_TECH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.50
+
+  - name: "containment_transfer_chain"
+    description: "If Facility A transfers SelectAgent and Facility B stores same SelectAgent, infer transfer link"
+    antecedents:
+      - {source_type: Facility, rel: TRANSFERS, target_type: SelectAgent}
+      - {source_type: Facility, rel: STORES, target_type: SelectAgent}
+    consequent:
+      rel: COLLABORATES_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].source"
+    confidence_discount: 0.50
