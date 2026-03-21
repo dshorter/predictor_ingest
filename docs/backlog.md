@@ -259,6 +259,49 @@ detail panel.
 
 **Inspiration:** Oracle of Bacon / Six Degrees of Kevin Bacon.
 
+### GEV-5: Relationship arrow direction incorrect for some verbs
+
+**Observed:** 2026-03-21 | **Priority:** Medium
+
+In the detail panel relationship list, the arrow direction (→ / ←) is
+incorrect for some relationship verbs. The top arrow direction is correct
+but others are inverted — e.g., showing "A → DIRECTED_BY → B" when the
+semantic direction should be reversed.
+
+**Root cause:** `renderRelationshipList()` in `panels.js` determines
+direction by comparing `edge.source().id()` to `node.id()`, which reflects
+graph storage order, not semantic direction. Some relation types have
+inverted source/target conventions.
+
+**Likely fix:** Add a `PASSIVE_RELATIONS` set (e.g., `DIRECTED_BY`,
+`DISTRIBUTED_BY`, `PUBLISHED_BY`) that reverses the display arrow.
+Alternatively, store canonical direction in the edge data during export.
+
+**Files likely affected:** `web/js/panels.js` (`renderRelationshipList`)
+
+### GEV-6: Entity spotlight card (top-drop, forward/backward navigation)
+
+**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22
+
+A second presentation mode for trending entities: a single-entity card
+that drops from the top of the screen with a subtle bounce animation.
+Shows one entity at a time with forward/backward navigation (card UI).
+
+**Behavior:**
+- Drops from top center, subtle animated bounce on entry
+- Displays: entity name, type badge, velocity, full narrative
+- Forward/backward arrows to step through trending entities
+- Coexists with the hot list panel (different entry point)
+- Keyboard: arrow keys cycle through entities when card is focused
+
+**Design note:** This is a second panel style — keep the existing hot list
+panel as-is. The spotlight card is a complementary view for focused
+exploration of one entity at a time.
+
+**Files likely affected:** New `web/js/spotlight.js`, new CSS in
+`web/css/components/spotlight.css`, toolbar button or keyboard trigger in
+`web/js/app.js`
+
 ---
 
 ## Project Organization

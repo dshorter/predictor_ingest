@@ -12,10 +12,15 @@ must never be compromised for mobile parity.
 
 ---
 
-## DL-1: "What's Hot and WHY" Quick-Access View
+## DL-1: "What's Hot and WHY" Quick-Access View — SHIPPED
 
 **Priority:** High — this is the single highest-delight feature because it gives users
 a reason to come back daily.
+
+**Status (2026-03-21):** SHIPPED. Backend (PR #186/#188) + frontend (PR #190/#191/#193)
+all merged. Flame toolbar button, `h` keyboard shortcut, ranked list with velocity
+indicators and LLM narratives, fly-to-node on click, bounce slide-in animation,
+animated flame gradient border, full narrative drill-through in detail panel.
 
 **Problem:** The trending view exists but it's buried in a dropdown alongside three other
 views. There's no sense of "what changed since yesterday?" Users have to explore the
@@ -270,6 +275,39 @@ doesn't snap while the panel is still sliding. See polish-strategy.md § P1.
 When search finds matches and the user presses Enter, instead of instant `cy.fit()`,
 use `cy.animate({ fit: { eles: matches, padding: 50 } }, { duration: 400 })` for a
 smooth camera move.
+
+---
+
+## DL-8: Domain Mini-Themes
+
+**Priority:** Low — visual polish that adds personality per domain.
+
+**Problem:** All domains share the same blue accent color for panel borders,
+buttons, and highlights. This misses an opportunity to reinforce domain identity
+visually. A film/entertainment domain could feel warmer (reds, oranges), while
+a biosafety domain could feel more clinical (teals, whites).
+
+**Approach:** Extend the existing token system with domain-scoped CSS custom
+properties. Each domain's `web/data/domains/<slug>.json` would provide an
+accent palette that overrides the default blue tokens.
+
+**Examples:**
+- **Film:** Flame gradient border (already prototyped on hot panel), warm
+  orange accent, gold highlights
+- **Biosafety:** Teal/green accent, clinical whites, red for select agents
+- **AI:** Keep default blue (technical, neutral)
+
+**Implementation:**
+- Add `accentColors` to domain JSON config: `{ primary, secondary, gradient }`
+- `loadDomainConfig()` in `app.js` already injects `--color-{type}` vars —
+  extend to inject `--color-accent`, `--color-accent-secondary`
+- Panel borders, toolbar active states, and hot-panel flame border all read
+  from these tokens
+- Fallback to current blue when domain config doesn't specify accents
+
+**Files likely affected:** Domain JSON configs, `web/js/app.js`
+(`loadDomainConfig`), `web/css/tokens.css` (accent variable declarations),
+`web/css/components/panel.css` (accent references)
 
 ---
 
