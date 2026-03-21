@@ -252,6 +252,10 @@ relation_taxonomy:
     STORING: STORES
     TRANSFERRING: TRANSFERS
 
+    # Unmapped types found in production (specialist LLM output)
+    CAUSES: CAUSED
+    CAUSING: CAUSED
+
 # --- ID Prefixes ---
 # Map entity type → prefix for canonical IDs (type:slug format)
 id_prefixes:

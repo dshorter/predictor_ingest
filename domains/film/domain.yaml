@@ -234,6 +234,11 @@ relation_taxonomy:
     GOVERNED: GOVERNS
     REGULATED: REGULATES
 
+    # Unmapped types found in production (specialist LLM output)
+    WORKS_ON: DEVELOPS
+    WORKING_ON: DEVELOPS
+    WORKED_ON: DEVELOPS
+
     # --- Auto-generated tense variants (generate_normalization.py) ---
     # Review these entries. Remove any that collide with domain-specific
     # meanings (e.g., if CONTAINED means something different from CONTAINS).

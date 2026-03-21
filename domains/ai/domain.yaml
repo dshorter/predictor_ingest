@@ -173,6 +173,13 @@ relation_taxonomy:
     EVALUATED: EVALUATED_ON
     DEPENDED: DEPENDS_ON
 
+    # Unmapped types found in production (specialist LLM output)
+    LOCATED_IN: OPERATES
+    LOCATED: OPERATES
+    EVALUATES: EVALUATED_ON
+    USES: USES_TECH
+    AFFECTED_BY: AFFECTS
+
 # --- Relation metadata enums ---
 relation_kinds:
   - asserted
