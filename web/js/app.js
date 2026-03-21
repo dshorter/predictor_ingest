@@ -308,6 +308,11 @@ async function initializeApp() {
       initLens(AppState.cy, AppState.domainConfig);
     }
 
+    // What's Hot panel (Sprint 8)
+    if (typeof initWhatsHot === 'function') {
+      initWhatsHot(AppState.cy);
+    }
+
     // Wire theme toggle button
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
@@ -489,6 +494,11 @@ function initializeToolbar(cy) {
     toggleHelpPanel();
   });
 
+  // What's Hot button
+  document.getElementById('btn-hot')?.addEventListener('click', () => {
+    toggleHotPanel();
+  });
+
   // View selector
   document.getElementById('view-selector')?.addEventListener('change', async (e) => {
     await switchView(e.target.value);
@@ -560,6 +570,11 @@ function handleGlobalKeyboard(e) {
     case '?':
       // Toggle help panel
       toggleHelpPanel();
+      e.preventDefault();
+      break;
+    case 'h':
+      // Toggle What's Hot panel
+      toggleHotPanel();
       e.preventDefault();
       break;
   }
@@ -657,6 +672,9 @@ async function switchView(view) {
 
     // Update stats
     updateStatsDisplay(AppState.cy);
+
+    // Refresh hot panel if open
+    if (typeof refreshHotPanel === 'function') refreshHotPanel(AppState.cy);
 
     hideLoading();
 
