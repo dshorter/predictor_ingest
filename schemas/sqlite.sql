@@ -296,6 +296,18 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
   edges_exported    INTEGER DEFAULT 0,
   trending_nodes    INTEGER DEFAULT 0,
   error_message     TEXT,
+  -- LLM feature columns (Sprint 8)
+  synthesis_batches       INTEGER DEFAULT 0,  -- cross-document synthesis batches processed
+  synthesis_corroborated  INTEGER DEFAULT 0,  -- entities corroborated across docs
+  synthesis_relations     INTEGER DEFAULT 0,  -- relations inferred via synthesis
+  disambig_pairs          INTEGER DEFAULT 0,  -- gray-zone pairs evaluated by LLM
+  disambig_merges         INTEGER DEFAULT 0,  -- LLM-confirmed entity merges
+  disambig_kept_separate  INTEGER DEFAULT 0,  -- pairs LLM kept separate
+  infer_rules             INTEGER DEFAULT 0,  -- inference rules evaluated
+  infer_relations         INTEGER DEFAULT 0,  -- relations inferred via rules
+  infer_skipped           INTEGER DEFAULT 0,  -- inferences skipped (already existed)
+  narratives_generated    INTEGER DEFAULT 0,  -- trend narratives generated
+  resolve_merges          INTEGER DEFAULT 0,  -- total entity merges (fuzzy + LLM)
   PRIMARY KEY (run_date, domain)
 );
 
@@ -304,7 +316,8 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
 CREATE TABLE IF NOT EXISTS funnel_stats (
   run_date      TEXT NOT NULL,
   domain        TEXT NOT NULL,
-  stage         TEXT NOT NULL,           -- 'ingest', 'select', 'extract', 'import', 'export', 'trending'
+  stage         TEXT NOT NULL,           -- 'ingest', 'select', 'extract', 'import',
+                                         -- 'synthesize', 'resolve', 'infer', 'export', 'trending'
   docs_in       INTEGER DEFAULT 0,
   docs_out      INTEGER DEFAULT 0,
   docs_dropped  INTEGER DEFAULT 0,

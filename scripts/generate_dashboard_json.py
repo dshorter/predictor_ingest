@@ -76,6 +76,12 @@ def build_status(logs: list[dict], graphs_live: Path) -> dict:
     docs_extracted = extract.get("docsExtracted", 0) or 0
     backlog = max(0, docs_bundled - docs_extracted) if (docs_bundled or docs_extracted) else None
 
+    # New feature stages
+    synthesize_s = stages.get("synthesize", {})
+    resolve_s = stages.get("resolve", {})
+    infer_s = stages.get("infer", {})
+    trending_s = stages.get("trending", {})
+
     return {
         "available": True,
         "generatedAt": _now(),
@@ -95,6 +101,16 @@ def build_status(logs: list[dict], graphs_live: Path) -> dict:
         "backlog": backlog,
         "qualifiedTotal": docpack_stage.get("qualifiedTotal"),
         "qualifiedExcluded": docpack_stage.get("qualifiedExcluded"),
+        # LLM feature KPIs
+        "synthesisBatches": synthesize_s.get("batchesProcessed"),
+        "synthesisCorroborated": synthesize_s.get("entitiesCorroborated"),
+        "synthesisRelations": synthesize_s.get("relationsInferred"),
+        "resolveMerges": resolve_s.get("mergesPerformed"),
+        "disambigPairs": resolve_s.get("disambigPairsEvaluated"),
+        "disambigMerges": resolve_s.get("disambigMerges"),
+        "inferRules": infer_s.get("rulesEvaluated"),
+        "inferRelations": infer_s.get("relationsInferred"),
+        "narrativesGenerated": trending_s.get("narrativesGenerated"),
     }
 
 
@@ -116,6 +132,11 @@ def build_runs(logs: list[dict]) -> dict:
             }
 
         docpack_s = stages.get("docpack", {})
+        synthesize_s = stages.get("synthesize", {})
+        resolve_s = stages.get("resolve", {})
+        infer_s = stages.get("infer", {})
+        trending_s = stages.get("trending", {})
+
         runs.append({
             "date": log.get("runDate"),
             "domain": log.get("domain"),
@@ -131,6 +152,13 @@ def build_runs(logs: list[dict]) -> dict:
             "relations": extract.get("relationsFound") or imp.get("relations"),
             "nodes": export_s.get("totalNodes"),
             "edges": export_s.get("totalEdges"),
+            # LLM feature stats per run
+            "synthesisBatches": synthesize_s.get("batchesProcessed"),
+            "synthesisRelations": synthesize_s.get("relationsInferred"),
+            "resolveMerges": resolve_s.get("mergesPerformed"),
+            "disambigMerges": resolve_s.get("disambigMerges"),
+            "inferRelations": infer_s.get("relationsInferred"),
+            "narratives": trending_s.get("narrativesGenerated"),
             "stages": stage_summary,
         })
 
