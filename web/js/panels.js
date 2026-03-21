@@ -79,6 +79,13 @@ function openNodeDetailPanel(node) {
       </div>
     </section>
 
+    ${data.narrative ? `
+    <section class="detail-section mt-4">
+      <h3 class="text-xs font-semibold text-gray-500 mb-2">WHY IT'S TRENDING</h3>
+      <p class="detail-narrative">${escapeHtml(data.narrative)}</p>
+    </section>
+    ` : ''}
+
     <section class="detail-section mt-4">
       <h3 class="text-xs font-semibold text-gray-500 mb-2">
         RELATIONSHIPS (${node.connectedEdges().length})
