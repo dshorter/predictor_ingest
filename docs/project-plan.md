@@ -235,44 +235,62 @@ Grep-audit still passes (no domain-specific strings in framework).
 
 ---
 
-## Sprint 8 — "What's Hot" Feature (Days 16–19)
+## Sprint 8 — "What's Hot and WHY" Feature (Days 16–19)
 
-The first genuinely new feature. Requires backend changes (velocity delta
-computation) and a new frontend component. Highest complexity in the plan.
+**Updated 2026-03-21:** The LLM Leverage Features work (PR #186, #188) shipped
+the entire backend for this sprint ahead of schedule. Velocity computation,
+trend scoring, and LLM-generated narratives are live in `trending.json` today.
+Sprint 8 is now **frontend-only** — build the UI that consumes data that already
+exists. Risk drops from Moderate to Low.
 
-| # | Item | Source | Lines | Model |
-|---|------|--------|-------|-------|
-| 8.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] |
-| 8.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] |
-| 8.3 | `whats-hot.js` — ranked list UI component | delight §DL-1 | ~120 JS | [Opus] |
-| 8.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] |
-| 8.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] |
-| 8.6 | Panel CSS for hot list drawer | delight §DL-1 | ~40 CSS | [Opus] |
+| # | Item | Source | Lines | Model | Status |
+|---|------|--------|-------|-------|--------|
+| 8.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] | **DONE** (PR #186: `TrendScorer.compute_velocity()`) |
+| 8.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] | **DONE** (PR #186: `trending.json` has velocity, novelty, trend_score, mention_count_7d/30d) |
+| 8.2b | LLM narrative generation ("WHY" context) | ADR-007 | ~340 Python | [Opus] | **DONE** (PR #186: `src/trend/narratives.py`, per-domain style prompts) |
+| 8.3 | `whats-hot.js` — ranked list with narratives | delight §DL-1 | ~150 JS | [Opus] | Pending |
+| 8.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] | Pending |
+| 8.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] | Pending |
+| 8.6 | Panel CSS for hot list drawer | delight §DL-1 | ~50 CSS | [Opus] | Pending |
 
-**Risk:** Moderate. Backend data flow change + new UI component. But isolated —
-if it breaks, it only breaks the hot list.
-**Why Opus:** Cross-cutting feature touching backend export, new JS module, toolbar
-integration, and fly-to animation. Needs holistic understanding of the data flow.
-**Stability gate:** Verify hot list populates from real export data, fly-to works,
-drawer opens/closes cleanly. Confirm existing views are unaffected.
+**Risk:** Low. Pure frontend work consuming stable backend data. If it breaks,
+it only breaks the hot list. No backend changes needed.
+**Why Opus:** New JS module + toolbar integration + fly-to animation. Needs
+holistic understanding of the existing UI component pattern.
+**Stability gate:** Verify hot list populates from real `trending.json` data
+(including narratives), fly-to works, drawer opens/closes cleanly. Confirm
+existing views are unaffected.
 
-**Content upgrade path (B.8 → B.9):** Sprint 8 ships with raw velocity-ranked
-entities. B.8–B.9 later produce structured insight artifacts (title, category,
-evidence, "so what") that slot into the same panel. Design 8.3 (`whats-hot.js`)
-to accept either raw scores or insight objects — start simple, upgrade in place.
+**What changed from original plan:** The original Sprint 8 planned to ship with
+"raw velocity-ranked entities" — just numbers. The LLM Leverage work (Sprint 8
+backend, ADR-007) delivered LLM-generated narratives that explain WHY each entity
+is trending. Example from first production run:
 
+> *"The Hollywood Reporter is trending due to its coverage of Rosanna Arquette's
+> open letter in response to Harvey Weinstein's prison interview claims."*
+
+This leapfrogs the B.8→B.9 "insight artifacts" upgrade path. The panel ships
+with rich content from day 1 instead of needing a future content upgrade.
+
+**Data available in `trending.json` per node** (all populated today):
+- `velocity` — 7d-vs-prior ratio (primary sort signal)
+- `trend_score` — composite score (velocity + novelty + activity)
+- `mention_count_7d` / `mention_count_30d` — raw mention counts
+- `novelty` — how new/rare the entity is
+- `narrative` — LLM-generated "WHY" explanation (1-2 sentences, when available)
+- `type` — entity type for badge display
+- `firstSeen` / `lastSeen` — for "new entity" indicators
+
+**Remaining upgrade path (B.10–B.11):**
 ```
-Sprint 8 (UI shell)          B.8 (insight templates)
-      │                            │
-      │     ┌──────────────────────┘
-      ▼     ▼
-Sprint 8.3 starts with raw scores ──► B.9 upgrades it to insight artifacts
+Sprint 8 (UI with narratives)     DONE: LLM narratives in trending.json
+      │                                        │
+      ▼                                        ▼
+Sprint 8.3 ships with narratives ──► B.10 (backtest: are narratives
+                                            actually accurate?)
                                            │
                                       B.11 (dedup so daily users
                                             don't see repeats)
-                                           │
-                                      B.10 (backtest: are these
-                                            insights actually good?)
 ```
 
 ---

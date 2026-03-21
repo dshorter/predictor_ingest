@@ -12,7 +12,7 @@ must never be compromised for mobile parity.
 
 ---
 
-## DL-1: "What's Hot" Quick-Access View
+## DL-1: "What's Hot and WHY" Quick-Access View
 
 **Priority:** High — this is the single highest-delight feature because it gives users
 a reason to come back daily.
@@ -20,6 +20,17 @@ a reason to come back daily.
 **Problem:** The trending view exists but it's buried in a dropdown alongside three other
 views. There's no sense of "what changed since yesterday?" Users have to explore the
 full graph and notice differences themselves.
+
+**Backend status (2026-03-21):** COMPLETE. The LLM Leverage Features work (PR #186,
+#188, ADR-007) shipped all backend data requirements ahead of Sprint 8. Each trending
+entity in `trending.json` now carries velocity, trend score, mention counts, AND an
+LLM-generated narrative explaining WHY it's trending. Example from first production run:
+
+> *"The Hollywood Reporter is trending due to its coverage of Rosanna Arquette's
+> open letter in response to Harvey Weinstein's prison interview claims."*
+
+Narratives are generated per-domain with domain-appropriate tone (film: trade-press
+concise, AI: technical, biosafety: regulatory). Sprint 8 is now **frontend-only**.
 
 **Feature:**
 
@@ -29,13 +40,15 @@ a ranked list of entities with the **largest recent increase** in relevant metri
 - Primary signal: velocity delta (change in velocity over last 7 days)
 - Secondary signals: mention count spike (7d vs 30d ratio), new entity appearance
   (firstSeen within 3 days), bridge score increase (new cross-cluster connections)
+- **WHY context:** LLM-generated narrative subtitle explaining the trend driver
 
 **Behavior:**
 1. Button in toolbar (or prominent position) opens a compact ranked list
 2. Each item shows: entity name, type badge, spark indicator (e.g., arrow + delta value)
-3. Click an item → graph flies to that node's neighborhood, highlights it, opens detail panel
-4. List updates on each data load; no persistence needed for V1
-5. Max 10 items — this is a highlight reel, not a leaderboard
+3. **Below the entity name: narrative subtitle** (1-2 sentences explaining WHY)
+4. Click an item → graph flies to that node's neighborhood, highlights it, opens detail panel
+5. List updates on each data load; no persistence needed for V1
+6. Max 10 items — this is a highlight reel, not a leaderboard
 
 **Desktop interaction:**
 - Drawer slides in from left or appears as a popover near the button
@@ -43,23 +56,30 @@ a ranked list of entities with the **largest recent increase** in relevant metri
 - Clicking an item does a smooth `cy.animate({ center, zoom })` to the neighborhood
 
 **Mobile adaptation:**
-- Bottom sheet peek state shows top 3 items
+- Bottom sheet peek state shows top 3 items (name + narrative only, no spark indicator)
 - Swipe up for full list
 
 **What makes this delightful:**
 - It answers the most natural question: "What should I look at today?"
+- The narrative subtitle answers the follow-up: "Why should I care?"
 - The fly-to-neighborhood animation creates a sense of guided exploration
 - Seeing velocity *change* (not just absolute values) surfaces genuinely surprising signals
 
-**Data requirements:**
-- Velocity delta needs either: (a) stored historical velocity per entity, or
-  (b) comparison between current and previous export. Option (b) is simpler for V1 —
-  keep the previous day's export and diff on the client side or in the export script.
+**Data available in `trending.json` per node** (all populated today):
+- `velocity` — 7d-vs-prior ratio (primary sort signal)
+- `trend_score` — composite score (velocity + novelty + activity)
+- `mention_count_7d` / `mention_count_30d` — raw mention counts
+- `novelty` — how new/rare the entity is
+- `narrative` — LLM-generated WHY explanation (present when available)
+- `type` — entity type for badge display
+- `firstSeen` / `lastSeen` — for "new entity" indicators
 
-**Files likely affected:**
+**Files affected:**
 - New: `web/js/whats-hot.js`
 - Modified: `web/js/app.js` (toolbar button, keyboard shortcut), `web/css/components/panel.css`
-  (drawer styles), `src/graph/__init__.py` or export script (velocity delta computation)
+  (drawer styles)
+- ~~Modified: `src/graph/__init__.py` or export script (velocity delta computation)~~
+  **No longer needed — backend is complete**
 
 ---
 
