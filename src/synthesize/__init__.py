@@ -370,13 +370,16 @@ def _call_llm(
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY not set")
         client = OpenAI(api_key=api_key)
+        # Reasoning models (o-series, nano) don't support temperature
+        _reasoning = any(model.startswith(p) for p in ("o1", "o3", "o4")) or "nano" in model
+        _temp_kwargs = {} if _reasoning else {"temperature": 0.1}
         response = client.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0.1,
+            **_temp_kwargs,
         )
         text = response.choices[0].message.content or ""
     else:
@@ -419,7 +422,7 @@ def _parse_synthesis_response(text: str) -> dict[str, Any]:
 def run_synthesis(
     conn: sqlite3.Connection,
     profile: Optional[dict[str, Any]] = None,
-    model: str = "claude-sonnet-4-5-20250514",
+    model: Optional[str] = None,
     run_date: Optional[str] = None,
 ) -> SynthesisResult:
     """Run cross-document synthesis.
@@ -435,6 +438,10 @@ def run_synthesis(
     """
     if profile is None:
         profile = get_active_profile()
+
+    # Default model: PRIMARY_MODEL env var (specialist tier for cross-doc reasoning)
+    if model is None:
+        model = os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-5-20250929")
 
     config = SynthesisConfig.from_profile(profile)
     if not config.enabled:
