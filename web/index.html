@@ -83,6 +83,11 @@
       <div class="toolbar-right">
         <span id="graph-stats" class="toolbar-stats"></span>
 
+        <!-- What's Hot — Lucide flame -->
+        <button id="btn-hot" class="btn-icon" title="What's Hot (h)" aria-label="What's Hot">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 1.5 7-2 8-4.5 8.5-5 8.5-2.5 0-4-1.62-4-3.5 0-1.38.5-2.5 1-3A4.5 4.5 0 0 1 8.5 14.5z"/></svg>
+        </button>
+
         <!-- Zoom in — Lucide zoom-in -->
         <button id="btn-zoom-in" class="btn-icon" title="Zoom in" aria-label="Zoom in">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
@@ -245,6 +250,12 @@
         </div>
       </aside>
 
+      <!-- What's Hot panel (left sidebar) -->
+      <aside id="hot-panel" class="panel panel-left hidden" role="complementary" aria-label="What's Hot">
+        <button class="panel-close" aria-label="Close panel">&times;</button>
+        <div id="hot-content"></div>
+      </aside>
+
       <!-- Evidence panel (bottom or modal) -->
       <aside id="evidence-panel" class="panel panel-bottom hidden">
         <button class="panel-close" aria-label="Close panel">&times;</button>
@@ -339,6 +350,7 @@
   <script src="js/help.js?v=2"></script>
   <script src="js/lens.js?v=1"></script>
   <script src="js/domain-switcher.js?v=1"></script>
-  <script src="js/app.js?v=13"></script>
+  <script src="js/whats-hot.js?v=1"></script>
+  <script src="js/app.js?v=14"></script>
 </body>
 </html>
