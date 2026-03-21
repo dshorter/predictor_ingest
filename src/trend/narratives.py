@@ -278,13 +278,16 @@ def _call_llm(
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY not set")
         client = OpenAI(api_key=api_key)
+        # Reasoning models (o-series, nano) don't support temperature
+        _reasoning = any(model.startswith(p) for p in ("o1", "o3", "o4")) or "nano" in model
+        _temp_kwargs = {} if _reasoning else {"temperature": 0.3}
         response = client.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0.3,
+            **_temp_kwargs,
         )
         text = response.choices[0].message.content or ""
     else:

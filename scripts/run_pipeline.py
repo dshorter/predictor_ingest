@@ -360,6 +360,7 @@ def parse_extract_output(stdout: str) -> dict:
         "relationsFound": 0,
         "validationErrors": 0,
         "escalated": 0,
+        "unmappedRelationTypes": [],
     }
     for line in stdout.splitlines():
         if line.startswith("Done."):
@@ -401,6 +402,13 @@ def parse_extract_output(stdout: str) -> dict:
                             if w.isdigit():
                                 stats["relationsFound"] += int(w)
                                 break
+        # Capture unmapped relation types (e.g., "Unmapped relation types: WORKS_ON (1), LOCATED_IN (2)")
+        if line.startswith("Unmapped relation types:"):
+            import re
+            for m in re.finditer(r"([A-Z_]+)\s*\((\d+)\)", line):
+                stats["unmappedRelationTypes"].append(
+                    {"type": m.group(1), "count": int(m.group(2))}
+                )
     return stats
 
 
@@ -1249,6 +1257,12 @@ def main() -> int:
         feature_parts.append(f"narratives={narr}")
     if feature_parts:
         print(f"  Features: {' | '.join(feature_parts)}")
+
+    # Warn about unmapped relation types (normalization gaps)
+    unmapped = extract.get("unmappedRelationTypes", [])
+    if unmapped:
+        types_str = ", ".join(f"{u['type']}({u['count']})" for u in unmapped)
+        print(f"  ⚠ Unmapped relation types: {types_str}  → add to domain.yaml normalization")
 
     print(f"Log: {log_path}")
 

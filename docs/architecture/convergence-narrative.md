@@ -1,7 +1,7 @@
 # ADR: Convergence of Four Vectors — March 2026
 
 **Status:** Active — living document, updated as vectors advance
-**Date:** 2026-03-04 (last updated 2026-03-14)
+**Date:** 2026-03-04 (last updated 2026-03-21)
 **Context:** Five workstreams that were planned independently are converging on the same ~2-week window (mid-to-late March 2026). Each is straightforward alone; the risk is in their intersection. This document tracks how they weave together so that any session — human or AI — can pick up the thread.
 
 ---
@@ -21,12 +21,14 @@ artifacts (title, category, evidence, "so what").
 
 **Where it lands in the plan:**
 [docs/project-plan.md](../project-plan.md) Backend Track items B.8–B.11,
-feeding into Sprint 7's "What's Hot" UI ([docs/ux/delight-backlog.md](../ux/delight-backlog.md) §DL-1).
+feeding into Sprint 8's "What's Hot" UI ([docs/ux/delight-backlog.md](../ux/delight-backlog.md) §DL-1).
 
-**Current state of code:** `src/trend/__init__.py` computes velocity, novelty,
-and bridge scores. No insight generation, no `velocity_delta`, no templates yet.
-Sprint 7.3 (`whats-hot.js`) is designed to accept either raw scores or insight
-objects — start simple, upgrade in place.
+**Current state of code (2026-03-21):** `src/trend/__init__.py` computes velocity,
+novelty, and bridge scores. `src/trend/narratives.py` generates LLM-powered "WHY"
+narratives per trending entity with domain-specific tone. The B.8/B.9 template-based
+insight approach has been **leapfrogged** by LLM narratives — the pipeline now
+produces rich "What's Hot and WHY" data in `trending.json` daily. Sprint 8 becomes
+frontend-only. See [ADR-007](adr-007-llm-leverage-features.md) for the full design.
 
 ### V2 — Supplementary Data Sources
 
@@ -164,23 +166,30 @@ These vectors are **not independent**. Here is where they touch:
 ## Sequencing (what depends on what)
 
 ```
-DONE (as of 2026-03-14)
+DONE (as of 2026-03-21)
   ├── Sprint 6: domain.yaml schema, domains/ai/, framework parameterization ✓
   ├── Sprint 6B: biosafety domain + stabilization ✓
   ├── Domain switcher UI + ontology reference page ✓
-  └── Pipeline dashboard ✓
+  ├── Pipeline dashboard ✓
+  ├── Sprint 7: Regional lens + chatter sources (film domain) ✓
+  ├── LLM Leverage Features (PR #186): 4 post-extraction enrichment stages ✓
+  │     ├── Entity disambiguation (LLM gray-zone resolution) ✓
+  │     ├── Cross-document synthesis (corroboration + implicit relations) ✓
+  │     ├── Relation inference (CPU rule engine, domain-configured) ✓
+  │     └── Trend narratives (LLM "WHY" generation, per-domain tone) ✓
+  ├── Instrumentation (PR #188): observability for all 4 features ✓
+  ├── Sprint 8 backend: velocity, trend scoring, narratives in trending.json ✓
+  └── B.8/B.9 SUPERSEDED: LLM narratives leapfrog template-based insights ✓
 
-NOW (unblocked, mid-March)
-  ├── B.8: Write insight template spec (pure doc, no code dependency)
-  ├── B.9: generate_insights.py (needs B.8 + data — ≥14 days data now available)
-  └── Sprint 7: What's Hot UI shell (can use raw scores, doesn't need B.9)
+NOW (unblocked, late March)
+  ├── Sprint 8 frontend: whats-hot.js panel (data already flows) ◄── NEXT
+  └── Biosafety + AI domain feature tuning (configs shipped, accumulating data)
 
-~LATE MARCH (≥30 days data — reached ~March 14)
-  ├── B.10: Backtest insight accuracy
-  ├── B.11: Insight dedup + storage
-  ├── Shadow mode evaluation: nano model vs Sonnet on real corpus
-  ├── Sprint 7.3 upgrade: swap raw scores → insight artifacts
-  └── V3 cost calibration: resolve 80% escalation rate or drop cheap-first
+~APRIL (≥30 days data across all domains)
+  ├── B.10: Backtest narrative accuracy (are LLM narratives factual?)
+  ├── B.11: Narrative dedup + storage (daily users don't see repeats)
+  ├── V3 cost calibration: film at 68% escalation rate — tune or accept
+  └── Disambiguation tuning: film had 0 merges from 54 evaluations
 
 POST-V1 (framework is domain-parameterized ✓)
   ├── V4.5: Connector convention + first non-RSS source
@@ -200,6 +209,7 @@ POST-V1 (framework is domain-parameterized ✓)
 | 2026-03-07 | Sprint 6 + 6B delivered: domain modularization + biosafety proof-of-concept | V4 prerequisites met; framework is domain-agnostic with grep-audit enforcement | [project-plan.md](../project-plan.md) |
 | 2026-03-09 | Biosafety stabilization: prompt fixes, feed repairs, mobile routing | First non-AI domain required ~4 days of follow-up fixes; template scaffolding needs structural pre-population | [fix-details/README.md](../fix-details/README.md) |
 | 2026-03-13 | Domain switcher UI + ontology reference page shipped | `KNOWN_DOMAINS` registry in `domain-switcher.js` is now single source of truth for domain enumeration; ontology page visualizes domain taxonomy | [project-plan.md](../project-plan.md) |
+| 2026-03-21 | LLM narratives leapfrog B.8/B.9 template-based insights; Sprint 8 is now frontend-only | LLM Leverage Features (PR #186) shipped trend narratives as a post-extraction enrichment stage — richer than the planned template approach, at ~$0.03/month. Sprint 8 backend (velocity scoring, narrative generation) is complete; only `whats-hot.js` UI remains. | [adr-007-llm-leverage-features.md](adr-007-llm-leverage-features.md), [project-plan.md](../project-plan.md) Sprint 8 |
 
 ---
 

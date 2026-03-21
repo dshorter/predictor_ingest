@@ -711,6 +711,54 @@ def section_llm_features(w: ReportWriter, conn: sqlite3.Connection, logs_dir: Pa
     except Exception:
         pass
 
+    # --- Unmapped relation types (normalization gaps) ---
+    # Scan recent pipeline logs for unmapped types that caused validation failures
+    unmapped_all: dict[str, int] = {}
+    try:
+        import json as _json
+        for log_file in sorted(logs_dir.glob("pipeline_*.json"), reverse=True)[:14]:
+            try:
+                log_data = _json.loads(log_file.read_text())
+                extract_stats = log_data.get("stages", {}).get("extract", {})
+                for entry in extract_stats.get("unmappedRelationTypes", []):
+                    t = entry.get("type", "")
+                    c = entry.get("count", 0)
+                    if t:
+                        unmapped_all[t] = unmapped_all.get(t, 0) + c
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    if unmapped_all:
+        w.print(f"\n  Unmapped Relation Types (normalization gaps, last 14 runs)")
+        for t, c in sorted(unmapped_all.items(), key=lambda x: -x[1]):
+            w.print(f"    {t:<30} {c:>3} occurrence(s)")
+        w.print(f"    ACTION: Add mappings to domain.yaml normalization section")
+        stats["unmapped_types"] = unmapped_all
+    else:
+        # Also check documents.escalation_failed for historical unmapped types
+        try:
+            cursor = conn.execute(
+                """SELECT escalation_failed FROM documents
+                   WHERE escalation_failed LIKE '%is not one of%'"""
+            )
+            import re as _re
+            historical_unmapped: dict[str, int] = {}
+            for row in cursor:
+                m = _re.search(r"'([A-Z_]+)' is not one of", row["escalation_failed"])
+                if m:
+                    t = m.group(1)
+                    historical_unmapped[t] = historical_unmapped.get(t, 0) + 1
+            if historical_unmapped:
+                w.print(f"\n  Unmapped Relation Types (from escalation failures)")
+                for t, c in sorted(historical_unmapped.items(), key=lambda x: -x[1]):
+                    w.print(f"    {t:<30} {c:>3} occurrence(s)")
+                w.print(f"    ACTION: Add mappings to domain.yaml normalization section")
+                stats["unmapped_types"] = historical_unmapped
+        except Exception:
+            pass
+
     w.print()
     return stats
 

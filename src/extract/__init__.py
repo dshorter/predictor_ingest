@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any, Optional
 
@@ -42,6 +43,23 @@ ENTITY_TYPES: list[str] = sorted(_profile["entity_types"])
 RELATION_TYPES: list[str] = sorted(_profile["relation_taxonomy"]["canonical"])
 RELATION_NORMALIZATION: dict[str, str] = dict(_profile["relation_taxonomy"]["normalization"])
 
+# --- Unmapped type tracking ---
+# Module-level counter accumulates relation types that the LLM produced but
+# could not be mapped via normalization or found in canonical list.
+# Call get_unmapped_relation_types() after an extraction run to inspect,
+# reset_unmapped_relation_types() before a new run.
+_unmapped_relation_types: Counter = Counter()
+
+
+def get_unmapped_relation_types() -> Counter:
+    """Return accumulated unmapped relation types and their counts."""
+    return _unmapped_relation_types
+
+
+def reset_unmapped_relation_types() -> None:
+    """Clear the unmapped relation type counter (call before each run)."""
+    _unmapped_relation_types.clear()
+
 
 class ExtractionError(Exception):
     """Raised when extraction fails."""
@@ -58,7 +76,8 @@ def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Normalized extraction dict
     """
-    # Normalize relation types
+    # Normalize relation types — track unmapped types for observability
+    unmapped_relations: list[str] = []
     for relation in data.get("relations", []):
         rel = relation.get("rel", "").upper()
         if rel in RELATION_NORMALIZATION:
@@ -68,6 +87,12 @@ def normalize_extraction(data: dict[str, Any]) -> dict[str, Any]:
             normalized = rel.replace("-", "_").replace(" ", "_")
             if normalized in RELATION_NORMALIZATION:
                 relation["rel"] = RELATION_NORMALIZATION[normalized]
+            else:
+                # Track the unmapped type for downstream reporting
+                unmapped_relations.append(rel)
+                _unmapped_relation_types[rel] += 1
+    if unmapped_relations:
+        data["_unmapped_relations"] = unmapped_relations
 
     # Normalize entity types
     for entity in data.get("entities", []):

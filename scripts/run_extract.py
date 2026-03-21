@@ -859,6 +859,13 @@ def main() -> int:
         summary += f", Escalated: {escalated}/{processed} ({pct:.0f}%)"
     print(summary)
 
+    # Report unmapped relation types (LLM produced types not in normalization map)
+    from extract import get_unmapped_relation_types
+    unmapped = get_unmapped_relation_types()
+    if unmapped:
+        types_str = ", ".join(f"{t} ({c})" for t, c in unmapped.most_common())
+        print(f"Unmapped relation types: {types_str}")
+
     return 0 if failed == 0 else 1
 
 

@@ -30,8 +30,8 @@ def main() -> int:
         help="Path to SQLite database (default: data/db/{domain}.db)",
     )
     parser.add_argument(
-        "--model", default="claude-sonnet-4-5-20250514",
-        help="Specialist model for synthesis (default: claude-sonnet-4-5-20250514)",
+        "--model", default=None,
+        help="Specialist model for synthesis (default: PRIMARY_MODEL env var)",
     )
     parser.add_argument(
         "--run-date", default=None,
