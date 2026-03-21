@@ -227,6 +227,17 @@
 #hot-panel {
   border-left: none;
   overflow: visible;
+  /* Slide-out with bounce — overrides generic panel transition */
+  animation: hot-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+#hot-panel.hidden {
+  animation: none;
+}
+
+@keyframes hot-slide-in {
+  0%   { transform: translateX(calc(-100% - var(--space-2))); }
+  100% { transform: translateX(0); }
 }
 
 #hot-panel::before {
