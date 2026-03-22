@@ -52,6 +52,7 @@ from extract import (
     EXTRACTOR_VERSION,
     ESCALATION_THRESHOLD,
     OPENAI_EXTRACTION_TOOL,
+    ANTHROPIC_EXTRACTION_SCHEMA,
 )
 from db import init_db, insert_extraction_comparison, insert_quality_evaluation
 
@@ -77,7 +78,7 @@ def load_docpack(docpack_path: Path) -> list[dict[str, Any]]:
 def get_default_model() -> str:
     """Get default model from environment or use fallback."""
     model = os.environ.get("PRIMARY_MODEL", "").strip()
-    return model if model else "claude-sonnet-4-20250514"
+    return model if model else "claude-sonnet-4-6-20260218"
 
 
 def get_understudy_model() -> str | None:
@@ -129,6 +130,12 @@ def extract_with_anthropic(
         model=model,
         max_tokens=max_tokens,
         messages=[{"role": "user", "content": prompt}],
+        output_config={
+            "format": {
+                "type": "json_schema",
+                "schema": ANTHROPIC_EXTRACTION_SCHEMA,
+            }
+        },
     )
     duration_ms = int((time.time() - start_time) * 1000)
 
