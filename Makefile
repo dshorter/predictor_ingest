@@ -55,7 +55,7 @@ export:
 	python scripts/run_export.py --db $(DB) --output-dir $(GRAPHS_DIR) --date $(DATE) $(DOMAIN_FLAG)
 
 trending:
-	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE) $(DOMAIN_FLAG)
+	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE) --narratives $(DOMAIN_FLAG)
 
 copy-to-live:
 	@mkdir -p web/data/graphs/live/$(DOMAIN)
