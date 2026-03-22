@@ -6,11 +6,26 @@ Finds and merges duplicate entities using similarity matching.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 # Add src/ to import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+
+def _bootstrap_domain() -> None:
+    """Set PREDICTOR_DOMAIN from --domain arg before any domain-aware imports."""
+    for i, arg in enumerate(sys.argv):
+        if arg == "--domain" and i + 1 < len(sys.argv):
+            os.environ["PREDICTOR_DOMAIN"] = sys.argv[i + 1]
+            return
+        if arg.startswith("--domain="):
+            os.environ["PREDICTOR_DOMAIN"] = arg.split("=", 1)[1]
+            return
+
+
+_bootstrap_domain()
 
 from db import init_db
 from resolve import EntityResolver

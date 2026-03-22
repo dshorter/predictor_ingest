@@ -8,12 +8,27 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
 
 # Add src/ to import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+
+def _bootstrap_domain() -> None:
+    """Set PREDICTOR_DOMAIN from --domain arg before any domain-aware imports."""
+    for i, arg in enumerate(sys.argv):
+        if arg == "--domain" and i + 1 < len(sys.argv):
+            os.environ["PREDICTOR_DOMAIN"] = sys.argv[i + 1]
+            return
+        if arg.startswith("--domain="):
+            os.environ["PREDICTOR_DOMAIN"] = arg.split("=", 1)[1]
+            return
+
+
+_bootstrap_domain()
 
 from config import DEFAULT_DATE_WINDOW_DAYS
 from db import init_db
