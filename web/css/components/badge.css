@@ -87,11 +87,6 @@
   background-color: var(--color-repo);
 }
 
-.badge-type-tech {
-  color: var(--gray-900);
-  background-color: var(--color-tech);
-}
-
 .badge-type-topic {
   color: white;
   background-color: var(--color-topic);
@@ -131,6 +126,63 @@
 .badge-type-regulation {
   color: white;
   background-color: var(--color-regulation, #7C3AED);
+}
+
+/* Film domain types */
+.badge-type-production {
+  color: white;
+  background-color: var(--color-production, #7C3AED);
+}
+
+.badge-type-studio {
+  color: white;
+  background-color: var(--color-studio, #4A90D9);
+}
+
+.badge-type-festival {
+  color: white;
+  background-color: var(--color-festival, #F43F5E);
+}
+
+.badge-type-award {
+  color: white;
+  background-color: var(--color-award, #D97706);
+}
+
+.badge-type-network {
+  color: white;
+  background-color: var(--color-network, #0D9488);
+}
+
+.badge-type-distributor {
+  color: white;
+  background-color: var(--color-distributor, #6366F1);
+}
+
+.badge-type-agency {
+  color: white;
+  background-color: var(--color-agency, #8B5CF6);
+}
+
+.badge-type-fund {
+  color: white;
+  background-color: var(--color-fund, #059669);
+}
+
+.badge-type-genre {
+  color: var(--gray-900);
+  background-color: var(--color-genre, #EAB308);
+}
+
+.badge-type-source {
+  color: white;
+  background-color: var(--color-source, #6366F1);
+}
+
+/* Contrast fix: Tech and Genre use light backgrounds — need dark text */
+.badge-type-tech {
+  color: var(--gray-900);
+  background-color: var(--color-tech, #EAB308);
 }
 
 /* Relationship kind badges */
