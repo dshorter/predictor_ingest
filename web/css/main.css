@@ -24,11 +24,11 @@
 
 /* 4. Components — individual UI pieces */
 @import 'components/card.css?v=2';
-@import 'components/button.css?v=2';
+@import 'components/button.css?v=3';
 @import 'components/input.css?v=2';
-@import 'components/badge.css?v=2';
-@import 'components/panel.css?v=3';
-@import 'components/toolbar.css?v=2';
+@import 'components/badge.css?v=3';
+@import 'components/panel.css?v=4';
+@import 'components/toolbar.css?v=3';
 @import 'components/tooltip.css?v=2';
 @import 'components/help-panel.css?v=2';
 @import 'components/domain-certificate.css?v=2';

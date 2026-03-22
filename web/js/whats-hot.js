@@ -203,10 +203,6 @@ function flyToHotNode(nodeId) {
   const node = cy.getElementById(nodeId);
   if (!node || node.length === 0) return;
 
-  // Close hot panel so detail panel (with full narrative) is visible
-  const hotPanel = document.getElementById('hot-panel');
-  if (hotPanel) hotPanel.classList.add('hidden');
-
   // Select the node
   cy.nodes().unselect();
   node.select();

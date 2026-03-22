@@ -376,6 +376,12 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: all var(--duration-slow) var(--easing-default);
+}
+
+.hot-item:hover .hot-narrative {
+  -webkit-line-clamp: unset;
+  overflow: visible;
 }
 
 .hot-empty {
