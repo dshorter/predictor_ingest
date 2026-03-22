@@ -15,8 +15,8 @@
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  color: var(--gray-600);
-  background-color: var(--gray-100);
+  color: white;
+  background-color: var(--gray-500);
   border-radius: var(--radius-sm);
 }
 
