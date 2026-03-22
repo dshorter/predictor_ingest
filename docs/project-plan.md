@@ -248,10 +248,10 @@ exists. Risk drops from Moderate to Low.
 | 8.1 | Velocity delta computation in export script | delight §DL-1 | ~60 Python | [Opus] | **DONE** (PR #186: `TrendScorer.compute_velocity()`) |
 | 8.2 | Include velocity delta in graph JSON export | delight §DL-1 | ~20 Python | [Opus] | **DONE** (PR #186: `trending.json` has velocity, novelty, trend_score, mention_count_7d/30d) |
 | 8.2b | LLM narrative generation ("WHY" context) | ADR-007 | ~340 Python | [Opus] | **DONE** (PR #186: `src/trend/narratives.py`, per-domain style prompts) |
-| 8.3 | `whats-hot.js` — ranked list with narratives | delight §DL-1 | ~150 JS | [Opus] | Pending |
-| 8.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~15 JS+HTML | [Opus] | Pending |
-| 8.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~25 JS | [Opus] | Pending |
-| 8.6 | Panel CSS for hot list drawer | delight §DL-1 | ~50 CSS | [Opus] | Pending |
+| 8.3 | `whats-hot.js` — ranked list with narratives | delight §DL-1 | ~190 JS | [Opus] | **DONE** (PR #190: pure-function module + DOM wiring) |
+| 8.4 | Toolbar button + keyboard shortcut (`h`) | delight §DL-1 | ~18 JS+HTML | [Opus] | **DONE** (PR #190: flame icon, `h` key, toolbar handler) |
+| 8.5 | Fly-to-neighborhood on item click | delight §DL-1 | ~20 JS | [Opus] | **DONE** (PR #190: `flyToHotNode()` → select → zoom → detail) |
+| 8.6 | Panel CSS for hot list drawer | delight §DL-1 | ~150 CSS | [Opus] | **DONE** (PR #190–#193: flame border, bounce animation, hover-expand, film badges) |
 
 **Risk:** Low. Pure frontend work consuming stable backend data. If it breaks,
 it only breaks the hot list. No backend changes needed.
@@ -260,6 +260,14 @@ holistic understanding of the existing UI component pattern.
 **Stability gate:** Verify hot list populates from real `trending.json` data
 (including narratives), fly-to works, drawer opens/closes cleanly. Confirm
 existing views are unaffected.
+**Completed:** 2026-03-21
+**Notes:** Delivered in a single session across PRs #190–#193. Pure-function
+architecture (`getHotList`, `renderHotItem`, `renderHotList`) separated from
+DOM wiring for future Vitest unit testing. Polish additions beyond original
+plan: animated flame gradient border, L→R bounce slide-in animation, narrative
+hover-expand (2-line clamp → full on hover), film domain badge contrast fixes
+(10 new type rules), toolbar/button semantic token contrast fixes, default badge
+white-on-gray for dark mode.
 
 **What changed from original plan:** The original Sprint 8 planned to ship with
 "raw velocity-ranked entities" — just numbers. The LLM Leverage work (Sprint 8
@@ -295,7 +303,25 @@ Sprint 8.3 ships with narratives ──► B.10 (backtest: are narratives
 
 ---
 
-## Sprint 9 — Discovery Rewards (Days 20–22)
+## Sprint 8B — Hot Panel Polish + UI Tweaks (Day 20, 2026-03-22)
+
+Quick-hit fixes from Sprint 8 user testing. All are small, contained changes.
+
+| # | Item | Source | Est. | Model |
+|---|------|--------|------|-------|
+| 8B.1 | Panel text contrast — swap hardcoded `text-gray-*` utilities for semantic tokens in `panels.js` | backlog §GEV-7 | ~30 min | [Sonnet] |
+| 8B.2 | Suppress node tap handler during `flyToHotNode` — prevent double panel-open | backlog §GEV-8 | ~15 min | [Sonnet] |
+| 8B.3 | Anchor minimap — remove repositioning or add smooth transition | backlog §GEV-10 | ~15 min | [Sonnet] |
+| 8B.4 | Node visibility when panel overlaps — offset `zoomToNode` target by panel width | backlog §GEV-9 | ~45 min | [Opus] |
+| 8B.5 | Entity spotlight card — top-drop bounce, fwd/back navigation | backlog §GEV-6 | ~2 hr | [Opus] |
+
+**Risk:** Low. Items 8B.1–8B.3 are mechanical find-and-replace or config tweaks.
+8B.4 is a small UX improvement. 8B.5 is the largest item — a new panel type.
+**Dependency:** Sprint 8 (hot panel must exist).
+
+---
+
+## Sprint 9 — Discovery Rewards (Days 21–23)
 
 Builds on Sprint 1 (`.new` class wiring) and Sprint 8 (hot list signals).
 
@@ -405,8 +431,9 @@ Not scheduled. Documented so they're not forgotten.
 | — Domain switcher UI | ✓ Done | 2026-03-13 |
 | — Film domain launch | ✓ Done | 2026-03-17 |
 | — Film quality gate tuning | ✓ Done | 2026-03-17 |
-| 7 — Regional Lens + Chatter Sources | **Next** | — |
-| 8 — What's Hot | Pending | — |
+| 7 — Regional Lens + Chatter Sources | Pending | — |
+| 8 — What's Hot | ✓ Done | 2026-03-21 |
+| 8B — Hot Panel Polish + UI Tweaks | **Next** | — |
 | 9 — Discovery Rewards | Pending | — |
 | 10 — Guided Entry | Pending | — |
 | 11 — Medium Gap Features | Pending | — |
@@ -420,8 +447,8 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-17 (7 planned sprints + 7 unplanned items done in 18 days) |
-| Sprints remaining | 6 sprints (7–12) |
+| As of | 2026-03-21 (8 planned sprints + 7 unplanned items done in 22 days) |
+| Sprints remaining | 5.5 sprints (7, 8B, 9–12) |
 | Backend track | Parallel, partially blocked on data (≥30 days data now available) |
 | **Revised target** | **~early April 2026** |
 

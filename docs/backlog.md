@@ -302,6 +302,71 @@ exploration of one entity at a time.
 `web/css/components/spotlight.css`, toolbar button or keyboard trigger in
 `web/js/app.js`
 
+### GEV-7: Panel text contrast — hardcoded grays in detail/evidence panels
+
+**Observed:** 2026-03-21 | **Priority:** High | **Target:** 2026-03-22
+
+The detail panel (`panels.js`) and evidence panel use hardcoded Tailwind-style
+utility classes (`text-gray-500`, `text-gray-400`, `bg-gray-50`) that reference
+raw gray tokens instead of semantic tokens (`--color-text-secondary`,
+`--color-bg-secondary`). Same issue that was fixed in toolbar.css and button.css
+during Sprint 8 — needs the same treatment in panel HTML templates.
+
+**Scope:** ~30 minutes. Swap utility classes in `openNodeDetailPanel()`,
+`openEvidencePanel()`, and `renderRelationshipsSection()` to use semantic tokens.
+
+**Files likely affected:** `web/js/panels.js`, `web/css/utilities.css`
+
+### GEV-8: Node tap handler fires during flyToHotNode
+
+**Observed:** 2026-03-21 | **Priority:** High | **Target:** 2026-03-22
+
+When clicking a What's Hot item, `flyToHotNode()` calls `node.select()` which
+triggers the `cy.on('tap', 'node')` handler in `app.js`. This causes a double
+panel-open (both the hot panel's `openNodeDetailPanel` via setTimeout AND the
+tap handler's `openNodeDetailPanel`), plus `highlightNeighborhood()` fires
+unexpectedly.
+
+**Fix options:**
+- Set a flag (`AppState._flyingToNode = true`) before `node.select()`, check
+  in tap handler and skip if set
+- Skip `.select()` in `flyToHotNode` and call `highlightNeighborhood()` +
+  `openNodeDetailPanel()` directly
+
+**Files likely affected:** `web/js/whats-hot.js`, `web/js/app.js`
+
+### GEV-9: Node visibility when panel overlaps graph
+
+**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22
+
+Panels overlay the graph (no resize) — a node in the left 280px can be hidden
+behind the hot/detail panel. When `flyToHotNode` or `zoomToNode` centers on a
+node, it doesn't account for panel width.
+
+**Recommended approach (A+C hybrid):**
+- A: Offset `zoomToNode` target rightward by half the panel width when a
+  left panel is open
+- C: After opening a panel over an already-selected node, do a gentle re-fit
+  to ensure the node is in the visible area
+
+**Files likely affected:** `web/js/panels.js` (`zoomToNode`), `web/js/whats-hot.js`
+
+### GEV-10: Minimap (navigator) jumps when panels open/close
+
+**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22
+
+The Cytoscape navigator minimap repositions via CSS sibling selectors when
+panels open (`#cy.panel-right-open ~ .navigator-container`). The position
+change is instant, causing a visual jump.
+
+**Fix options:**
+- Add `transition: right 0.3s, bottom 0.3s` to `.navigator-container` for
+  smooth repositioning
+- Or remove repositioning rules entirely (minimap stays bottom-right; panels
+  are left-side so they rarely overlap)
+
+**Files likely affected:** `web/css/graph/cytoscape.css`
+
 ---
 
 ## Project Organization

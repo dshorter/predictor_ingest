@@ -321,6 +321,7 @@ Decisions made during planning that constrain future work:
 | All nodes are circles | Different shapes create visual noise ("afflicted flowchart"). Color-by-type is sufficient encoding. | 2026-02-27 |
 | Touch targets are done | Mobile already enforces 48px minimums with `touch-action: manipulation`. Cross-OS inconsistency makes further touch refinement unreliable. | 2026-02-27 |
 | Separate delight doc | Keep this doc small and focused. Aesthetic mechanics live in polish-strategy.md. Functional gaps live in v1-gaps.md. | 2026-02-27 |
+| No sound/haptic feedback | Web audio is almost always a negative for daily-use tools — unexpected sound in meetings/headphones is jarring, accessibility concern with screen readers, no standard for "tasteful" web audio. The bounce animation and flame border provide enough "alive" feeling without audio. If revisited, must be opt-in (default OFF) with max 1-2 micro-sounds (panel open, item click), never on hover. | 2026-03-21 |
 
 ---
 
