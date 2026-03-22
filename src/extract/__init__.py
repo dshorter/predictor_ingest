@@ -157,6 +157,7 @@ from extract.prompts import (                          # noqa: E402
     build_extraction_system_prompt as _build_system,
     build_extraction_user_prompt,                       # pass-through
     OPENAI_EXTRACTION_TOOL,                             # pass-through
+    ANTHROPIC_EXTRACTION_SCHEMA,                        # pass-through
 )
 
 
