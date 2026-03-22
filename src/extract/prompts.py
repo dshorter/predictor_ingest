@@ -13,6 +13,7 @@ See docs/architecture/domain-separation.md for boundary rules.
 
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 from typing import Any, Optional
 
@@ -305,3 +306,57 @@ OPENAI_EXTRACTION_TOOL = {
         },
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# Anthropic structured-output schema
+# ---------------------------------------------------------------------------
+# Claude's output_config JSON schema does not support type arrays like
+# ["string", "null"].  We convert those to {"anyOf": [{type: string}, {type: null}]}
+# automatically from the canonical OpenAI tool schema above so there is a
+# single source of truth for the extraction shape.
+
+def _fix_nullable_types(obj: Any) -> None:
+    """Recursively convert ["string", "null"] type arrays to anyOf for Anthropic."""
+    if not isinstance(obj, dict):
+        return
+
+    # Fix type arrays: ["string", "null"] -> anyOf
+    if "type" in obj and isinstance(obj["type"], list):
+        types = obj["type"]
+        if "null" in types:
+            non_null = [t for t in types if t != "null"]
+            non_null_schema: dict[str, Any] = (
+                {"type": non_null[0]} if len(non_null) == 1 else {"type": non_null}
+            )
+            # Carry over enum, excluding None
+            if "enum" in obj:
+                non_null_schema["enum"] = [v for v in obj["enum"] if v is not None]
+            # Carry over description
+            if "description" in obj:
+                non_null_schema["description"] = obj["description"]
+            obj.clear()
+            obj["anyOf"] = [non_null_schema, {"type": "null"}]
+            return
+
+    # Recurse into properties
+    if "properties" in obj:
+        for prop in obj["properties"].values():
+            _fix_nullable_types(prop)
+    # Recurse into array items
+    if "items" in obj and isinstance(obj["items"], dict):
+        _fix_nullable_types(obj["items"])
+    # Recurse into anyOf
+    if "anyOf" in obj:
+        for item in obj["anyOf"]:
+            _fix_nullable_types(item)
+
+
+def _build_anthropic_schema() -> dict[str, Any]:
+    """Derive Anthropic output_config schema from the canonical OpenAI tool schema."""
+    schema = copy.deepcopy(OPENAI_EXTRACTION_TOOL["function"]["parameters"])
+    _fix_nullable_types(schema)
+    return schema
+
+
+ANTHROPIC_EXTRACTION_SCHEMA = _build_anthropic_schema()
