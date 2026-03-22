@@ -843,7 +843,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--no-escalate", action="store_true",
-        help="Disable escalation mode; run primary model on all docs with shadow comparison instead",
+        help="Disable escalation mode; run primary model only (no cheap model, no shadow)",
     )
     parser.add_argument(
         "--copy-to-live", action="store_true", default=True,
@@ -945,7 +945,7 @@ def main() -> int:
                 sys.executable, "scripts/run_extract.py",
                 "--docpack", docpack_path,
                 "--db", db_path,
-            ] + (["--shadow", "--parallel"] if args.no_escalate else ["--escalate"]),
+            ] + ([] if args.no_escalate else ["--escalate"]),
             "parse": parse_extract_output,
             "fatal": False,
             "skip": args.skip_extract,
