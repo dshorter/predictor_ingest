@@ -200,6 +200,7 @@ python scripts/diagnose_feeds.py                    # Debug feed dedup
 ```
 
 See **[docs/backend/workflow-guide.md](docs/backend/workflow-guide.md)** for the complete step-by-step guide.
+See **[docs/backend/operational-state.md](docs/backend/operational-state.md)** for current extraction mode, gate overrides, and env requirements per domain.
 
 ---
 
@@ -237,6 +238,7 @@ for the boundary definition and enforcement rules.
 
 | Document | Purpose |
 |----------|---------|
+| [docs/backend/operational-state.md](docs/backend/operational-state.md) | **Current extraction mode, gate config, and model for each domain. Read first when resuming work.** |
 | [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step guide for running the full pipeline (Mode A and Mode B) |
 | [docs/backend/article-selection-scoring.md](docs/backend/article-selection-scoring.md) | Pre-extraction scoring signals, weights, bench backfill, thresholds, and change log |
 | [docs/backend/daily-run-log.md](docs/backend/daily-run-log.md) | Pipeline health monitoring: JSON log format, per-stage metrics, healthy thresholds |

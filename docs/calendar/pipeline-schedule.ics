@@ -61,4 +61,19 @@ DESCRIPTION:Backtest harness (scripts/backtest.py) becomes viable around late Ma
 CATEGORIES:Backend,Milestone
 STATUS:TENTATIVE
 END:VEVENT
+BEGIN:VEVENT
+UID:badge-contrast-fix-20260324@predictor-ingest
+DTSTART;TZID=America/New_York:20260324T130000
+DTEND;TZID=America/New_York:20260324T150000
+SUMMARY:Fix badge gray-on-gray contrast issues
+DESCRIPTION:Badge contrast regression — gray-on-gray still appearing in some situations.\nInvestigate which badge variants are affected.\nDefault .badge: white text on --gray-500 background.\nCheck dark mode token values and entity types falling through to default styling.\nPrevious fix: film domain badge contrast fixes (10 new type rules)\, default badge white-on-gray for dark mode.
+CATEGORIES:UI,Task
+STATUS:NEEDS-ACTION
+PRIORITY:3
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:Badge contrast fix scheduled
+END:VALARM
+END:VEVENT
 END:VCALENDAR
