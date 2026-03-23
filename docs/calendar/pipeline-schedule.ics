@@ -62,6 +62,21 @@ CATEGORIES:Backend,Milestone
 STATUS:TENTATIVE
 END:VEVENT
 BEGIN:VEVENT
+UID:narrative-logging-check-20260324@predictor-ingest
+DTSTART;TZID=America/New_York:20260324T110000
+DTEND;TZID=America/New_York:20260324T113000
+SUMMARY:Check narrative logging output after fix
+DESCRIPTION:After today's film pipeline run\, review the trending stage stdout for the new narrative instrumentation lines:\n\n  - N LLM narratives returned\n  - N narratives mapped to entity IDs\n  - N name mismatches dropped\n  - N narrative context skipped\n\nExpected: narrativesLlmReturned ~10\, narrativesMapped close to that\, mismatches near 0.\nIf mismatches are high\, the LLM is using different names than the DB — consider normalizing entity names in context or prompting with entity_id alongside name.\nIf LlmReturned < top_n\, model is under-generating — check prompt or raise top_n.
+CATEGORIES:Backend,Task
+STATUS:NEEDS-ACTION
+PRIORITY:3
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:Check narrative logging output
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
 UID:badge-contrast-fix-20260324@predictor-ingest
 DTSTART;TZID=America/New_York:20260324T130000
 DTEND;TZID=America/New_York:20260324T150000
