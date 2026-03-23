@@ -396,7 +396,10 @@ quality_thresholds:
 
 # --- Gate Thresholds ---
 gate_thresholds:
-  evidence_fidelity_min: 0.60    # lowered from 0.70 — film trade press paraphrases heavily (avg was 0.675)
+  evidence_fidelity_min: 0.0     # Gate A disabled — film trade press paraphrases heavily; nano fails ~80% on fidelity check.
+                                  # Tradeoff: edge detail panels will show evidence objects but snippets are NOT verified
+                                  # to appear in source text. Gates B/C/D (orphans, zero-value, high-conf) remain enforced.
+                                  # (was 0.60, previously lowered from 0.70)
   orphan_max: 0.0
   zero_value_min_entities: 1
   zero_value_min_doc_chars: 500

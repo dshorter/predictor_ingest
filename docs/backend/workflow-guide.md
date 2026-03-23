@@ -3,6 +3,9 @@
 Step-by-step guide for running the full pipeline:
 ingest → clean → docpack → extract → import → resolve → export.
 
+> **Before running:** Check [operational-state.md](operational-state.md) for each
+> domain's current extraction mode, gate overrides, and required env vars.
+
 ## Prerequisites
 
 - Python 3.10+
