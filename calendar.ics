@@ -5,18 +5,15 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 
 BEGIN:VEVENT
-DTSTART:20260324T090000
-DTEND:20260324T120000
+DTSTART:20260323T000000
+DTEND:20260323T235959
 SUMMARY:Reinstate escalation with relaxed evidence gate
-DESCRIPTION:Reinstate the escalation setup. Evidence gate failure alone\n\
- should NOT trigger escalation for GPT-5 Nano (keeps budget in check).\n\
- All other quality gates (orphan endpoints\, zero-value\,\n\
- high-confidence-bad-evidence) still trigger escalation normally.\n\
- Evidence gate still runs and logs for calibration.\n\
- Sonnet stays as specialist for substantive failures only.\n\
- Reference: docs/fix-details/ext4-cheap-model-escalation-analysis.md\,\n\
- docs/free-text/new-llm-strategies.txt
-STATUS:NEEDS-ACTION
+DESCRIPTION:COMPLETED 2026-03-23.\n\
+ evidence_fidelity_min set to 0.0 in domains/film/domain.yaml.\n\
+ Gate A still runs/logs for calibration but no longer triggers escalation.\n\
+ Gates B/C/D (orphan/zero-value/high-conf) still enforce escalation.\n\
+ Requires UNDERSTUDY_MODEL=gpt-5-nano + OPENAI_API_KEY in environment.
+STATUS:COMPLETED
 PRIORITY:1
 UID:escalation-evidence-gate-20260324@predictor_ingest
 END:VEVENT

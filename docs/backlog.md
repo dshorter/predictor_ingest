@@ -87,6 +87,19 @@ orphan failures (target: halved), evidence fidelity (target avg > 0.85).
 **Escalation path:** If rate stays above ~50%, drop cheap-first and run Sonnet
 directly (Option C). Cost delta is small (~$8 vs $25/month).
 
+**2026-03-21 update:** Film domain hit 89% escalation rate. Gate A (evidence fidelity)
+was the dominant trigger — film trade press paraphrases heavily and nano fabricates
+snippets, causing Gate D (high-conf + bad evidence) cascades too. Decision: run film
+pure-Sonnet temporarily (`PIPELINE_FLAGS="--no-escalate"`).
+
+**2026-03-23 update (current):** Reinstating escalation with Gate A removed as an
+escalation trigger. `domains/film/domain.yaml` — `evidence_fidelity_min` set to `0.0`
+(Gate A still runs and logs match_rate for calibration, but never forces escalation).
+Gates B/C/D (orphan endpoints, zero-value, high-confidence-bad-evidence) remain
+enforced. Tradeoff: edge detail panels will show evidence snippets that are not
+verified against source text — they may be paraphrases or from nano's memory.
+Requires `UNDERSTUDY_MODEL=gpt-5-nano` and `OPENAI_API_KEY` in environment.
+
 **Details:** [docs/fix-details/ext4-cheap-model-escalation-analysis.md](docs/fix-details/ext4-cheap-model-escalation-analysis.md)
 
 ### EXT-5: `LOCATED_IN` relation type not in canonical taxonomy
