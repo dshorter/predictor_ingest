@@ -485,10 +485,27 @@ def parse_export_output(stdout: str) -> dict:
 
 
 def parse_trending_output(stdout: str) -> dict:
-    """Parse trending stage stdout for stats."""
-    stats = {"trendingNodes": 0, "trendingEdges": 0, "narrativesGenerated": 0}
+    """Parse trending stage stdout for stats.
+
+    Expected narrative lines from narratives.py:
+        - N LLM narratives returned
+        - N narratives mapped to entity IDs
+        - N name mismatches dropped (LLM name not in context)
+        - N narrative context skipped (entity_id not in entities table)
+    """
+    import re as _re
+    stats = {
+        "trendingNodes": 0,
+        "trendingEdges": 0,
+        "narrativesGenerated": 0,
+        "narrativesLlmReturned": 0,
+        "narrativesMapped": 0,
+        "narrativesMismatches": 0,
+        "narrativesContextSkipped": 0,
+    }
     for line in stdout.splitlines():
-        if "nodes" in line.lower() and "edges" in line.lower():
+        lower = line.strip().lower()
+        if "nodes" in lower and "edges" in lower:
             for i, word in enumerate(line.split()):
                 if word.isdigit():
                     words = line.split()
@@ -498,11 +515,26 @@ def parse_trending_output(stdout: str) -> dict:
                     elif idx + 1 < len(words) and "edge" in words[idx + 1]:
                         stats["trendingEdges"] = int(word)
         # "Generated narratives for 10 entities"
-        if "generated narratives" in line.lower():
-            for word in line.split():
-                if word.isdigit():
-                    stats["narrativesGenerated"] = int(word)
-                    break
+        elif "generated narratives" in lower:
+            m = _re.search(r"(\d+)", line)
+            if m:
+                stats["narrativesGenerated"] = int(m.group(1))
+        elif "llm narratives returned" in lower:
+            m = _re.search(r"(\d+)", line)
+            if m:
+                stats["narrativesLlmReturned"] = int(m.group(1))
+        elif "narratives mapped to entity" in lower:
+            m = _re.search(r"(\d+)", line)
+            if m:
+                stats["narrativesMapped"] = int(m.group(1))
+        elif "name mismatches dropped" in lower:
+            m = _re.search(r"(\d+)", line)
+            if m:
+                stats["narrativesMismatches"] = int(m.group(1))
+        elif "narrative context skipped" in lower:
+            m = _re.search(r"(\d+)", line)
+            if m:
+                stats["narrativesContextSkipped"] = int(m.group(1))
     return stats
 
 
