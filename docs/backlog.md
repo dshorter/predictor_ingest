@@ -8,6 +8,11 @@ get scheduled into work.
 
 ## Extraction & Prompt Tuning
 
+> **Active thread:** Gate tuning and cheap-model escalation is an ongoing story.
+> Current gate config per domain (what's enabled, what's disabled, and why) lives in
+> **[operational-state.md](../backend/operational-state.md)** — read that first.
+> The full history is in EXT-4 below.
+
 ### EXT-1: Entity type definitions missing from LLM prompt
 
 **Observed:** 2026-02-21 | **Priority:** Medium (accumulate data first)
@@ -63,7 +68,7 @@ distribution across all source types before tuning.
 
 ### EXT-4: Cheap model escalation rate too high (80%)
 
-**Observed:** 2026-02-24 | **Analyzed:** 2026-02-25 | **Priority:** Medium | **Status:** Prompt tuning applied, measuring
+**Observed:** 2026-02-24 | **Analyzed:** 2026-02-25 | **Priority:** Medium | **Status:** Active — Gates A+D disabled on film (2026-03-24); AI domain escalation rate still being measured
 
 Analysis of 223 extractions (Feb 22–24) showed an 80% escalation rate — the cheap
 model (gpt-5-nano) fails quality gates on 4 out of 5 documents, making the
@@ -92,13 +97,18 @@ was the dominant trigger — film trade press paraphrases heavily and nano fabri
 snippets, causing Gate D (high-conf + bad evidence) cascades too. Decision: run film
 pure-Sonnet temporarily (`PIPELINE_FLAGS="--no-escalate"`).
 
-**2026-03-23 update (current):** Reinstating escalation with Gate A removed as an
+**2026-03-23 update:** Reinstating escalation with Gate A removed as an
 escalation trigger. `domains/film/domain.yaml` — `evidence_fidelity_min` set to `0.0`
 (Gate A still runs and logs match_rate for calibration, but never forces escalation).
 Gates B/C/D (orphan endpoints, zero-value, high-confidence-bad-evidence) remain
 enforced. Tradeoff: edge detail panels will show evidence snippets that are not
 verified against source text — they may be paraphrases or from nano's memory.
 Requires `UNDERSTUDY_MODEL=gpt-5-nano` and `OPENAI_API_KEY` in environment.
+
+**2026-03-24 update (current):** Gate D also disabled on film (`high_confidence_threshold: 0.0`).
+Both A and D rely on snippet text-match, which can't distinguish paraphrase from
+fabrication in trade press. Gates B (orphans) and C (zero-value) are now the only
+active gates for film. See operational-state.md for current per-domain config.
 
 **Details:** [docs/fix-details/ext4-cheap-model-escalation-analysis.md](docs/fix-details/ext4-cheap-model-escalation-analysis.md)
 
