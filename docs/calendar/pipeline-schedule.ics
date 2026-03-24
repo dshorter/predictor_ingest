@@ -91,4 +91,19 @@ ACTION:DISPLAY
 DESCRIPTION:Badge contrast fix scheduled
 END:VALARM
 END:VEVENT
+BEGIN:VEVENT
+UID:panel-physics-and-urls-20260324@predictor-ingest
+DTSTART;TZID=America/New_York:20260324T140000
+DTEND;TZID=America/New_York:20260324T150000
+SUMMARY:Implement bounced physics for other panels + discuss graphic URLs
+DESCRIPTION:Two topics:\n\n1. Implement the same bounced/spring physics for the remaining panels (not yet done).\n   Reference existing implementation for the panels that already have it.\n\n2. Talk through URLs to graphics — how graph data URLs are structured\,\n   what paths are used for static assets\, and any open questions about\n   image/graphic URL handling in the web client.
+CATEGORIES:UI,Task
+STATUS:NEEDS-ACTION
+PRIORITY:3
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:Panel physics + graphic URLs session in 10 minutes
+END:VALARM
+END:VEVENT
 END:VCALENDAR
