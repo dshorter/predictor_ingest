@@ -398,12 +398,13 @@ quality_thresholds:
 gate_thresholds:
   evidence_fidelity_min: 0.0     # Gate A disabled — film trade press paraphrases heavily; nano fails ~80% on fidelity check.
                                   # Tradeoff: edge detail panels will show evidence objects but snippets are NOT verified
-                                  # to appear in source text. Gates B/C/D (orphans, zero-value, high-conf) remain enforced.
+                                  # to appear in source text. Gates B/C (orphans, zero-value) remain enforced. Gate D also disabled.
                                   # (was 0.60, previously lowered from 0.70)
   orphan_max: 0.0
   zero_value_min_entities: 1
   zero_value_min_doc_chars: 500
-  high_confidence_threshold: 0.0  # Gate D disabled — film trade press paraphrases heavily; fidelity check can't distinguish paraphrase from fabrication. Gates B/C (orphans, zero-value) remain enforced. (2026-03-24)
+  high_confidence_threshold: 1.1  # Gate D disabled — film trade press paraphrases heavily; fidelity check can't distinguish paraphrase from fabrication. Gates B/C (orphans, zero-value) remain enforced. (2026-03-24)
+                                  # NOTE: must be >1.0 to disable; 0.0 would make gate fire on ALL relations (confidence < 0.0 is never true, so skip never triggers)
 
 escalation_threshold: 0.55     # lowered from 0.6 — trade press style yields lower density scores than technical content
 
