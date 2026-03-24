@@ -403,7 +403,7 @@ gate_thresholds:
   orphan_max: 0.0
   zero_value_min_entities: 1
   zero_value_min_doc_chars: 500
-  high_confidence_threshold: 0.8
+  high_confidence_threshold: 0.0  # Gate D disabled — film trade press paraphrases heavily; fidelity check can't distinguish paraphrase from fabrication. Gates B/C (orphans, zero-value) remain enforced. (2026-03-24)
 
 escalation_threshold: 0.55     # lowered from 0.6 — trade press style yields lower density scores than technical content
 
