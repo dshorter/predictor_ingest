@@ -99,6 +99,8 @@ make daily DOMAIN=film
 
 ## Default Pipeline Behavior (All Domains)
 
+**Default domain:** `film` (set in `Makefile` line 4, `scripts/run_pipeline.py`, and `src/domain/__init__.py`). Changed from `ai` on 2026-03-24.
+
 Unless overridden with `PIPELINE_FLAGS`:
 
 - `--escalate` is always passed to `run_extract.py` — cheap model runs first

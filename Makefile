@@ -1,7 +1,7 @@
 .PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data export_ontology pipeline post-extract daily daily-check test test-network test-all
 
 # Domain slug — all data paths derive from this
-DOMAIN ?= ai
+DOMAIN ?= film
 DOMAIN_FLAG = --domain $(DOMAIN)
 
 # Configurable paths (override with: make export DATE=2026-01-15)
