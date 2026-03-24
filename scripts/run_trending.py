@@ -180,6 +180,9 @@ def export_trending(
     edges = exporter._build_aggregated_edges(merged_relations)
     edges = GraphExporter._strip_orphan_edges(nodes, edges)
 
+    # Apply region tags (2-hop propagation from Location nodes, per ADR-005)
+    exporter._apply_region_tags(nodes, edges)
+
     # Step 3b: Generate trend narratives ("What's Hot and WHY")
     if generate_narratives and trending:
         try:

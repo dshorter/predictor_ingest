@@ -131,6 +131,7 @@ def gather_narrative_context(
 ) -> list[EntityContext]:
     """Build context objects for trending entities."""
     contexts: list[EntityContext] = []
+    skipped = 0
 
     for scores in entity_scores:
         eid = scores["entity_id"]
@@ -141,6 +142,7 @@ def gather_narrative_context(
             (eid,),
         ).fetchone()
         if not row:
+            skipped += 1
             continue
 
         ctx = EntityContext(
@@ -179,6 +181,8 @@ def gather_narrative_context(
 
         contexts.append(ctx)
 
+    if skipped:
+        print(f"  - {skipped} narrative context skipped (entity_id not in entities table)")
     return contexts
 
 
@@ -396,13 +400,26 @@ def generate_narratives(
         print(f"  [narratives] LLM call failed: {e}")
         return narratives
 
+    print(f"  - {len(name_to_narrative)} LLM narratives returned")
+
     # Map narratives back to entity_ids and save
+    # Primary: exact match. Fallback: case-insensitive match.
     name_to_id = {ctx.name: ctx.entity_id for ctx in contexts}
+    name_to_id_lower = {ctx.name.lower(): ctx.entity_id for ctx in contexts}
+    mapped = 0
+    mismatched = 0
     for name, narrative in name_to_narrative.items():
-        eid = name_to_id.get(name)
+        eid = name_to_id.get(name) or name_to_id_lower.get(name.lower())
         if eid:
             narratives[eid] = narrative
             _save_narrative(conn, eid, run_date, narrative, model)
+            mapped += 1
+        else:
+            mismatched += 1
+
+    print(f"  - {mapped} narratives mapped to entity IDs")
+    if mismatched:
+        print(f"  - {mismatched} name mismatches dropped (LLM name not in context)")
 
     conn.commit()
     return narratives
