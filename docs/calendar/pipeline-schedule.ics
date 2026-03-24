@@ -106,4 +106,19 @@ ACTION:DISPLAY
 DESCRIPTION:Panel physics + graphic URLs session in 10 minutes
 END:VALARM
 END:VEVENT
+BEGIN:VEVENT
+UID:tour-sample-data-20260325@predictor-ingest
+DTSTART;TZID=America/New_York:20260325T150000
+DTEND;TZID=America/New_York:20260325T160000
+SUMMARY:Plan self-guided new-user tour + bespoke tour dataset
+DESCRIPTION:Backlog item: build a self-guided tour for new users.\n\nApproach: use the same technique we used to create the initial sample data\nset at project start — but craft a dataset specifically tuned to showcase\nevery stop on the tour brilliantly.\n\nTopics to cover:\n  1. Identify the tour stops (what graph features / interactions to highlight)\n  2. Design the tour dataset so each stop has an ideal example visible\n  3. Decide delivery mechanism (overlay tooltips\, step sequencer\, highlight pulses)\n  4. Reuse existing sample-data generation tooling\n  5. Add backlog card to docs/backlog.md and docs/project-plan.md
+CATEGORIES:UI,Backlog,Task
+STATUS:NEEDS-ACTION
+PRIORITY:4
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:New-user tour + tour dataset planning session in 10 minutes
+END:VALARM
+END:VEVENT
 END:VCALENDAR
