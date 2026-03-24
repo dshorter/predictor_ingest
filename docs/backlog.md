@@ -380,6 +380,38 @@ change is instant, causing a visual jump.
 
 **Files likely affected:** `web/css/graph/cytoscape.css`
 
+### GEV-11: Toolbar right-side overflow — reorganize mixed-function controls
+
+**Observed:** 2026-03-24 | **Priority:** Low (post-UI-strategy decision)
+
+The toolbar right side is getting crowded with a mix of function categories:
+UI interactions (theme, navigator), settings/config (domain), help, and
+feature entry points (What's Hot). These are not naturally grouped and will
+only get worse as features are added.
+
+**Possible approaches to explore:**
+- Overflow menu ("⋯" or gear icon) that collapses lower-priority controls
+- Grouped icon clusters with subtle dividers (interactions | settings | help)
+- Sidebar/drawer for settings-class controls, leaving only action controls in toolbar
+- Right-click or long-press toolbar for meta-options (mobile pattern)
+
+**Constraint:** No action until a broader UI strategy decision is made (e.g.,
+Sprint 9 or later). This item tracks the problem and options so it's not lost.
+
+**Files likely affected:** `web/index.html`, `web/css/components/toolbar.css`,
+`web/js/app.js` (toolbar init)
+
+### GEV-12: What's Hot toolbar button is a poor visual representation
+
+**Observed:** 2026-03-24 | **Priority:** Low (blocked on UI strategy)
+
+The fire emoji / icon used as the What's Hot entry point is a weak representation
+of the feature — it doesn't clearly signal "trending entities" to a new user.
+
+**No action until:** Broader toolbar reorganization decision (GEV-11) is made.
+Redesigning this in isolation would likely be undone when the toolbar is
+restructured. Hold here.
+
 ---
 
 ## Project Organization
