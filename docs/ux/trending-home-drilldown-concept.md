@@ -1,10 +1,66 @@
-# Trending as Home + Source Layer Drill-Down (Design Concept)
+# Trending as Home + Evidence Table Drill-Down (Design Concept)
 
-**Status:** Thinking / pre-design. Do not implement until state management prerequisites
-are resolved. See open questions below.
+**Status:** Thinking / pre-design. Low implementation barrier — see Revised Approach.
 
 **Origin:** Conversation 2026-03-24. Captures the "money view" framing and the
 proposed drill-down flow for future planning.
+
+---
+
+## Revised Approach: Evidence Tables, Not Graph Views (2026-03-24)
+
+The initial instinct — drill down into the raw graph views filtered to a neighborhood
+— was the wrong tool for the job.
+
+**Key insight:** graphs are good for *discovering* relationships; tables are good for
+*reading* evidence. The drill-down is about reading, so a table is correct.
+
+### What this changes
+
+Instead of navigating to a filtered claims/mentions/dependencies graph, clicking a
+count badge opens a **drawer or bottom sheet over the current graph**. The trending
+graph stays visible and untouched behind it. Closing the drawer returns you exactly
+where you were — no history stack, no layout re-run, no URL change needed.
+
+### What the evidence table looks like
+
+**Claims drawer** (example for a node with 14 claims):
+
+| Relationship | To / From | Conf | Source | Date | Snippet |
+|---|---|---|---|---|---|
+| LAUNCHED | GPT-5 | 92% | TechCrunch | 2026-03-20 | "OpenAI today announced…" |
+| PARTNERED_WITH | Microsoft | 78% | The Verge | 2026-03-18 | "…deepened its partnership…" |
+| HIRED | Sam Altman | 95% | Reuters | 2026-03-15 | "Altman confirmed he would…" |
+
+**Mentions drawer** (example for a node with 83 mentions):
+
+| Co-mentioned with | Source | Date | Snippet |
+|---|---|---|---|
+| Gemini | Ars Technica | 2026-03-22 | "Both OpenAI and Google have…" |
+
+Columns are sortable. Rows link to the source document. Snippet is truncated with
+expand-on-hover. Count badge in the detail panel footer serves as the entry point.
+
+### State management cost
+
+The state management problem collapses to **open/close a drawer**. No view switching,
+no navigation history, no graph re-layout. The three raw graph views may not need to
+exist as primary UI destinations at all — they become data sources for these tables.
+
+The only optional enhancement is a deep-link URL (`?focus=org:openai&drawer=claims`)
+for shareability, but that is not a prerequisite.
+
+---
+
+## Original Approach (superseded — kept for reference)
+
+The original proposal was to enter a filtered/neighborhood version of the raw graph
+views on drill-down, with a back affordance to return to trending. This was superseded
+because it required navigation history, view state serialization, and session
+persistence — three non-trivial prerequisites — and still delivered a worse reading
+experience than a plain table.
+
+The prerequisites below are preserved in case they become relevant for other features.
 
 ---
 
