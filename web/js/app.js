@@ -16,7 +16,7 @@ const AppState = {
   currentView: 'trending',
   dataSource: 'live',       // 'live' | 'sample'
   currentTier: 'medium',    // sample tier (only used when dataSource === 'sample')
-  domain: new URLSearchParams(window.location.search).get('domain') || 'ai', // from URL param
+  domain: new URLSearchParams(window.location.search).get('domain') || 'film', // from URL param
   anchorDate: null,          // ISO date string — the "as of" anchor for filtering
   activePresetDays: 30,      // which preset is active (7, 30, 90, or null for All)
   dateRange: null,           // { start, end } from meta — article publication dates
@@ -39,9 +39,8 @@ async function loadDomainConfig() {
   const domainParam = params.get('domain');
 
   // Try domain-specific config first, then fall back to default
-  const urls = domainParam
-    ? [`data/domains/${domainParam}.json`, 'data/domain.json']
-    : ['data/domain.json'];
+  const slug = domainParam || 'film';
+  const urls = [`data/domains/${slug}.json`, 'data/domain.json'];
 
   let loaded = false;
   for (const url of urls) {
@@ -59,7 +58,7 @@ async function loadDomainConfig() {
   if (!loaded) {
     console.warn('No domain config found, using defaults');
     AppState.domainConfig = {
-      domain: 'ai',
+      domain: 'film',
       title: 'Trend Graph',
       titleShort: 'Trends',
       entityTypes: [],
@@ -217,7 +216,7 @@ function getDataUrl(view) {
     const tier = AppState.currentTier || 'medium';
     return `${basePath}/${tier}/${view}.json`;
   }
-  const domain = AppState.domain || 'ai';
+  const domain = AppState.domain || 'film';
   return `${basePath}/live/${domain}/${view}.json`;
 }
 

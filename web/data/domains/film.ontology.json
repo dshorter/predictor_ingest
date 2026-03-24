@@ -1,0 +1,811 @@
+{
+  "domain": {
+    "name": "Film & Independent Cinema",
+    "slug": "film",
+    "description": "Independent film production, screenwriting, festivals, and distribution trends"
+  },
+  "baseRelation": "MENTIONS",
+  "entityTypes": [
+    {
+      "name": "Person",
+      "prefix": "person",
+      "canonicalIdPattern": "person:{slug}",
+      "color": "#50B4A8"
+    },
+    {
+      "name": "Studio",
+      "prefix": "studio",
+      "canonicalIdPattern": "studio:{slug}",
+      "color": "#4A90D9"
+    },
+    {
+      "name": "Production",
+      "prefix": "prod",
+      "canonicalIdPattern": "prod:{slug}",
+      "color": "#7C3AED"
+    },
+    {
+      "name": "Festival",
+      "prefix": "fest",
+      "canonicalIdPattern": "fest:{slug}",
+      "color": "#F43F5E"
+    },
+    {
+      "name": "Distributor",
+      "prefix": "dist",
+      "canonicalIdPattern": "dist:{slug}",
+      "color": "#6366F1"
+    },
+    {
+      "name": "Agency",
+      "prefix": "agency",
+      "canonicalIdPattern": "agency:{slug}",
+      "color": "#8B5CF6"
+    },
+    {
+      "name": "Fund",
+      "prefix": "fund",
+      "canonicalIdPattern": "fund:{slug}",
+      "color": "#059669"
+    },
+    {
+      "name": "Network",
+      "prefix": "net",
+      "canonicalIdPattern": "net:{slug}",
+      "color": "#0D9488"
+    },
+    {
+      "name": "Genre",
+      "prefix": "genre",
+      "canonicalIdPattern": "genre:{slug}",
+      "color": "#EAB308"
+    },
+    {
+      "name": "Tech",
+      "prefix": "tech",
+      "canonicalIdPattern": "tech:{slug}",
+      "color": "#F59E0B"
+    },
+    {
+      "name": "Award",
+      "prefix": "award",
+      "canonicalIdPattern": "award:{slug}",
+      "color": "#D97706"
+    },
+    {
+      "name": "Org",
+      "prefix": "org",
+      "canonicalIdPattern": "org:{slug}",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "Topic",
+      "prefix": "topic",
+      "canonicalIdPattern": "topic:{slug}",
+      "color": "#64748B"
+    },
+    {
+      "name": "Event",
+      "prefix": "event",
+      "canonicalIdPattern": "event:{slug}",
+      "color": "#F97316"
+    },
+    {
+      "name": "Location",
+      "prefix": "location",
+      "canonicalIdPattern": "location:{slug}",
+      "color": "#10B981"
+    },
+    {
+      "name": "Other",
+      "prefix": "other",
+      "canonicalIdPattern": "other:{slug}",
+      "color": "#A1A1AA"
+    }
+  ],
+  "typeGroups": [
+    {
+      "label": "People & Companies",
+      "types": [
+        "Person",
+        "Studio",
+        "Agency",
+        "Org"
+      ]
+    },
+    {
+      "label": "Productions",
+      "types": [
+        "Production",
+        "Network",
+        "Distributor"
+      ]
+    },
+    {
+      "label": "Industry",
+      "types": [
+        "Festival",
+        "Award",
+        "Fund",
+        "Event"
+      ]
+    },
+    {
+      "label": "Craft & Culture",
+      "types": [
+        "Genre",
+        "Tech",
+        "Topic"
+      ]
+    },
+    {
+      "label": "Context",
+      "types": [
+        "Location",
+        "Document",
+        "Other"
+      ]
+    }
+  ],
+  "relationGroups": [
+    {
+      "key": "document",
+      "label": "Document",
+      "relations": [
+        {
+          "rel": "MENTIONS",
+          "isBase": true,
+          "aliases": [
+            "MENTION",
+            "MENTIONED",
+            "MENTIONING",
+            "MENTIONS_BY"
+          ]
+        },
+        {
+          "rel": "CITES",
+          "isBase": false,
+          "aliases": [
+            "CITE",
+            "CITED",
+            "CITES_BY",
+            "CITING"
+          ]
+        },
+        {
+          "rel": "ANNOUNCES",
+          "isBase": false,
+          "aliases": [
+            "ANNOUNCE",
+            "ANNOUNCED",
+            "ANNOUNCES_BY",
+            "ANNOUNCING"
+          ]
+        },
+        {
+          "rel": "REPORTED_BY",
+          "isBase": false,
+          "aliases": [
+            "REPORTED",
+            "REPORTING_BY",
+            "REPORTS",
+            "REPORTS_BY",
+            "REPORT_BY"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "creative",
+      "label": "Creative",
+      "relations": [
+        {
+          "rel": "DIRECTS",
+          "isBase": false,
+          "aliases": [
+            "DIRECT",
+            "DIRECTED",
+            "DIRECTED_BY",
+            "DIRECTING",
+            "DIRECTS_BY"
+          ]
+        },
+        {
+          "rel": "WRITES",
+          "isBase": false,
+          "aliases": [
+            "SCREENWRITER",
+            "WRITE",
+            "WRITES_BY",
+            "WRITING",
+            "WRITTEN",
+            "WRITTEN_BY",
+            "WROTE"
+          ]
+        },
+        {
+          "rel": "PRODUCES",
+          "isBase": false,
+          "aliases": [
+            "PRODUCE",
+            "PRODUCED",
+            "PRODUCED_BY",
+            "PRODUCES_BY",
+            "PRODUCING"
+          ]
+        },
+        {
+          "rel": "STARS_IN",
+          "isBase": false,
+          "aliases": [
+            "ACTED_IN",
+            "APPEARS_IN",
+            "CAST_IN",
+            "STARRED",
+            "STARRED_IN",
+            "STARRING",
+            "STARRING_IN",
+            "STAR_IN"
+          ]
+        },
+        {
+          "rel": "SCORES",
+          "isBase": false,
+          "aliases": [
+            "COMPOSED",
+            "COMPOSED_BY",
+            "SCORE",
+            "SCORED",
+            "SCORES_BY",
+            "SCORING"
+          ]
+        },
+        {
+          "rel": "EDITS",
+          "isBase": false,
+          "aliases": [
+            "CUT",
+            "EDIT",
+            "EDITED",
+            "EDITED_BY",
+            "EDITING",
+            "EDITS_BY"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "business",
+      "label": "Business",
+      "relations": [
+        {
+          "rel": "ACQUIRES",
+          "isBase": false,
+          "aliases": [
+            "ACQUIRE",
+            "ACQUIRED",
+            "ACQUIRED_BY",
+            "ACQUIRES_BY",
+            "ACQUIRING",
+            "BOUGHT",
+            "PICKED_UP",
+            "SOLD_TO"
+          ]
+        },
+        {
+          "rel": "DISTRIBUTES",
+          "isBase": false,
+          "aliases": [
+            "DISTRIBUTE",
+            "DISTRIBUTED",
+            "DISTRIBUTED_BY",
+            "DISTRIBUTES_BY",
+            "DISTRIBUTING",
+            "RELEASED",
+            "RELEASED_BY"
+          ]
+        },
+        {
+          "rel": "FINANCES",
+          "isBase": false,
+          "aliases": [
+            "BACKED",
+            "BACKED_BY",
+            "FINANCE",
+            "FINANCED",
+            "FINANCED_BY",
+            "FINANCES_BY",
+            "FINANCING",
+            "FUNDED",
+            "FUNDED_BY",
+            "INVESTED_IN"
+          ]
+        },
+        {
+          "rel": "GREENLIGHTS",
+          "isBase": false,
+          "aliases": [
+            "GREENLIGHT",
+            "GREENLIGHTED",
+            "GREENLIGHTING",
+            "GREENLIGHTS_BY",
+            "GREENLIT",
+            "GREENLIT_BY"
+          ]
+        },
+        {
+          "rel": "OPTIONED",
+          "isBase": false,
+          "aliases": [
+            "OPTION",
+            "OPTIONED_BY",
+            "OPTIONING",
+            "OPTIONS"
+          ]
+        },
+        {
+          "rel": "COMMISSIONS",
+          "isBase": false,
+          "aliases": [
+            "COMMISSION",
+            "COMMISSIONED",
+            "COMMISSIONING",
+            "COMMISSIONS_BY",
+            "ORDERED",
+            "ORDERED_BY"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "festival",
+      "label": "Festival",
+      "relations": [
+        {
+          "rel": "PREMIERES_AT",
+          "isBase": false,
+          "aliases": [
+            "DEBUTED",
+            "DEBUTED_AT",
+            "PREMIERED",
+            "PREMIERED_AT",
+            "PREMIERE_AT",
+            "PREMIERING_AT",
+            "SCREENED",
+            "SCREENED_AT"
+          ]
+        },
+        {
+          "rel": "SELECTED_BY",
+          "isBase": false,
+          "aliases": [
+            "ACCEPTED",
+            "SELECTED",
+            "SELECTING_BY",
+            "SELECTS_BY",
+            "SELECT_BY"
+          ]
+        },
+        {
+          "rel": "WINS",
+          "isBase": false,
+          "aliases": [
+            "AWARDED",
+            "WIN",
+            "WINNING",
+            "WINS_BY",
+            "WON"
+          ]
+        },
+        {
+          "rel": "NOMINATED_FOR",
+          "isBase": false,
+          "aliases": [
+            "NOMINATED",
+            "NOMINATES_FOR",
+            "NOMINATE_FOR",
+            "NOMINATING_FOR"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "industry",
+      "label": "Industry",
+      "relations": [
+        {
+          "rel": "REPRESENTS",
+          "isBase": false,
+          "aliases": [
+            "REPRESENT",
+            "REPRESENTED",
+            "REPRESENTED_BY",
+            "REPRESENTING",
+            "REPRESENTS_BY",
+            "REPS"
+          ]
+        },
+        {
+          "rel": "SIGNS_WITH",
+          "isBase": false,
+          "aliases": [
+            "SIGNED",
+            "SIGNED_WITH",
+            "SIGNING_WITH",
+            "SIGN_WITH"
+          ]
+        },
+        {
+          "rel": "PARTNERS_WITH",
+          "isBase": false,
+          "aliases": [
+            "PARTNERED",
+            "PARTNERED_WITH",
+            "PARTNERING_WITH",
+            "PARTNER_WITH"
+          ]
+        },
+        {
+          "rel": "HIRES",
+          "isBase": false,
+          "aliases": [
+            "ATTACHED",
+            "BOARDED",
+            "HIRE",
+            "HIRED",
+            "HIRED_BY",
+            "HIRES_BY",
+            "HIRING",
+            "JOINED",
+            "TAPPED"
+          ]
+        },
+        {
+          "rel": "FOUNDED",
+          "isBase": false,
+          "aliases": [
+            "FOUNDED_BY",
+            "FOUNDING",
+            "FOUNDS"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "production",
+      "label": "Production",
+      "relations": [
+        {
+          "rel": "DEVELOPS",
+          "isBase": false,
+          "aliases": [
+            "DEVELOP",
+            "DEVELOPED",
+            "DEVELOPING",
+            "DEVELOPS_BY",
+            "IN_DEVELOPMENT",
+            "WORKED_ON",
+            "WORKING_ON",
+            "WORKS_ON"
+          ]
+        },
+        {
+          "rel": "ADAPTS",
+          "isBase": false,
+          "aliases": [
+            "ADAPT",
+            "ADAPTED",
+            "ADAPTED_FROM",
+            "ADAPTING",
+            "ADAPTS_BY"
+          ]
+        },
+        {
+          "rel": "BASED_ON",
+          "isBase": false,
+          "aliases": [
+            "BASES_ON",
+            "BASE_ON",
+            "BASING_ON",
+            "INSPIRED_BY",
+            "REMAKE_OF",
+            "SEQUEL_TO"
+          ]
+        },
+        {
+          "rel": "SHOOTS_IN",
+          "isBase": false,
+          "aliases": [
+            "FILMED",
+            "FILMED_IN",
+            "FILMING_IN",
+            "SHOOTING",
+            "SHOOTING_IN",
+            "SHOOT_IN",
+            "SHOT",
+            "SHOT_IN"
+          ]
+        },
+        {
+          "rel": "USES_TECH",
+          "isBase": false,
+          "aliases": [
+            "USED_TECH",
+            "USES_TECH_BY",
+            "USE_TECH",
+            "USING_TECH"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "governance",
+      "label": "Governance",
+      "relations": [
+        {
+          "rel": "GOVERNS",
+          "isBase": false,
+          "aliases": [
+            "GOVERN",
+            "GOVERNED",
+            "GOVERNING",
+            "GOVERNS_BY"
+          ]
+        },
+        {
+          "rel": "REGULATES",
+          "isBase": false,
+          "aliases": [
+            "REGULATE",
+            "REGULATED",
+            "REGULATES_BY",
+            "REGULATING"
+          ]
+        },
+        {
+          "rel": "CREATED",
+          "isBase": false,
+          "aliases": [
+            "BUILT",
+            "CREATE",
+            "CREATED_BY",
+            "CREATES",
+            "CREATING",
+            "ESTABLISHED",
+            "LAUNCHED"
+          ]
+        },
+        {
+          "rel": "OPERATES",
+          "isBase": false,
+          "aliases": [
+            "OPERATE",
+            "OPERATED",
+            "OPERATES_BY",
+            "OPERATING"
+          ]
+        }
+      ]
+    }
+  ],
+  "ungroupedRelations": [],
+  "normalization": {
+    "DIRECTED": "DIRECTS",
+    "DIRECTED_BY": "DIRECTS",
+    "WRITTEN": "WRITES",
+    "WRITTEN_BY": "WRITES",
+    "WROTE": "WRITES",
+    "SCREENWRITER": "WRITES",
+    "PRODUCED": "PRODUCES",
+    "PRODUCED_BY": "PRODUCES",
+    "STARRED": "STARS_IN",
+    "STARRING": "STARS_IN",
+    "ACTED_IN": "STARS_IN",
+    "APPEARS_IN": "STARS_IN",
+    "CAST_IN": "STARS_IN",
+    "COMPOSED": "SCORES",
+    "COMPOSED_BY": "SCORES",
+    "EDITED": "EDITS",
+    "EDITED_BY": "EDITS",
+    "CUT": "EDITS",
+    "ACQUIRED": "ACQUIRES",
+    "ACQUIRED_BY": "ACQUIRES",
+    "BOUGHT": "ACQUIRES",
+    "PICKED_UP": "ACQUIRES",
+    "SOLD_TO": "ACQUIRES",
+    "DISTRIBUTED": "DISTRIBUTES",
+    "DISTRIBUTED_BY": "DISTRIBUTES",
+    "RELEASED": "DISTRIBUTES",
+    "RELEASED_BY": "DISTRIBUTES",
+    "FINANCED": "FINANCES",
+    "FINANCED_BY": "FINANCES",
+    "FUNDED": "FINANCES",
+    "FUNDED_BY": "FINANCES",
+    "BACKED": "FINANCES",
+    "BACKED_BY": "FINANCES",
+    "INVESTED_IN": "FINANCES",
+    "GREENLIT": "GREENLIGHTS",
+    "GREENLIT_BY": "GREENLIGHTS",
+    "ORDERED": "COMMISSIONS",
+    "ORDERED_BY": "COMMISSIONS",
+    "COMMISSIONED": "COMMISSIONS",
+    "PREMIERED": "PREMIERES_AT",
+    "PREMIERED_AT": "PREMIERES_AT",
+    "DEBUTED": "PREMIERES_AT",
+    "DEBUTED_AT": "PREMIERES_AT",
+    "SCREENED": "PREMIERES_AT",
+    "SCREENED_AT": "PREMIERES_AT",
+    "SELECTED": "SELECTED_BY",
+    "ACCEPTED": "SELECTED_BY",
+    "WON": "WINS",
+    "AWARDED": "WINS",
+    "NOMINATED": "NOMINATED_FOR",
+    "REPRESENTED": "REPRESENTS",
+    "REPRESENTED_BY": "REPRESENTS",
+    "REPS": "REPRESENTS",
+    "SIGNED": "SIGNS_WITH",
+    "SIGNED_WITH": "SIGNS_WITH",
+    "PARTNERED": "PARTNERS_WITH",
+    "PARTNERED_WITH": "PARTNERS_WITH",
+    "HIRED": "HIRES",
+    "HIRED_BY": "HIRES",
+    "TAPPED": "HIRES",
+    "ATTACHED": "HIRES",
+    "BOARDED": "HIRES",
+    "JOINED": "HIRES",
+    "DEVELOPING": "DEVELOPS",
+    "DEVELOPED": "DEVELOPS",
+    "IN_DEVELOPMENT": "DEVELOPS",
+    "ADAPTED": "ADAPTS",
+    "ADAPTED_FROM": "ADAPTS",
+    "INSPIRED_BY": "BASED_ON",
+    "REMAKE_OF": "BASED_ON",
+    "SEQUEL_TO": "BASED_ON",
+    "SHOOTING": "SHOOTS_IN",
+    "SHOT": "SHOOTS_IN",
+    "FILMED": "SHOOTS_IN",
+    "FILMED_IN": "SHOOTS_IN",
+    "FILMING_IN": "SHOOTS_IN",
+    "ANNOUNCED": "ANNOUNCES",
+    "ANNOUNCING": "ANNOUNCES",
+    "MENTIONED": "MENTIONS",
+    "CITED": "CITES",
+    "REPORTED": "REPORTED_BY",
+    "REPORTS": "REPORTED_BY",
+    "BUILT": "CREATED",
+    "ESTABLISHED": "CREATED",
+    "LAUNCHED": "CREATED",
+    "OPERATED": "OPERATES",
+    "GOVERNED": "GOVERNS",
+    "REGULATED": "REGULATES",
+    "WORKS_ON": "DEVELOPS",
+    "WORKING_ON": "DEVELOPS",
+    "WORKED_ON": "DEVELOPS",
+    "ACQUIRE": "ACQUIRES",
+    "ACQUIRES_BY": "ACQUIRES",
+    "ACQUIRING": "ACQUIRES",
+    "ADAPT": "ADAPTS",
+    "ADAPTING": "ADAPTS",
+    "ADAPTS_BY": "ADAPTS",
+    "ANNOUNCE": "ANNOUNCES",
+    "ANNOUNCES_BY": "ANNOUNCES",
+    "BASES_ON": "BASED_ON",
+    "BASE_ON": "BASED_ON",
+    "BASING_ON": "BASED_ON",
+    "CITE": "CITES",
+    "CITES_BY": "CITES",
+    "CITING": "CITES",
+    "COMMISSION": "COMMISSIONS",
+    "COMMISSIONING": "COMMISSIONS",
+    "COMMISSIONS_BY": "COMMISSIONS",
+    "CREATE": "CREATED",
+    "CREATED_BY": "CREATED",
+    "CREATES": "CREATED",
+    "CREATING": "CREATED",
+    "DEVELOP": "DEVELOPS",
+    "DEVELOPS_BY": "DEVELOPS",
+    "DIRECT": "DIRECTS",
+    "DIRECTING": "DIRECTS",
+    "DIRECTS_BY": "DIRECTS",
+    "DISTRIBUTE": "DISTRIBUTES",
+    "DISTRIBUTES_BY": "DISTRIBUTES",
+    "DISTRIBUTING": "DISTRIBUTES",
+    "EDIT": "EDITS",
+    "EDITS_BY": "EDITS",
+    "EDITING": "EDITS",
+    "FINANCE": "FINANCES",
+    "FINANCES_BY": "FINANCES",
+    "FINANCING": "FINANCES",
+    "FOUNDED_BY": "FOUNDED",
+    "FOUNDS": "FOUNDED",
+    "FOUNDING": "FOUNDED",
+    "GOVERN": "GOVERNS",
+    "GOVERNING": "GOVERNS",
+    "GOVERNS_BY": "GOVERNS",
+    "GREENLIGHT": "GREENLIGHTS",
+    "GREENLIGHTED": "GREENLIGHTS",
+    "GREENLIGHTING": "GREENLIGHTS",
+    "GREENLIGHTS_BY": "GREENLIGHTS",
+    "HIRE": "HIRES",
+    "HIRES_BY": "HIRES",
+    "HIRING": "HIRES",
+    "MENTION": "MENTIONS",
+    "MENTIONING": "MENTIONS",
+    "MENTIONS_BY": "MENTIONS",
+    "NOMINATES_FOR": "NOMINATED_FOR",
+    "NOMINATE_FOR": "NOMINATED_FOR",
+    "NOMINATING_FOR": "NOMINATED_FOR",
+    "OPERATE": "OPERATES",
+    "OPERATES_BY": "OPERATES",
+    "OPERATING": "OPERATES",
+    "OPTION": "OPTIONED",
+    "OPTIONED_BY": "OPTIONED",
+    "OPTIONS": "OPTIONED",
+    "OPTIONING": "OPTIONED",
+    "PARTNERING_WITH": "PARTNERS_WITH",
+    "PARTNER_WITH": "PARTNERS_WITH",
+    "PREMIERE_AT": "PREMIERES_AT",
+    "PREMIERING_AT": "PREMIERES_AT",
+    "PRODUCE": "PRODUCES",
+    "PRODUCES_BY": "PRODUCES",
+    "PRODUCING": "PRODUCES",
+    "REGULATE": "REGULATES",
+    "REGULATES_BY": "REGULATES",
+    "REGULATING": "REGULATES",
+    "REPORTING_BY": "REPORTED_BY",
+    "REPORTS_BY": "REPORTED_BY",
+    "REPORT_BY": "REPORTED_BY",
+    "REPRESENT": "REPRESENTS",
+    "REPRESENTING": "REPRESENTS",
+    "REPRESENTS_BY": "REPRESENTS",
+    "SCORE": "SCORES",
+    "SCORED": "SCORES",
+    "SCORES_BY": "SCORES",
+    "SCORING": "SCORES",
+    "SELECTS_BY": "SELECTED_BY",
+    "SELECT_BY": "SELECTED_BY",
+    "SELECTING_BY": "SELECTED_BY",
+    "SHOT_IN": "SHOOTS_IN",
+    "SHOOTING_IN": "SHOOTS_IN",
+    "SHOOT_IN": "SHOOTS_IN",
+    "SIGNING_WITH": "SIGNS_WITH",
+    "SIGN_WITH": "SIGNS_WITH",
+    "STARRED_IN": "STARS_IN",
+    "STARRING_IN": "STARS_IN",
+    "STAR_IN": "STARS_IN",
+    "USED_TECH": "USES_TECH",
+    "USES_TECH_BY": "USES_TECH",
+    "USE_TECH": "USES_TECH",
+    "USING_TECH": "USES_TECH",
+    "WIN": "WINS",
+    "WINNING": "WINS",
+    "WINS_BY": "WINS",
+    "WRITE": "WRITES",
+    "WRITES_BY": "WRITES",
+    "WRITING": "WRITES"
+  },
+  "qualityThresholds": {
+    "entity_density_target": 6.0,
+    "evidence_coverage_min": 0.8,
+    "avg_confidence_target": 0.85,
+    "relation_entity_ratio_target": 0.4,
+    "tech_terms_min": 1,
+    "relation_type_diversity_target": 5
+  },
+  "gateThresholds": {
+    "evidence_fidelity_min": 0.0,
+    "orphan_max": 0.0,
+    "zero_value_min_entities": 1,
+    "zero_value_min_doc_chars": 500,
+    "high_confidence_threshold": 1.1
+  },
+  "scoringWeights": {
+    "density": 0.2,
+    "evidence": 0.15,
+    "confidence": 0.1,
+    "connectivity": 0.25,
+    "diversity": 0.2,
+    "tech_terms": 0.1
+  },
+  "escalationThreshold": 0.55
+}

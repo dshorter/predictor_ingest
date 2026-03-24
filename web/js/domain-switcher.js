@@ -34,7 +34,7 @@ function initDomainSwitcher() {
   const titleEl = document.querySelector('.app-title');
   if (!titleEl) return;
 
-  const currentSlug = (typeof AppState !== 'undefined' && AppState.domain) || 'ai';
+  const currentSlug = (typeof AppState !== 'undefined' && AppState.domain) || 'film';
 
   // Wrap title in a clickable container
   const wrap = document.createElement('div');
@@ -181,7 +181,7 @@ async function openDomainCertificate() {
     return;
   }
 
-  const slug = (typeof AppState !== 'undefined' && AppState.domain) || 'ai';
+  const slug = (typeof AppState !== 'undefined' && AppState.domain) || 'film';
 
   // Try to load the ontology JSON for richer data
   // Resolve path relative to the site root (handles mobile/ subdirectory)

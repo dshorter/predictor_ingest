@@ -8,9 +8,9 @@ Usage:
     from domain import load_domain_profile, get_active_profile
 
     # Load explicitly
-    profile = load_domain_profile("ai")
+    profile = load_domain_profile("film")
 
-    # Get the currently active profile (default: "ai")
+    # Get the currently active profile (default: "film")
     profile = get_active_profile()
 
     # Access values
@@ -53,11 +53,11 @@ def _find_domains_dir() -> Path:
     )
 
 
-def load_domain_profile(domain: str = "ai") -> dict[str, Any]:
+def load_domain_profile(domain: str = "film") -> dict[str, Any]:
     """Load a domain profile from domains/<domain>/domain.yaml.
 
     Args:
-        domain: Domain slug (e.g., "ai", "cyber"). Defaults to "ai".
+        domain: Domain slug (e.g., "film", "ai", "biosafety"). Defaults to "film".
 
     Returns:
         Parsed domain profile dict.
@@ -157,7 +157,7 @@ def _validate_profile(profile: dict[str, Any], path: Path) -> None:
         )
 
 
-def get_domain_dir(domain: str = "ai") -> Path:
+def get_domain_dir(domain: str = "film") -> Path:
     """Get the filesystem path to a domain's directory.
 
     Args:
@@ -170,7 +170,7 @@ def get_domain_dir(domain: str = "ai") -> Path:
     return domains_dir / domain
 
 
-def set_active_domain(domain: str = "ai") -> dict[str, Any]:
+def set_active_domain(domain: str = "film") -> dict[str, Any]:
     """Set the active domain profile (module-level singleton).
 
     Called once at startup (e.g., from CLI argument parsing).
@@ -190,7 +190,7 @@ def set_active_domain(domain: str = "ai") -> dict[str, Any]:
 
 def _default_domain() -> str:
     """Return the default domain slug from env or fallback to 'ai'."""
-    return os.environ.get(_ENV_DOMAIN, "ai")
+    return os.environ.get(_ENV_DOMAIN, "film")
 
 
 def get_active_profile() -> dict[str, Any]:

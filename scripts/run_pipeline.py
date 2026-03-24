@@ -890,8 +890,8 @@ def main() -> int:
         help="Disable all stage timeouts (useful for self-hosted servers)",
     )
     parser.add_argument(
-        "--domain", default="ai",
-        help="Domain slug to use (default: ai). Loads config from domains/<slug>/.",
+        "--domain", default="film",
+        help="Domain slug to use (default: film). Loads config from domains/<slug>/.",
     )
     parser.add_argument(
         "--dry-run", action="store_true",

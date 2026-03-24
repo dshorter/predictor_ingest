@@ -69,24 +69,24 @@ make daily DOMAIN=biosafety
 | **Gate A — Evidence fidelity** | ⚠️ **DISABLED** — `evidence_fidelity_min: 0.0` |
 | **Gate B — Orphan endpoints** | Active — zero tolerance |
 | **Gate C — Zero value** | Active — ≥1 entity for docs >500 chars |
-| **Gate D — High-conf + bad evidence** | Active — threshold 0.8 |
+| **Gate D — High-conf + bad evidence** | ⚠️ **DISABLED** — `high_confidence_threshold: 0.0` |
 | **Env required** | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `UNDERSTUDY_MODEL=gpt-5-nano` |
-| **Status** | Gate A disabled 2026-03-23. See note below. |
+| **Status** | Gates A + D disabled 2026-03-24. See note below. |
 
-**Gate A note:** Film trade press paraphrases heavily. Gate A was triggering ~89%
-escalation on its own (nano fails fidelity check; nano also triggers Gate D cascades).
-`evidence_fidelity_min` set to `0.0` so Gate A still runs and logs `match_rate` for
-calibration, but its pass/fail no longer drives escalation decisions. Gates B/C/D
-remain as the real quality signal.
+**Gate A+D note:** Film trade press paraphrases heavily. Fidelity-based gates (A and D)
+both fail on paraphrase-style output from nano — the snippet text-match check can't
+distinguish paraphrase from fabrication in this domain. Gates B (orphan endpoints) and
+C (zero-value) remain as the primary structural quality signal.
 
-**Tradeoff:** Edge detail panels in the graph client may show evidence snippets that
-are paraphrases from nano's memory rather than verified quotes from the source text.
+**Tradeoff:** High-confidence nano edges pass through without snippet verification.
+Monitor graph quality manually on first few runs; re-enable Gate D if fabrications appear.
 
 **History:**
 - 2026-02-25: Prompt tuning (EXT-4) — added orphan/evidence/relation constraints
 - 2026-03-17: Film domain launched; gate thresholds tuned for trade press
 - 2026-03-21: Switched to pure-Sonnet temporarily (`--no-escalate`) — 89% escalation
 - 2026-03-23: Reinstated escalation; Gate A disabled as escalation trigger
+- 2026-03-24: Gate D disabled — paraphrase-heavy sources make fidelity check unreliable
 
 **Ref:** `docs/fix-details/ext4-cheap-model-escalation-analysis.md`, `docs/backlog.md` EXT-4
 
@@ -98,6 +98,8 @@ make daily DOMAIN=film
 ---
 
 ## Default Pipeline Behavior (All Domains)
+
+**Default domain:** `film` (set in `Makefile` line 4, `scripts/run_pipeline.py`, and `src/domain/__init__.py`). Changed from `ai` on 2026-03-24.
 
 Unless overridden with `PIPELINE_FLAGS`:
 
