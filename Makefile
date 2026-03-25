@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack extract extract-shadow shadow-only shadow-report health-report import resolve export trending copy-to-live dashboard-data export_ontology pipeline post-extract daily daily-check test test-network test-all
+.PHONY: setup init-db ingest docpack submit collect health-report import resolve export trending copy-to-live dashboard-data export_ontology post-extract daily daily-check test test-network test-all migrate-batch backlog
 
 # Domain slug — all data paths derive from this
 DOMAIN ?= film
@@ -30,17 +30,17 @@ ingest:
 docpack:
 	python scripts/build_docpack.py --db $(DB) --all --label $(DATE) --output-dir $(DOCPACK_DIR) $(DOMAIN_FLAG)
 
-extract:
-	python scripts/run_extract.py --docpack $(DOCPACK) --escalate --db $(DB) --output-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
+submit:
+	python scripts/submit_batch.py --db $(DB) --domain $(DOMAIN) --docpack $(DOCPACK) --date $(DATE)
 
-extract-shadow:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow --parallel --db $(DB) --output-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
+collect:
+	python scripts/collect_batch.py --db $(DB) --domain $(DOMAIN) --output-dir $(EXTRACTIONS_DIR)
 
-shadow-only:
-	python scripts/run_extract.py --docpack $(DOCPACK) --shadow-only --db $(DB) --output-dir $(EXTRACTIONS_DIR) $(DOMAIN_FLAG)
+migrate-batch:
+	python scripts/migrate_batch_api.py --db $(DB)
 
-shadow-report:
-	python scripts/shadow_report.py --db $(DB) $(DOMAIN_FLAG)
+backlog:
+	python scripts/submit_backlog.py --db $(DB) --domain $(DOMAIN) --chunk-size 100
 
 health-report:
 	python scripts/health_report.py --db $(DB) $(DOMAIN_FLAG)
@@ -70,12 +70,7 @@ export_ontology:
 
 # ── Composites ─────────────────────────────────────────────────────────
 
-pipeline:
-	@touch data/pipeline.lock
-	$(MAKE) ingest docpack
-	@rm -f data/pipeline.lock
-
-post-extract:
+post-collect:
 	@touch data/pipeline.lock
 	$(MAKE) import resolve export trending copy-to-live
 	@rm -f data/pipeline.lock

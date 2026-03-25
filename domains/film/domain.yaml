@@ -383,41 +383,17 @@ id_prefixes:
 # --- Base Relation ---
 base_relation: MENTIONS
 
-# --- Quality Thresholds ---
-# Trade press is entity-dense (lots of names per article) but
-# relations are often implicit. Tuned accordingly.
-quality_thresholds:
-  entity_density_target: 6.0       # trade press name-drops heavily
-  evidence_coverage_min: 0.8
-  avg_confidence_target: 0.85
-  relation_entity_ratio_target: 0.4  # slightly lower — many MENTIONS, fewer semantic
-  tech_terms_min: 1                  # not every article mentions tech
-  relation_type_diversity_target: 5
-
 # --- Gate Thresholds ---
+# All four gates active and calibrated for Sonnet output quality.
+# Gate A/D overrides introduced for nano failure modes are removed (ADR-008).
+# Re-calibrate thresholds after 2 weeks of Sonnet-only runs if needed;
+# log findings in docs/backend/operational-state.md.
 gate_thresholds:
-  evidence_fidelity_min: 0.0     # Gate A disabled — film trade press paraphrases heavily; nano fails ~80% on fidelity check.
-                                  # Tradeoff: edge detail panels will show evidence objects but snippets are NOT verified
-                                  # to appear in source text. Gates B/C (orphans, zero-value) remain enforced. Gate D also disabled.
-                                  # (was 0.60, previously lowered from 0.70)
-  orphan_max: 0.0
-  zero_value_min_entities: 1
+  evidence_fidelity_min: 0.70    # Gate A: ≥70% of snippets must appear in source text
+  orphan_max: 0.0                # Gate B: zero orphaned relation endpoints
+  zero_value_min_entities: 1     # Gate C: ≥1 entity for docs >500 chars
   zero_value_min_doc_chars: 500
-  high_confidence_threshold: 1.1  # Gate D disabled — film trade press paraphrases heavily; fidelity check can't distinguish paraphrase from fabrication. Gates B/C (orphans, zero-value) remain enforced. (2026-03-24)
-                                  # NOTE: must be >1.0 to disable; 0.0 would make gate fire on ALL relations (confidence < 0.0 is never true, so skip never triggers)
-
-escalation_threshold: 0.55     # lowered from 0.6 — trade press style yields lower density scores than technical content
-
-# --- Scoring Weights ---
-# Emphasize connectivity (who works with whom) and density (name-heavy articles).
-# Lower weight on tech_terms since not every film article has technical content.
-scoring_weights:
-  density: 0.20
-  evidence: 0.15
-  confidence: 0.10
-  connectivity: 0.25
-  diversity: 0.20
-  tech_terms: 0.10
+  high_confidence_threshold: 0.8 # Gate D: confidence ≥0.8 + snippet not in source = flagged
 
 # --- Trend Weights ---
 trend_weights:

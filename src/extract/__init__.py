@@ -1,17 +1,20 @@
 """Extraction module for LLM-based entity and relation extraction.
 
 Supports:
-- Mode A: Automated extraction via LLM API
+- Mode A: Automated extraction via Anthropic Batch API (submit_batch + collect_batch)
 - Mode B: Manual extraction import with validation
 
-Quality evaluation (Phase 0+1):
-- Phase 0: Structured quality report per extraction (instrumentation)
-- Phase 1: Non-negotiable CPU gates (evidence fidelity, orphan endpoints,
-  zero-value, high-confidence + bad evidence)
+Quality gates (Phase 1 — CPU, zero tokens):
+  Gate A: Evidence fidelity — snippets must appear in source text
+  Gate B: Orphan endpoints — relation source/target must match an entity
+  Gate C: Zero-value — non-trivial docs must produce ≥1 entity
+  Gate D: High-confidence + bad evidence — worst hallucination pattern
+
+Gates run post-collection as QA logging (quality_metrics table). They no
+longer gate escalation — there is no escalation path in ADR-008.
 
 Domain-specific values (entity types, relation taxonomy, normalization map,
-quality thresholds, gate thresholds, scoring weights) are loaded from the
-active domain profile. See src/domain/ and domains/<slug>/domain.yaml.
+gate thresholds) are loaded from the active domain profile.
 """
 
 from __future__ import annotations
@@ -243,127 +246,6 @@ def save_extraction(
         json.dump(extraction, f, indent=2, ensure_ascii=False)
 
     return output_path
-
-
-# ---------------------------------------------------------------------------
-# Extraction quality scoring (for escalation mode)
-# ---------------------------------------------------------------------------
-
-# Loaded from domain profile — see domains/<slug>/domain.yaml
-QUALITY_THRESHOLDS: dict[str, Any] = dict(_profile["quality_thresholds"])
-ESCALATION_THRESHOLD: float = _profile.get("escalation_threshold", 0.6)
-_SCORING_WEIGHTS: dict[str, float] = dict(_profile["scoring_weights"])
-_BASE_RELATION: str = _profile["base_relation"]
-
-
-def score_extraction_quality(
-    extraction: dict[str, Any],
-    source_text_length: int,
-) -> dict[str, Any]:
-    """Score the quality of an extraction to decide if escalation is needed.
-
-    Returns a dict with individual signal scores (0-1), a combined score,
-    and whether escalation is recommended.
-
-    Args:
-        extraction: Validated extraction dict
-        source_text_length: Length of the source document text in chars
-
-    Returns:
-        Dict with scores and escalation recommendation
-    """
-    entities = extraction.get("entities", [])
-    relations = extraction.get("relations", [])
-    tech_terms = extraction.get("techTerms", [])
-
-    n_entities = len(entities)
-    n_relations = len(relations)
-    n_tech = len(tech_terms)
-
-    # Semantic relations = everything except the base relation
-    base_rel = _BASE_RELATION
-    semantic_relations = [r for r in relations if r.get("rel") != base_rel]
-    n_semantic = len(semantic_relations)
-
-    # 1. Entity density: entities per 1000 chars (proportional, not binary)
-    text_k = max(source_text_length / 1000, 0.1)
-    entity_density = n_entities / text_k
-    density_score = min(entity_density / QUALITY_THRESHOLDS["entity_density_target"], 1.0)
-
-    # 2. Evidence coverage: fraction of asserted relations that have evidence
-    asserted = [r for r in relations if r.get("kind") == "asserted"]
-    if asserted:
-        with_evidence = sum(1 for r in asserted if r.get("evidence"))
-        evidence_coverage = with_evidence / len(asserted)
-    else:
-        # No asserted relations — could be fine (all inferred) or empty
-        evidence_coverage = 1.0 if n_relations > 0 else 0.0
-    evidence_score = min(evidence_coverage / QUALITY_THRESHOLDS["evidence_coverage_min"], 1.0)
-
-    # 3. Average confidence — penalise suspiciously uniform high confidence.
-    #    A well-calibrated model shouldn't output 0.9 for everything.
-    if relations:
-        confidences = [r.get("confidence", 0) for r in relations]
-        avg_confidence = sum(confidences) / len(confidences)
-        # Variance penalty: if stddev < 0.05 and avg > 0.8, model isn't
-        # differentiating confidence — apply a 30% penalty.
-        if len(confidences) > 2:
-            mean_c = avg_confidence
-            variance = sum((c - mean_c) ** 2 for c in confidences) / len(confidences)
-            stddev = variance ** 0.5
-            if stddev < 0.05 and avg_confidence > 0.8:
-                avg_confidence *= 0.7  # penalise flat-high confidence
-    else:
-        avg_confidence = 0.0
-    confidence_score = min(avg_confidence / QUALITY_THRESHOLDS["avg_confidence_target"], 1.0)
-
-    # 4. Semantic relation-to-entity ratio (MENTIONS excluded)
-    if n_entities > 0:
-        rel_entity_ratio = n_semantic / n_entities
-    else:
-        rel_entity_ratio = 0.0
-    connectivity_score = min(
-        rel_entity_ratio / QUALITY_THRESHOLDS["relation_entity_ratio_target"], 1.0
-    )
-
-    # 5. Relation type diversity: how many distinct semantic relation types?
-    #    Cheap models tend to emit only 2-3 types (USES_TECH, CREATED, etc.)
-    #    while good extractions use 5+ distinct types.
-    rel_types = {r.get("rel") for r in semantic_relations if r.get("rel")}
-    n_rel_types = len(rel_types)
-    diversity_target = QUALITY_THRESHOLDS["relation_type_diversity_target"]
-    diversity_score = min(n_rel_types / diversity_target, 1.0)
-
-    # 6. Tech terms presence
-    tech_score = min(n_tech / QUALITY_THRESHOLDS["tech_terms_min"], 1.0)
-
-    # Combined score (weighted from domain profile)
-    w = _SCORING_WEIGHTS
-    combined = (
-        w["density"] * density_score
-        + w["evidence"] * evidence_score
-        + w["confidence"] * confidence_score
-        + w["connectivity"] * connectivity_score
-        + w["diversity"] * diversity_score
-        + w["tech_terms"] * tech_score
-    )
-
-    return {
-        "entity_density": round(entity_density, 2),
-        "density_score": round(density_score, 2),
-        "evidence_coverage": round(evidence_coverage, 2),
-        "evidence_score": round(evidence_score, 2),
-        "avg_confidence": round(avg_confidence, 2),
-        "confidence_score": round(confidence_score, 2),
-        "rel_entity_ratio": round(rel_entity_ratio, 2),
-        "connectivity_score": round(connectivity_score, 2),
-        "n_rel_types": n_rel_types,
-        "diversity_score": round(diversity_score, 2),
-        "n_tech_terms": n_tech,
-        "tech_score": round(tech_score, 2),
-        "combined_score": round(combined, 2),
-        "escalate": combined < ESCALATION_THRESHOLD,
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -609,67 +491,6 @@ def run_quality_gates(
     }
 
 
-def evaluate_extraction(
-    extraction: dict[str, Any],
-    source_text: str,
-) -> dict[str, Any]:
-    """Full quality evaluation: gates first, then scoring.
-
-    This is the unified entry point for Phase 0+1 quality evaluation.
-    Gates are checked first — if any gate fails, escalation is immediate
-    regardless of the quality score. If all gates pass, the existing
-    scoring function determines whether to escalate.
-
-    Args:
-        extraction: Validated extraction dict
-        source_text: The cleaned article text the model was given
-
-    Returns:
-        Dict with:
-            escalate: bool — should we escalate to specialist?
-            decision: str — 'accept' or 'escalate'
-            decision_reason: str — why
-            gates: gate results
-            quality: scoring results
-    """
-    source_text_length = len(source_text)
-
-    # Phase 1: Run non-negotiable gates
-    gate_results = run_quality_gates(extraction, source_text)
-
-    # Phase existing: Run quality scoring
-    quality = score_extraction_quality(extraction, source_text_length)
-
-    if not gate_results["overall_passed"]:
-        # Gate failure — escalate immediately regardless of score
-        reason = "gate_failed: " + "; ".join(gate_results["escalation_reasons"])
-        return {
-            "escalate": True,
-            "decision": "escalate",
-            "decision_reason": reason,
-            "gates": gate_results,
-            "quality": quality,
-        }
-
-    if quality["escalate"]:
-        # Gates passed but score is low
-        return {
-            "escalate": True,
-            "decision": "escalate",
-            "decision_reason": f"quality_low: score={quality['combined_score']:.2f}",
-            "gates": gate_results,
-            "quality": quality,
-        }
-
-    return {
-        "escalate": False,
-        "decision": "accept",
-        "decision_reason": "gates_passed+quality_ok",
-        "gates": gate_results,
-        "quality": quality,
-    }
-
-
 def load_extraction(
     doc_id: str,
     extractions_dir: Path,
@@ -722,119 +543,3 @@ def import_manual_extraction(
     return data
 
 
-# ---------------------------------------------------------------------------
-# Shadow mode comparison utilities
-# ---------------------------------------------------------------------------
-
-
-def compute_entity_overlap(
-    primary: dict[str, Any],
-    understudy: dict[str, Any],
-) -> float:
-    """Compute entity name overlap between two extractions.
-
-    Args:
-        primary: Primary extraction dict
-        understudy: Understudy extraction dict
-
-    Returns:
-        Overlap percentage (0-100)
-    """
-    primary_names = {e.get("name", "").lower() for e in primary.get("entities", [])}
-    understudy_names = {e.get("name", "").lower() for e in understudy.get("entities", [])}
-
-    if not primary_names:
-        return 100.0 if not understudy_names else 0.0
-
-    intersection = primary_names & understudy_names
-    return len(intersection) / len(primary_names) * 100
-
-
-def compute_relation_overlap(
-    primary: dict[str, Any],
-    understudy: dict[str, Any],
-) -> float:
-    """Compute relation overlap between two extractions.
-
-    Relations are compared by (source, rel, target) tuples, case-insensitive.
-
-    Args:
-        primary: Primary extraction dict
-        understudy: Understudy extraction dict
-
-    Returns:
-        Overlap percentage (0-100)
-    """
-    def relation_key(r: dict[str, Any]) -> tuple[str, str, str]:
-        return (
-            r.get("source", "").lower(),
-            r.get("rel", "").upper(),
-            r.get("target", "").lower(),
-        )
-
-    primary_rels = {relation_key(r) for r in primary.get("relations", [])}
-    understudy_rels = {relation_key(r) for r in understudy.get("relations", [])}
-
-    if not primary_rels:
-        return 100.0 if not understudy_rels else 0.0
-
-    intersection = primary_rels & understudy_rels
-    return len(intersection) / len(primary_rels) * 100
-
-
-def compare_extractions(
-    primary: dict[str, Any],
-    understudy: dict[str, Any],
-    understudy_model: str,
-    schema_valid: bool,
-    parse_error: Optional[str] = None,
-    primary_duration_ms: Optional[int] = None,
-    understudy_duration_ms: Optional[int] = None,
-) -> dict[str, Any]:
-    """Compare primary and understudy extractions for shadow mode tracking.
-
-    Args:
-        primary: Primary (Sonnet) extraction dict
-        understudy: Understudy extraction dict (may be empty if failed)
-        understudy_model: Model name of understudy
-        schema_valid: Whether understudy passed schema validation
-        parse_error: Error message if understudy failed
-        primary_duration_ms: Primary extraction time
-        understudy_duration_ms: Understudy extraction time
-
-    Returns:
-        Comparison stats dict ready for insert_extraction_comparison()
-    """
-    primary_entities = len(primary.get("entities", []))
-    primary_relations = len(primary.get("relations", []))
-    primary_tech_terms = len(primary.get("techTerms", []))
-
-    if schema_valid and understudy:
-        understudy_entities = len(understudy.get("entities", []))
-        understudy_relations = len(understudy.get("relations", []))
-        understudy_tech_terms = len(understudy.get("techTerms", []))
-        entity_overlap = compute_entity_overlap(primary, understudy)
-        relation_overlap = compute_relation_overlap(primary, understudy)
-    else:
-        understudy_entities = None
-        understudy_relations = None
-        understudy_tech_terms = None
-        entity_overlap = None
-        relation_overlap = None
-
-    return {
-        "doc_id": primary.get("docId", ""),
-        "understudy_model": understudy_model,
-        "schema_valid": schema_valid,
-        "parse_error": parse_error,
-        "primary_entities": primary_entities,
-        "primary_relations": primary_relations,
-        "primary_tech_terms": primary_tech_terms,
-        "understudy_entities": understudy_entities,
-        "understudy_relations": understudy_relations,
-        "understudy_tech_terms": understudy_tech_terms,
-        "entity_overlap_pct": entity_overlap,
-        "relation_overlap_pct": relation_overlap,
-        "primary_duration_ms": primary_duration_ms,
-        "understudy_duration_ms": understudy_duration_ms,
-    }
