@@ -41,27 +41,11 @@ VALID_PROFILE = {
         "Other": "other",
     },
     "base_relation": "MENTIONS",
-    "quality_thresholds": {
-        "entity_density_target": 5.0,
-        "evidence_coverage_min": 0.8,
-        "avg_confidence_target": 0.85,
-        "relation_entity_ratio_target": 0.5,
-        "tech_terms_min": 2,
-        "relation_type_diversity_target": 6,
-    },
     "gate_thresholds": {
         "evidence_fidelity_min": 0.70,
         "orphan_max": 0.0,
         "zero_value_min_entities": 1,
         "zero_value_min_doc_chars": 500,
-    },
-    "scoring_weights": {
-        "density": 0.15,
-        "evidence": 0.15,
-        "confidence": 0.10,
-        "connectivity": 0.20,
-        "diversity": 0.25,
-        "tech_terms": 0.15,
     },
     "trend_weights": {
         "velocity": 0.4,
@@ -118,7 +102,6 @@ class TestValidProfile:
         validator.validate(valid_profile)
 
     def test_profile_with_optional_fields(self, validator, valid_profile):
-        valid_profile["escalation_threshold"] = 0.6
         valid_profile["relation_kinds"] = ["asserted", "inferred", "hypothesis"]
         valid_profile["polarity_values"] = ["pos", "neg", "unclear"]
         valid_profile["modality_values"] = ["observed", "planned", "speculative"]
@@ -159,8 +142,8 @@ class TestRequiredFields:
 
     REQUIRED_TOP_LEVEL = [
         "domain", "entity_types", "relation_taxonomy", "id_prefixes",
-        "base_relation", "quality_thresholds", "gate_thresholds",
-        "scoring_weights", "trend_weights", "suppressed_entities", "prompts",
+        "base_relation", "gate_thresholds",
+        "trend_weights", "suppressed_entities", "prompts",
     ]
 
     @pytest.mark.parametrize("field", REQUIRED_TOP_LEVEL)
@@ -179,18 +162,8 @@ class TestRequiredFields:
         errors = list(validator.iter_errors(valid_profile))
         assert len(errors) > 0
 
-    def test_missing_quality_threshold_field(self, validator, valid_profile):
-        del valid_profile["quality_thresholds"]["entity_density_target"]
-        errors = list(validator.iter_errors(valid_profile))
-        assert len(errors) > 0
-
     def test_missing_gate_threshold_field(self, validator, valid_profile):
         del valid_profile["gate_thresholds"]["evidence_fidelity_min"]
-        errors = list(validator.iter_errors(valid_profile))
-        assert len(errors) > 0
-
-    def test_missing_scoring_weight_field(self, validator, valid_profile):
-        del valid_profile["scoring_weights"]["density"]
         errors = list(validator.iter_errors(valid_profile))
         assert len(errors) > 0
 
@@ -252,21 +225,6 @@ class TestInvalidValues:
         valid_profile["gate_thresholds"]["evidence_fidelity_min"] = 1.5
         errors = list(validator.iter_errors(valid_profile))
         assert len(errors) > 0, "Evidence fidelity must be <= 1.0"
-
-    def test_scoring_weight_negative(self, validator, valid_profile):
-        valid_profile["scoring_weights"]["density"] = -0.1
-        errors = list(validator.iter_errors(valid_profile))
-        assert len(errors) > 0, "Scoring weights must be >= 0"
-
-    def test_escalation_threshold_out_of_range(self, validator, valid_profile):
-        valid_profile["escalation_threshold"] = 2.0
-        errors = list(validator.iter_errors(valid_profile))
-        assert len(errors) > 0, "Escalation threshold must be <= 1.0"
-
-    def test_additional_properties_rejected_at_top_level(self, validator, valid_profile):
-        valid_profile["unknown_field"] = "test"
-        errors = list(validator.iter_errors(valid_profile))
-        assert len(errors) > 0, "Unknown top-level properties should be rejected"
 
     def test_additional_properties_rejected_in_domain(self, validator, valid_profile):
         valid_profile["domain"]["unknown"] = "test"
@@ -336,11 +294,6 @@ class TestAIDomainProfile:
     def test_base_relation_is_canonical(self, ai_profile):
         canonical = set(ai_profile["relation_taxonomy"]["canonical"])
         assert ai_profile["base_relation"] in canonical
-
-    def test_scoring_weights_sum_to_one(self, ai_profile):
-        weights = ai_profile["scoring_weights"]
-        total = sum(weights.values())
-        assert abs(total - 1.0) < 0.01, f"Scoring weights sum to {total}, expected 1.0"
 
     def test_trend_weights_sum_to_one(self, ai_profile):
         tw = ai_profile["trend_weights"]
@@ -503,11 +456,6 @@ class TestBiosafetyDomainProfile:
     def test_id_prefix_for_facility(self, bio_profile):
         assert bio_profile["id_prefixes"]["Facility"] == "facility"
 
-    def test_scoring_weights_sum(self, bio_profile):
-        sw = bio_profile["scoring_weights"]
-        total = sum(v for v in sw.values() if isinstance(v, (int, float)))
-        assert abs(total - 1.0) < 0.01
-
     def test_trend_weights_sum(self, bio_profile):
         tw = bio_profile["trend_weights"]
         total = tw["velocity"] + tw["novelty"] + tw["activity"]
@@ -583,29 +531,6 @@ class TestProfileValidationOnLoad:
         finally:
             domain_mod._find_domains_dir = orig
 
-    def test_bad_scoring_weights_sum_raises(self, tmp_path):
-        """Scoring weights that don't sum to ~1.0 should raise ValueError."""
-        import yaml
-        from domain import load_domain_profile
-
-        # Build a complete but invalid profile
-        profile = _build_full_profile()
-        profile["scoring_weights"] = {"a": 0.5, "b": 0.1}  # sums to 0.6
-
-        domain_dir = tmp_path / "domains" / "bad2"
-        domain_dir.mkdir(parents=True)
-        with open(domain_dir / "domain.yaml", "w") as f:
-            yaml.dump(profile, f)
-
-        import domain as domain_mod
-        orig = domain_mod._find_domains_dir
-        domain_mod._find_domains_dir = lambda: tmp_path / "domains"
-        try:
-            with pytest.raises(ValueError, match="scoring_weights sum"):
-                load_domain_profile("bad2")
-        finally:
-            domain_mod._find_domains_dir = orig
-
     def test_base_relation_not_in_canonical_raises(self, tmp_path):
         """base_relation must be in canonical relations."""
         import yaml
@@ -640,9 +565,8 @@ def _build_full_profile():
         },
         "id_prefixes": {"Org": "org"},
         "base_relation": "MENTIONS",
-        "quality_thresholds": {"entity_density_target": 5.0},
-        "gate_thresholds": {"high_confidence_threshold": 0.8},
-        "scoring_weights": {"a": 0.5, "b": 0.5},
+        "gate_thresholds": {"evidence_fidelity_min": 0.70, "orphan_max": 0.0,
+                            "zero_value_min_entities": 1, "zero_value_min_doc_chars": 500},
         "trend_weights": {"velocity": 0.4, "novelty": 0.3, "activity": 0.3},
         "suppressed_entities": [],
         "prompts": {"dir": "prompts"},

@@ -26,9 +26,12 @@ SCRIPTS_MUST_USE_DOMAIN_DB = [
     "scripts/repair_data.py",
     "scripts/init_db.py",
     "scripts/health_report.py",
-    "scripts/shadow_report.py",
     "scripts/generate_dashboard_json.py",
     "scripts/collect_diagnostics.py",
+    # ADR-008: batch API scripts
+    "scripts/submit_batch.py",
+    "scripts/collect_batch.py",
+    "scripts/submit_backlog.py",
 ]
 
 
