@@ -191,13 +191,19 @@ def main() -> int:
 
     domain = args.domain or os.environ.get("PREDICTOR_DOMAIN", "ai")
 
-    from util.paths import get_db_path, get_docpack_path
+    from util.paths import get_db_path, get_docpacks_dir
     db_path = Path(args.db) if args.db else get_db_path(domain)
 
     if args.docpack:
         docpack_path = Path(args.docpack)
     else:
-        docpack_path = get_docpack_path(domain, run_date)
+        # Default: latest daily bundle for today's date
+        docpacks_dir = get_docpacks_dir(domain)
+        candidates = sorted(docpacks_dir.glob(f"daily_bundle_{run_date}*.jsonl"))
+        if not candidates:
+            # Fall back to most recent bundle
+            candidates = sorted(docpacks_dir.glob("daily_bundle_*.jsonl"))
+        docpack_path = candidates[-1] if candidates else docpacks_dir / f"daily_bundle_{run_date}_all.jsonl"
 
     if not docpack_path.exists():
         print(f"No docpack found: {docpack_path}")
