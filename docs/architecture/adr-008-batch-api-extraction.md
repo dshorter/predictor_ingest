@@ -261,17 +261,34 @@ CREATE TABLE batch_jobs (
 | `make extract` | run two-tier escalation (removed) | removed — replaced by submit + collect |
 | `make backlog` | n/a | pre-populate batch_jobs with backlog chunks for drain |
 
-### Fallback procedure
+### Edge cases and fallback
 
-If the Batch API is unavailable or a batch job fails:
+The collect phase opens each morning by querying `batch_jobs` for all jobs
+with `status = 'pending'`, ordered by `submitted_at`. This handles every
+steady-state and degraded scenario without branching logic in the caller:
 
-1. `collect_batch.py` detects `status == errored` on the batch job.
-2. Falls back to synchronous extraction: calls `claude-sonnet-4-6` directly
-   for each doc in `batch_jobs.doc_ids`.
-3. Logs the fallback to the pipeline run record.
+| Morning state | Collect phase behaviour | Submit phase behaviour |
+|---|---|---|
+| Yesterday's batch complete | Import + full graph run | Ingest → submit → exit |
+| Yesterday's batch still pending | Log warning, skip graph stages | Ingest → submit → exit |
+| Yesterday's batch failed | Log error, trigger fallback (see below) | Ingest → submit → exit |
+| Two days piled up, both complete | Import both sets → one combined graph run | Ingest → submit → exit |
 
-This preserves the ability to run the pipeline without async infrastructure
-when needed (e.g., testing, incident recovery).
+**"Still pending" skip:** If the batch is not yet complete, the collect phase
+skips all graph stages for that day and exits cleanly. The next morning it
+finds two complete batches. Rather than running graph stages twice, it imports
+both sets of extraction files and runs resolve → synthesize → infer → export →
+trending once on the combined set. This is preferable to two separate passes:
+cross-document synthesis and entity resolution see a wider article set, yielding
+more corroboration and fewer island entities. Maximum pile-up depth under normal
+conditions is two days — the Anthropic Batch API SLA is 24 hours.
+
+**Failed batch fallback:** `collect_batch.py` detects `status == errored`
+on a batch job and falls back to synchronous extraction, calling
+`claude-sonnet-4-6` directly for each doc in `batch_jobs.doc_ids`, then
+continuing with the normal import → graph stage sequence. The fallback is
+logged to the pipeline run record. This preserves pipeline continuity for
+testing and incident recovery without requiring manual intervention.
 
 ---
 
@@ -304,7 +321,8 @@ when needed (e.g., testing, incident recovery).
   The fallback procedure handles this, but it is new surface area.
 - **24h SLA.** In practice 25-doc batches complete in minutes, but the pipeline
   must not assume this. If a batch is still pending at the next day's collect
-  phase, `collect_batch` must wait, skip, or fall back gracefully.
+  phase, the collect phase skips graph stages and the two days are processed
+  together the following morning. Maximum lag under normal conditions: 2 days.
 
 ### Risks
 
