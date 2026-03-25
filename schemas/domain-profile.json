@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "domain-profile.json",
   "title": "Domain Profile",
-  "description": "Schema for a domain.yaml profile that configures entity types, relations, extraction thresholds, scoring weights, and prompt paths for a specific domain.",
+  "description": "Schema for a domain.yaml profile that configures entity types, relations, gate thresholds, trend weights, and prompt paths for a specific domain.",
   "type": "object",
   "required": [
     "domain",
@@ -10,14 +10,11 @@
     "relation_taxonomy",
     "id_prefixes",
     "base_relation",
-    "quality_thresholds",
     "gate_thresholds",
-    "scoring_weights",
     "trend_weights",
     "suppressed_entities",
     "prompts"
   ],
-  "additionalProperties": false,
   "properties": {
     "domain": {
       "type": "object",
@@ -137,53 +134,6 @@
       }
     },
 
-    "quality_thresholds": {
-      "type": "object",
-      "required": [
-        "entity_density_target",
-        "evidence_coverage_min",
-        "avg_confidence_target",
-        "relation_entity_ratio_target",
-        "tech_terms_min",
-        "relation_type_diversity_target"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "entity_density_target": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Target entities per 1000 words"
-        },
-        "evidence_coverage_min": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Minimum fraction of entities with evidence snippets"
-        },
-        "avg_confidence_target": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Target average confidence across entities"
-        },
-        "relation_entity_ratio_target": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Target ratio of relations to entities"
-        },
-        "tech_terms_min": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Minimum number of technology/domain terms expected"
-        },
-        "relation_type_diversity_target": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Target number of distinct relation types per extraction"
-        }
-      }
-    },
-
     "gate_thresholds": {
       "type": "object",
       "required": [
@@ -224,36 +174,6 @@
           "description": "Confidence level above which bad evidence triggers immediate escalation"
         }
       }
-    },
-
-    "escalation_threshold": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.6,
-      "description": "Overall quality score below which extraction is escalated to a stronger model"
-    },
-
-    "scoring_weights": {
-      "type": "object",
-      "required": [
-        "density",
-        "evidence",
-        "confidence",
-        "connectivity",
-        "diversity",
-        "tech_terms"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "density": { "type": "number", "minimum": 0, "maximum": 1 },
-        "evidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "connectivity": { "type": "number", "minimum": 0, "maximum": 1 },
-        "diversity": { "type": "number", "minimum": 0, "maximum": 1 },
-        "tech_terms": { "type": "number", "minimum": 0, "maximum": 1 }
-      },
-      "description": "Weights for quality scoring components. Should sum to 1.0."
     },
 
     "trend_weights": {

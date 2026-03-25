@@ -703,7 +703,7 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
         stages = run_log.get("stages", {})
         ingest = stages.get("ingest", {})
         docpack = stages.get("docpack", {})
-        extract = stages.get("extract", {})
+        collect = stages.get("collect", {})
         imp = stages.get("import", {})
         synthesize = stages.get("synthesize", {})
         resolve = stages.get("resolve", {})
@@ -735,8 +735,8 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
              ingest.get("newDocsFound", 0),
              docpack.get("docsBundled", 0),
              docpack.get("qualifiedExcluded", 0),
-             extract.get("docsExtracted", 0),
-             extract.get("escalated", 0),
+             collect.get("docsExtracted", 0),
+             0,  # docs_escalated — escalation removed (ADR-008)
              imp.get("entitiesNew", 0),
              imp.get("entitiesResolved", 0),
              imp.get("relations", 0),
@@ -767,11 +767,11 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
             ("select", docpack.get("qualifiedTotal", 0), docpack.get("docsBundled", 0),
              docpack.get("qualifiedExcluded", 0),
              json.dumps({"budget_exceeded": docpack.get("qualifiedExcluded", 0)})),
-            ("extract", docpack.get("docsBundled", 0), extract.get("docsExtracted", 0),
-             extract.get("validationErrors", 0),
-             json.dumps({"validation_errors": extract.get("validationErrors", 0),
-                         "escalated": extract.get("escalated", 0)})),
-            ("import", extract.get("docsExtracted", 0), imp.get("filesImported", 0),
+            ("collect", docpack.get("docsBundled", 0), collect.get("docsExtracted", 0),
+             collect.get("validationErrors", 0),
+             json.dumps({"validation_errors": collect.get("validationErrors", 0),
+                         "batch_pending": collect.get("batch_pending", False)})),
+            ("import", collect.get("docsExtracted", 0), imp.get("filesImported", 0),
              imp.get("errors", 0) if isinstance(imp.get("errors"), int) else 0,
              None),
             ("synthesize", synthesize.get("batchesProcessed", 0),
@@ -864,18 +864,18 @@ def main() -> int:
         help="Web client live graph directory (default: web/data/graphs/live)",
     )
     parser.add_argument(
-        "--skip-extract", action="store_true",
-        help="Skip extraction stage (Mode B: manual extraction workflow)",
+        "--skip-collect", action="store_true",
+        help="Skip batch collection phase (useful when no batch is pending)",
+    )
+    parser.add_argument(
+        "--skip-submit", action="store_true",
+        help="Skip batch submission phase (useful for graph-only reruns)",
     )
     parser.add_argument(
         "--budget", type=int, default=None,
         help="Extraction budget: target number of docs to extract per run. "
              "Enables quality-based selection in docpack stage. "
              "Goal: 10-20, stretch up to budget+5 for high-quality docs.",
-    )
-    parser.add_argument(
-        "--no-escalate", action="store_true",
-        help="Disable escalation mode; run primary model only (no cheap model, no shadow)",
     )
     parser.add_argument(
         "--copy-to-live", action="store_true", default=True,
@@ -905,7 +905,7 @@ def main() -> int:
     set_active_domain(args.domain)
 
     # Derive domain-scoped paths if not explicitly provided
-    from util.paths import get_db_path, get_docpacks_dir, get_graphs_dir, get_logs_dir
+    from util.paths import get_db_path, get_docpacks_dir, get_extractions_dir, get_graphs_dir, get_logs_dir
     if args.db is None:
         args.db = str(get_db_path(args.domain))
 
@@ -920,6 +920,7 @@ def main() -> int:
         args.log_dir = str(get_logs_dir(args.domain))
     docpack_path = str(get_docpacks_dir(args.domain) / f"daily_bundle_{run_date}.jsonl")
     docpack_label = run_date
+    extractions_dir = str(get_extractions_dir(args.domain))
 
     # Initialize run log
     run_log: dict = {
@@ -938,51 +939,18 @@ def main() -> int:
     # Define pipeline stages
     stages = [
         {
-            "name": "repair",
+            "name": "collect",
             "cmd": [
-                sys.executable, "scripts/repair_data.py",
+                sys.executable, "scripts/collect_batch.py",
                 "--db", db_path,
-                "--fix",
+                "--domain", args.domain,
+                "--output-dir", extractions_dir,
             ],
-            "parse": lambda s: {},
-            "fatal": False,
-        },
-        {
-            "name": "ingest",
-            "cmd": [
-                sys.executable, "-m", "ingest.run_all",
-                "--config", f"domains/{args.domain}/feeds.yaml",
-                "--db", db_path,
-                "--skip-existing",
-            ],
-            "parse": parse_ingest_output,
-            "fatal": True,
-            "timeout": 2700,  # 45 min — feeds × delay; extra buffer for slow networks
-            "stream": True,  # show per-article progress in real-time
-        },
-        {
-            "name": "docpack",
-            "cmd": [
-                sys.executable, "scripts/build_docpack.py",
-                "--db", db_path,
-                "--date", run_date,
-                "--label", docpack_label,
-            ] + (["--budget", str(args.budget)] if args.budget else []),
-            "parse": parse_docpack_output,
-            "fatal": False,
-        },
-        {
-            "name": "extract",
-            "cmd": [
-                sys.executable, "scripts/run_extract.py",
-                "--docpack", docpack_path,
-                "--db", db_path,
-            ] + ([] if args.no_escalate else ["--escalate"]),
             "parse": parse_extract_output,
             "fatal": False,
-            "skip": args.skip_extract,
-            "timeout": 10800,  # 3 hours — escalation mode can run 100+ docs × 30-120s each
-            "stream": True,   # show per-doc progress in real-time
+            "skip": args.skip_collect,
+            "timeout": 300,
+            "stream": True,
         },
         {
             "name": "import",
@@ -1047,6 +1015,47 @@ def main() -> int:
             "parse": parse_trending_output,
             "fatal": False,
         },
+        # Phase 2: ingest + docpack + submit (staggered handoff — ADR-008)
+        # These run after graph stages so today's articles are submitted
+        # as a batch job and collected at the start of tomorrow's run.
+        {
+            "name": "ingest",
+            "cmd": [
+                sys.executable, "-m", "ingest.run_all",
+                "--config", f"domains/{args.domain}/feeds.yaml",
+                "--db", db_path,
+                "--skip-existing",
+            ],
+            "parse": parse_ingest_output,
+            "fatal": True,
+            "timeout": 2700,
+            "stream": True,
+        },
+        {
+            "name": "docpack",
+            "cmd": [
+                sys.executable, "scripts/build_docpack.py",
+                "--db", db_path,
+                "--date", run_date,
+                "--label", docpack_label,
+            ] + (["--budget", str(args.budget)] if args.budget else []),
+            "parse": parse_docpack_output,
+            "fatal": False,
+        },
+        {
+            "name": "submit",
+            "cmd": [
+                sys.executable, "scripts/submit_batch.py",
+                "--db", db_path,
+                "--domain", args.domain,
+                "--docpack", docpack_path,
+                "--date", run_date,
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
+            "skip": args.skip_submit,
+            "timeout": 120,
+        },
     ]
 
     if args.dry_run:
@@ -1079,6 +1088,7 @@ def main() -> int:
     overall_status = "success"
     failed_stages = []
     docpack_bundled = None  # track whether docpack produced docs
+    skip_graph_stages = False  # set True when collect exits EXIT_PENDING (rc=2)
 
     print(f"=== Pipeline run {run_id} ({run_date}) ===")
     print(f"  Domain: {args.domain}")
@@ -1122,13 +1132,18 @@ def main() -> int:
                 run_log["stages"][name] = {"status": "skipped"}
                 continue
 
-            # Skip extract if docpack bundled 0 docs and no fresh docpack exists
-            if name == "extract" and docpack_bundled == 0:
-                docpack_file = project_root / docpack_path
-                if not docpack_file.exists():
-                    print(f"[{name}] SKIPPED (no docpack file)")
-                    run_log["stages"][name] = {"status": "skipped", "reason": "no_docpack"}
-                    continue
+            # Skip graph stages when batch collection is still pending (ADR-008)
+            _graph_stages = {"import", "synthesize", "resolve", "infer", "export", "trending"}
+            if skip_graph_stages and name in _graph_stages:
+                print(f"[{name}] SKIPPED (batch pending)")
+                run_log["stages"][name] = {"status": "skipped", "reason": "batch_pending"}
+                continue
+
+            # Skip submit if docpack produced nothing
+            if name == "submit" and docpack_bundled == 0:
+                print(f"[{name}] SKIPPED (no docs in docpack)")
+                run_log["stages"][name] = {"status": "skipped", "reason": "no_docpack"}
+                continue
 
             stage_timeout = None if args.no_timeout else stage.get("timeout", 600)
             stage_stream = stage.get("stream", False)
@@ -1142,13 +1157,21 @@ def main() -> int:
             else:
                 stage_stats = stage["parse"](result["stdout"])
 
+            # collect rc=2 means batch still in flight — skip graph stages (ADR-008)
+            if name == "collect" and result.get("returncode") == 2:
+                skip_graph_stages = True
+                result["status"] = "ok"  # not a failure — expected pending state
+                print(f"[collect] Batch still pending — graph stages will be skipped today")
+
             run_log["stages"][name] = {
                 "status": result["status"],
                 "duration_sec": result["duration_sec"],
                 **stage_stats,
             }
+            if name == "collect" and skip_graph_stages:
+                run_log["stages"][name]["batch_pending"] = True
 
-            # Track docpack output so extract can be skipped when empty
+            # Track docpack output so submit can be skipped when empty
             if name == "docpack":
                 docpack_bundled = stage_stats.get("docsBundled", 0)
 
@@ -1248,7 +1271,7 @@ def main() -> int:
     print()
     stage_summary = []
     ingest = run_log["stages"].get("ingest", {})
-    extract = run_log["stages"].get("extract", {})
+    collect_s = run_log["stages"].get("collect", {})
     export = run_log["stages"].get("export", {})
     synthesize_s = run_log["stages"].get("synthesize", {})
     resolve_s = run_log["stages"].get("resolve", {})
@@ -1256,8 +1279,8 @@ def main() -> int:
     trending_s = run_log["stages"].get("trending", {})
 
     new_docs = ingest.get("newDocsFound", "?")
-    entities = extract.get("entitiesFound", "?")
-    relations = extract.get("relationsFound", "?")
+    entities = collect_s.get("entitiesFound", "?")
+    relations = collect_s.get("relationsFound", "?")
     unreachable = ingest.get("feedsUnreachable", 0)
     feeds = f"{ingest.get('feedsReachable', '?')}/{ingest.get('feedsChecked', '?')}"
     if unreachable:
@@ -1291,7 +1314,7 @@ def main() -> int:
         print(f"  Features: {' | '.join(feature_parts)}")
 
     # Warn about unmapped relation types (normalization gaps)
-    unmapped = extract.get("unmappedRelationTypes", [])
+    unmapped = collect_s.get("unmappedRelationTypes", [])
     if unmapped:
         types_str = ", ".join(f"{u['type']}({u['count']})" for u in unmapped)
         print(f"  ⚠ Unmapped relation types: {types_str}  → add to domain.yaml normalization")

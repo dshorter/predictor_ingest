@@ -11,10 +11,7 @@ CREATE TABLE IF NOT EXISTS documents (
   text_path TEXT,
   content_hash TEXT,
   status TEXT,
-  error TEXT,
-  extracted_by TEXT,          -- model that produced the kept extraction
-  quality_score REAL,         -- combined quality score (0.0-1.0)
-  escalation_failed TEXT      -- non-NULL if specialist failed; contains error message
+  error TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_documents_url ON documents(url);
@@ -97,85 +94,23 @@ CREATE TABLE IF NOT EXISTS entity_aliases (
 
 CREATE INDEX IF NOT EXISTS idx_aliases_canonical ON entity_aliases(canonical_id);
 
--- Extraction comparison table (shadow mode understudy tracking)
--- Tracks how well understudy models perform vs the primary (Sonnet)
-CREATE TABLE IF NOT EXISTS extraction_comparison (
-  doc_id TEXT NOT NULL,
-  run_date TEXT NOT NULL,
-  understudy_model TEXT NOT NULL,
-
-  -- Did it work at all?
-  schema_valid INTEGER NOT NULL DEFAULT 0,  -- 0/1 boolean
-  parse_error TEXT,
-
-  -- Counts from primary (Sonnet)
-  primary_entities INTEGER,
-  primary_relations INTEGER,
-  primary_tech_terms INTEGER,
-
-  -- Counts from understudy
-  understudy_entities INTEGER,
-  understudy_relations INTEGER,
-  understudy_tech_terms INTEGER,
-
-  -- Match rates (computed after both complete)
-  entity_overlap_pct REAL,
-  relation_overlap_pct REAL,
-
-  -- Timing
-  primary_duration_ms INTEGER,
-  understudy_duration_ms INTEGER,
-
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (doc_id, understudy_model)
+-- Batch job tracking (ADR-008: Anthropic Batch API extraction)
+-- One row per submitted batch job. The daily pipeline submits today's
+-- docpack as a batch job, then collects results at the start of the next run.
+CREATE TABLE IF NOT EXISTS batch_jobs (
+  job_id        TEXT PRIMARY KEY,
+  domain        TEXT NOT NULL,
+  run_date      TEXT NOT NULL,         -- ISO date the batch was submitted
+  submitted_at  TEXT NOT NULL,         -- ISO datetime
+  status        TEXT NOT NULL,         -- pending | complete | failed
+  doc_ids       TEXT NOT NULL,         -- JSON array of doc_id strings
+  result_file   TEXT,                  -- path to downloaded JSONL result (when complete)
+  completed_at  TEXT                   -- ISO datetime (when complete/failed)
 );
 
-CREATE INDEX IF NOT EXISTS idx_comparison_model ON extraction_comparison(understudy_model);
-CREATE INDEX IF NOT EXISTS idx_comparison_date ON extraction_comparison(run_date);
-
--- Quality evaluation runs (Phase 0 instrumentation + Phase 1 gates)
--- One row per extraction attempt (cheap pass, specialist pass, etc.)
-CREATE TABLE IF NOT EXISTS quality_runs (
-  run_id TEXT PRIMARY KEY,
-  doc_id TEXT NOT NULL,
-  pipeline_stage TEXT NOT NULL,        -- 'cheap_extract', 'specialist_extract'
-  model TEXT NOT NULL,
-  provider TEXT,
-  started_at TEXT NOT NULL,
-  duration_ms INTEGER,
-  status TEXT NOT NULL,                -- 'ok', 'error'
-  decision TEXT NOT NULL,              -- 'accept', 'escalate', 'reject'
-  decision_reason TEXT,
-  quality_score REAL,                  -- combined score from scoring function
-  input_chars INTEGER,
-  prompt_tokens INTEGER,
-  completion_tokens INTEGER,
-  total_tokens INTEGER,
-  extra_json TEXT,                     -- overflow for future fields
-  FOREIGN KEY (doc_id) REFERENCES documents(doc_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_quality_runs_doc ON quality_runs(doc_id);
-CREATE INDEX IF NOT EXISTS idx_quality_runs_stage ON quality_runs(pipeline_stage);
-CREATE INDEX IF NOT EXISTS idx_quality_runs_started ON quality_runs(started_at);
-
--- Per-metric rows for each quality run (gates + signals)
--- Enables SQL aggregation across runs: AVG(metric_value) WHERE metric_name = 'evidence_fidelity_rate'
-CREATE TABLE IF NOT EXISTS quality_metrics (
-  run_id TEXT NOT NULL,
-  metric_name TEXT NOT NULL,           -- e.g. 'evidence_fidelity_rate', 'orphan_rate'
-  metric_value REAL,
-  passed INTEGER,                      -- 0/1 — did this metric pass its threshold?
-  severity INTEGER NOT NULL DEFAULT 0, -- 0=info, 1=warn, 2=gate
-  threshold_value REAL,                -- threshold used for pass/fail
-  notes TEXT,                          -- debug info (e.g. failed snippet list)
-  PRIMARY KEY (run_id, metric_name),
-  FOREIGN KEY (run_id) REFERENCES quality_runs(run_id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_quality_metrics_name ON quality_metrics(metric_name);
-CREATE INDEX IF NOT EXISTS idx_quality_metrics_passed ON quality_metrics(passed);
+CREATE INDEX IF NOT EXISTS idx_batch_jobs_domain ON batch_jobs(domain);
+CREATE INDEX IF NOT EXISTS idx_batch_jobs_status ON batch_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_batch_jobs_submitted ON batch_jobs(submitted_at);
 
 -- Bench table: qualified-but-budget-blocked articles for backfill on light days.
 -- Articles that scored well enough to be selected but were bumped because the

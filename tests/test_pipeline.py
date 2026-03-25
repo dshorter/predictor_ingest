@@ -276,13 +276,6 @@ Done. Processed: 3, Succeeded: 3, Failed: 0
         assert stats["docsExtracted"] == 3
         assert stats["validationErrors"] == 2
 
-    def test_with_escalation(self):
-        output = """Done. Processed: 5, Succeeded: 4, Failed: 1, Escalated: 2/5 (40%)"""
-        stats = parse_extract_output(output)
-        assert stats["docsExtracted"] == 4
-        assert stats["escalated"] == 2
-
-
 class TestParseImportOutput:
     def test_empty_output(self):
         stats = parse_import_output("")
@@ -392,12 +385,12 @@ class TestDryRun:
         assert "trending" in result.stdout
 
     def test_dry_run_skip_extract(self):
-        """Test that --dry-run --skip-extract shows extract as skipped."""
+        """Test that --dry-run --skip-collect shows collect as skipped."""
         import subprocess
 
         project_root = Path(__file__).resolve().parents[1]
         result = subprocess.run(
-            [sys.executable, "scripts/run_pipeline.py", "--dry-run", "--skip-extract"],
+            [sys.executable, "scripts/run_pipeline.py", "--dry-run", "--skip-collect"],
             capture_output=True,
             text=True,
             cwd=project_root,

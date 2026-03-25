@@ -279,15 +279,6 @@ id_prefixes:
 # trend scoring, and bridge exclusion. Must be in canonical list.
 base_relation: MENTIONS
 
-# --- Quality Thresholds ---
-quality_thresholds:
-  entity_density_target: 4.0                # entities per 1000 chars (biosafety docs are denser)
-  evidence_coverage_min: 0.8                # fraction of asserted relations with evidence
-  avg_confidence_target: 0.85               # target average confidence
-  relation_entity_ratio_target: 0.5         # semantic relations / entities
-  tech_terms_min: 2                         # domain articles should have >= 2 domain terms
-  relation_type_diversity_target: 5         # distinct semantic relation types used
-
 # --- Gate Thresholds (non-negotiable CPU quality gates) ---
 gate_thresholds:
   evidence_fidelity_min: 0.70               # snippet must appear in source text
@@ -295,19 +286,6 @@ gate_thresholds:
   zero_value_min_entities: 1                # non-trivial docs must produce >= 1 entity
   zero_value_min_doc_chars: 500             # docs shorter than this skip zero-value gate
   high_confidence_threshold: 0.8            # confidence above this + bad evidence = escalate
-
-# Combined quality score below this triggers escalation to stronger model
-escalation_threshold: 0.6
-
-# --- Scoring Weights ---
-# Used by score_extraction_quality(). Must sum to 1.0.
-scoring_weights:
-  density: 0.10         # entity density vs target (lower weight; biosafety docs vary more)
-  evidence: 0.20        # evidence fidelity (higher weight; regulatory accuracy critical)
-  confidence: 0.10      # average relation confidence
-  connectivity: 0.20    # relation-to-entity ratio
-  diversity: 0.20       # entity type diversity
-  tech_terms: 0.20      # domain-specific term extraction (select agents, techniques)
 
 # --- Trend Weights ---
 # Used by TrendScorer. velocity+novelty+activity must sum to 1.0.

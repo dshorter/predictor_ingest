@@ -2,7 +2,7 @@
 
 Loads domain-specific configuration from domains/<slug>/domain.yaml.
 The profile provides entity types, relation taxonomy, thresholds,
-scoring weights, and prompt paths — everything that varies by domain.
+and prompt paths — everything that varies by domain.
 
 Usage:
     from domain import load_domain_profile, get_active_profile
@@ -16,7 +16,7 @@ Usage:
     # Access values
     profile["entity_types"]         # ["Org", "Person", ...]
     profile["base_relation"]        # "MENTIONS"
-    profile["quality_thresholds"]   # {entity_density_target: 5.0, ...}
+    profile["gate_thresholds"]      # {evidence_fidelity_min: 0.70, ...}
 """
 
 from __future__ import annotations
@@ -100,9 +100,7 @@ def _validate_profile(profile: dict[str, Any], path: Path) -> None:
         "relation_taxonomy": (dict,),
         "id_prefixes": (dict,),
         "base_relation": (str,),
-        "quality_thresholds": (dict,),
         "gate_thresholds": (dict,),
-        "scoring_weights": (dict,),
         "trend_weights": (dict,),
         "suppressed_entities": (list,),
         "prompts": (dict,),
@@ -137,14 +135,6 @@ def _validate_profile(profile: dict[str, Any], path: Path) -> None:
         raise ValueError(
             f"Domain profile {path}: base_relation '{profile['base_relation']}' "
             f"not in relation_taxonomy.canonical"
-        )
-
-    # Validate scoring_weights sum to ~1.0
-    sw = profile["scoring_weights"]
-    sw_sum = sum(v for v in sw.values() if isinstance(v, (int, float)))
-    if abs(sw_sum - 1.0) > 0.01:
-        raise ValueError(
-            f"Domain profile {path}: scoring_weights sum to {sw_sum:.3f}, expected ~1.0"
         )
 
     # Validate trend_weights core weights sum to ~1.0
