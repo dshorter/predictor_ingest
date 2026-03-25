@@ -20,45 +20,61 @@ mkdir -p "$OUTDIR"
 
 echo "=== Collecting metrics into $OUTDIR (domain: $DOMAIN) ==="
 
-# 1. Shadow report (escalation stats, model split, quality distribution)
-echo "[1/10] Shadow report..."
-$PYTHON scripts/shadow_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/01_shadow_report.txt" 2>&1 || true
+# 1. Batch jobs summary (ADR-008: Anthropic Batch API replaced two-tier escalation)
+echo "[1/10] Batch jobs summary..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, status,
+       COUNT(*) as job_count,
+       SUM(json_array_length(doc_ids)) as total_docs,
+       MIN(submitted_at) as first_submitted,
+       MAX(completed_at) as last_completed
+FROM batch_jobs
+WHERE domain = '${DOMAIN}'
+GROUP BY run_date, status
+ORDER BY run_date DESC, status;
+" > "$OUTDIR/01_batch_jobs.csv" 2>&1 || echo "(no batch_jobs data yet)" > "$OUTDIR/01_batch_jobs.csv"
 
 # 2. Health report (docs per source, stage counts, errors)
 echo "[2/10] Health report..."
 $PYTHON scripts/health_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/02_health_report.txt" 2>&1 || true
 
-# 3. Worst quality scores (bottom 50 by score)
-echo "[3/10] Quality metrics (worst 50)..."
+# 3. Batch job details — pending vs complete breakdown
+echo "[3/10] Batch job detail..."
 sqlite3 -header -csv "$DB" "
-SELECT qr.doc_id, qr.pipeline_stage, qr.model, qr.quality_score,
-       qr.decision, qr.decision_reason
-FROM quality_runs qr
-WHERE qr.quality_score IS NOT NULL
-ORDER BY qr.quality_score ASC
+SELECT job_id, run_date, status,
+       json_array_length(doc_ids) as doc_count,
+       submitted_at, completed_at,
+       CASE WHEN result_file IS NOT NULL THEN 'yes' ELSE 'no' END as has_results
+FROM batch_jobs
+WHERE domain = '${DOMAIN}'
+ORDER BY submitted_at DESC
 LIMIT 50;
-" > "$OUTDIR/03_worst_quality_scores.csv" 2>&1 || echo "(no quality_runs data)" > "$OUTDIR/03_worst_quality_scores.csv"
+" > "$OUTDIR/03_batch_job_detail.csv" 2>&1 || echo "(no batch_jobs data)" > "$OUTDIR/03_batch_job_detail.csv"
 
-# 4. Per-metric breakdown for escalated docs (orphans, evidence, density)
-echo "[4/10] Gate failure details..."
+# 4. Extracted document stats — entity and relation counts per doc
+echo "[4/10] Extraction output per document..."
 sqlite3 -header -csv "$DB" "
-SELECT qr.doc_id, qm.metric_name, qm.metric_value, qm.passed,
-       qm.threshold_value, substr(qm.notes, 1, 300) as notes_trunc
-FROM quality_metrics qm
-JOIN quality_runs qr ON qm.run_id = qr.run_id
-WHERE qm.passed = 0
-ORDER BY qm.metric_name, qm.metric_value DESC
+SELECT d.doc_id, d.source, d.source_type, d.status, d.extracted_by,
+       COUNT(DISTINCT e.id) as entity_count,
+       COUNT(DISTINCT r.id) as relation_count
+FROM documents d
+LEFT JOIN entities e ON e.doc_id = d.doc_id
+LEFT JOIN relations r ON r.doc_id = d.doc_id
+WHERE d.status = 'extracted'
+GROUP BY d.doc_id
+ORDER BY entity_count ASC
 LIMIT 100;
-" > "$OUTDIR/04_gate_failures.csv" 2>&1 || echo "(no quality_metrics data)" > "$OUTDIR/04_gate_failures.csv"
+" > "$OUTDIR/04_extraction_output.csv" 2>&1 || echo "(no extracted documents)" > "$OUTDIR/04_extraction_output.csv"
 
-# 5. Escalation failures (docs where specialist failed, cheap result kept)
-echo "[5/10] Escalation failures..."
+# 5. Pending batch docs — doc_ids waiting for collection
+echo "[5/10] Pending batch docs..."
 sqlite3 -header -csv "$DB" "
-SELECT doc_id, extracted_by, quality_score, escalation_failed
-FROM documents
-WHERE escalation_failed IS NOT NULL
-ORDER BY quality_score ASC;
-" > "$OUTDIR/05_escalation_failures.csv" 2>&1 || echo "(column not yet migrated — run import once first)" > "$OUTDIR/05_escalation_failures.csv"
+SELECT job_id, run_date, submitted_at,
+       json_array_length(doc_ids) as pending_docs
+FROM batch_jobs
+WHERE domain = '${DOMAIN}' AND status = 'pending'
+ORDER BY submitted_at DESC;
+" > "$OUTDIR/05_pending_batches.csv" 2>&1 || echo "(no pending batches)" > "$OUTDIR/05_pending_batches.csv"
 
 # 6. Selection efficiency — from doc_selection_log table (DB-backed)
 echo "[6/10] Selection efficiency (from DB)..."
@@ -90,8 +106,7 @@ LIMIT 200;
 echo "[8/10] Source extraction quality (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, source, source_type,
-       docs_extracted, docs_escalated, docs_failed,
-       ROUND(avg_quality_score, 3) as avg_quality,
+       docs_extracted, docs_failed,
        entities_produced, relations_produced
 FROM source_extraction_quality
 ORDER BY run_date DESC, source
@@ -103,7 +118,7 @@ echo "[9/10] Pipeline run history (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, status, ROUND(duration_sec, 0) as duration,
        docs_ingested, docs_selected, docs_excluded, docs_extracted,
-       docs_escalated, entities_new, relations_added,
+       entities_new, relations_added,
        nodes_exported, trending_nodes, error_message
 FROM pipeline_runs
 WHERE domain = '${DOMAIN}'
