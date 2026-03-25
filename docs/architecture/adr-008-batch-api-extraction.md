@@ -1,6 +1,6 @@
 # ADR-008: Replace Two-Tier Escalation Extraction with Anthropic Batch API
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-03-25
 **Deciders:** dshorter, Claude (Sonnet 4.6)
 **Sprint:** 9 (Extraction Simplification)
@@ -151,28 +151,46 @@ no meaningful return.
 
 ## Implementation
 
+### Pipeline mechanism: staggered daily handoff
+
+Each `make daily` run does two things: collect yesterday's batch results and
+submit today's batch. No polling. The pipeline always exits fast.
+
+```
+Day N  make daily:
+  Phase 1 — collect yesterday's batch (if pending):
+    collect_batch → import → resolve → synthesize → infer → export → trending
+
+  Phase 2 — prepare and submit today's batch:
+    ingest → select → submit_batch → exit
+    [Anthropic processes batch overnight; SLA 24h, typically minutes]
+
+Day N+1  make daily:
+  Phase 1 — collect yesterday's (Day N) batch → ...
+  Phase 2 — submit Day N+1 batch → exit
+```
+
+The one-day extraction lag is acceptable: the trending view operates on 7d/30d
+windows and the pipeline already carries a multi-week backlog. Same-day graph
+freshness is not a current requirement.
+
 ### Pipeline flow (after)
 
 ```
-ingest    → unchanged
-select    → unchanged
-submit_batch → NEW: build batch request, POST to /v1/messages/batches,
-               store job_id + doc_ids in batch_jobs table, exit
-               [batch completes — typically minutes, SLA 24h]
-collect_batch → NEW: poll batch status; when ended, stream result JSONL,
-                run parse_extraction_response() + normalize_extraction(),
-                write per-doc JSON to data/extractions/{domain}/
+collect_batch → NEW: check batch_jobs for pending job; if complete, stream
+                result JSONL, parse + normalize, write extraction JSON files
 import    → unchanged
 resolve   → unchanged (42 live LLM calls)
 synthesize→ unchanged (8 live LLM calls)
 infer     → unchanged (CPU)
 export    → unchanged
 trending  → unchanged (9 live LLM calls)
+ingest    → unchanged
+select    → unchanged
+submit_batch → NEW: build batch request from selected docpack, POST to
+               /v1/messages/batches, store job_id + doc_ids in batch_jobs,
+               exit immediately
 ```
-
-For interactive use, `collect_batch` polls on a short interval (30s) until the
-batch completes, then hands off immediately. For overnight operation, `submit_batch`
-exits after posting and `collect_batch` is called at the start of the next run.
 
 ### Code changes
 
@@ -190,13 +208,25 @@ exits after posting and `collect_batch` is called at the start of the next run.
 - `parse_extraction_response()` — JSON parsing and validation
 - `normalize_extraction()` — relation normalization against domain taxonomy
 - All extraction prompts and `ANTHROPIC_EXTRACTION_SCHEMA`
-- Quality gates A/B/C/D — demoted from escalation triggers to post-import
-  QA logging only (they still run and log to `quality_metrics`; they no longer
-  gate escalation because there is no escalation)
-- Gate D re-enabled for film at its original threshold — the reason it was
-  disabled was nano's failure modes, not the gate's logic
+- Quality gates A/B/C/D — role changes from escalation triggers to post-import
+  QA logging. They run after each extraction result is collected, log to
+  `quality_metrics` as before, but no longer make escalation decisions because
+  there is no escalation path
 - All downstream scripts, domain configs (minus escalation fields), DB schema
   outside the tables listed above
+
+**Gate re-tuning (all domains):**
+
+All four gates are re-enabled at thresholds calibrated for Sonnet quality, not
+nano failure modes. The film domain's Gate A (evidence_fidelity) and Gate D
+(high_conf_bad_evidence) overrides — introduced to suppress nano false positives —
+are removed. Per-domain thresholds should be re-calibrated against Sonnet output
+over the first two weeks of operation and documented in `operational-state.md`.
+
+| Gate | Film override (removed) | Rationale |
+|------|------------------------|-----------|
+| Gate A (evidence_fidelity) | threshold=0.0 (disabled) | Nano paraphrased; Sonnet quotes faithfully |
+| Gate D (high_conf_bad_evidence) | threshold=1.1 (disabled) | Nano inverted relations; Sonnet does not |
 
 **Added:**
 - `scripts/submit_batch.py` — build batch request from docpack, POST to
@@ -225,10 +255,11 @@ CREATE TABLE batch_jobs (
 
 | Target | Before | After |
 |--------|--------|-------|
-| `make extract` | run two-tier escalation | `submit_batch` → `collect_batch` → `import` |
-| `make submit` | n/a | submit batch job only, print job_id, exit |
-| `make collect` | n/a | poll and collect a pending batch job, then import |
-| `make daily` | unchanged orchestration | uses new extract targets |
+| `make daily` | ingest→select→extract→import→resolve→…→trending | collect→import→resolve→…→trending→ingest→select→submit |
+| `make submit` | n/a | submit batch for selected docs, store job_id, exit |
+| `make collect` | n/a | collect pending batch, write extraction files, import |
+| `make extract` | run two-tier escalation (removed) | removed — replaced by submit + collect |
+| `make backlog` | n/a | pre-populate batch_jobs with backlog chunks for drain |
 
 ### Fallback procedure
 
@@ -259,27 +290,27 @@ when needed (e.g., testing, incident recovery).
   escalation failure. There is no nano.
 - **No more per-domain gate overrides** for nano-specific failure modes.
   Film domain's Gate A and D overrides can be removed.
-- **761-doc backlog** can be submitted as a single large batch job and cleared
-  overnight at batch pricing.
+- **761-doc backlog** drains automatically via the staggered handoff — pre-populate
+  `batch_jobs` with the backlog split into chunks of ≤100 docs each; the daily
+  collect phase drains one chunk per day at batch pricing with no special commands.
 
 ### Negative
 
-- **Async wait point introduced.** The pipeline no longer completes in a single
-  synchronous pass. The `submit_batch` → `collect_batch` split requires either
-  a polling loop (adds latency to interactive runs) or a two-phase daily schedule.
+- **One-day extraction lag.** Articles ingested today appear in the graph
+  tomorrow. Acceptable given the 7d/30d trending window and current backlog
+  depth; revisit if same-day freshness becomes a requirement.
 - **Batch job tracking adds operational state.** A stale `pending` record in
-  `batch_jobs` needs to be detectable and recoverable. The fallback procedure
-  (see above) handles this, but it's new surface area.
-- **24h SLA.** The Anthropic Batch API guarantees results within 24 hours. In
-  practice batches of 25 documents complete in minutes, but the pipeline must
-  not assume this.
+  `batch_jobs` (e.g. from a killed run) needs to be detectable and recoverable.
+  The fallback procedure handles this, but it is new surface area.
+- **24h SLA.** In practice 25-doc batches complete in minutes, but the pipeline
+  must not assume this. If a batch is still pending at the next day's collect
+  phase, `collect_batch` must wait, skip, or fall back gracefully.
 
 ### Risks
 
-- **Batch API rate limits.** The Batch API has per-workspace limits. At 25
-  docs/day this is not a concern; it becomes one if the backlog is submitted
-  as a single 761-doc job. Mitigation: submit backlog in chunks of ≤100 docs
-  per batch job.
+- **Batch API rate limits.** At 25 docs/day this is not a concern. The backlog
+  drain strategy (≤100 docs per chunk, one chunk collected per daily run)
+  keeps all batch jobs well within per-workspace limits.
 - **Result format drift.** The Batch API returns a JSONL file per batch; each
   line is `{custom_id, result: {type, message}}`. The collector must handle
   `type == error` per-line without failing the whole batch.
