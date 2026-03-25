@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack submit collect health-report import resolve export trending copy-to-live dashboard-data export_ontology post-extract daily daily-check test test-network test-all migrate-batch backlog
+.PHONY: setup init-db ingest docpack submit collect health-report import resolve export trending copy-to-live dashboard-data export_ontology post-extract daily daily-check test test-network test-all migrate-batch backlog calibration-report
 
 # Domain slug — all data paths derive from this
 DOMAIN ?= film
@@ -83,6 +83,12 @@ daily-check:
 
 daily-manual:
 	python scripts/run_pipeline.py --db $(DB) --date $(DATE) --graphs-dir $(GRAPHS_DIR) --skip-extract --copy-to-live $(BUDGET_FLAG) $(DOMAIN_FLAG) $(PIPELINE_FLAGS)
+
+calibration-report:
+	python scripts/run_calibration_report.py --db $(DB) --domain $(DOMAIN) --days 7
+
+calibration-report-log:
+	python scripts/run_calibration_report.py --db $(DB) --domain $(DOMAIN) --days 7 --log-suggestions
 
 # ── Data migration ────────────────────────────────────────────────────
 
