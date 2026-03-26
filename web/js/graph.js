@@ -175,6 +175,23 @@ function addElements(cy, elements) {
   }
 }
 
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+/**
+ * Stamp a faviconUrl onto every Document node for use as a Cytoscape
+ * background-image. Uses Google's favicon service keyed on the node's
+ * source domain; nodes without a source get a transparent 1×1 pixel.
+ * Call after initializeGraph() / addElements().
+ */
+function stampFavicons(cy) {
+  cy.nodes('[type = "Document"]').forEach(node => {
+    const source = node.data('source');
+    node.data('faviconUrl', source
+      ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(source)}&sz=32`
+      : TRANSPARENT_PIXEL);
+  });
+}
+
 /**
  * Apply .new CSS class to nodes first seen within the last 7 days.
  * Call after addElements() or initializeGraph() to activate the green

@@ -28,6 +28,19 @@ function getHotList(cy, limit = 10) {
     const trendScore = d.trend_score ?? 0;
     if (velocity <= 0 && trendScore <= 0) return;
 
+    // Collect up to 3 unique source domains from connected Document nodes
+    const seenDomains = new Set();
+    const topSources = [];
+    node.neighborhood('node[type = "Document"]').forEach(dn => {
+      const domain = (typeof extractDomain === 'function' && dn.data('url'))
+        ? extractDomain(dn.data('url'))
+        : dn.data('source');
+      if (domain && !seenDomains.has(domain) && topSources.length < 3) {
+        seenDomains.add(domain);
+        topSources.push(domain);
+      }
+    });
+
     items.push({
       id: d.id,
       label: d.label || d.id,
@@ -36,7 +49,8 @@ function getHotList(cy, limit = 10) {
       trend_score: trendScore,
       mention_count_7d: d.mention_count_7d ?? 0,
       narrative: d.narrative || null,
-      isNew: isNewNode(d.firstSeen)
+      isNew: isNewNode(d.firstSeen),
+      sources: topSources
     });
   });
 
@@ -66,6 +80,12 @@ function renderHotItem(item, index) {
     narrativeHtml = `<p class="hot-narrative">${escapeHtml(truncated)}</p>`;
   }
 
+  const sourceIcons = item.sources && item.sources.length > 0
+    ? `<div class="hot-sources">${item.sources.map(s =>
+        `<img class="source-favicon" src="https://www.google.com/s2/favicons?domain=${escapeHtml(s)}&sz=14" onerror="this.style.display='none'" loading="lazy" title="${escapeHtml(s)}">`
+      ).join('')}</div>`
+    : '';
+
   return `
     <li class="hot-item" data-node-id="${escapeHtml(item.id)}" role="button" tabindex="0">
       <span class="hot-rank">${rank}</span>
@@ -75,6 +95,7 @@ function renderHotItem(item, index) {
           ${newBadge}
           <span class="hot-spark ${velClass}">${vel}</span>
         </div>
+        ${sourceIcons}
         <span class="hot-label">${label}</span>
         ${narrativeHtml}
       </div>
