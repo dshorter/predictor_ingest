@@ -196,10 +196,12 @@ function openEvidencePanel(edge) {
           ${evidence.map(ev => {
             const title = ev.title || formatDocId(ev.docId) || 'Untitled';
             const source = ev.source || extractDomain(ev.url) || 'Unknown source';
+            const faviconDomain = extractDomain(ev.url) || source;
             return `
             <li class="border-l-2 border-gray-200 pl-3">
               <div class="font-medium text-sm">${escapeHtml(title)}</div>
-              <div class="text-xs text-gray-500 mt-1">
+              <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <img class="source-favicon" src="https://www.google.com/s2/favicons?domain=${escapeHtml(faviconDomain)}&sz=14" onerror="this.style.display='none'" loading="lazy">
                 ${escapeHtml(source)} · ${formatDate(ev.published)}
               </div>
               <blockquote class="text-sm text-gray-600 mt-2 italic">

@@ -384,6 +384,22 @@
   overflow: visible;
 }
 
+.hot-sources {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 2px;
+}
+
+.source-favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
 .hot-empty {
   padding: var(--space-8) var(--space-4);
   text-align: center;

@@ -288,6 +288,8 @@ async function initializeApp() {
 
     // Mark nodes first seen within the last 7 days with .new class
     applyNewClass(AppState.cy);
+    // Stamp favicon URLs onto Document nodes for background-image rendering
+    stampFavicons(AppState.cy);
 
     // Initialize all components
     initializeEventHandlers(AppState.cy);
@@ -647,6 +649,7 @@ async function switchView(view) {
     AppState.cy.elements().remove();
     addElements(AppState.cy, data.elements);
     applyNewClass(AppState.cy);
+    stampFavicons(AppState.cy);
 
     // Re-run layout; fade canvas back in and re-initialize navigator on completion
     const layout = runLayout(AppState.cy);

@@ -42,7 +42,7 @@ def export_trending(
     output_dir: Path,
     top_n: int,
     generate_narratives: bool = False,
-    narrative_model: str = "gpt-5-nano",
+    narrative_model: str = "claude-haiku-4-5-20251001",
 ) -> Path:
     """Export trending entities in Cytoscape.js format.
 
@@ -259,8 +259,8 @@ def main() -> int:
         help="Generate LLM-powered trend narratives (What's Hot and WHY)",
     )
     parser.add_argument(
-        "--narrative-model", default="gpt-5-nano",
-        help="Model for narrative generation (default: gpt-5-nano)",
+        "--narrative-model", default="claude-haiku-4-5-20251001",
+        help="Model for narrative generation (default: claude-haiku-4-5-20251001)",
     )
     args = parser.parse_args()
 

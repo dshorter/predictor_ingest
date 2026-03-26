@@ -186,6 +186,19 @@ function getCytoscapeStyles() {
       }
     },
 
+    // Document nodes: overlay source favicon as background image
+    // faviconUrl is stamped onto node data by stampFavicons() in graph.js
+    {
+      selector: 'node[type = "Document"]',
+      style: {
+        'background-image': 'data(faviconUrl)',
+        'background-fit': 'contain',
+        'background-width': '55%',
+        'background-height': '55%',
+        'background-image-opacity': 0.55
+      }
+    },
+
     // Node hover state (applied via events, not CSS pseudo-selector)
     {
       selector: 'node.hover',

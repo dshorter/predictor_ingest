@@ -152,21 +152,24 @@ def ingest_feed(
     feed = feedparser.parse(feed_url)
     parse_sec = time.monotonic() - t0
 
-    # Diagnostic info for every feed
+    # Diagnostic info — only emit when something is worth flagging
     feed_status = getattr(feed, "status", None)
     bozo = getattr(feed, "bozo", False)
     bozo_exc = getattr(feed, "bozo_exception", None)
     n_entries = len(feed.entries)
-    print(
-        f"    {feed_label} [diag] status={feed_status} bozo={bozo} "
-        f"entries={n_entries} parse={parse_sec:.1f}s",
-        file=sys.stderr, flush=True,
-    )
-    if bozo and bozo_exc:
+    _status_problem = feed_status and (feed_status >= 400 or feed_status == 0)
+    _bozo_problem = bozo and (bozo_exc is not None or n_entries == 0)
+    if _status_problem or _bozo_problem:
         print(
-            f"    {feed_label} [diag] bozo_exception={type(bozo_exc).__name__}: {bozo_exc}",
+            f"    {feed_label} [diag] status={feed_status} bozo={bozo} "
+            f"entries={n_entries} parse={parse_sec:.1f}s",
             file=sys.stderr, flush=True,
         )
+        if bozo and bozo_exc:
+            print(
+                f"    {feed_label} [diag] bozo_exception={type(bozo_exc).__name__}: {bozo_exc}",
+                file=sys.stderr, flush=True,
+            )
 
     # Determine if the feed was actually reachable
     reachable = True
