@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//predictor_ingest//calibration-review//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:calibration-review-20260402@predictor_ingest
+DTSTAMP:20260325T120000Z
+DTSTART:20260402T100000Z
+DTEND:20260402T110000Z
+SUMMARY:Predictor Ingest — Calibration Report Review
+DESCRIPTION:Review first week of calibration reports and decide on Phase 2 auto-tuning.\n\nChecklist (docs/backend/calibration-report.md):\n- Review tuning_log table — suggestions from first 7 days\n- Were any CRITICAL flags triggered?\n- Bench ratio: is 25 docs/day still the right budget?\n- Entity yield: is ~19 entities/doc representative?\n- Orphan edge rate trend\n- Decide: enable Phase 2 auto-tuning for BUDGET parameter?\n- Feed audit: go-into-the-story and SC Film Commission\n\nCommands to run before meeting:\n  make calibration-report DOMAIN=film\n  sqlite3 data/db/film.db "SELECT * FROM tuning_log ORDER BY logged_at DESC LIMIT 20;"
+LOCATION:Hetzner / predictor_ingest
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR

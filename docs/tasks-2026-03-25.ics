@@ -1,0 +1,36 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//predictor_ingest//tasks//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:task-batch-docs-20260325@predictor_ingest
+DTSTAMP:20260325T120000Z
+DTSTART;VALUE=DATE:20260325
+DTEND;VALUE=DATE:20260326
+SUMMARY:Review & update batch API documentation for session discoverability
+DESCRIPTION:Review and update documentation for the ADR-008 Batch API feature to ensure future Claude sessions can discover the architecture quickly.\n\nFiles to review/update:\n- docs/backend/operational-state.md — current extraction mode per domain\n- docs/architecture/convergence-narrative.md — add batch API outcome\n- CLAUDE.md — verify batch API workflow is described in Developer Workflow section\n- docs/backend/workflow-guide.md — update Mode A steps for submit/collect flow\n- docs/backend/daily-run-log.md — add batch_pending as a valid pipeline state\n\nKey things to document:\n- submit_batch.py → collect_batch.py day-boundary handoff\n- EXIT_PENDING (rc=2) behavior in run_pipeline.py\n- batch_jobs table schema and status lifecycle\n- make submit / make collect / make post-collect targets
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:task-narratives-debug-20260325@predictor_ingest
+DTSTAMP:20260325T120000Z
+DTSTART;VALUE=DATE:20260325
+DTEND;VALUE=DATE:20260326
+SUMMARY:Investigate missing narratives in new batch pipeline run
+DESCRIPTION:Trend narratives ran on 2026-03-24 (9 narratives) but not on 2026-03-25 post-collect run.\n\nInvestigate:\n- run_trending.py --narratives flag: is it passed in run_pipeline.py stages?\n- Is the narratives stage skipped when collect exits rc=2 (batch_pending path)?\n- Does make post-collect pass --narratives to run_trending.py?\n- Check funnel_stats for 2026-03-25 trending stage drop_reasons\n- OPENAI_API_KEY not set warning seen in screenshot — narratives currently require OpenAI; should switch to Anthropic\n\nCommands:\n  sqlite3 data/db/film.db "SELECT * FROM funnel_stats WHERE stage='trending' ORDER BY run_date DESC LIMIT 5;"\n  grep -n "narratives" scripts/run_pipeline.py\n  grep -n "narratives" scripts/run_trending.py
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:task-uzel-auth-20260325@predictor_ingest
+DTSTAMP:20260325T120000Z
+DTSTART;VALUE=DATE:20260325
+DTEND;VALUE=DATE:20260326
+SUMMARY:[easy win] Add Caddy basicauth to uzelhub-web preview
+DESCRIPTION:Add Caddy basic auth to the uzelhub-web preview — single shared credential for a small trusted circle. Upgrade to Cloudflare Access later if per-user control is needed.\n\nRepo: uzelhub-web (site-wide content, hosts graph explorer web/)\n\nInfrastructure context:\n- Domain: Porkbun registered\n- DNS/proxy: Cloudflare (proxied — Hetzner IP not exposed)\n- Web server: Caddy on Hetzner\n\nImplementation (2 minutes):\n  1. Generate bcrypt hash:  caddy hash-password\n  2. Add to Caddyfile:\n       preview.uzelhub.com {\n         basicauth {\n           uzel $2a$14$<hash>\n         }\n         root * /path/to/uzelhub-web\n         file_server\n       }\n  3. caddy reload\n  4. Test with incognito window\n\nUpgrade path: swap basicauth block for Cloudflare Access when\nper-user logins are needed — no other Caddyfile changes required.
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR
