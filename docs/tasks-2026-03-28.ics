@@ -1,0 +1,16 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//predictor_ingest//tasks//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:task-backlog-film-20260328@predictor_ingest
+DTSTAMP:20260326T120000Z
+DTSTART;VALUE=DATE:20260328
+DTEND;VALUE=DATE:20260329
+SUMMARY:Run film domain backlog (~782 docs, ~$8-10, Batch API)
+DESCRIPTION:Process the accumulated film domain backlog via Anthropic Batch API.\n\nEstimates:\n- ~782 documents queued\n- ~$8-10 (Sonnet 4.6 batch: $1.50/MTok input + $7.50/MTok output)\n- ~14\,000 projected new entities\n- Anthropic processing time: ~1-2 hours after submit\n- Collect the next day if submit is late Saturday\n\nCommands:\n  # Check current backlog size\n  sqlite3 data/db/film.db "SELECT COUNT(*) FROM documents WHERE status='cleaned';"\n\n  # Submit the batch\n  make backlog DOMAIN=film\n  # (exits rc=2 — batch_pending is expected\, collect next morning)\n\n  # Next morning: collect results\n  make collect DOMAIN=film\n  make post-collect DOMAIN=film\n\n  # Then run calibration report\n  make calibration-report-log DOMAIN=film\n\nNotes:\n- Batch API is async: submit today\, collect tomorrow\n- EXIT_PENDING (rc=2) from run_pipeline.py is NORMAL for batch submit\n- Check batch_jobs table to confirm submission: sqlite3 data/db/film.db "SELECT * FROM batch_jobs ORDER BY created_at DESC LIMIT 5;"\n- Dead feeds to remove before/after run: go-into-the-story\, SC Film Commission
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR
