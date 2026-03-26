@@ -68,8 +68,14 @@
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--gray-700);
+  color: var(--color-text-primary);  /* adapts light/dark via semantic token */
   cursor: pointer;
+}
+
+/* Inactive/disabled checkbox labels (types not in current graph) */
+.checkbox-label--inactive {
+  color: var(--color-text-tertiary);
+  cursor: default;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -77,6 +83,10 @@
   height: 16px;
   accent-color: var(--blue-600);
   cursor: pointer;
+}
+
+.checkbox-label--inactive input[type="checkbox"] {
+  cursor: default;
 }
 
 /* Checkbox grid for filter panels */

@@ -1,0 +1,36 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//predictor_ingest//tasks//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:task-batch-docs-20260326@predictor_ingest
+DTSTAMP:20260326T120000Z
+DTSTART;VALUE=DATE:20260326
+DTEND;VALUE=DATE:20260327
+SUMMARY:[rollover] Review & update batch API documentation for session discoverability
+DESCRIPTION:Rolled forward from 2026-03-25. Review and update documentation for ADR-008 Batch API so future Claude sessions can discover the architecture quickly.\n\nFiles to review/update:\n- docs/backend/operational-state.md — current extraction mode per domain\n- docs/architecture/convergence-narrative.md — add batch API outcome\n- CLAUDE.md — verify batch API workflow is described in Developer Workflow section\n- docs/backend/workflow-guide.md — update Mode A steps for submit/collect flow\n- docs/backend/daily-run-log.md — add batch_pending as a valid pipeline state\n\nKey things to document:\n- submit_batch.py → collect_batch.py day-boundary handoff\n- EXIT_PENDING (rc=2) behavior in run_pipeline.py\n- batch_jobs table schema and status lifecycle\n- make submit / make collect / make post-collect targets
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:task-uzel-auth-20260326@predictor_ingest
+DTSTAMP:20260326T120000Z
+DTSTART;VALUE=DATE:20260326
+DTEND;VALUE=DATE:20260327
+SUMMARY:[rollover] [easy win] Add Caddy basicauth to uzelhub-web preview
+DESCRIPTION:Rolled forward from 2026-03-25. Add Caddy basic auth to the uzelhub-web preview — single shared credential for a small trusted circle.\n\nRepo: uzelhub-web\n\nInfrastructure:\n- Domain: Porkbun registered\n- DNS/proxy: Cloudflare (proxied)\n- Web server: Caddy on Hetzner VPS\n\nImplementation (~2 minutes):\n  1. Generate hash:  caddy hash-password\n  2. Add to Caddyfile:\n       preview.uzelhub.com {\n         basicauth {\n           uzel $2a$14$<hash>\n         }\n         root * /path/to/uzelhub-web\n         file_server\n       }\n  3. caddy reload\n  4. Test with incognito window\n\nUpgrade path: swap basicauth block for Cloudflare Access when per-user logins are needed.
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:task-settings-color-20260326@predictor_ingest
+DTSTAMP:20260326T120000Z
+DTSTART;VALUE=DATE:20260326
+DTEND;VALUE=DATE:20260327
+SUMMARY:Fix filter/settings panel text color and inactive checkbox color
+DESCRIPTION:Filter panel (right-side settings) has two CSS bugs in dark mode:\n\n1. .checkbox-label used color: var(--gray-700) which is NOT remapped in dark mode → dark text on dark background (invisible). Fixed by switching to var(--color-text-primary) which IS semantically overridden.\n\n2. Disabled/inactive type labels used Tailwind utility class text-gray-400 (not a semantic token\, doesn't adapt to theme). Fixed by introducing .checkbox-label--inactive using var(--color-text-tertiary).\n\nFiles changed:\n- web/css/components/input.css — new .checkbox-label--inactive variant\n- web/js/filter.js — disabled label class switched to checkbox-label--inactive\n\nStatus: COMMITTED on claude/review-daily-tasks-h4e9h — verify on next Cloudflare cache purge.
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR
