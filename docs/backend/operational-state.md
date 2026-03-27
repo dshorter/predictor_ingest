@@ -5,14 +5,14 @@ run. Update this file whenever a domain's extraction mode, gate config, or model
 changes — even temporarily. This prevents forensic reconstruction across git logs
 and session notes.
 
-**Last updated:** 2026-03-23
+**Last updated:** 2026-03-27
 
 ---
 
 ## How to Read This File
 
 - **Extraction mode** — how the pipeline produces extractions for this domain
-- **Models** — cheap (nano) and specialist (Sonnet) models in use
+- **Models** — extraction model and narrative model in use
 - **Gate overrides** — any departures from default gate behavior and why
 - **Env requirements** — what must be set in `.env` or shell for this domain to work
 - **Status notes** — temporary deviations, pending measurements, known issues
@@ -23,13 +23,13 @@ and session notes.
 
 | Field | Value |
 |-------|-------|
-| **Extraction mode** | Escalation: `gpt-5-nano` → `claude-sonnet-4-6-20260218` |
-| **Escalation threshold** | 0.6 (quality score) |
+| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-5-20250929`) — ADR-008 |
+| **Narrative model** | `claude-haiku-4-5-20251001` (switched from `gpt-5-nano` 2026-03-27) |
 | **Gate A — Evidence fidelity** | Active — `evidence_fidelity_min: 0.70` |
 | **Gate B — Orphan endpoints** | Active — zero tolerance |
 | **Gate C — Zero value** | Active — ≥1 entity for docs >500 chars |
 | **Gate D — High-conf + bad evidence** | Active — threshold 0.8 |
-| **Env required** | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `UNDERSTUDY_MODEL=gpt-5-nano` |
+| **Env required** | `ANTHROPIC_API_KEY` |
 | **Status** | Stable. All gates nominal. |
 
 **Run:**
@@ -44,13 +44,13 @@ make daily DOMAIN=ai
 
 | Field | Value |
 |-------|-------|
-| **Extraction mode** | Escalation: `gpt-5-nano` → `claude-sonnet-4-6-20260218` |
-| **Escalation threshold** | 0.6 (quality score) |
+| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-5-20250929`) — ADR-008 |
+| **Narrative model** | `claude-haiku-4-5-20251001` (switched from `gpt-5-nano` 2026-03-27) |
 | **Gate A — Evidence fidelity** | Active — `evidence_fidelity_min: 0.70` |
 | **Gate B — Orphan endpoints** | Active — zero tolerance |
 | **Gate C — Zero value** | Active — ≥1 entity for docs >500 chars |
 | **Gate D — High-conf + bad evidence** | Active — threshold 0.8 |
-| **Env required** | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `UNDERSTUDY_MODEL=gpt-5-nano` |
+| **Env required** | `ANTHROPIC_API_KEY` |
 | **Status** | Stable. Added 2026-03-07. Specialist prompt issues resolved (EXT-6). |
 
 **Run:**
@@ -64,22 +64,20 @@ make daily DOMAIN=biosafety
 
 | Field | Value |
 |-------|-------|
-| **Extraction mode** | Escalation: `gpt-5-nano` → `claude-sonnet-4-6-20260218` |
-| **Escalation threshold** | 0.55 (lowered — trade press yields lower density scores) |
+| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-5-20250929`) — ADR-008 |
+| **Narrative model** | `claude-haiku-4-5-20251001` (switched from `gpt-5-nano` 2026-03-27) |
+| **Escalation threshold** | N/A (batch API — no escalation) |
 | **Gate A — Evidence fidelity** | ⚠️ **DISABLED** — `evidence_fidelity_min: 0.0` |
 | **Gate B — Orphan endpoints** | Active — zero tolerance |
 | **Gate C — Zero value** | Active — ≥1 entity for docs >500 chars |
 | **Gate D — High-conf + bad evidence** | ⚠️ **DISABLED** — `high_confidence_threshold: 0.0` |
-| **Env required** | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `UNDERSTUDY_MODEL=gpt-5-nano` |
-| **Status** | Gates A + D disabled 2026-03-24. See note below. |
+| **Env required** | `ANTHROPIC_API_KEY` |
+| **Status** | Batch pipeline operational since 2026-03-25. Gates A + D disabled 2026-03-24. |
 
 **Gate A+D note:** Film trade press paraphrases heavily. Fidelity-based gates (A and D)
-both fail on paraphrase-style output from nano — the snippet text-match check can't
+both fail on paraphrase-style output — the snippet text-match check can't
 distinguish paraphrase from fabrication in this domain. Gates B (orphan endpoints) and
 C (zero-value) remain as the primary structural quality signal.
-
-**Tradeoff:** High-confidence nano edges pass through without snippet verification.
-Monitor graph quality manually on first few runs; re-enable Gate D if fabrications appear.
 
 **History:**
 - 2026-02-25: Prompt tuning (EXT-4) — added orphan/evidence/relation constraints
@@ -87,6 +85,9 @@ Monitor graph quality manually on first few runs; re-enable Gate D if fabricatio
 - 2026-03-21: Switched to pure-Sonnet temporarily (`--no-escalate`) — 89% escalation
 - 2026-03-23: Reinstated escalation; Gate A disabled as escalation trigger
 - 2026-03-24: Gate D disabled — paraphrase-heavy sources make fidelity check unreliable
+- 2026-03-25: ADR-008 — Anthropic Batch API replaces two-tier escalation for all domains
+- 2026-03-27: Narrative model switched from `gpt-5-nano` to `claude-haiku-4-5-20251001`
+- 2026-03-27: Calibration report wired into pipeline as automatic final stage
 
 **Ref:** `docs/fix-details/ext4-cheap-model-escalation-analysis.md`, `docs/backlog.md` EXT-4
 
@@ -101,17 +102,28 @@ make daily DOMAIN=film
 
 **Default domain:** `film` (set in `Makefile` line 4, `scripts/run_pipeline.py`, and `src/domain/__init__.py`). Changed from `ai` on 2026-03-24.
 
-Unless overridden with `PIPELINE_FLAGS`:
+**Extraction architecture (ADR-008):** All domains use the Anthropic Batch API. The
+old two-tier escalation (`gpt-5-nano` → `claude-sonnet-4-6`) has been removed. The
+daily pipeline follows a staggered handoff:
 
-- `--escalate` is always passed to `run_extract.py` — cheap model runs first
-- `--copy-to-live` is on — graph JSON copied to `web/data/graphs/live/{domain}/`
-- Budget: 20 docs target, stretch to 25 for high-quality overflow
+1. **Today's run:** `collect` retrieves yesterday's batch results → `import` → `resolve` → `export` → `trending`
+2. **Then:** `ingest` → `docpack` → `submit` submits today's batch
+3. **Finally:** `calibration` report runs and logs suggestions to `tuning_log`
 
-**To run pure Sonnet (no cheap model):**
-```bash
-make daily DOMAIN=film PIPELINE_FLAGS="--no-escalate"
-# Also: unset UNDERSTUDY_MODEL  (or leave unset — escalation will error gracefully)
-```
+Batches typically complete within 1–21 hours (Anthropic SLA: 24h).
+
+**Narratives:** Generated by `claude-haiku-4-5-20251001` via the Anthropic API.
+Token usage is logged per call. Cost: ~$0.008/day for 10 narratives.
+
+**Calibration report:** Runs automatically as the last pipeline stage. Logs
+suggestions to `tuning_log` table. Phase 2 auto-tuning review scheduled for
+2026-04-02. See `docs/backend/calibration-report.md`.
+
+**Budget:** 25 docs/day (bench ratio ~95% — flagged by calibration report).
+
+**Env required (all domains):** `ANTHROPIC_API_KEY` only. `OPENAI_API_KEY` is no
+longer needed for extraction or narratives (still works if set — narrative model
+can be overridden via `--narrative-model`).
 
 ---
 

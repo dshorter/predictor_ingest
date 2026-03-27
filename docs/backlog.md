@@ -187,6 +187,18 @@ accumulates disproportionate degree in practice.
 
 ## Pipeline & Infrastructure
 
+### PIPE-3: Cross-document synthesis dropped to zero on 2026-03-27
+
+**Observed:** 2026-03-27 (gist metrics review) | **Priority:** Medium
+
+`funnel_stats` shows the synthesize stage produced 0 LLM calls, 0 corroborated
+entities, and 0 inferred relations on 2026-03-27 — after being active Mar 23–26
+(4–8 LLM calls/day, 3–20 entities corroborated). May be transient or may indicate
+a regression in entity overlap thresholds after the batch pipeline transition.
+
+**Action:** Check the next 2–3 runs. If synthesis stays at zero, investigate whether
+the entity overlap pool is being filtered out by the batch collect path.
+
 ### PIPE-1: Extract stage timeout on large backlog
 
 **Observed:** 2026-02-22 | **Priority:** Medium
@@ -218,6 +230,39 @@ articles remain in `status='error'` and are never retried on subsequent runs.
 ---
 
 ## Sources & Ingestion
+
+### SRC-3: Go Into The Story — 10 fetch errors per day
+
+**Observed:** 2026-03-27 (gist metrics review) | **Priority:** High
+
+Every daily run fetches 10 items from Go Into The Story, and all 10 are fetch
+errors — consistently since at least 2026-03-20. Zero usable docs produced.
+Feed URL may be dead, restructured, or blocking our User-Agent.
+
+**Action:** Diagnose with `python scripts/diagnose_feeds.py`. If unreachable,
+remove from `domains/film/feeds.yaml` or replace with an alternative screenwriting
+blog.
+
+### SRC-4: SC Film Commission — unreachable since 2026-03-17
+
+**Observed:** 2026-03-27 (gist metrics review) | **Priority:** Medium
+
+`feed_stats` shows `unreachable` error every day for 10+ days. Zero docs fetched.
+The calibration report will flag this as a feed error streak (CRITICAL at 7+ days).
+
+**Action:** Check if the site is down or if the RSS URL changed. If dead, remove
+from `domains/film/feeds.yaml`.
+
+### SRC-5: Bluesky SE Film — very low extraction yield
+
+**Observed:** 2026-03-27 (gist metrics review) | **Priority:** Low
+
+Bluesky SE Film produces 0.7 relations/doc vs the source average of ~14. This is
+expected — Bluesky posts are short and low-density. The source still provides
+velocity signal (108 docs ingested). May not be worth extraction budget slots.
+
+**Consideration:** Lower selection score weight for bluesky source type, or exclude
+from extraction budget and keep as ingestion-only velocity signal.
 
 ### SRC-1: Anthropic Blog feed unreachable
 
