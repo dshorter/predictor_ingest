@@ -39,55 +39,55 @@ function openNodeDetailPanel(node) {
       <span class="badge badge-type-${data.type.toLowerCase()}">${data.type}</span>
       <h2 class="detail-title">${escapeHtml(data.label)}</h2>
       ${data.aliases && data.aliases.length > 0 ? `
-        <p class="detail-aliases text-sm text-gray-500">
+        <p class="detail-aliases text-sm text-secondary">
           Also known as: ${data.aliases.map(a => escapeHtml(a)).join(', ')}
         </p>
       ` : ''}
     </header>
 
     <section class="detail-section mt-4">
-      <h3 class="text-xs font-semibold text-gray-500 mb-2">TIMELINE</h3>
+      <h3 class="text-xs font-semibold text-secondary mb-2">TIMELINE</h3>
       <div class="flex justify-between text-sm mb-1">
-        <span class="text-gray-500">First seen</span>
+        <span class="text-secondary">First seen</span>
         <span class="font-medium">${formatDate(data.firstSeen)}</span>
       </div>
       <div class="flex justify-between text-sm">
-        <span class="text-gray-500">Last seen</span>
+        <span class="text-secondary">Last seen</span>
         <span class="font-medium">${formatDate(data.lastSeen)}</span>
       </div>
     </section>
 
     <section class="detail-section mt-4">
-      <h3 class="text-xs font-semibold text-gray-500 mb-2">ACTIVITY</h3>
+      <h3 class="text-xs font-semibold text-secondary mb-2">ACTIVITY</h3>
       <div class="detail-stats-grid">
-        <div class="p-2 bg-gray-50 rounded">
+        <div class="p-2 bg-secondary rounded">
           <div class="text-lg font-semibold">${data.mentionCount7d || 0}</div>
-          <div class="text-xs text-gray-500">Mentions (7d)</div>
+          <div class="text-xs text-secondary">Mentions (7d)</div>
         </div>
-        <div class="p-2 bg-gray-50 rounded">
+        <div class="p-2 bg-secondary rounded">
           <div class="text-lg font-semibold">${data.mentionCount30d || 0}</div>
-          <div class="text-xs text-gray-500">Mentions (30d)</div>
+          <div class="text-xs text-secondary">Mentions (30d)</div>
         </div>
-        <div class="p-2 bg-gray-50 rounded">
+        <div class="p-2 bg-secondary rounded">
           <div class="text-lg font-semibold">${node.degree()}</div>
-          <div class="text-xs text-gray-500">Connections</div>
+          <div class="text-xs text-secondary">Connections</div>
         </div>
-        <div class="p-2 bg-gray-50 rounded ${data.velocity > 0.5 ? 'bg-yellow-50' : ''}">
+        <div class="p-2 bg-secondary rounded ${data.velocity > 0.5 ? 'bg-yellow-50' : ''}">
           <div class="text-lg font-semibold">${formatVelocity(data.velocity)}</div>
-          <div class="text-xs text-gray-500">Velocity</div>
+          <div class="text-xs text-secondary">Velocity</div>
         </div>
       </div>
     </section>
 
     ${data.narrative ? `
     <section class="detail-section mt-4">
-      <h3 class="text-xs font-semibold text-gray-500 mb-2">WHY IT'S TRENDING</h3>
+      <h3 class="text-xs font-semibold text-secondary mb-2">WHY IT'S TRENDING</h3>
       <p class="detail-narrative">${escapeHtml(data.narrative)}</p>
     </section>
     ` : ''}
 
     <section class="detail-section mt-4">
-      <h3 class="text-xs font-semibold text-gray-500 mb-2">
+      <h3 class="text-xs font-semibold text-secondary mb-2">
         RELATIONSHIPS (${node.connectedEdges().length})
       </h3>
       <div class="detail-relationships">
@@ -116,7 +116,7 @@ function renderRelationshipList(node) {
   const edges = node.connectedEdges();
 
   if (edges.length === 0) {
-    return '<p class="text-sm text-gray-400">No relationships</p>';
+    return '<p class="text-sm text-tertiary">No relationships</p>';
   }
 
   // Group by relationship type
@@ -131,7 +131,7 @@ function renderRelationshipList(node) {
   for (const [rel, relEdges] of Object.entries(grouped)) {
     html += `
       <div class="mb-3">
-        <div class="text-xs font-medium text-gray-600 mb-1">${formatRelation(rel)}</div>
+        <div class="text-xs font-medium text-secondary mb-1">${formatRelation(rel)}</div>
         <ul class="text-sm">
           ${relEdges.slice(0, 5).map(edge => {
             const other = edge.source().id() === node.id()
@@ -139,16 +139,16 @@ function renderRelationshipList(node) {
               : edge.source();
             const direction = edge.source().id() === node.id() ? '→' : '←';
             return `
-              <li class="flex items-center gap-2 py-1 cursor-pointer hover:bg-gray-50 rounded px-1"
+              <li class="flex items-center gap-2 py-1 cursor-pointer hover:bg-secondary rounded px-1"
                   onclick="selectNode('${other.id()}')">
-                <span class="text-gray-400">${direction}</span>
+                <span class="text-tertiary">${direction}</span>
                 <span class="truncate flex-1">${escapeHtml(other.data('label'))}</span>
                 <span class="badge badge-kind-${edge.data('kind')} text-xs">${edge.data('kind')}</span>
               </li>
             `;
           }).join('')}
           ${relEdges.length > 5 ? `
-            <li class="text-xs text-gray-400 py-1">+${relEdges.length - 5} more</li>
+            <li class="text-xs text-tertiary py-1">+${relEdges.length - 5} more</li>
           ` : ''}
         </ul>
       </div>
@@ -176,18 +176,18 @@ function openEvidencePanel(edge) {
     <header class="mb-4">
       <div class="flex items-center gap-2 text-lg font-semibold">
         <span>${escapeHtml(sourceNode.data('label'))}</span>
-        <span class="text-gray-400">→</span>
+        <span class="text-tertiary">→</span>
         <span>${escapeHtml(targetNode.data('label'))}</span>
       </div>
       <div class="flex items-center gap-3 mt-2 text-sm">
         <span class="badge badge-kind-${data.kind}">${capitalize(data.kind)}</span>
-        <span class="text-gray-500">${formatRelation(data.rel)}</span>
-        <span class="text-gray-500">${(data.confidence * 100).toFixed(0)}% confidence</span>
+        <span class="text-secondary">${formatRelation(data.rel)}</span>
+        <span class="text-secondary">${(data.confidence * 100).toFixed(0)}% confidence</span>
       </div>
     </header>
 
     <section>
-      <h3 class="text-xs font-semibold text-gray-500 mb-3">
+      <h3 class="text-xs font-semibold text-secondary mb-3">
         EVIDENCE (${evidence.length} source${evidence.length === 1 ? '' : 's'})
       </h3>
 
@@ -198,13 +198,13 @@ function openEvidencePanel(edge) {
             const source = ev.source || extractDomain(ev.url) || 'Unknown source';
             const faviconDomain = extractDomain(ev.url) || source;
             return `
-            <li class="border-l-2 border-gray-200 pl-3">
+            <li class="border-l-2 border-secondary pl-3">
               <div class="font-medium text-sm">${escapeHtml(title)}</div>
-              <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+              <div class="text-xs text-secondary mt-1 flex items-center gap-1">
                 <img class="source-favicon" src="https://www.google.com/s2/favicons?domain=${escapeHtml(faviconDomain)}&sz=14" onerror="this.style.display='none'" loading="lazy">
                 ${escapeHtml(source)} · ${formatDate(ev.published)}
               </div>
-              <blockquote class="text-sm text-gray-600 mt-2 italic">
+              <blockquote class="text-sm text-secondary mt-2 italic">
                 "${escapeHtml(ev.snippet)}"
               </blockquote>
               ${ev.url ? `
@@ -216,7 +216,7 @@ function openEvidencePanel(edge) {
           }).join('')}
         </ul>
       ` : `
-        <p class="text-sm text-gray-400">
+        <p class="text-sm text-tertiary">
           No evidence snippets available. This may be an inferred or hypothesis edge.
         </p>
       `}
@@ -275,19 +275,40 @@ function selectNode(nodeId) {
     node.select();
     clearNeighborhoodHighlight(window.cy);
     highlightNeighborhood(window.cy, node);
-    window.cy.animate({ center: { eles: node }, duration: 300 });
     openNodeDetailPanel(node);
+    // Animate after opening panel so getPanelOffset sees the open state
+    const pos = node.position();
+    const offset = getPanelOffset(window.cy.zoom());
+    window.cy.animate({ center: { x: pos.x - offset, y: pos.y }, duration: 300 });
   }
 }
 
 /**
- * Zoom to a node
+ * Get horizontal offset (in model units) to keep a node visible
+ * when the left detail panel overlaps the graph canvas.
+ * Returns 0 when no panel is open.
+ */
+function getPanelOffset(zoom) {
+  const detailPanel = document.getElementById('detail-panel');
+  if (detailPanel && !detailPanel.classList.contains('hidden')) {
+    // Panel is 280px (--panel-width). Shift center left by half the panel
+    // width so the node appears in the center of the *visible* area.
+    return 280 / 2 / zoom;
+  }
+  return 0;
+}
+
+/**
+ * Zoom to a node, accounting for panel overlap
  */
 function zoomToNode(node) {
   if (!node || !window.cy) return;
+  const pos = node.position();
+  const targetZoom = 2;
+  const offset = getPanelOffset(targetZoom);
   window.cy.animate({
-    center: { eles: node },
-    zoom: 2,
+    center: { x: pos.x - offset, y: pos.y },
+    zoom: targetZoom,
     duration: 300
   });
 }

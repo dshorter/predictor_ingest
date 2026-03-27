@@ -53,7 +53,7 @@
   box-shadow: var(--shadow-md);
   z-index: var(--z-overlay);
   overflow: hidden;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, right var(--duration-slow) ease, bottom var(--duration-slow) ease;
 }
 
 /* Dark theme - just adjust border */
