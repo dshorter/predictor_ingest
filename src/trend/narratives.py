@@ -268,9 +268,12 @@ def build_narrative_prompt(
 def _call_llm(
     system_prompt: str,
     user_prompt: str,
-    model: str = "gpt-5-nano",
+    model: str = "claude-haiku-4-5-20251001",
 ) -> tuple[str, int]:
-    """Call LLM for narrative generation. Returns (text, duration_ms)."""
+    """Call LLM for narrative generation. Returns (text, duration_ms).
+
+    Also logs token usage when available so costs can be tracked.
+    """
     openai_prefixes = ("gpt-", "o1", "o3", "o4")
     is_openai = any(model.startswith(p) for p in openai_prefixes)
 
@@ -294,6 +297,9 @@ def _call_llm(
             **_temp_kwargs,
         )
         text = response.choices[0].message.content or ""
+        if hasattr(response, "usage") and response.usage:
+            print(f"  [narratives] tokens: in={response.usage.prompt_tokens} "
+                  f"out={response.usage.completion_tokens} model={model}")
     else:
         import anthropic
         api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -307,6 +313,9 @@ def _call_llm(
             messages=[{"role": "user", "content": user_prompt}],
         )
         text = response.content[0].text
+        if hasattr(response, "usage") and response.usage:
+            print(f"  [narratives] tokens: in={response.usage.input_tokens} "
+                  f"out={response.usage.output_tokens} model={model}")
 
     duration_ms = int((time.time() - start) * 1000)
     return text, duration_ms
@@ -340,7 +349,7 @@ def generate_narratives(
     conn: sqlite3.Connection,
     trending_entities: list[dict[str, Any]],
     profile: Optional[dict[str, Any]] = None,
-    model: str = "gpt-5-nano",
+    model: str = "claude-haiku-4-5-20251001",
     run_date: Optional[str] = None,
 ) -> dict[str, str]:
     """Generate narratives for trending entities.

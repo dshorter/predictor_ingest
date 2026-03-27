@@ -1011,6 +1011,7 @@ def main() -> int:
                 "--db", db_path,
                 "--output-dir", f"{graphs_dir}/{run_date}",
                 "--narratives",
+                "--narrative-model", "claude-haiku-4-5-20251001",
             ],
             "parse": parse_trending_output,
             "fatal": False,
