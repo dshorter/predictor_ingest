@@ -1011,6 +1011,7 @@ def main() -> int:
                 "--db", db_path,
                 "--output-dir", f"{graphs_dir}/{run_date}",
                 "--narratives",
+                "--narrative-model", "claude-haiku-4-5-20251001",
             ],
             "parse": parse_trending_output,
             "fatal": False,
@@ -1055,6 +1056,18 @@ def main() -> int:
             "fatal": False,
             "skip": args.skip_submit,
             "timeout": 120,
+        },
+        {
+            "name": "calibration",
+            "cmd": [
+                sys.executable, "scripts/run_calibration_report.py",
+                "--db", db_path,
+                "--domain", args.domain,
+                "--days", "7",
+                "--log-suggestions",
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
         },
     ]
 
