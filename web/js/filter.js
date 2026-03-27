@@ -291,7 +291,7 @@ function populateTypeFilters(cy, filter) {
       const count = disabled ? 0 : cy.nodes(`[type="${type}"]`).length;
       const dotVar = getTypeDotVar(type);
       return `
-        <label class="checkbox-label${disabled ? ' text-gray-400' : ''}">
+        <label class="checkbox-label${disabled ? ' checkbox-label--inactive' : ''}">
           <input type="checkbox" data-type="${type}" ${disabled ? 'disabled' : 'checked'} />
           <span class="entity-type-dot" style="background:var(${dotVar})"></span>
           ${type}${count > 0 ? ` (${count})` : ''}
