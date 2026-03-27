@@ -1057,6 +1057,18 @@ def main() -> int:
             "skip": args.skip_submit,
             "timeout": 120,
         },
+        {
+            "name": "calibration",
+            "cmd": [
+                sys.executable, "scripts/run_calibration_report.py",
+                "--db", db_path,
+                "--domain", args.domain,
+                "--days", "7",
+                "--log-suggestions",
+            ],
+            "parse": lambda s: {},
+            "fatal": False,
+        },
     ]
 
     if args.dry_run:
