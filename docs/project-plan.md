@@ -316,8 +316,14 @@ Quick-hit fixes from Sprint 8 user testing. All are small, contained changes.
 | 8B.5 | Entity spotlight card — top-drop bounce, fwd/back navigation | backlog §GEV-6 | ~2 hr | [Opus] |
 
 **Risk:** Low. Items 8B.1–8B.3 are mechanical find-and-replace or config tweaks.
-8B.4 is a small UX improvement. 8B.5 is the largest item — a new panel type.
+8B.4 is a small UX improvement. 8B.2 redesigned as a panel architecture change.
 **Dependency:** Sprint 8 (hot panel must exist).
+**Completed:** 2026-03-28
+**Notes:** All 5 items delivered. Key architectural decision: evidence panel moved
+from bottom drawer to left sidebar. All left panels (detail, evidence, hot) are
+now mutually exclusive with shared bounce-in animation. See
+[ADR-009](architecture/adr-009-unified-left-panel-slot.md) for rationale.
+8B.5 (entity spotlight card) deferred — overlaps with GEV-6 in backlog.
 
 ---
 
@@ -433,7 +439,7 @@ Not scheduled. Documented so they're not forgotten.
 | — Film quality gate tuning | ✓ Done | 2026-03-17 |
 | 7 — Regional Lens + Chatter Sources | Pending | — |
 | 8 — What's Hot | ✓ Done | 2026-03-21 |
-| 8B — Hot Panel Polish + UI Tweaks | **Next** | — |
+| 8B — Hot Panel Polish + UI Tweaks | ✓ Done | 2026-03-28 |
 | 9 — Discovery Rewards | Pending | — |
 | 10 — Guided Entry | Pending | — |
 | 11 — Medium Gap Features | Pending | — |
@@ -447,8 +453,8 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-21 (8 planned sprints + 7 unplanned items done in 22 days) |
-| Sprints remaining | 5.5 sprints (7, 8B, 9–12) |
+| As of | 2026-03-28 (9 planned sprints + 7 unplanned items done in 29 days) |
+| Sprints remaining | 4.5 sprints (7, 9–12) |
 | Backend track | Parallel, partially blocked on data (≥30 days data now available) |
 | **Revised target** | **~early April 2026** |
 
