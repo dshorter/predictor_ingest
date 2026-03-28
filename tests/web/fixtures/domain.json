@@ -1,0 +1,14 @@
+{
+  "domain": "test",
+  "title": "Test Domain",
+  "description": "Fixture domain for Playwright smoke tests",
+  "entityTypes": ["Org", "Person", "Tool", "Model", "Topic"],
+  "entityColors": {
+    "Org": "#3B82F6",
+    "Person": "#8B5CF6",
+    "Tool": "#10B981",
+    "Model": "#F59E0B",
+    "Topic": "#6B7280"
+  },
+  "views": ["trending", "claims", "mentions", "dependencies"]
+}
