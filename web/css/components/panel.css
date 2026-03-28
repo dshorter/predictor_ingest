@@ -4,10 +4,13 @@
  * Panels float over the graph canvas with an 8px gap from edges,
  * rounded corners, and an accent left border.
  *
+ * Left panels (detail, hot, evidence) are mutually exclusive — opening one
+ * closes the others. They share a bounce-in animation. The right panel
+ * (filters) is independent and keeps its own slide transition.
+ *
  * Usage:
  *   <aside class="panel panel-left">Left sidebar</aside>
  *   <aside class="panel panel-right collapsed">Right sidebar</aside>
- *   <aside class="panel panel-bottom">Bottom panel</aside>
  */
 
 .panel {
@@ -54,16 +57,23 @@
   background-color: var(--gray-100);
 }
 
-/* Left panel (detail view) — 8px gap from edges */
+/* Left panel — 8px gap from edges, bounce-in animation */
 .panel-left {
   top: var(--space-2);
   left: var(--space-2);
   bottom: var(--space-2);
   width: var(--panel-width);
+  animation: panel-left-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .panel-left.hidden {
+  animation: none;
   transform: translateX(calc(-100% - var(--space-2)));
+}
+
+@keyframes panel-left-slide-in {
+  0%   { transform: translateX(calc(-100% - var(--space-2))); }
+  100% { transform: translateX(0); }
 }
 
 /* Right panel (filters) — 8px gap from edges */
@@ -76,18 +86,6 @@
 
 .panel-right.collapsed {
   transform: translateX(calc(100% + var(--space-2)));
-}
-
-/* Bottom panel (evidence) — 8px gap from edges */
-.panel-bottom {
-  left: var(--space-2);
-  right: var(--space-2);
-  bottom: var(--space-2);
-  max-height: 40vh;
-}
-
-.panel-bottom.hidden {
-  transform: translateY(calc(100% + var(--space-2)));
 }
 
 /* Panel sections */
@@ -227,17 +225,6 @@
 #hot-panel {
   border-left: none;
   overflow: visible;
-  /* Slide-out with bounce — overrides generic panel transition */
-  animation: hot-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-#hot-panel.hidden {
-  animation: none;
-}
-
-@keyframes hot-slide-in {
-  0%   { transform: translateX(calc(-100% - var(--space-2))); }
-  100% { transform: translateX(0); }
 }
 
 #hot-panel::before {

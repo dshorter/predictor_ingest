@@ -149,9 +149,10 @@ the graph to stay stable while inspecting a detail panel.
 
 **Current approach (2026-03-04):**
 Panels overlay the graph at a higher `z-index` instead of shrinking the `#cy` container.
-The graph viewport remains stable. The `.panel-left-open`, `.panel-right-open`, and
-`.panel-bottom-open` classes are still toggled on `#cy` but only to reposition the
-navigator minimap via CSS sibling selectors. No `cy.resize()` is called.
+The graph viewport remains stable. The `.panel-left-open` and `.panel-right-open`
+classes are toggled on `#cy` to reposition the navigator minimap via CSS sibling
+selectors. All left-slot panels (detail, evidence, hot) are mutually exclusive —
+opening one closes the others. No `cy.resize()` is called.
 
 **Files Modified:**
 - `web/css/graph/cytoscape.css` — Removed `left`/`right`/`bottom` overrides and transition

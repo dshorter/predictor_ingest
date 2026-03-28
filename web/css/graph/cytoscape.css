@@ -73,10 +73,6 @@
   right: calc(var(--panel-width) + var(--space-4));
 }
 
-#cy.panel-bottom-open ~ .navigator-container {
-  bottom: calc(40vh + var(--space-4));
-}
-
 /* Navigator internal wrapper - let extension control its own background */
 .navigator-container .cytoscape-navigator {
   /* Extension manages its own background; we don't override */

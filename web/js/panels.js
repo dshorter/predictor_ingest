@@ -1,9 +1,27 @@
 /**
  * Panel Management
  *
- * Handles detail and evidence panels.
+ * Left panels (detail, evidence, hot) are mutually exclusive — opening one
+ * closes the others. All share the same bounce-in animation. The right
+ * filter panel is independent.
+ *
  * See docs/ux/progressive-disclosure.md for specification.
  */
+
+/** IDs of all panels that share the left slot */
+const LEFT_PANEL_IDS = ['detail-panel', 'hot-panel', 'evidence-panel'];
+
+/**
+ * Close all left-slot panels except the one being opened.
+ * @param {string} [except] - panel ID to keep open
+ */
+function closeLeftPanels(except) {
+  LEFT_PANEL_IDS.forEach(id => {
+    if (id !== except) {
+      document.getElementById(id)?.classList.add('hidden');
+    }
+  });
+}
 
 /**
  * Initialize panel functionality
@@ -105,8 +123,9 @@ function openNodeDetailPanel(node) {
     </div>
   `;
 
+  closeLeftPanels('detail-panel');
   panel.classList.remove('hidden');
-  document.getElementById('cy')?.classList.add('panel-left-open');
+  updateCyContainer();
 }
 
 /**
@@ -232,6 +251,7 @@ function openEvidencePanel(edge) {
     </div>
   `;
 
+  closeLeftPanels('evidence-panel');
   panel.classList.remove('hidden');
   updateCyContainer();
 }
@@ -240,8 +260,7 @@ function openEvidencePanel(edge) {
  * Close all panels
  */
 function closeAllPanels() {
-  document.getElementById('detail-panel')?.classList.add('hidden');
-  document.getElementById('evidence-panel')?.classList.add('hidden');
+  closeLeftPanels();
   updateCyContainer();
 }
 
@@ -252,16 +271,14 @@ function updateCyContainer() {
   const cyEl = document.getElementById('cy');
   if (!cyEl) return;
 
-  const detailOpen = !document.getElementById('detail-panel')?.classList.contains('hidden');
+  const anyLeftOpen = LEFT_PANEL_IDS.some(id => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains('hidden');
+  });
   const filterOpen = !document.getElementById('filter-panel')?.classList.contains('collapsed');
-  const evidenceOpen = !document.getElementById('evidence-panel')?.classList.contains('hidden');
 
-  cyEl.classList.toggle('panel-left-open', detailOpen);
+  cyEl.classList.toggle('panel-left-open', anyLeftOpen);
   cyEl.classList.toggle('panel-right-open', filterOpen);
-  cyEl.classList.toggle('panel-bottom-open', evidenceOpen);
-
-  // No cy.resize() needed — panels overlay the graph instead of shrinking it,
-  // so the Cytoscape container dimensions don't change.
 }
 
 /**
@@ -285,12 +302,15 @@ function selectNode(nodeId) {
 
 /**
  * Get horizontal offset (in model units) to keep a node visible
- * when the left detail panel overlaps the graph canvas.
- * Returns 0 when no panel is open.
+ * when a left panel overlaps the graph canvas.
+ * Returns 0 when no left panel is open.
  */
 function getPanelOffset(zoom) {
-  const detailPanel = document.getElementById('detail-panel');
-  if (detailPanel && !detailPanel.classList.contains('hidden')) {
+  const anyLeftOpen = LEFT_PANEL_IDS.some(id => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains('hidden');
+  });
+  if (anyLeftOpen) {
     // Panel is 280px (--panel-width). Shift center left by half the panel
     // width so the node appears in the center of the *visible* area.
     return 280 / 2 / zoom;
