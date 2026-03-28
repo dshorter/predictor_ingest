@@ -177,11 +177,7 @@ function toggleHotPanel() {
   const isHidden = panel.classList.contains('hidden');
 
   if (isHidden) {
-    // Close detail panel to avoid collision
-    const detailPanel = document.getElementById('detail-panel');
-    if (detailPanel && !detailPanel.classList.contains('hidden')) {
-      detailPanel.classList.add('hidden');
-    }
+    closeLeftPanels('hot-panel');
 
     // Populate and show
     const cy = window.cy || AppState?.cy;
@@ -190,11 +186,11 @@ function toggleHotPanel() {
     if (content) content.innerHTML = renderHotList(items);
 
     panel.classList.remove('hidden');
-    document.getElementById('cy')?.classList.add('panel-left-open');
+    updateCyContainer();
     announceToScreenReader(`What's Hot panel open. ${items.length} trending entities.`);
   } else {
     panel.classList.add('hidden');
-    document.getElementById('cy')?.classList.remove('panel-left-open');
+    updateCyContainer();
     announceToScreenReader("What's Hot panel closed.");
   }
 }
