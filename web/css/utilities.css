@@ -80,6 +80,22 @@
 .font-semibold { font-weight: var(--weight-semibold); }
 .font-bold { font-weight: var(--weight-bold); }
 
+/* Semantic text colors — prefer these over raw gray utilities */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
+
+/* Semantic backgrounds */
+.bg-secondary { background-color: var(--color-bg-secondary); }
+.bg-tertiary { background-color: var(--color-bg-tertiary); }
+
+/* Semantic borders */
+.border-secondary { border-color: var(--color-border-secondary); }
+
+/* Hover variants */
+.hover\:bg-secondary:hover { background-color: var(--color-bg-secondary); }
+
+/* Raw gray utilities — kept for edge cases; prefer semantic classes above */
 .text-gray-400 { color: var(--gray-400); }
 .text-gray-500 { color: var(--gray-500); }
 .text-gray-600 { color: var(--gray-600); }
