@@ -441,7 +441,7 @@ def run_synthesis(
 
     # Default model: PRIMARY_MODEL env var (specialist tier for cross-doc reasoning)
     if model is None:
-        model = os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-6-20260218")
+        model = os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-6")
 
     config = SynthesisConfig.from_profile(profile)
     if not config.enabled:

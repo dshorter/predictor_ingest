@@ -51,7 +51,7 @@ from extract import (
 
 def get_model() -> str:
     model = os.environ.get("PRIMARY_MODEL", "").strip()
-    return model if model else "claude-sonnet-4-6-20260218"
+    return model if model else "claude-sonnet-4-6"
 
 
 def load_docpack(path: Path) -> list[dict[str, Any]]:

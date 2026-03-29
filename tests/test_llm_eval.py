@@ -413,7 +413,7 @@ PROVIDERS = {
     "openai-4.1": lambda: OpenAIProvider(model="gpt-4.1"),
     "openai-mini": lambda: OpenAIProvider(model="gpt-4.1-mini"),
     "anthropic-haiku": lambda: AnthropicProvider(model="claude-haiku-4-5-20251001"),
-    "anthropic-sonnet": lambda: AnthropicProvider(model="claude-sonnet-4-6-20260218"),
+    "anthropic-sonnet": lambda: AnthropicProvider(model="claude-sonnet-4-6"),
     "gemini-flash": lambda: GeminiProvider(model="gemini-2.5-flash"),
     "gemini-pro": lambda: GeminiProvider(model="gemini-2.5-pro"),
 }

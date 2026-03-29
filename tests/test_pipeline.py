@@ -253,7 +253,7 @@ class TestParseExtractOutput:
 
     def test_typical_output(self):
         output = """Extraction runner v1.0.0
-Model: claude-sonnet-4-6-20260218
+Model: claude-sonnet-4-6
 Shadow mode: ON (parallel, understudy: gpt-5-nano)
 Docpack: data/docpacks/daily_bundle_2026-02-14.jsonl
 Output: data/extractions
