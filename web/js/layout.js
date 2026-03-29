@@ -117,9 +117,15 @@ const REFERENCE = {
 function getScaledLayoutOptions(nodeCount, edgeCount) {
   const opts = { ...LAYOUT_OPTIONS_BASE };
 
-  // Small graphs (≤ reference size): use base params as-is
+  // Small graphs (≤ reference size): boost spacing so nodes aren't cramped.
+  // Fewer nodes should get MORE space per node — invert the ratio.
   if (nodeCount <= REFERENCE.nodes) {
-    console.log(`Layout: ${nodeCount}n ≤ ref(${REFERENCE.nodes}), using base params`);
+    const spaceBoost = Math.max(1, REFERENCE.nodes / Math.max(nodeCount, 5));
+    opts.nodeSeparation = Math.round(REFERENCE.nodeSeparation * Math.sqrt(spaceBoost));
+    opts.nodeRepulsion = Math.round(REFERENCE.nodeRepulsion * spaceBoost);
+    opts.idealEdgeLength = Math.round(REFERENCE.idealEdgeLength * Math.sqrt(spaceBoost));
+    console.log(`Layout: ${nodeCount}n ≤ ref(${REFERENCE.nodes}), boost=${spaceBoost.toFixed(2)}, ` +
+      `nodeSep=${opts.nodeSeparation}, repulsion=${opts.nodeRepulsion}, edgeLen=${opts.idealEdgeLength}`);
     return opts;
   }
 

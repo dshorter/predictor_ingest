@@ -102,9 +102,11 @@ function initDomainSwitcher() {
       closeDomainDropdown();
       return;
     }
-    // Full page reload with new domain
+    // Full page reload with new domain — clear sample/tour params
     const url = new URL(window.location);
     url.searchParams.set('domain', slug);
+    url.searchParams.delete('sample');
+    url.searchParams.delete('tour');
     window.location.href = url.toString();
   });
 

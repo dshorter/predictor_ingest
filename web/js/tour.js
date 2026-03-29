@@ -115,8 +115,18 @@ function buildTourSteps() {
         const cy = window.cy;
         if (!cy) return;
         const node = cy.getElementById(SPOTLIGHT_NODE_ID);
-        if (node && node.length && typeof openNodeDetailPanel === 'function') {
-          openNodeDetailPanel(node);
+        if (node && node.length) {
+          cy.elements().unselect();
+          node.select();
+          if (typeof clearNeighborhoodHighlight === 'function') {
+            clearNeighborhoodHighlight(cy);
+          }
+          if (typeof highlightNeighborhood === 'function') {
+            highlightNeighborhood(cy, node);
+          }
+          if (typeof openNodeDetailPanel === 'function') {
+            openNodeDetailPanel(node);
+          }
         }
       }
     },
@@ -137,8 +147,15 @@ function buildTourSteps() {
         const cy = window.cy;
         if (!cy) return;
         const edge = cy.getElementById(EVIDENCE_EDGE_ID);
-        if (edge && edge.length && typeof openEvidencePanel === 'function') {
-          openEvidencePanel(edge);
+        if (edge && edge.length) {
+          cy.elements().unselect();
+          if (typeof clearNeighborhoodHighlight === 'function') {
+            clearNeighborhoodHighlight(cy);
+          }
+          edge.select();
+          if (typeof openEvidencePanel === 'function') {
+            openEvidencePanel(edge);
+          }
         }
       }
     },
@@ -265,12 +282,15 @@ function showSampleBanner() {
   banner.id = 'sample-banner';
   banner.className = 'sample-banner';
   banner.innerHTML =
+    '<span class="sample-banner-icon">\u{1F9EA}</span>' +
     '<span class="sample-banner-text">' +
       'You\'re viewing sample data' +
     '</span>' +
+    '<span style="color:var(--color-text-tertiary);">\u00B7</span>' +
     '<a href="javascript:void(0)" class="sample-banner-link" onclick="switchToLiveData()">' +
       'Switch to live data \u2192' +
     '</a>' +
+    '<span style="color:var(--color-text-tertiary);">\u00B7</span>' +
     '<a href="javascript:void(0)" class="sample-banner-link" onclick="retakeTour()">' +
       'Retake tour' +
     '</a>';
