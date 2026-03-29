@@ -156,7 +156,12 @@ function renderRelationshipList(node) {
             const other = edge.source().id() === node.id()
               ? edge.target()
               : edge.source();
-            const direction = edge.source().id() === node.id() ? '→' : '←';
+            // Passive relations (e.g. DIRECTED_BY, REPORTED_BY) have inverted
+            // source/target conventions — flip the arrow so the display reads
+            // semantically correct (incoming agent rather than outgoing subject).
+            const isPassive = (edge.data('rel') || '').endsWith('_BY');
+            const isOutgoing = edge.source().id() === node.id();
+            const direction = (isOutgoing !== isPassive) ? '→' : '←';
             return `
               <li class="flex items-center gap-2 py-1 cursor-pointer hover:bg-secondary rounded px-1"
                   onclick="selectNode('${other.id()}')">
