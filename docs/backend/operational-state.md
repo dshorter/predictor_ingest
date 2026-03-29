@@ -5,7 +5,7 @@ run. Update this file whenever a domain's extraction mode, gate config, or model
 changes — even temporarily. This prevents forensic reconstruction across git logs
 and session notes.
 
-**Last updated:** 2026-03-27
+**Last updated:** 2026-03-29
 
 ---
 
@@ -23,7 +23,7 @@ and session notes.
 
 | Field | Value |
 |-------|-------|
-| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-5-20250929`) — ADR-008 |
+| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-6-20260218`) — ADR-008 |
 | **Narrative model** | `claude-haiku-4-5-20251001` (switched from `gpt-5-nano` 2026-03-27) |
 | **Gate A — Evidence fidelity** | Active — `evidence_fidelity_min: 0.70` |
 | **Gate B — Orphan endpoints** | Active — zero tolerance |
@@ -44,7 +44,7 @@ make daily DOMAIN=ai
 
 | Field | Value |
 |-------|-------|
-| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-5-20250929`) — ADR-008 |
+| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-6-20260218`) — ADR-008 |
 | **Narrative model** | `claude-haiku-4-5-20251001` (switched from `gpt-5-nano` 2026-03-27) |
 | **Gate A — Evidence fidelity** | Active — `evidence_fidelity_min: 0.70` |
 | **Gate B — Orphan endpoints** | Active — zero tolerance |
@@ -64,7 +64,7 @@ make daily DOMAIN=biosafety
 
 | Field | Value |
 |-------|-------|
-| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-5-20250929`) — ADR-008 |
+| **Extraction mode** | Anthropic Batch API (`claude-sonnet-4-6-20260218`) — ADR-008 |
 | **Narrative model** | `claude-haiku-4-5-20251001` (switched from `gpt-5-nano` 2026-03-27) |
 | **Escalation threshold** | N/A (batch API — no escalation) |
 | **Gate A — Evidence fidelity** | ⚠️ **DISABLED** — `evidence_fidelity_min: 0.0` |
@@ -72,7 +72,7 @@ make daily DOMAIN=biosafety
 | **Gate C — Zero value** | Active — ≥1 entity for docs >500 chars |
 | **Gate D — High-conf + bad evidence** | ⚠️ **DISABLED** — `high_confidence_threshold: 0.0` |
 | **Env required** | `ANTHROPIC_API_KEY` |
-| **Status** | Batch pipeline operational since 2026-03-25. Gates A + D disabled 2026-03-24. |
+| **Status** | Batch pipeline operational since 2026-03-25. Gates A + D disabled 2026-03-24. Synthesize stage broke 2026-03-29 (model deprecation); fixed same day. |
 
 **Gate A+D note:** Film trade press paraphrases heavily. Fidelity-based gates (A and D)
 both fail on paraphrase-style output — the snippet text-match check can't
