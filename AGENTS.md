@@ -202,6 +202,15 @@ python scripts/diagnose_feeds.py                    # Debug feed dedup
 See **[docs/backend/workflow-guide.md](docs/backend/workflow-guide.md)** for the complete step-by-step guide.
 See **[docs/backend/operational-state.md](docs/backend/operational-state.md)** for current extraction mode, gate overrides, and env requirements per domain.
 
+### Web Tests (Playwright)
+
+```bash
+npm install                                         # One-time: install Playwright
+npx playwright test tests/web/smoke.spec.js --config=tests/web/playwright.config.js --reporter=list
+```
+
+Tests use a **self-contained HTML harness** with a Cytoscape mock — no CDN or network needed. Real app JS modules are loaded against mock graph data. See **[docs/testing/playwright-guide.md](docs/testing/playwright-guide.md)** for the full architecture and troubleshooting.
+
 ---
 
 ## Sources (V1)
@@ -256,6 +265,14 @@ for the boundary definition and enforcement rules.
 | [docs/ux/troubleshooting.md](docs/ux/troubleshooting.md) | Cytoscape.js gotchas and fixes |
 | [docs/ux/polish-strategy.md](docs/ux/polish-strategy.md) | Aesthetic mechanics: typography, toolbar, canvas, node depth |
 | [docs/ux/delight-backlog.md](docs/ux/delight-backlog.md) | Engagement & discovery: What's Hot, guided entry, visual reward. Desktop-first. |
+| [docs/ux/guided-tour-spec.md](docs/ux/guided-tour-spec.md) | Driver.js guided tour: 8 stops, sample data plan, post-tour sandbox experience |
+
+#### Testing
+
+| Document | Purpose |
+|----------|---------|
+| [docs/testing/playwright-guide.md](docs/testing/playwright-guide.md) | **Playwright web tests: self-contained harness, Cytoscape mock, fixture data, troubleshooting. Read before writing new web tests.** |
+| [docs/test-plan.md](docs/test-plan.md) | Manual QA checklist per sprint |
 
 #### Web Pages & Tools
 
