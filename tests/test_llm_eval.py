@@ -347,7 +347,7 @@ class AnthropicProvider(LLMProvider):
 
     name = "anthropic"
 
-    def __init__(self, model: str = "claude-haiku-4-5-20250901"):
+    def __init__(self, model: str = "claude-haiku-4-5-20251001"):
         self.model = model
         self._client: Any = None
 
@@ -412,8 +412,8 @@ PROVIDERS = {
     "openai-4.1-nano": lambda: OpenAIProvider(model="gpt-4.1-nano"),
     "openai-4.1": lambda: OpenAIProvider(model="gpt-4.1"),
     "openai-mini": lambda: OpenAIProvider(model="gpt-4.1-mini"),
-    "anthropic-haiku": lambda: AnthropicProvider(model="claude-haiku-4-5-20250901"),
-    "anthropic-sonnet": lambda: AnthropicProvider(model="claude-sonnet-4-20250514"),
+    "anthropic-haiku": lambda: AnthropicProvider(model="claude-haiku-4-5-20251001"),
+    "anthropic-sonnet": lambda: AnthropicProvider(model="claude-sonnet-4-6-20260218"),
     "gemini-flash": lambda: GeminiProvider(model="gemini-2.5-flash"),
     "gemini-pro": lambda: GeminiProvider(model="gemini-2.5-pro"),
 }
