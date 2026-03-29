@@ -212,6 +212,9 @@ function toggleNavigator() {
  */
 function getDataUrl(view) {
   const basePath = 'data/graphs';
+  if (AppState.dataSource === 'tour-sample') {
+    return `data/sample/${view}.json`;
+  }
   if (AppState.dataSource === 'sample') {
     const tier = AppState.currentTier || 'medium';
     return `${basePath}/${tier}/${view}.json`;
@@ -266,9 +269,16 @@ async function initializeApp() {
       dateInput.value = AppState.anchorDate;
     }
 
-    // Default to live data — pipeline produces live graphs daily.
-    // Users can switch to sample data via the filter panel if needed.
-    AppState.dataSource = 'live';
+    // Decide data source: tour sample data for first-time visitors, live otherwise
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceSample = urlParams.has('sample');
+    const tourCompleted = typeof isTourCompleted === 'function' && isTourCompleted();
+
+    if (forceSample || (!tourCompleted && !urlParams.has('domain'))) {
+      AppState.dataSource = 'tour-sample';
+    } else {
+      AppState.dataSource = 'live';
+    }
 
     // Sync the radio buttons to match
     const liveRadio = document.querySelector('input[name="data-source"][value="live"]');
@@ -339,6 +349,11 @@ async function initializeApp() {
     layout.on('layoutstop', () => {
       // Initialize navigator minimap after layout is done
       initNavigator(AppState.cy);
+
+      // Guided tour — check after layout settles so nodes are positioned
+      if (typeof initTour === 'function') {
+        initTour();
+      }
     });
 
     // Update stats display

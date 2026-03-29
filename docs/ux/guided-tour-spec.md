@@ -180,13 +180,77 @@ different edge subsets.
 3. Close all panels
 
 **Popover:**
-> That's it! Double-tap the background to fit the full graph. Press **H**
-> for What's Hot. Use **?** for help anytime. The graph updates daily with
-> new data from the pipeline.
+> That's it! You're looking at sample data — feel free to click around
+> and experiment. When you're ready for real data, hit the button below.
 >
-> **[Dismiss]**
+> **[Switch to Live Data]** · **[Keep Exploring]**
 
 **Sample data requirement:** None beyond what previous stops require.
+
+---
+
+## Post-Tour Experience
+
+The tour ends but the user stays in the sample dataset. This is intentional —
+new users need a safe space to experiment without worrying about "breaking"
+anything or getting lost in unfamiliar data.
+
+### Sample data indicator
+
+While viewing sample data, a persistent but unobtrusive banner appears at the
+top of the graph canvas (or bottom of the toolbar):
+
+```
+📋 You're viewing sample data  ·  [Switch to live data →]  ·  [Retake tour]
+```
+
+- **Subtle styling:** muted background, small text, dismissible but reappears on
+  next load if still on sample data
+- The banner is driven by the `meta.isSample` flag in the loaded JSON
+- "Switch to live data" navigates to `?domain=film` (or whatever the default
+  domain is) — a page navigation, not a reload-in-place, so the URL is clean
+- "Retake tour" resets `localStorage` tour flag and restarts
+
+### Lifecycle
+
+```
+First visit (no localStorage flag)
+  │
+  ├─ Sample data auto-loads
+  ├─ Tour auto-starts (can be skipped at any step)
+  │
+  ▼
+Tour ends → user stays in sample data
+  │
+  ├─ Sample data banner visible
+  ├─ User explores freely
+  │
+  ▼
+User clicks "Switch to live data"
+  │
+  ├─ Navigates to ?domain=<default>
+  ├─ localStorage: tour-completed = true
+  ├─ Future visits go straight to live data
+  │
+  ▼
+Returning user (tour-completed flag set)
+  │
+  ├─ Live data loads directly
+  ├─ No banner, no tour
+  └─ "Take the Tour" in help panel resets to sample data + tour
+```
+
+### Edge cases
+
+- **User closes tab during tour:** Next visit, `tour-completed` is not set →
+  sample data loads again, tour restarts from Step 1.
+- **User dismisses tour at Step 3:** Tour ends, but they stay in sample data
+  with the banner. They can retake or switch to live whenever ready.
+- **User bookmarks the sample data URL:** Works fine — sample data loads,
+  banner appears, "Switch to live data" is always available.
+- **No live data available yet:** "Switch to live data" shows the empty state
+  message ("No data yet. Run the pipeline to populate the graph."). This is
+  expected for users who haven't run the pipeline.
 
 ---
 
@@ -315,9 +379,9 @@ This prevents the tour from firing on real pipeline data.
 
 ## Open Questions
 
-1. **Should the tour auto-start or require a click?** Auto-start on sample data
-   is friendlier, but some users hate unprompted tours. Option: auto-start with
-   a "Skip Tour" button visible from step 1.
+1. **Should the tour auto-start or require a click?** Decision: auto-start on
+   sample data with a visible "Skip Tour" option at every step. User stays in
+   sample data after the tour ends regardless — no pressure to complete it.
 
 2. **Reduced motion:** Should the tour skip fly-to animations when
    `prefers-reduced-motion` is set? Driver.js respects it for its own animations;

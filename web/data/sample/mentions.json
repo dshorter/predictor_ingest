@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "view": "mentions",
+    "nodeCount": 18,
+    "edgeCount": 18,
+    "exportedAt": "2026-03-28T12:00:00Z",
+    "dateRange": { "start": "2026-02-28", "end": "2026-03-28" },
+    "isSample": true,
+    "tourVersion": 1
+  },
+  "elements": {
+    "nodes": [
+      { "data": { "id": "org:apex-studios", "label": "Apex Studios", "type": "Org", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 12, "mentionCount30d": 34, "velocity": 2.8, "trend_score": 0.91 } },
+      { "data": { "id": "org:nova-labs", "label": "Nova Labs", "type": "Org", "firstSeen": "2026-03-05", "lastSeen": "2026-03-27", "mentionCount7d": 7, "mentionCount30d": 18, "velocity": 1.5, "trend_score": 0.72 } },
+      { "data": { "id": "person:mira-chen", "label": "Dr. Mira Chen", "type": "Person", "firstSeen": "2026-03-10", "lastSeen": "2026-03-28", "mentionCount7d": 5, "mentionCount30d": 9, "velocity": 3.2, "trend_score": 0.88 } },
+      { "data": { "id": "model:helios", "label": "Helios", "type": "Model", "firstSeen": "2026-03-20", "lastSeen": "2026-03-28", "mentionCount7d": 9, "mentionCount30d": 9, "velocity": 4.1, "trend_score": 0.95 } },
+      { "data": { "id": "tool:neuralforge", "label": "NeuralForge", "type": "Tool", "firstSeen": "2026-03-02", "lastSeen": "2026-03-26", "mentionCount7d": 4, "mentionCount30d": 15, "velocity": 1.2, "trend_score": 0.55 } },
+      { "data": { "id": "topic:frontier-safety", "label": "Frontier Safety", "type": "Topic", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 6, "mentionCount30d": 22, "velocity": 1.8, "trend_score": 0.68 } },
+      { "data": { "id": "benchmark:synthbench", "label": "SynthBench", "type": "Benchmark", "firstSeen": "2026-03-15", "lastSeen": "2026-03-28", "mentionCount7d": 3, "mentionCount30d": 6, "velocity": 1.1, "trend_score": 0.45 } },
+      { "data": { "id": "program:project-titan", "label": "Project Titan", "type": "Program", "firstSeen": "2026-03-22", "lastSeen": "2026-03-28", "mentionCount7d": 8, "mentionCount30d": 8, "velocity": 5.0, "trend_score": 0.93 } },
+      { "data": { "id": "person:james-park", "label": "James Park", "type": "Person", "firstSeen": "2026-03-08", "lastSeen": "2026-03-25", "mentionCount7d": 3, "mentionCount30d": 10, "velocity": 1.3, "trend_score": 0.52 } },
+      { "data": { "id": "dataset:prism", "label": "Prism", "type": "Dataset", "firstSeen": "2026-03-18", "lastSeen": "2026-03-27", "mentionCount7d": 5, "mentionCount30d": 7, "velocity": 2.1, "trend_score": 0.63 } },
+      { "data": { "id": "paper:scaling-laws-2", "label": "Scaling Laws Revisited", "type": "Paper", "firstSeen": "2026-03-14", "lastSeen": "2026-03-26", "mentionCount7d": 4, "mentionCount30d": 8, "velocity": 1.6, "trend_score": 0.58 } },
+      { "data": { "id": "tech:sparse-moe", "label": "Sparse MoE", "type": "Tech", "firstSeen": "2026-03-05", "lastSeen": "2026-03-28", "mentionCount7d": 6, "mentionCount30d": 14, "velocity": 1.9, "trend_score": 0.66 } },
+      { "data": { "id": "org:meridian-capital", "label": "Meridian Capital", "type": "Org", "firstSeen": "2026-03-12", "lastSeen": "2026-03-24", "mentionCount7d": 2, "mentionCount30d": 5, "velocity": 1.0, "trend_score": 0.38 } },
+      { "data": { "id": "event:ai-summit-2026", "label": "AI Summit 2026", "type": "Event", "firstSeen": "2026-03-18", "lastSeen": "2026-03-28", "mentionCount7d": 7, "mentionCount30d": 10, "velocity": 2.4, "trend_score": 0.74 } },
+      { "data": { "id": "repo:helios-weights", "label": "helios-weights", "type": "Repo", "firstSeen": "2026-03-21", "lastSeen": "2026-03-28", "mentionCount7d": 4, "mentionCount30d": 4, "velocity": 3.5, "trend_score": 0.70 } },
+      { "data": { "id": "model:nova-7b", "label": "Nova-7B", "type": "Model", "firstSeen": "2026-03-06", "lastSeen": "2026-03-22", "mentionCount7d": 2, "mentionCount30d": 11, "velocity": 0.8, "trend_score": 0.35 } },
+      { "data": { "id": "topic:compute-costs", "label": "Compute Costs", "type": "Topic", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 5, "mentionCount30d": 20, "velocity": 1.4, "trend_score": 0.60 } },
+      { "data": { "id": "location:bay-area", "label": "Bay Area", "type": "Location", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 3, "mentionCount30d": 16, "velocity": 0.9, "trend_score": 0.30 } }
+    ],
+    "edges": [
+      { "data": { "id": "m:apex-helios", "source": "org:apex-studios", "target": "model:helios", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.95 } },
+      { "data": { "id": "m:apex-titan", "source": "org:apex-studios", "target": "program:project-titan", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.93 } },
+      { "data": { "id": "m:apex-chen", "source": "org:apex-studios", "target": "person:mira-chen", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.90 } },
+      { "data": { "id": "m:apex-safety", "source": "org:apex-studios", "target": "topic:frontier-safety", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.75 } },
+      { "data": { "id": "m:apex-summit", "source": "org:apex-studios", "target": "event:ai-summit-2026", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.80 } },
+      { "data": { "id": "m:apex-forge", "source": "org:apex-studios", "target": "tool:neuralforge", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.70 } },
+      { "data": { "id": "m:nova-forge", "source": "org:nova-labs", "target": "tool:neuralforge", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.88 } },
+      { "data": { "id": "m:nova-chen", "source": "org:nova-labs", "target": "person:mira-chen", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.82 } },
+      { "data": { "id": "m:nova-safety", "source": "org:nova-labs", "target": "topic:frontier-safety", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.70 } },
+      { "data": { "id": "m:nova-prism", "source": "org:nova-labs", "target": "dataset:prism", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.85 } },
+      { "data": { "id": "m:nova-summit", "source": "org:nova-labs", "target": "event:ai-summit-2026", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.78 } },
+      { "data": { "id": "m:helios-synthbench", "source": "model:helios", "target": "benchmark:synthbench", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.90 } },
+      { "data": { "id": "m:helios-moe", "source": "model:helios", "target": "tech:sparse-moe", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.85 } },
+      { "data": { "id": "m:chen-paper", "source": "person:mira-chen", "target": "paper:scaling-laws-2", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.91 } },
+      { "data": { "id": "m:titan-compute", "source": "program:project-titan", "target": "topic:compute-costs", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.72 } },
+      { "data": { "id": "m:meridian-apex", "source": "org:meridian-capital", "target": "org:apex-studios", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.88 } },
+      { "data": { "id": "m:apex-bay", "source": "org:apex-studios", "target": "location:bay-area", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.65 } },
+      { "data": { "id": "m:nova-bay", "source": "org:nova-labs", "target": "location:bay-area", "rel": "MENTIONS", "kind": "asserted", "confidence": 0.62 } }
+    ]
+  }
+}

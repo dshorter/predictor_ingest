@@ -54,6 +54,9 @@ async function loadGraphData(url) {
 function handleGraphMeta(meta) {
   const { nodeCount, view, dateRange } = meta;
 
+  // Expose meta globally for tour and other cross-module checks
+  window._graphMeta = meta;
+
   // Store date range so filter panel and other UI can reference it
   if (dateRange) {
     AppState.dateRange = dateRange;

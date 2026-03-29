@@ -9,6 +9,8 @@ module.exports = defineConfig({
   use: {
     headless: true,
     viewport: { width: 1280, height: 800 },
+    // Allow CDN requests for Cytoscape.js and layout extensions
+    bypassCSP: true,
   },
   projects: [
     {

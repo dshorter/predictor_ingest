@@ -1,0 +1,266 @@
+{
+  "meta": {
+    "view": "trending",
+    "nodeCount": 8,
+    "edgeCount": 9,
+    "exportedAt": "2026-03-28T12:00:00Z",
+    "dateRange": { "start": "2026-02-28", "end": "2026-03-28" }
+  },
+  "elements": {
+    "nodes": [
+      {
+        "data": {
+          "id": "org:apex-studios",
+          "label": "Apex Studios",
+          "type": "Org",
+          "firstSeen": "2026-03-01",
+          "lastSeen": "2026-03-28",
+          "mentionCount7d": 12,
+          "mentionCount30d": 34,
+          "velocity": 2.8,
+          "trend_score": 0.91,
+          "novelty": 0.3,
+          "narrative": "Apex Studios is trending due to its announcement of Project Titan and three new partnership deals."
+        }
+      },
+      {
+        "data": {
+          "id": "org:nova-labs",
+          "label": "Nova Labs",
+          "type": "Org",
+          "firstSeen": "2026-03-05",
+          "lastSeen": "2026-03-27",
+          "mentionCount7d": 7,
+          "mentionCount30d": 18,
+          "velocity": 1.5,
+          "trend_score": 0.72,
+          "novelty": 0.4,
+          "narrative": "Nova Labs gained attention after partnering with NeuralForge on a competing platform."
+        }
+      },
+      {
+        "data": {
+          "id": "person:mira-chen",
+          "label": "Dr. Mira Chen",
+          "type": "Person",
+          "firstSeen": "2026-03-10",
+          "lastSeen": "2026-03-28",
+          "mentionCount7d": 5,
+          "mentionCount30d": 9,
+          "velocity": 3.2,
+          "trend_score": 0.88,
+          "novelty": 0.7,
+          "narrative": "Dr. Mira Chen is trending after her move from Nova Labs to lead Apex Studios' research division."
+        }
+      },
+      {
+        "data": {
+          "id": "model:helios",
+          "label": "Helios",
+          "type": "Model",
+          "firstSeen": "2026-03-20",
+          "lastSeen": "2026-03-28",
+          "mentionCount7d": 9,
+          "mentionCount30d": 9,
+          "velocity": 4.1,
+          "trend_score": 0.95,
+          "novelty": 0.9,
+          "narrative": "Helios is a newly launched model by Apex Studios that outperformed competitors on SynthBench."
+        }
+      },
+      {
+        "data": {
+          "id": "tool:neuralforge",
+          "label": "NeuralForge",
+          "type": "Tool",
+          "firstSeen": "2026-03-02",
+          "lastSeen": "2026-03-26",
+          "mentionCount7d": 4,
+          "mentionCount30d": 15,
+          "velocity": 1.2,
+          "trend_score": 0.55,
+          "novelty": 0.2
+        }
+      },
+      {
+        "data": {
+          "id": "topic:frontier-safety",
+          "label": "Frontier Safety",
+          "type": "Topic",
+          "firstSeen": "2026-03-01",
+          "lastSeen": "2026-03-28",
+          "mentionCount7d": 6,
+          "mentionCount30d": 22,
+          "velocity": 1.8,
+          "trend_score": 0.68,
+          "novelty": 0.15
+        }
+      },
+      {
+        "data": {
+          "id": "org:synthbench",
+          "label": "SynthBench",
+          "type": "Org",
+          "firstSeen": "2026-03-15",
+          "lastSeen": "2026-03-28",
+          "mentionCount7d": 3,
+          "mentionCount30d": 6,
+          "velocity": 1.1,
+          "trend_score": 0.45,
+          "novelty": 0.5
+        }
+      },
+      {
+        "data": {
+          "id": "org:project-titan",
+          "label": "Project Titan",
+          "type": "Org",
+          "firstSeen": "2026-03-22",
+          "lastSeen": "2026-03-28",
+          "mentionCount7d": 8,
+          "mentionCount30d": 8,
+          "velocity": 5.0,
+          "trend_score": 0.93,
+          "novelty": 0.95
+        }
+      }
+    ],
+    "edges": [
+      {
+        "data": {
+          "id": "e:apex-titan",
+          "source": "org:apex-studios",
+          "target": "org:project-titan",
+          "rel": "LAUNCHED",
+          "kind": "asserted",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "docId": "doc:001",
+              "title": "Apex Studios Announces Project Titan",
+              "source": "TechCrunch",
+              "published": "2026-03-22",
+              "snippet": "Apex Studios today announced Project Titan, a large-scale model training initiative expected to rival industry leaders.",
+              "url": "https://example.com/apex-titan"
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apex-helios",
+          "source": "org:apex-studios",
+          "target": "model:helios",
+          "rel": "CREATED",
+          "kind": "asserted",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "docId": "doc:002",
+              "title": "Helios Model Benchmark Results",
+              "source": "ArXiv",
+              "published": "2026-03-20",
+              "snippet": "We introduce Helios, a 70B parameter model developed by Apex Studios that achieves state-of-the-art results.",
+              "url": "https://example.com/helios-paper"
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:helios-synthbench",
+          "source": "model:helios",
+          "target": "org:synthbench",
+          "rel": "EVALUATED_ON",
+          "kind": "asserted",
+          "confidence": 0.90,
+          "evidence": []
+        }
+      },
+      {
+        "data": {
+          "id": "e:chen-apex",
+          "source": "org:apex-studios",
+          "target": "person:mira-chen",
+          "rel": "HIRED",
+          "kind": "asserted",
+          "confidence": 0.88,
+          "evidence": [
+            {
+              "docId": "doc:003",
+              "title": "Dr. Mira Chen Joins Apex Studios",
+              "source": "The Verge",
+              "published": "2026-03-10",
+              "snippet": "Renowned AI researcher Dr. Mira Chen has left Nova Labs to lead Apex Studios' new research division.",
+              "url": "https://example.com/chen-moves"
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:nova-forge",
+          "source": "org:nova-labs",
+          "target": "tool:neuralforge",
+          "rel": "PARTNERED_WITH",
+          "kind": "asserted",
+          "confidence": 0.85,
+          "evidence": [
+            {
+              "docId": "doc:004",
+              "title": "Nova Labs Partners with NeuralForge",
+              "source": "Ars Technica",
+              "published": "2026-03-15",
+              "snippet": "Nova Labs announced a strategic partnership with NeuralForge to develop competing training infrastructure.",
+              "url": "https://example.com/nova-forge"
+            }
+          ]
+        }
+      },
+      {
+        "data": {
+          "id": "e:apex-safety",
+          "source": "org:apex-studios",
+          "target": "topic:frontier-safety",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.75,
+          "evidence": []
+        }
+      },
+      {
+        "data": {
+          "id": "e:nova-safety",
+          "source": "org:nova-labs",
+          "target": "topic:frontier-safety",
+          "rel": "MENTIONS",
+          "kind": "asserted",
+          "confidence": 0.70,
+          "evidence": []
+        }
+      },
+      {
+        "data": {
+          "id": "e:chen-nova",
+          "source": "org:nova-labs",
+          "target": "person:mira-chen",
+          "rel": "PUBLISHED",
+          "kind": "asserted",
+          "confidence": 0.82,
+          "evidence": []
+        }
+      },
+      {
+        "data": {
+          "id": "e:apex-forge",
+          "source": "org:apex-studios",
+          "target": "tool:neuralforge",
+          "rel": "USES_TECH",
+          "kind": "asserted",
+          "confidence": 0.78,
+          "evidence": []
+        }
+      }
+    ]
+  }
+}
