@@ -8,6 +8,12 @@
 const HelpContent = {
   // Quick Start Tab - Single-page onboarding
   quickStart: `
+    <div class="help-section" style="text-align:center; padding: 8px 0;">
+      <button class="tour-btn tour-btn-primary" onclick="retakeTour()" style="font-size: 14px;">
+        Take the Guided Tour
+      </button>
+    </div>
+
     <div class="help-section">
       <h3>What am I looking at?</h3>
       <p>

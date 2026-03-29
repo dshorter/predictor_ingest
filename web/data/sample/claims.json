@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "view": "claims",
+    "nodeCount": 18,
+    "edgeCount": 16,
+    "exportedAt": "2026-03-28T12:00:00Z",
+    "dateRange": { "start": "2026-02-28", "end": "2026-03-28" },
+    "isSample": true,
+    "tourVersion": 1
+  },
+  "elements": {
+    "nodes": [
+      { "data": { "id": "org:apex-studios", "label": "Apex Studios", "type": "Org", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 12, "mentionCount30d": 34, "velocity": 2.8, "trend_score": 0.91 } },
+      { "data": { "id": "org:nova-labs", "label": "Nova Labs", "type": "Org", "firstSeen": "2026-03-05", "lastSeen": "2026-03-27", "mentionCount7d": 7, "mentionCount30d": 18, "velocity": 1.5, "trend_score": 0.72 } },
+      { "data": { "id": "person:mira-chen", "label": "Dr. Mira Chen", "type": "Person", "firstSeen": "2026-03-10", "lastSeen": "2026-03-28", "mentionCount7d": 5, "mentionCount30d": 9, "velocity": 3.2, "trend_score": 0.88 } },
+      { "data": { "id": "model:helios", "label": "Helios", "type": "Model", "firstSeen": "2026-03-20", "lastSeen": "2026-03-28", "mentionCount7d": 9, "mentionCount30d": 9, "velocity": 4.1, "trend_score": 0.95 } },
+      { "data": { "id": "tool:neuralforge", "label": "NeuralForge", "type": "Tool", "firstSeen": "2026-03-02", "lastSeen": "2026-03-26", "mentionCount7d": 4, "mentionCount30d": 15, "velocity": 1.2, "trend_score": 0.55 } },
+      { "data": { "id": "topic:frontier-safety", "label": "Frontier Safety", "type": "Topic", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 6, "mentionCount30d": 22, "velocity": 1.8, "trend_score": 0.68 } },
+      { "data": { "id": "benchmark:synthbench", "label": "SynthBench", "type": "Benchmark", "firstSeen": "2026-03-15", "lastSeen": "2026-03-28", "mentionCount7d": 3, "mentionCount30d": 6, "velocity": 1.1, "trend_score": 0.45 } },
+      { "data": { "id": "program:project-titan", "label": "Project Titan", "type": "Program", "firstSeen": "2026-03-22", "lastSeen": "2026-03-28", "mentionCount7d": 8, "mentionCount30d": 8, "velocity": 5.0, "trend_score": 0.93 } },
+      { "data": { "id": "person:james-park", "label": "James Park", "type": "Person", "firstSeen": "2026-03-08", "lastSeen": "2026-03-25", "mentionCount7d": 3, "mentionCount30d": 10, "velocity": 1.3, "trend_score": 0.52 } },
+      { "data": { "id": "dataset:prism", "label": "Prism", "type": "Dataset", "firstSeen": "2026-03-18", "lastSeen": "2026-03-27", "mentionCount7d": 5, "mentionCount30d": 7, "velocity": 2.1, "trend_score": 0.63 } },
+      { "data": { "id": "paper:scaling-laws-2", "label": "Scaling Laws Revisited", "type": "Paper", "firstSeen": "2026-03-14", "lastSeen": "2026-03-26", "mentionCount7d": 4, "mentionCount30d": 8, "velocity": 1.6, "trend_score": 0.58 } },
+      { "data": { "id": "tech:sparse-moe", "label": "Sparse MoE", "type": "Tech", "firstSeen": "2026-03-05", "lastSeen": "2026-03-28", "mentionCount7d": 6, "mentionCount30d": 14, "velocity": 1.9, "trend_score": 0.66 } },
+      { "data": { "id": "org:meridian-capital", "label": "Meridian Capital", "type": "Org", "firstSeen": "2026-03-12", "lastSeen": "2026-03-24", "mentionCount7d": 2, "mentionCount30d": 5, "velocity": 1.0, "trend_score": 0.38 } },
+      { "data": { "id": "event:ai-summit-2026", "label": "AI Summit 2026", "type": "Event", "firstSeen": "2026-03-18", "lastSeen": "2026-03-28", "mentionCount7d": 7, "mentionCount30d": 10, "velocity": 2.4, "trend_score": 0.74 } },
+      { "data": { "id": "repo:helios-weights", "label": "helios-weights", "type": "Repo", "firstSeen": "2026-03-21", "lastSeen": "2026-03-28", "mentionCount7d": 4, "mentionCount30d": 4, "velocity": 3.5, "trend_score": 0.70 } },
+      { "data": { "id": "model:nova-7b", "label": "Nova-7B", "type": "Model", "firstSeen": "2026-03-06", "lastSeen": "2026-03-22", "mentionCount7d": 2, "mentionCount30d": 11, "velocity": 0.8, "trend_score": 0.35 } },
+      { "data": { "id": "topic:compute-costs", "label": "Compute Costs", "type": "Topic", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 5, "mentionCount30d": 20, "velocity": 1.4, "trend_score": 0.60 } },
+      { "data": { "id": "location:bay-area", "label": "Bay Area", "type": "Location", "firstSeen": "2026-03-01", "lastSeen": "2026-03-28", "mentionCount7d": 3, "mentionCount30d": 16, "velocity": 0.9, "trend_score": 0.30 } }
+    ],
+    "edges": [
+      { "data": { "id": "e:apex-titan", "source": "org:apex-studios", "target": "program:project-titan", "rel": "LAUNCHED", "kind": "asserted", "confidence": 0.95, "evidence": [{ "docId": "doc:001", "title": "Apex Studios Announces Project Titan", "source": "TechCrunch", "published": "2026-03-22", "snippet": "Apex Studios today announced Project Titan, a large-scale model training initiative expected to rival industry leaders.", "url": "https://example.com/apex-titan" }] } },
+      { "data": { "id": "e:apex-helios", "source": "org:apex-studios", "target": "model:helios", "rel": "CREATED", "kind": "asserted", "confidence": 0.92, "evidence": [{ "docId": "doc:002", "title": "Helios Model Benchmark Results", "source": "ArXiv", "published": "2026-03-20", "snippet": "We introduce Helios, a 70B parameter model developed by Apex Studios.", "url": "https://example.com/helios-paper" }] } },
+      { "data": { "id": "e:helios-synthbench", "source": "model:helios", "target": "benchmark:synthbench", "rel": "EVALUATED_ON", "kind": "asserted", "confidence": 0.90, "evidence": [{ "docId": "doc:002", "title": "Helios Model Benchmark Results", "source": "ArXiv", "published": "2026-03-20", "snippet": "Helios achieves 94.2% on SynthBench, outperforming the previous best by 12 percentage points.", "url": "https://example.com/helios-paper" }] } },
+      { "data": { "id": "e:chen-apex", "source": "org:apex-studios", "target": "person:mira-chen", "rel": "HIRED", "kind": "asserted", "confidence": 0.88, "evidence": [{ "docId": "doc:003", "title": "Dr. Mira Chen Joins Apex Studios", "source": "The Verge", "published": "2026-03-10", "snippet": "Renowned AI researcher Dr. Mira Chen has left Nova Labs to lead Apex Studios' new research division.", "url": "https://example.com/chen-moves" }] } },
+      { "data": { "id": "e:nova-forge", "source": "org:nova-labs", "target": "tool:neuralforge", "rel": "PARTNERED_WITH", "kind": "asserted", "confidence": 0.85, "evidence": [{ "docId": "doc:004", "title": "Nova Labs Partners with NeuralForge", "source": "Ars Technica", "published": "2026-03-15", "snippet": "Nova Labs announced a strategic partnership with NeuralForge to develop competing training infrastructure.", "url": "https://example.com/nova-forge" }] } },
+      { "data": { "id": "e:chen-nova", "source": "org:nova-labs", "target": "person:mira-chen", "rel": "PUBLISHED", "kind": "asserted", "confidence": 0.82, "evidence": [] } },
+      { "data": { "id": "e:nova-prism", "source": "org:nova-labs", "target": "dataset:prism", "rel": "CREATED", "kind": "asserted", "confidence": 0.88, "evidence": [{ "docId": "doc:005", "title": "Nova Labs Releases Prism Dataset", "source": "Hugging Face Blog", "published": "2026-03-18", "snippet": "Nova Labs open-sourced Prism, a 2TB multilingual dataset designed for instruction tuning.", "url": "https://example.com/prism-release" }] } },
+      { "data": { "id": "e:chen-paper", "source": "person:mira-chen", "target": "paper:scaling-laws-2", "rel": "PUBLISHED", "kind": "asserted", "confidence": 0.91, "evidence": [{ "docId": "doc:006", "title": "Scaling Laws Revisited: Efficiency at Scale", "source": "ArXiv", "published": "2026-03-14", "snippet": "Dr. Mira Chen et al. revisit scaling laws with new efficiency metrics.", "url": "https://example.com/scaling-laws-2" }] } },
+      { "data": { "id": "e:meridian-apex", "source": "org:meridian-capital", "target": "org:apex-studios", "rel": "FUNDED", "kind": "asserted", "confidence": 0.93, "evidence": [{ "docId": "doc:007", "title": "Apex Studios Raises $500M Series C", "source": "TechCrunch", "published": "2026-03-12", "snippet": "Meridian Capital led a $500M Series C round for Apex Studios, valuing the company at $4B.", "url": "https://example.com/apex-funding" }] } },
+      { "data": { "id": "e:park-nova", "source": "person:james-park", "target": "org:nova-labs", "rel": "CREATED", "kind": "asserted", "confidence": 0.95, "evidence": [] } },
+      { "data": { "id": "e:nova-nova7b", "source": "org:nova-labs", "target": "model:nova-7b", "rel": "CREATED", "kind": "asserted", "confidence": 0.90, "evidence": [] } },
+      { "data": { "id": "e:nova7b-synthbench", "source": "model:nova-7b", "target": "benchmark:synthbench", "rel": "EVALUATED_ON", "kind": "asserted", "confidence": 0.85, "evidence": [] } },
+      { "data": { "id": "e:helios-repo", "source": "model:helios", "target": "repo:helios-weights", "rel": "PRODUCES", "kind": "asserted", "confidence": 0.94, "evidence": [] } },
+      { "data": { "id": "e:helios-moe", "source": "model:helios", "target": "tech:sparse-moe", "rel": "USES_TECH", "kind": "asserted", "confidence": 0.87, "evidence": [] } },
+      { "data": { "id": "e:nova7b-moe", "source": "model:nova-7b", "target": "tech:sparse-moe", "rel": "USES_TECH", "kind": "asserted", "confidence": 0.80, "evidence": [] } },
+      { "data": { "id": "e:prism-helios", "source": "model:helios", "target": "dataset:prism", "rel": "TRAINED_ON", "kind": "asserted", "confidence": 0.76, "evidence": [] } }
+    ]
+  }
+}
