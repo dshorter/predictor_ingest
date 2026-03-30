@@ -475,9 +475,9 @@ features:
     enabled: true
     similarity_lower_bound: 0.40
     similarity_upper_bound: 0.85
-    max_pairs_per_run: 50
+    max_pairs_per_run: 500
     batch_size: 15
-    entity_types_to_disambiguate: [Person, Studio, Production]
+    entity_types_to_disambiguate: []  # empty = all types; nano is cheap enough
 
   relation_inference:
     enabled: true

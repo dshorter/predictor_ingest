@@ -366,10 +366,11 @@ def _call_llm(
     system_prompt: str,
     user_prompt: str,
     model: str = "gpt-5-nano",
-) -> tuple[str, int]:
-    """Call an LLM for disambiguation. Returns (response_text, duration_ms).
+) -> tuple[str, int, int, int]:
+    """Call an LLM for disambiguation.
 
-    Follows the same provider-detection pattern as run_extract.py.
+    Returns:
+        (response_text, duration_ms, input_tokens, output_tokens)
     """
     openai_prefixes = ("gpt-", "o1", "o3", "o4")
     is_openai = any(model.startswith(p) for p in openai_prefixes)
@@ -394,6 +395,8 @@ def _call_llm(
             **_temp_kwargs,
         )
         text = response.choices[0].message.content or ""
+        in_tok = response.usage.prompt_tokens if response.usage else 0
+        out_tok = response.usage.completion_tokens if response.usage else 0
     else:
         import anthropic
         api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -407,9 +410,11 @@ def _call_llm(
             messages=[{"role": "user", "content": user_prompt}],
         )
         text = response.content[0].text
+        in_tok = response.usage.input_tokens if response.usage else 0
+        out_tok = response.usage.output_tokens if response.usage else 0
 
     duration_ms = int((time.time() - start) * 1000)
-    return text, duration_ms
+    return text, duration_ms, in_tok, out_tok
 
 
 def _parse_llm_response(
@@ -479,16 +484,16 @@ def batch_disambiguate(
     pairs: list[EntityPair],
     profile: dict[str, Any],
     model: str = "gpt-5-nano",
-) -> tuple[list[Decision], int]:
+) -> tuple[list[Decision], int, int, int]:
     """Send a batch of pairs to the LLM and return decisions.
 
     Returns:
-        (list of decisions, duration_ms)
+        (list of decisions, duration_ms, input_tokens, output_tokens)
     """
     system_prompt, user_prompt = build_disambiguation_prompt(pairs, profile)
-    response_text, duration_ms = _call_llm(system_prompt, user_prompt, model=model)
+    response_text, duration_ms, in_tok, out_tok = _call_llm(system_prompt, user_prompt, model=model)
     decisions = _parse_llm_response(response_text, pairs)
-    return decisions, duration_ms
+    return decisions, duration_ms, in_tok, out_tok
 
 
 # ---------------------------------------------------------------------------
@@ -545,8 +550,10 @@ def run_llm_disambiguation(
         batch = pairs[batch_start:batch_start + config.batch_size]
 
         try:
-            decisions, _ = batch_disambiguate(batch, profile, model=model)
+            decisions, _, in_tok, out_tok = batch_disambiguate(batch, profile, model=model)
             result.llm_calls += 1
+            from db import log_token_usage
+            log_token_usage(conn, run_date, "disambiguation", model, in_tok, out_tok)
         except Exception as e:
             print(f"  [disambiguate] LLM call failed: {e}")
             # Mark all as uncertain

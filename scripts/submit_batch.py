@@ -40,7 +40,7 @@ load_dotenv()
 
 
 def get_model() -> str:
-    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-4-6-20260218"
+    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-4-6"
 
 
 def load_docpack(path: Path) -> list[dict]:

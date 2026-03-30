@@ -55,7 +55,7 @@ load_dotenv()
 
 
 def get_model() -> str:
-    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-4-6-20260218"
+    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-4-6"
 
 
 def _sync_fallback(
@@ -215,12 +215,21 @@ def collect(
         errors = 0
         fallback_needed = []
 
+        from db import log_token_usage
         for result in client.beta.messages.batches.results(job_id):
             doc_id = result.custom_id
             result_type = result.result.type  # succeeded | errored | canceled | expired
 
             if result_type == "succeeded":
-                response_text = result.result.message.content[0].text
+                msg = result.result.message
+                response_text = msg.content[0].text
+                # Capture per-doc token usage from batch result
+                if hasattr(msg, "usage") and msg.usage:
+                    log_token_usage(
+                        conn, run_date, "extraction", get_model(),
+                        msg.usage.input_tokens, msg.usage.output_tokens,
+                        doc_id=doc_id,
+                    )
                 try:
                     extraction = parse_extraction_response(response_text, doc_id)
                     save_extraction(extraction, extractions_dir)

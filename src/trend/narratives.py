@@ -269,10 +269,11 @@ def _call_llm(
     system_prompt: str,
     user_prompt: str,
     model: str = "claude-haiku-4-5-20251001",
-) -> tuple[str, int]:
-    """Call LLM for narrative generation. Returns (text, duration_ms).
+) -> tuple[str, int, int, int]:
+    """Call LLM for narrative generation.
 
-    Also logs token usage when available so costs can be tracked.
+    Returns:
+        (text, duration_ms, input_tokens, output_tokens)
     """
     openai_prefixes = ("gpt-", "o1", "o3", "o4")
     is_openai = any(model.startswith(p) for p in openai_prefixes)
@@ -297,9 +298,8 @@ def _call_llm(
             **_temp_kwargs,
         )
         text = response.choices[0].message.content or ""
-        if hasattr(response, "usage") and response.usage:
-            print(f"  [narratives] tokens: in={response.usage.prompt_tokens} "
-                  f"out={response.usage.completion_tokens} model={model}")
+        in_tok = response.usage.prompt_tokens if response.usage else 0
+        out_tok = response.usage.completion_tokens if response.usage else 0
     else:
         import anthropic
         api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -313,12 +313,12 @@ def _call_llm(
             messages=[{"role": "user", "content": user_prompt}],
         )
         text = response.content[0].text
-        if hasattr(response, "usage") and response.usage:
-            print(f"  [narratives] tokens: in={response.usage.input_tokens} "
-                  f"out={response.usage.output_tokens} model={model}")
+        in_tok = response.usage.input_tokens if response.usage else 0
+        out_tok = response.usage.output_tokens if response.usage else 0
 
     duration_ms = int((time.time() - start) * 1000)
-    return text, duration_ms
+    print(f"  [narratives] tokens: in={in_tok} out={out_tok} model={model}")
+    return text, duration_ms, in_tok, out_tok
 
 
 def _parse_narratives(text: str) -> dict[str, str]:
@@ -403,8 +403,10 @@ def generate_narratives(
 
     try:
         system_prompt, user_prompt = build_narrative_prompt(contexts, profile, config)
-        response_text, duration_ms = _call_llm(system_prompt, user_prompt, model=model)
+        response_text, duration_ms, in_tok, out_tok = _call_llm(system_prompt, user_prompt, model=model)
         name_to_narrative = _parse_narratives(response_text)
+        from db import log_token_usage
+        log_token_usage(conn, run_date or date.today().isoformat(), "narratives", model, in_tok, out_tok)
     except Exception as e:
         print(f"  [narratives] LLM call failed: {e}")
         return narratives
