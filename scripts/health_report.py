@@ -500,6 +500,89 @@ def section_quality_gates(w: ReportWriter, conn: sqlite3.Connection) -> dict:
     }
 
 
+def section_token_cost(w: ReportWriter, conn: sqlite3.Connection, days: int | None = 14) -> dict:
+    """Token usage and cost breakdown by stage and model.
+
+    Sourced from the token_usage table populated during pipeline runs.
+    Useful for comparing cost before/after config changes (e.g. batch size,
+    disambiguation candidate expansion).
+    """
+    w.print("Token Cost")
+    w.print("=" * 72)
+
+    # Check table exists
+    try:
+        conn.execute("SELECT 1 FROM token_usage LIMIT 1")
+    except Exception:
+        w.print("  No token_usage data yet (table empty or missing)")
+        w.print()
+        return {}
+
+    window_clause = f"AND run_date >= date('now', '-{days} days')" if days else ""
+
+    # Per-stage summary
+    rows = conn.execute(f"""
+        SELECT stage, model,
+               COUNT(*)            AS calls,
+               SUM(input_tokens)   AS total_in,
+               SUM(output_tokens)  AS total_out,
+               SUM(cost_usd)       AS total_cost
+        FROM token_usage
+        WHERE 1=1 {window_clause}
+        GROUP BY stage, model
+        ORDER BY total_cost DESC NULLS LAST
+    """).fetchall()
+
+    if not rows:
+        w.print(f"  No token usage recorded in the last {days or 'N'} days")
+        w.print()
+        return {}
+
+    total_cost = sum(r["total_cost"] or 0 for r in rows)
+    total_in   = sum(r["total_in"]   or 0 for r in rows)
+    total_out  = sum(r["total_out"]  or 0 for r in rows)
+
+    w.print(f"  {'Stage':<16} {'Model':<28} {'Calls':>6} {'In (K)':>8} {'Out (K)':>8} {'Cost':>8}")
+    w.print(f"  {'-'*16} {'-'*28} {'-'*6} {'-'*8} {'-'*8} {'-'*8}")
+    for r in rows:
+        cost_str = f"${r['total_cost']:.4f}" if r["total_cost"] is not None else "  n/a  "
+        w.print(
+            f"  {r['stage']:<16} {r['model']:<28} {r['calls']:>6} "
+            f"{(r['total_in'] or 0)//1000:>7}K {(r['total_out'] or 0)//1000:>7}K {cost_str:>8}"
+        )
+
+    w.print(f"  {'-'*80}")
+    w.print(f"  {'TOTAL':<46} {total_in//1000:>7}K {total_out//1000:>7}K ${total_cost:.4f}")
+
+    # Per-day cost trend (last 7 days)
+    daily = conn.execute("""
+        SELECT run_date, SUM(cost_usd) AS day_cost, COUNT(*) AS calls
+        FROM token_usage
+        WHERE run_date >= date('now', '-7 days')
+        GROUP BY run_date ORDER BY run_date DESC
+    """).fetchall()
+
+    if daily:
+        w.print()
+        w.print("  Daily cost (last 7 days):")
+        for d in daily:
+            bar = "#" * min(40, int((d["day_cost"] or 0) * 400))
+            w.print(f"    {d['run_date']}  ${d['day_cost']:.4f}  {bar}")
+
+    # Per-doc extraction cost
+    ext_row = conn.execute(f"""
+        SELECT COUNT(DISTINCT doc_id) AS docs, SUM(cost_usd) AS cost
+        FROM token_usage
+        WHERE stage = 'extraction' AND doc_id IS NOT NULL {window_clause}
+    """).fetchone()
+    if ext_row and ext_row["docs"]:
+        cost_per_doc = (ext_row["cost"] or 0) / ext_row["docs"]
+        w.print(f"\n  Extraction cost/doc:  ${cost_per_doc:.5f}  ({ext_row['docs']} docs)")
+
+    w.print()
+    return {"total_cost_usd": total_cost, "total_in_tokens": total_in, "total_out_tokens": total_out}
+
+
 def section_llm_features(w: ReportWriter, conn: sqlite3.Connection, logs_dir: Path) -> dict:
     """LLM feature health: disambiguation, synthesis, inference, narratives.
 
@@ -919,6 +1002,7 @@ def run_report(db_path: Path, days: int | None, summary_only: bool = False,
     graph = section_graph_density(w, conn)
     overlap = section_entity_overlap(w, conn)
     section_quality_gates(w, conn)
+    section_token_cost(w, conn, days)
     section_llm_features(w, conn, logs_dir)
     section_selection_efficiency(w, logs_dir)
     section_source_contribution(w, conn)

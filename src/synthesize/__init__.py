@@ -357,8 +357,12 @@ def _call_llm(
     system_prompt: str,
     user_prompt: str,
     model: str,
-) -> tuple[str, int]:
-    """Call specialist LLM for synthesis."""
+) -> tuple[str, int, int, int]:
+    """Call specialist LLM for synthesis.
+
+    Returns:
+        (response_text, duration_ms, input_tokens, output_tokens)
+    """
     openai_prefixes = ("gpt-", "o1", "o3", "o4")
     is_openai = any(model.startswith(p) for p in openai_prefixes)
 
@@ -382,6 +386,8 @@ def _call_llm(
             **_temp_kwargs,
         )
         text = response.choices[0].message.content or ""
+        in_tok = response.usage.prompt_tokens if response.usage else 0
+        out_tok = response.usage.completion_tokens if response.usage else 0
     else:
         import anthropic
         api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -395,9 +401,11 @@ def _call_llm(
             messages=[{"role": "user", "content": user_prompt}],
         )
         text = response.content[0].text
+        in_tok = response.usage.input_tokens if response.usage else 0
+        out_tok = response.usage.output_tokens if response.usage else 0
 
     duration_ms = int((time.time() - start) * 1000)
-    return text, duration_ms
+    return text, duration_ms, in_tok, out_tok
 
 
 def _parse_synthesis_response(text: str) -> dict[str, Any]:
@@ -464,8 +472,10 @@ def run_synthesis(
 
         try:
             system_prompt, user_prompt = build_synthesis_prompt(cluster, conn, profile)
-            response_text, call_ms = _call_llm(system_prompt, user_prompt, model=model)
+            response_text, call_ms, in_tok, out_tok = _call_llm(system_prompt, user_prompt, model=model)
             result.llm_calls += 1
+            from db import log_token_usage
+            log_token_usage(conn, run_date, "synthesis", model, in_tok, out_tok)
         except Exception as e:
             print(f"  [synthesize] LLM call failed: {e}")
             continue

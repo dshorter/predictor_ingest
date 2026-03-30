@@ -259,3 +259,22 @@ CREATE TABLE IF NOT EXISTS funnel_stats (
   drop_reasons  TEXT,                    -- JSON: {"budget_exceeded": 12, "below_quality": 3}
   PRIMARY KEY (run_date, domain, stage)
 );
+
+-- Token usage log — one row per LLM call across all pipeline stages.
+-- Enables per-stage, per-model cost breakdown and Monday/Tuesday A-B comparisons.
+-- Pricing constants live in health_report.py (update when Anthropic changes rates).
+CREATE TABLE IF NOT EXISTS token_usage (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_date      TEXT NOT NULL,    -- ISO date of the pipeline run
+  stage         TEXT NOT NULL,    -- 'extraction' | 'synthesis' | 'disambiguation' | 'narratives'
+  model         TEXT NOT NULL,    -- full model ID used for this call
+  doc_id        TEXT,             -- populated for extraction; NULL for batch stages
+  input_tokens  INTEGER NOT NULL,
+  output_tokens INTEGER NOT NULL,
+  cost_usd      REAL,             -- computed at insert time; NULL if model unknown
+  created_at    TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_token_usage_date  ON token_usage(run_date);
+CREATE INDEX IF NOT EXISTS idx_token_usage_stage ON token_usage(stage);
+CREATE INDEX IF NOT EXISTS idx_token_usage_model ON token_usage(model);

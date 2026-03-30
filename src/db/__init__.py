@@ -545,3 +545,80 @@ def resolve_alias(conn: sqlite3.Connection, alias: str) -> Optional[str]:
     return row["canonical_id"] if row else None
 
 
+# ---------------------------------------------------------------------------
+# Token usage logging
+# ---------------------------------------------------------------------------
+
+# Pricing per million tokens (input, output) — update when Anthropic changes rates.
+_TOKEN_PRICES: dict[str, tuple[float, float]] = {
+    "claude-sonnet-4-6":        (3.00, 15.00),
+    "claude-haiku-4-5":         (0.25,  1.25),
+    "claude-haiku-4-5-20251001":(0.25,  1.25),
+    "gpt-5-nano":               (0.15,  0.60),
+    "gpt-4.1-nano":             (0.15,  0.60),
+    "gpt-4.1-mini":             (0.40,  1.60),
+    "gpt-4.1":                  (2.00,  8.00),
+}
+
+
+def _compute_cost(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
+    """Return USD cost for a call, or None if model pricing is unknown."""
+    # Match on prefix so alias and dated variants both resolve
+    for key, (in_rate, out_rate) in _TOKEN_PRICES.items():
+        if model.startswith(key) or key.startswith(model):
+            return (input_tokens * in_rate + output_tokens * out_rate) / 1_000_000
+    return None
+
+
+def ensure_token_usage_table(conn: sqlite3.Connection) -> None:
+    """Create token_usage table if it doesn't exist (idempotent migration)."""
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS token_usage (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_date      TEXT NOT NULL,
+            stage         TEXT NOT NULL,
+            model         TEXT NOT NULL,
+            doc_id        TEXT,
+            input_tokens  INTEGER NOT NULL,
+            output_tokens INTEGER NOT NULL,
+            cost_usd      REAL,
+            created_at    TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_token_usage_date  ON token_usage(run_date);
+        CREATE INDEX IF NOT EXISTS idx_token_usage_stage ON token_usage(stage);
+        CREATE INDEX IF NOT EXISTS idx_token_usage_model ON token_usage(model);
+    """)
+    conn.commit()
+
+
+def log_token_usage(
+    conn: sqlite3.Connection,
+    run_date: str,
+    stage: str,
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    doc_id: Optional[str] = None,
+) -> None:
+    """Record token usage for one LLM call.
+
+    Args:
+        conn:          Database connection.
+        run_date:      ISO date string (YYYY-MM-DD).
+        stage:         'extraction' | 'synthesis' | 'disambiguation' | 'narratives'
+        model:         Model ID used for the call.
+        input_tokens:  Tokens in the prompt.
+        output_tokens: Tokens in the completion.
+        doc_id:        Source document ID (extraction only; None for batch stages).
+    """
+    ensure_token_usage_table(conn)
+    cost = _compute_cost(model, input_tokens, output_tokens)
+    conn.execute(
+        """INSERT INTO token_usage
+               (run_date, stage, model, doc_id, input_tokens, output_tokens, cost_usd)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (run_date, stage, model, doc_id, input_tokens, output_tokens, cost),
+    )
+    conn.commit()
+
+
