@@ -1,0 +1,27 @@
+# Graph view configuration for Semiconductors & Chips
+#
+# Defines which relation types belong to each Cytoscape export view.
+
+document_relations:
+  - MENTIONS
+  - CITES
+  - ANNOUNCES
+  - REPORTED_BY
+
+# Dependency view: the supply chain and design hierarchy
+# This is the primary analytical view for semiconductor trends —
+# it surfaces the fab → chip → architecture → system chain
+dependency_relations:
+  - DESIGNS
+  - MANUFACTURES
+  - FABRICATES
+  - LICENSES
+  - BUILT_ON
+  - USES_PROCESS
+  - USES_PACKAGING
+  - INTEGRATES
+  - POWERS
+  - SUPPLIES
+  - DEPENDS_ON
+  - RESTRICTS
+  - TARGETS

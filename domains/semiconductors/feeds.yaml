@@ -1,0 +1,183 @@
+# RSS feeds for Semiconductors & Chips trend graph
+# Runtime configuration — parsed by src/ingest/rss.py
+#
+# Stack design: anchor on deep-analysis newsletters (SemiAnalysis, The Chip Letter)
+# for high-signal low-volume Tier 1 content; use trade press and community blogs
+# for entity overlap and velocity. Total estimated volume: 15-25 docs/day —
+# budget-conscious by design.
+#
+# NOTE: Feed URLs marked [VERIFY] were not confirmed accessible during config
+# authoring. Verify on the VPS before enabling production runs.
+#
+# tier: 1 = primary/original source, 2 = secondary/analysis, 3 = echo
+# signal: primary | commentary | echo | community
+
+feeds:
+  # --- Tier 1: Deep analysis (anchor sources — highest signal/doc ratio) ---
+
+  - name: "SemiAnalysis"
+    url: "https://semianalysis.substack.com/feed"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    # Dylan Patel. Best-in-class analysis on process nodes, supply chain,
+    # AI accelerators, and fab economics. Partially paywalled — free tier
+    # gets ~50% of posts but those are the public-facing high-signal pieces.
+    # [VERIFY] Substack RSS accessibility from VPS.
+
+  - name: "The Chip Letter"
+    url: "https://thechipletter.substack.com/feed"
+    type: rss
+    enabled: true
+    limit: 5
+    tier: 1
+    signal: commentary
+    # Stephen Witt. Weekly deep-dives on chip history, architecture, and
+    # industry dynamics. Free, low volume (~1/week), very high entity density.
+    # Excellent for persistent entity corroboration across issues.
+    # [VERIFY] feed accessibility from VPS.
+
+  - name: "Semiconductor Engineering"
+    url: "https://semiengineering.com/feed/"
+    type: rss
+    enabled: true
+    limit: 20
+    tier: 1
+    signal: primary
+    # Broad practitioner coverage: EDA, process, packaging, power, security.
+    # Community contributor model — multiple expert voices, free, active.
+    # Highest volume Tier 1 source; good for catching toolchain and
+    # materials trends that trade press misses.
+    # [VERIFY] feed accessibility from VPS.
+
+  # --- Tier 1: GPU & microarchitecture (closes the GPU coverage gap) ---
+
+  - name: "Chips and Cheese"
+    url: "https://chipsandcheese.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    # Deep GPU and CPU microarchitecture teardowns. Free, ~1-2/week.
+    # Catches architectural shifts (new cache hierarchies, memory subsystems,
+    # compute unit design) well before mainstream trade press notices them.
+    # Key source for GPU → AI workload connection in the graph.
+    # [VERIFY] feed accessibility from VPS.
+
+  # --- Tier 2: Trade press (entity overlap and velocity) ---
+
+  - name: "EE Times"
+    url: "https://www.eetimes.com/feed/"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 2
+    signal: primary
+    # Design and tooling coverage. EDA, FPGA, embedded, automotive chips.
+    # Fills gaps that deep-analysis newsletters skip. Good on Cadence/Synopsys
+    # news and design methodology trends.
+    # [VERIFY] feed accessibility from VPS.
+
+  - name: "The Register Hardware"
+    url: "https://www.theregister.com/hardware/semiconductors/headlines.atom"
+    type: atom
+    enabled: true
+    limit: 15
+    tier: 2
+    signal: echo
+    # Good on supply chain, geopolitics, and export control news.
+    # Different editorial angle from US trade press — catches UK/EU policy
+    # angles and ASML/TSMC stories from a non-US perspective.
+    # [VERIFY] feed URL — may need /headlines.atom or /feed path.
+
+  - name: "SemiWiki"
+    url: "https://semiwiki.com/feed/"
+    type: rss
+    enabled: true
+    limit: 15
+    tier: 2
+    signal: community
+    # Community blog — practitioners, analysts, and industry veterans.
+    # Covers EDA tools, IP licensing, fab news, and conference reports.
+    # Good overlap source: same fabs/chips covered by Tier 1 but from
+    # practitioner angles that surface different relation types.
+    # [VERIFY] feed accessibility from VPS.
+
+  # --- Tier 2: GPU/compute from consumer angle (velocity echo) ---
+
+  - name: "Tom's Hardware"
+    url: "https://www.tomshardware.com/feeds/all"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 2
+    signal: echo
+    # Consumer-facing but high volume on GPU benchmarks, product launches.
+    # Primary value: early product announcement velocity and benchmark
+    # comparisons that name specific chip variants (H100 SXM5, RX 7900 XTX).
+    # Filter aggressively in selection scoring — most content is reviews.
+    # [VERIFY] feed URL from VPS.
+
+  # --- Tier 2: Policy & geopolitics ---
+  # Export controls and CHIPS Act are slow-moving but high-persistence
+  # signals. Low volume, high entity permanence.
+
+  - name: "Real World Tech"
+    url: "https://www.realworldtech.com/feed/"
+    type: rss
+    enabled: false  # [VERIFY] site may be low-activity — confirm before enabling
+    limit: 5
+    tier: 2
+    signal: commentary
+    # David Kanter. Extremely deep technical analysis of CPU/GPU architecture.
+    # Low volume but authoritative. Enable once feed accessibility confirmed.
+
+  # --- Bluesky: Keyword search ---
+  # Semiconductor practitioners are active on Bluesky post-Twitter migration.
+  # Requires BSKY_HANDLE + BSKY_APP_PASSWORD env vars.
+
+  - name: "Bluesky Semiconductors"
+    type: bluesky
+    enabled: false  # Enable once BSKY credentials confirmed on VPS
+    tier: 2
+    signal: community
+    limit: 20
+    keywords:
+      - "TSMC"
+      - "process node"
+      - "GPU architecture"
+      - "chiplet"
+      - "HBM"
+      - "export controls semiconductors"
+    # Practitioner and analyst chatter. Keywords target the technical layer,
+    # not consumer GPU discussions.
+
+  # --- Reddit ---
+  # r/semiconductors has genuine engineer participation. Requires Reddit
+  # credentials (REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET).
+
+  - name: "Reddit r/semiconductors"
+    type: reddit
+    enabled: false  # pending credentials
+    tier: 2
+    signal: community
+    subreddit: "semiconductors"
+    listing: top
+    limit: 15
+    # Engineer and analyst community. Top posts surface real technical
+    # discussions — yield issues, process node comparisons, ASML news.
+    # Better signal quality than general tech subreddits.
+
+  - name: "Reddit r/chipdesign"
+    type: reddit
+    enabled: false  # pending credentials
+    tier: 2
+    signal: community
+    subreddit: "chipdesign"
+    listing: new
+    limit: 10
+    # Practitioners: RTL designers, layout engineers, verification engineers.
+    # Catches EDA toolchain trends and design methodology shifts early.
