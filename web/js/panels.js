@@ -282,7 +282,9 @@ function updateCyContainer() {
 }
 
 /**
- * Select a node by ID
+ * Select a node by ID — called from panel relationship links.
+ * Flies to the node and highlights its neighborhood, but keeps the
+ * current detail panel open so the user doesn't lose context.
  */
 function selectNode(nodeId) {
   if (!window.cy) return;
@@ -292,8 +294,8 @@ function selectNode(nodeId) {
     node.select();
     clearNeighborhoodHighlight(window.cy);
     highlightNeighborhood(window.cy, node);
-    openNodeDetailPanel(node);
-    // Animate after opening panel so getPanelOffset sees the open state
+    // Fly to the node but do NOT update the panel — panel stays on
+    // the originally canvas-clicked node.
     const pos = node.position();
     const offset = getPanelOffset(window.cy.zoom());
     window.cy.animate({ center: { x: pos.x - offset, y: pos.y }, duration: 300 });
