@@ -251,7 +251,12 @@ def collect_gray_zone_pairs(
         ]
 
     pairs: list[EntityPair] = []
-    seen: set[tuple[str, str]] = set()
+    # Preload all existing decisions into memory to avoid per-pair DB queries
+    # in the O(n^2) loop. With all entity types enabled, the inner loop can
+    # iterate millions of pairs; a set lookup is O(1) vs O(log n) for each query.
+    existing_decisions: set[tuple[str, str]] = set()
+    for row in conn.execute("SELECT entity_a_id, entity_b_id FROM disambiguation_decisions"):
+        existing_decisions.add((row[0], row[1]))
 
     # Group by type for O(n^2) within type (small groups)
     from itertools import groupby
@@ -264,25 +269,25 @@ def collect_gray_zone_pairs(
                 if len(pairs) >= config.max_pairs_per_run:
                     return pairs
 
-                pair_key = tuple(sorted([a["entity_id"], b["entity_id"]]))
-                if pair_key in seen:
-                    continue
-                seen.add(pair_key)
-
-                # Skip if already decided
-                if _pair_already_decided(conn, a["entity_id"], b["entity_id"]):
-                    continue
-
+                # Check similarity first (cheap) before any DB or set work
                 sim = name_similarity(a["name"], b["name"])
-                if config.similarity_lower_bound <= sim < config.similarity_upper_bound:
-                    pairs.append(EntityPair(
-                        entity_a_id=a["entity_id"],
-                        entity_a_name=a["name"],
-                        entity_b_id=b["entity_id"],
-                        entity_b_name=b["name"],
-                        entity_type=etype,
-                        similarity=sim,
-                    ))
+                if not (config.similarity_lower_bound <= sim < config.similarity_upper_bound):
+                    continue
+
+                # Only deduplicate and check existing decisions for pairs that
+                # pass the similarity gate — keeps seen set small
+                pair_key = tuple(sorted([a["entity_id"], b["entity_id"]]))
+                if pair_key in existing_decisions:
+                    continue
+
+                pairs.append(EntityPair(
+                    entity_a_id=a["entity_id"],
+                    entity_a_name=a["name"],
+                    entity_b_id=b["entity_id"],
+                    entity_b_name=b["name"],
+                    entity_type=etype,
+                    similarity=sim,
+                ))
 
     return pairs
 
