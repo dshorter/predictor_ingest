@@ -294,11 +294,12 @@ function selectNode(nodeId) {
     node.select();
     clearNeighborhoodHighlight(window.cy);
     highlightNeighborhood(window.cy, node);
-    // Fly to the node but do NOT update the panel — panel stays on
-    // the originally canvas-clicked node.
-    const pos = node.position();
-    const offset = getPanelOffset(window.cy.zoom());
-    window.cy.animate({ center: { x: pos.x - offset, y: pos.y }, duration: 300 });
+    // Fit the neighborhood into view (like double-click) but do NOT
+    // update the panel — panel stays on the originally canvas-clicked node.
+    window.cy.animate({
+      fit: { eles: node.closedNeighborhood(), padding: 50 },
+      duration: 300
+    });
   }
 }
 
