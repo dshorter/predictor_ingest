@@ -543,3 +543,156 @@ class TestCanonicalIdGeneration:
         id2 = resolve.generate_canonical_id("OpenAI", "Org")
 
         assert id1 == id2
+
+
+class TestCollectGrayZonePairs:
+    """Tests for collect_gray_zone_pairs — the disambiguation candidate collector.
+
+    These tests guard against the O(n²) DB query regression introduced when
+    entity_types_to_disambiguate was changed from a short list to [] (all types).
+    Without the fix, each pair in the inner loop issued a DB query via
+    _pair_already_decided before checking similarity, causing resolve to hang
+    on corpora with thousands of entities.
+    """
+
+    def _make_config(self, **kwargs):
+        from resolve.disambiguate import DisambiguationConfig
+        defaults = dict(
+            enabled=True,
+            similarity_lower_bound=0.40,
+            similarity_upper_bound=0.85,
+            max_pairs_per_run=500,
+            batch_size=15,
+            entity_types_to_disambiguate=[],  # all types — the regression trigger
+        )
+        defaults.update(kwargs)
+        return DisambiguationConfig(**defaults)
+
+    def _setup_db(self, tmp_path):
+        db_path = tmp_path / "test.db"
+        conn = init_db(db_path)
+        from resolve.disambiguate import ensure_disambiguation_table
+        ensure_disambiguation_table(conn)
+        return conn
+
+    def test_finds_similar_pairs_all_types(self, tmp_path):
+        """With empty entity_types_to_disambiguate, similar pairs across all
+        entity types are returned."""
+        conn = self._setup_db(tmp_path)
+        insert_entity(conn, "org:openai", "OpenAI", "Org")
+        insert_entity(conn, "org:open_ai", "Open AI", "Org")
+        insert_entity(conn, "person:john_smith", "John Smith", "Person")
+        insert_entity(conn, "person:john_smithe", "John Smithe", "Person")
+        insert_entity(conn, "org:google", "Google", "Org")  # dissimilar, should not appear
+
+        from resolve.disambiguate import collect_gray_zone_pairs
+        config = self._make_config()
+        pairs = collect_gray_zone_pairs(conn, config)
+
+        pair_names = {(p.entity_a_name, p.entity_b_name) for p in pairs}
+        # Both similar pairs should be found regardless of type
+        assert any("OpenAI" in n or "Open AI" in n for pair in pair_names for n in pair)
+        assert any("John Smith" in n or "John Smithe" in n for pair in pair_names for n in pair)
+        # Dissimilar entity should not appear
+        assert not any("Google" in n for pair in pair_names for n in pair)
+        conn.close()
+
+    def test_respects_max_pairs_cap(self, tmp_path):
+        """Result is capped at max_pairs_per_run even with many candidates."""
+        conn = self._setup_db(tmp_path)
+        # Insert entities with names designed to be similar to each other
+        for i in range(60):
+            insert_entity(conn, f"person:person_{i:03d}", f"James Person {i:03d}", "Person")
+
+        from resolve.disambiguate import collect_gray_zone_pairs
+        config = self._make_config(max_pairs_per_run=20)
+        pairs = collect_gray_zone_pairs(conn, config)
+
+        assert len(pairs) <= 20
+        conn.close()
+
+    def test_skips_already_decided_pairs(self, tmp_path):
+        """Pairs with an existing disambiguation decision are not returned."""
+        conn = self._setup_db(tmp_path)
+        insert_entity(conn, "org:openai", "OpenAI", "Org")
+        insert_entity(conn, "org:open_ai", "Open AI", "Org")
+
+        # Pre-populate a decision for this pair
+        a, b = sorted(["org:openai", "org:open_ai"])
+        conn.execute(
+            """INSERT INTO disambiguation_decisions
+               (entity_a_id, entity_b_id, similarity_score, llm_verdict, llm_model, run_date)
+               VALUES (?, ?, 0.72, 'keep_separate', 'gpt-5-nano', '2026-01-01')""",
+            (a, b),
+        )
+        conn.commit()
+
+        from resolve.disambiguate import collect_gray_zone_pairs
+        config = self._make_config()
+        pairs = collect_gray_zone_pairs(conn, config)
+
+        # The already-decided pair must not be returned
+        for p in pairs:
+            assert not (
+                {p.entity_a_id, p.entity_b_id} == {"org:openai", "org:open_ai"}
+            ), "Already-decided pair was returned"
+        conn.close()
+
+    def test_large_corpus_all_types_completes_fast(self, tmp_path):
+        """Regression test: with 150 entities across 3 types and empty
+        entity_types_to_disambiguate, collect_gray_zone_pairs must complete
+        in under 10 seconds.
+
+        The pre-fix code issued one DB query per pair in the O(n^2) inner loop.
+        At 150 entities per type that is ~33,750 pairs × 3 types = ~100k DB
+        queries — enough to cause a measurable slowdown even in a test.
+        The post-fix code issues a single bulk query and completes in <1 second.
+        """
+        import time
+        conn = self._setup_db(tmp_path)
+
+        # 150 entities per type, all with distinct names so similarity is low
+        # (ensures we iterate the full O(n^2) space before finding candidates)
+        for i in range(150):
+            insert_entity(conn, f"person:p{i}", f"Person Unique Name {i:04d}", "Person")
+            insert_entity(conn, f"org:o{i}", f"Organisation Distinct Label {i:04d}", "Org")
+            insert_entity(conn, f"topic:t{i}", f"Topic Different Term {i:04d}", "Topic")
+
+        # Add a handful of similar pairs so the function has real work to do
+        insert_entity(conn, "person:james_a", "James Anderson", "Person")
+        insert_entity(conn, "person:james_b", "James Andersen", "Person")
+
+        from resolve.disambiguate import collect_gray_zone_pairs
+        config = self._make_config(max_pairs_per_run=500)
+
+        start = time.monotonic()
+        pairs = collect_gray_zone_pairs(conn, config)
+        elapsed = time.monotonic() - start
+
+        assert elapsed < 10.0, (
+            f"collect_gray_zone_pairs took {elapsed:.1f}s on 450-entity corpus — "
+            "possible O(n²) DB query regression"
+        )
+        # Sanity: the similar pair should have been found
+        assert any(
+            {"james_a", "james_b"} & {p.entity_a_id.split(":")[-1], p.entity_b_id.split(":")[-1]}
+            for p in pairs
+        )
+        conn.close()
+
+    def test_type_filter_restricts_candidates(self, tmp_path):
+        """When entity_types_to_disambiguate is non-empty, only those types
+        are considered."""
+        conn = self._setup_db(tmp_path)
+        insert_entity(conn, "org:openai", "OpenAI", "Org")
+        insert_entity(conn, "org:open_ai", "Open AI", "Org")
+        insert_entity(conn, "person:john_smith", "John Smith", "Person")
+        insert_entity(conn, "person:john_smithe", "John Smithe", "Person")
+
+        from resolve.disambiguate import collect_gray_zone_pairs
+        config = self._make_config(entity_types_to_disambiguate=["Org"])
+        pairs = collect_gray_zone_pairs(conn, config)
+
+        for p in pairs:
+            assert p.entity_type == "Org", f"Unexpected type: {p.entity_type}"
+        conn.close()
