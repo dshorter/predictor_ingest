@@ -321,3 +321,39 @@ handling" (mechanical, predictable — tense variants, gerunds, \_BY inversions)
 Automate the latter. Let the former emerge from the source material.
 
 **Status:** RESOLVED — 2026-03-16
+
+---
+
+## Trending Node Flame Glow (April 2026)
+
+**Issue:** [dshorter/predictor_ingest#226](https://github.com/dshorter/predictor_ingest/issues/226)
+
+**Problem:** Trending nodes on the graph had no visual connection to the What's Hot
+panel. The hot panel used an animated flame gradient border (red-orange → gold), but
+graph nodes used a static type-colored underlay halo only for high-velocity nodes
+(velocity > 2). Users couldn't visually correlate panel items with their graph nodes.
+
+**What Changed:**
+1. **Animated flame glow** on trending graph nodes — cycles through the same
+   red-orange (`#FF4500`) → dark orange (`#FF8C00`) → gold (`#FFD700`) gradient
+   as the hot-panel border, with matching 3-second animation cycle
+2. **Correct trending criteria** — glow targets the same top-N entities as the
+   What's Hot panel (ranked by `trend_score`, the composite of 40% velocity +
+   30% novelty + 30% activity), not a naive velocity > 0 filter
+3. **Design tokens** — added `--flame-red`, `--flame-orange`, `--flame-gold` to
+   `tokens.css` (light + dark themes), read via `getCSSVar()` in `styles.js`
+4. **No polling** — node collection happens once at startup since data is
+   batch-updated overnight; only the underlay color animates per frame
+5. **Accessibility** — `prefers-reduced-motion` gets a static warm glow instead
+
+**Files Modified:**
+- `web/js/styles.js` — `startFlameGlow()`, `stopFlameGlow()`, `_collectHotNodes()`
+- `web/js/app.js` — wired `startFlameGlow()` into init after What's Hot panel
+- `web/css/tokens.css` — flame color design tokens
+
+**Key Takeaway:** When adding visual effects that echo an existing UI element,
+reuse the exact same data source (here `getHotList()`) rather than approximating
+the criteria with a simpler selector. The flame colors should also come from the
+same tokens so they stay in sync if the palette changes.
+
+**Status:** RESOLVED — 2026-04-02

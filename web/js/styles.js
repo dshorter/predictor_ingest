@@ -63,6 +63,115 @@ function getEdgeColors() {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Flame glow animation for trending nodes (matches hot-panel gradient)
+// Colors sourced from design tokens: --flame-red, --flame-orange, --flame-gold
+// ---------------------------------------------------------------------------
+
+const FLAME_CYCLE_MS = 3000;
+let _flameRAF = null;
+
+/**
+ * Parse a hex color string into {r, g, b}.
+ */
+function _parseHex(hex) {
+  const h = hex.replace('#', '').trim();
+  return {
+    r: parseInt(h.slice(0, 2), 16),
+    g: parseInt(h.slice(2, 4), 16),
+    b: parseInt(h.slice(4, 6), 16)
+  };
+}
+
+function _lerpColor(a, b, t) {
+  return `rgb(${Math.round(a.r + (b.r - a.r) * t)},${Math.round(a.g + (b.g - a.g) * t)},${Math.round(a.b + (b.b - a.b) * t)})`;
+}
+
+/**
+ * Build the flame color keyframes from CSS tokens (read once at start).
+ */
+function _getFlameColors() {
+  const red = _parseHex(getCSSVar('--flame-red', '#FF4500'));
+  const orange = _parseHex(getCSSVar('--flame-orange', '#FF8C00'));
+  const gold = _parseHex(getCSSVar('--flame-gold', '#FFD700'));
+  return [red, orange, gold, orange, red];
+}
+
+function _flameColor(colors, elapsed) {
+  const t = (elapsed % FLAME_CYCLE_MS) / FLAME_CYCLE_MS;  // 0–1
+  const segments = colors.length - 1;
+  const segment = Math.min(Math.floor(t * segments), segments - 1);
+  const local = (t * segments) - segment;
+  return _lerpColor(colors[segment], colors[segment + 1], local);
+}
+
+/**
+ * Collect the nodes that should glow — same criteria as the What's Hot panel.
+ * A node is "hot" when it has velocity > 0 OR trend_score > 0.
+ * Only the top entries (by trend_score) get the glow, matching the panel limit.
+ */
+function _collectHotNodes(cy, limit) {
+  if (typeof getHotList === 'function') {
+    const hotItems = getHotList(cy, limit);
+    const ids = hotItems.map(item => item.id);
+    return cy.collection(ids.map(id => cy.getElementById(id)).filter(n => n.length > 0));
+  }
+  // Fallback if getHotList isn't loaded yet
+  return cy.collection();
+}
+
+/**
+ * Start the animated flame glow on trending nodes (top hot-list entities).
+ * Cycles through the same red-orange → gold gradient as the hot-panel border.
+ * Data is batch-updated overnight so nodes are collected once at startup.
+ * Respects prefers-reduced-motion: uses a static warm color instead.
+ * @param {object} cy - Cytoscape instance
+ * @param {number} [limit=10] - Max nodes to glow (matches hot-panel limit)
+ */
+function startFlameGlow(cy, limit) {
+  stopFlameGlow();
+
+  const hotNodes = _collectHotNodes(cy, limit || 10);
+  if (hotNodes.length === 0) return;
+
+  const flameColors = _getFlameColors();
+  const staticColor = getCSSVar('--flame-orange', '#FF8C00');
+
+  // Static fallback for reduced motion
+  if (typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion) {
+    hotNodes.style({
+      'underlay-color': staticColor,
+      'underlay-opacity': 0.2,
+      'underlay-padding': 10
+    });
+    return;
+  }
+
+  const start = performance.now();
+
+  function tick(now) {
+    const color = _flameColor(flameColors, now - start);
+    hotNodes.style({
+      'underlay-color': color,
+      'underlay-opacity': 0.22,
+      'underlay-padding': 10
+    });
+    _flameRAF = requestAnimationFrame(tick);
+  }
+
+  _flameRAF = requestAnimationFrame(tick);
+}
+
+/**
+ * Stop the flame glow animation.
+ */
+function stopFlameGlow() {
+  if (_flameRAF) {
+    cancelAnimationFrame(_flameRAF);
+    _flameRAF = null;
+  }
+}
+
 // Node sizing constants
 const MIN_NODE_SIZE = 20;
 const MAX_NODE_SIZE = 80;
@@ -274,17 +383,7 @@ function getCytoscapeStyles() {
       }
     },
 
-    // High-velocity halo: nodes with velocity > 2 get a colored glow (type color, 15% opacity)
-    {
-      selector: 'node[velocity > 2]',
-      style: {
-        'underlay-color': function(ele) {
-          return nodeTypeColors[ele.data('type')] || nodeTypeColors['Other'];
-        },
-        'underlay-opacity': 0.15,
-        'underlay-padding': 8
-      }
-    },
+    // High-velocity halo replaced by animated flame glow (startFlameGlow)
 
     // Hidden label
     {

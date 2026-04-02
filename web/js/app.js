@@ -324,6 +324,11 @@ async function initializeApp() {
       initWhatsHot(AppState.cy);
     }
 
+    // Flame glow on trending nodes (matches hot-panel gradient)
+    if (typeof startFlameGlow === 'function') {
+      startFlameGlow(AppState.cy);
+    }
+
     // Wire theme toggle button
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
