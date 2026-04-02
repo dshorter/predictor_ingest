@@ -8,6 +8,10 @@
  */
 
 :root {
+  /* Tell the browser this page handles both color schemes — prevents Edge
+     and other browsers from forcing their own dark mode overlay. */
+  color-scheme: light dark;
+
   /* ==========================================================================
      Spacing (4px base)
      ========================================================================== */
