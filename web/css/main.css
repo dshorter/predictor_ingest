@@ -13,8 +13,9 @@
  * Cloudflare caches each @import URL independently.
  */
 
-/* 1. Design tokens — foundation for everything */
-@import 'tokens.css?v=2';
+/* 1. Design tokens — loaded via <link> in index.html (not @import) so that
+      [data-theme="dark"] custom property overrides cascade correctly when
+      the data-theme attribute changes at runtime. */
 
 /* 2. Reset — normalize browser defaults */
 @import 'reset.css?v=2';
