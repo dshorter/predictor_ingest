@@ -10,8 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+  <!-- Theme tokens loaded as <link> (not @import) so attribute-based
+       custom property overrides [data-theme="dark"] cascade correctly
+       when the theme toggle changes the attribute at runtime. -->
+  <link rel="stylesheet" href="css/tokens.css?v=3">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=15">
+  <link rel="stylesheet" href="css/main.css?v=16">
   <!-- Cytoscape Navigator styles -->
   <link rel="stylesheet" href="https://unpkg.com/cytoscape-navigator@2.0.1/cytoscape-navigator.css">
   <!-- Driver.js — guided tour spotlight/popover -->

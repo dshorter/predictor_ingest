@@ -116,6 +116,11 @@ function toggleTheme() {
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
+
+  // Force full style recalculation — ensures CSS custom property changes
+  // propagate to all DOM elements (belt-and-suspenders for @import edge cases)
+  void document.documentElement.offsetHeight;
+
   reapplyGraphStyles();
 }
 
@@ -127,6 +132,12 @@ function reapplyGraphStyles() {
   if (AppState.cy) {
     AppState.cy.style(getCytoscapeStyles());
     AppState.cy.style().update();
+
+    // Restart flame glow — its RAF loop sets inline Cytoscape styles
+    // that persist across stylesheet updates and need fresh theme colors
+    if (typeof startFlameGlow === 'function') {
+      startFlameGlow(AppState.cy);
+    }
   }
 }
 
