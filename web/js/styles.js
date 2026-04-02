@@ -68,7 +68,7 @@ function getEdgeColors() {
 // Colors sourced from design tokens: --flame-red, --flame-orange, --flame-gold
 // ---------------------------------------------------------------------------
 
-const FLAME_CYCLE_MS = 3000;
+const FLAME_CYCLE_MS = 1500;
 let _flameRAF = null;
 
 /**
@@ -137,6 +137,9 @@ function startFlameGlow(cy, limit) {
 
   const flameColors = _getFlameColors();
   const staticColor = getCSSVar('--flame-orange', '#FF8C00');
+
+  // Force solid border — .new nodes use double which creates a dark gap line
+  hotNodes.style({ 'border-style': 'solid' });
 
   // Static fallback for reduced motion
   if (typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion) {
