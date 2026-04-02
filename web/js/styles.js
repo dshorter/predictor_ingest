@@ -63,6 +63,96 @@ function getEdgeColors() {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Flame glow animation for trending nodes (matches hot-panel gradient)
+// ---------------------------------------------------------------------------
+
+const FLAME_COLORS = [
+  { r: 255, g: 69, b: 0 },    // #ff4500  red-orange
+  { r: 255, g: 140, b: 0 },   // #ff8c00  dark orange
+  { r: 255, g: 215, b: 0 },   // #ffd700  gold
+  { r: 255, g: 140, b: 0 },   // #ff8c00  dark orange
+  { r: 255, g: 69, b: 0 }     // #ff4500  red-orange
+];
+const FLAME_CYCLE_MS = 3000;
+let _flameRAF = null;
+
+function _lerpColor(a, b, t) {
+  return `rgb(${Math.round(a.r + (b.r - a.r) * t)},${Math.round(a.g + (b.g - a.g) * t)},${Math.round(a.b + (b.b - a.b) * t)})`;
+}
+
+function _flameColor(elapsed) {
+  const t = (elapsed % FLAME_CYCLE_MS) / FLAME_CYCLE_MS;  // 0–1
+  const segments = FLAME_COLORS.length - 1;
+  const segment = Math.min(Math.floor(t * segments), segments - 1);
+  const local = (t * segments) - segment;
+  return _lerpColor(FLAME_COLORS[segment], FLAME_COLORS[segment + 1], local);
+}
+
+/**
+ * Start the animated flame glow on trending nodes (velocity > 0).
+ * Cycles through the same red-orange → gold gradient as the hot-panel border.
+ * Respects prefers-reduced-motion: uses a static warm color instead.
+ * @param {object} cy - Cytoscape instance
+ */
+function startFlameGlow(cy) {
+  stopFlameGlow();
+
+  // Collect trending nodes once; re-collect on each frame would be wasteful
+  // for large graphs — but the selector is cheap, so refresh every ~60 frames.
+  let frameCount = 0;
+  let trendingNodes = cy.nodes('[velocity > 0]');
+
+  // Static fallback for reduced motion
+  if (typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion) {
+    trendingNodes.style({
+      'underlay-color': '#ff8c00',
+      'underlay-opacity': 0.2,
+      'underlay-padding': 10
+    });
+    return;
+  }
+
+  const start = performance.now();
+
+  function tick(now) {
+    const elapsed = now - start;
+
+    // Refresh node collection periodically (new nodes may appear)
+    frameCount++;
+    if (frameCount % 60 === 0) {
+      trendingNodes = cy.nodes('[velocity > 0]');
+    }
+
+    if (trendingNodes.length === 0) {
+      _flameRAF = requestAnimationFrame(tick);
+      return;
+    }
+
+    const color = _flameColor(elapsed);
+    // Batch style update
+    trendingNodes.style({
+      'underlay-color': color,
+      'underlay-opacity': 0.22,
+      'underlay-padding': 10
+    });
+
+    _flameRAF = requestAnimationFrame(tick);
+  }
+
+  _flameRAF = requestAnimationFrame(tick);
+}
+
+/**
+ * Stop the flame glow animation and reset underlay to default.
+ */
+function stopFlameGlow() {
+  if (_flameRAF) {
+    cancelAnimationFrame(_flameRAF);
+    _flameRAF = null;
+  }
+}
+
 // Node sizing constants
 const MIN_NODE_SIZE = 20;
 const MAX_NODE_SIZE = 80;
@@ -274,17 +364,7 @@ function getCytoscapeStyles() {
       }
     },
 
-    // High-velocity halo: nodes with velocity > 2 get a colored glow (type color, 15% opacity)
-    {
-      selector: 'node[velocity > 2]',
-      style: {
-        'underlay-color': function(ele) {
-          return nodeTypeColors[ele.data('type')] || nodeTypeColors['Other'];
-        },
-        'underlay-opacity': 0.15,
-        'underlay-padding': 8
-      }
-    },
+    // High-velocity halo replaced by animated flame glow (startFlameGlow)
 
     // Hidden label
     {
