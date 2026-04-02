@@ -122,9 +122,10 @@ function _collectHotNodes(cy, limit) {
 
 /**
  * Start the animated flame glow on trending nodes (top hot-list entities).
- * Cycles through the same red-orange → gold gradient as the hot-panel border.
+ * Cycles the border color through the same red-orange → gold gradient as the
+ * hot-panel border, with a thicker border to make the effect visible.
  * Data is batch-updated overnight so nodes are collected once at startup.
- * Respects prefers-reduced-motion: uses a static warm color instead.
+ * Respects prefers-reduced-motion: uses a static warm border instead.
  * @param {object} cy - Cytoscape instance
  * @param {number} [limit=10] - Max nodes to glow (matches hot-panel limit)
  */
@@ -140,9 +141,9 @@ function startFlameGlow(cy, limit) {
   // Static fallback for reduced motion
   if (typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion) {
     hotNodes.style({
-      'underlay-color': staticColor,
-      'underlay-opacity': 0.2,
-      'underlay-padding': 10
+      'border-color': staticColor,
+      'border-width': 4,
+      'border-opacity': 1
     });
     return;
   }
@@ -152,9 +153,9 @@ function startFlameGlow(cy, limit) {
   function tick(now) {
     const color = _flameColor(flameColors, now - start);
     hotNodes.style({
-      'underlay-color': color,
-      'underlay-opacity': 0.22,
-      'underlay-padding': 10
+      'border-color': color,
+      'border-width': 4,
+      'border-opacity': 1
     });
     _flameRAF = requestAnimationFrame(tick);
   }
