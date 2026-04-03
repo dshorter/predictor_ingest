@@ -282,10 +282,9 @@ function updateCyContainer() {
 }
 
 /**
- * Select a node by ID — called from panel relationship links and
- * evidence panel buttons. Navigates to the node exactly like a
- * canvas tap: highlights its neighborhood, opens its detail panel,
- * and zooms to fit the neighborhood into view.
+ * Select a node by ID — called from panel relationship links.
+ * Flies to the node and highlights its neighborhood, but keeps the
+ * current detail panel open so the user doesn't lose context.
  */
 function selectNode(nodeId) {
   if (!window.cy) return;
@@ -295,7 +294,8 @@ function selectNode(nodeId) {
     node.select();
     clearNeighborhoodHighlight(window.cy);
     highlightNeighborhood(window.cy, node);
-    openNodeDetailPanel(node);
+    // Fit the neighborhood into view (like double-click) but do NOT
+    // update the panel — panel stays on the originally canvas-clicked node.
     window.cy.animate({
       fit: { eles: node.closedNeighborhood(), padding: 50 },
       duration: 300
