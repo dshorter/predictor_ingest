@@ -211,24 +211,9 @@ function refreshHotPanel(cy) {
 
 /**
  * Fly to a node from the hot list: select, zoom, open detail.
+ * Delegates to the shared navigateToNode codepath.
  * @param {string} nodeId - Cytoscape node ID
  */
 function flyToHotNode(nodeId) {
-  const cy = window.cy || AppState?.cy;
-  if (!cy) return;
-
-  const node = cy.getElementById(nodeId);
-  if (!node || node.length === 0) return;
-
-  // Select the node
-  cy.nodes().unselect();
-  node.select();
-
-  // Animate to it
-  zoomToNode(node);
-
-  // Open detail panel after animation settles
-  setTimeout(() => {
-    openNodeDetailPanel(node);
-  }, typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion ? 0 : 350);
+  navigateToNode(nodeId, { zoom: true, updatePanel: true });
 }

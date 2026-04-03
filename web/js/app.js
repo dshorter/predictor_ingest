@@ -419,14 +419,9 @@ function clearNeighborhoodHighlight(cy) {
  * Initialize event handlers for the graph
  */
 function initializeEventHandlers(cy) {
-  // Node click - highlight neighborhood + open detail panel
+  // Node click - highlight neighborhood + open detail panel (no zoom)
   cy.on('tap', 'node', (e) => {
-    const node = e.target;
-    cy.elements().unselect();
-    node.select();
-    clearNeighborhoodHighlight(cy);
-    highlightNeighborhood(cy, node);
-    openNodeDetailPanel(node);
+    navigateToNode(e.target.id(), { zoom: false, updatePanel: true });
   });
 
   // Edge click - open evidence panel
@@ -447,14 +442,10 @@ function initializeEventHandlers(cy) {
     }
   });
 
-  // Double-click node: expand hidden neighbors, then zoom to neighborhood
+  // Double-click node: expand hidden neighbors, then navigate with zoom
   cy.on('dbltap', 'node', (e) => {
-    const node = e.target;
-    expandNeighbors(node);
-    cy.animate({
-      fit: { eles: node.closedNeighborhood(), padding: 50 },
-      duration: prefersReducedMotion ? 0 : 300
-    });
+    expandNeighbors(e.target);
+    navigateToNode(e.target.id(), { zoom: true, updatePanel: true });
   });
 
   // Double-click background: fit all
@@ -650,11 +641,7 @@ function handleArrowNavigation(e, cy) {
   });
 
   if (best) {
-    cy.elements().unselect();
-    best.select();
-    clearNeighborhoodHighlight(cy);
-    highlightNeighborhood(cy, best);
-    openNodeDetailPanel(best);
+    navigateToNode(best.id(), { zoom: false, updatePanel: true });
     e.preventDefault();
   }
 }
