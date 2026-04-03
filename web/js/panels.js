@@ -40,6 +40,26 @@ function initializePanels(cy) {
 
   // Error dismiss
   document.getElementById('error-dismiss')?.addEventListener('click', hideError);
+
+  // Delegate click/keyboard on relationship items in detail + evidence panels.
+  // Uses [data-node-id] attribute (same pattern as hot panel).
+  ['detail-content', 'evidence-content'].forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-node-id]');
+      if (el) selectNode(el.dataset.nodeId);
+    });
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const el = e.target.closest('[data-node-id]');
+        if (el) {
+          e.preventDefault();
+          selectNode(el.dataset.nodeId);
+        }
+      }
+    });
+  });
 }
 
 /**
@@ -159,7 +179,7 @@ function renderRelationshipList(node) {
             const direction = edge.source().id() === node.id() ? '→' : '←';
             return `
               <li class="flex items-center gap-2 py-1 cursor-pointer hover:bg-secondary rounded px-1"
-                  onclick="selectNode('${other.id()}')">
+                  data-node-id="${escapeHtml(other.id())}" role="button" tabindex="0">
                 <span class="text-tertiary">${direction}</span>
                 <span class="truncate flex-1">${escapeHtml(other.data('label'))}</span>
                 <span class="badge badge-kind-${edge.data('kind')} text-xs">${edge.data('kind')}</span>
@@ -242,10 +262,10 @@ function openEvidencePanel(edge) {
     </section>
 
     <div class="mt-4 flex gap-2">
-      <button class="btn btn-sm" onclick="selectNode('${sourceNode.id()}')">
+      <button class="btn btn-sm" data-node-id="${escapeHtml(sourceNode.id())}">
         View ${truncateLabel(sourceNode.data('label'), 15)}
       </button>
-      <button class="btn btn-sm" onclick="selectNode('${targetNode.id()}')">
+      <button class="btn btn-sm" data-node-id="${escapeHtml(targetNode.id())}">
         View ${truncateLabel(targetNode.data('label'), 15)}
       </button>
     </div>
@@ -282,25 +302,29 @@ function updateCyContainer() {
 }
 
 /**
- * Select a node by ID — called from panel relationship links.
- * Flies to the node and highlights its neighborhood, but keeps the
- * current detail panel open so the user doesn't lose context.
+ * Select a node by ID — called from panel relationship links and
+ * evidence panel buttons. Navigates to the node the same way as
+ * flyToHotNode: select, highlight neighborhood, zoom, open detail.
  */
 function selectNode(nodeId) {
-  if (!window.cy) return;
-  const node = window.cy.getElementById(nodeId);
-  if (node.length > 0) {
-    window.cy.elements().unselect();
-    node.select();
-    clearNeighborhoodHighlight(window.cy);
-    highlightNeighborhood(window.cy, node);
-    // Fit the neighborhood into view (like double-click) but do NOT
-    // update the panel — panel stays on the originally canvas-clicked node.
-    window.cy.animate({
-      fit: { eles: node.closedNeighborhood(), padding: 50 },
-      duration: 300
-    });
-  }
+  const cy = window.cy;
+  if (!cy) return;
+  const node = cy.getElementById(nodeId);
+  if (!node || node.length === 0) return;
+
+  cy.elements().unselect();
+  node.select();
+  clearNeighborhoodHighlight(cy);
+  highlightNeighborhood(cy, node);
+
+  // Zoom to the node (same as flyToHotNode)
+  zoomToNode(node);
+
+  // Open detail panel after animation settles
+  const delay = typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion ? 0 : 350;
+  setTimeout(() => {
+    openNodeDetailPanel(node);
+  }, delay);
 }
 
 /**
