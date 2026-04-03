@@ -41,22 +41,24 @@ function initializePanels(cy) {
   // Error dismiss
   document.getElementById('error-dismiss')?.addEventListener('click', hideError);
 
-  // Delegate click/keyboard on relationship items in detail + evidence panels.
-  // Uses [data-node-id] attribute (same pattern as hot panel).
+  // Delegate click/keyboard on [data-node-id] items in detail + evidence panels.
+  // Registered once here to avoid listener accumulation on repeated panel opens.
   ['detail-content', 'evidence-content'].forEach(containerId => {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.addEventListener('click', (e) => {
       const el = e.target.closest('[data-node-id]');
-      if (el) selectNode(el.dataset.nodeId);
+      if (!el) return;
+      const updatePanel = containerId === 'evidence-content';
+      navigateToNode(el.dataset.nodeId, { zoom: true, updatePanel });
     });
     container.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         const el = e.target.closest('[data-node-id]');
-        if (el) {
-          e.preventDefault();
-          selectNode(el.dataset.nodeId);
-        }
+        if (!el) return;
+        e.preventDefault();
+        const updatePanel = containerId === 'evidence-content';
+        navigateToNode(el.dataset.nodeId, { zoom: true, updatePanel });
       }
     });
   });
@@ -178,7 +180,7 @@ function renderRelationshipList(node) {
               : edge.source();
             const direction = edge.source().id() === node.id() ? '→' : '←';
             return `
-              <li class="flex items-center gap-2 py-1 cursor-pointer hover:bg-secondary rounded px-1"
+              <li class="detail-rel-item"
                   data-node-id="${escapeHtml(other.id())}" role="button" tabindex="0">
                 <span class="text-tertiary">${direction}</span>
                 <span class="truncate flex-1">${escapeHtml(other.data('label'))}</span>
@@ -302,29 +304,43 @@ function updateCyContainer() {
 }
 
 /**
- * Select a node by ID — called from panel relationship links and
- * evidence panel buttons. Navigates to the node the same way as
- * flyToHotNode: select, highlight neighborhood, zoom, open detail.
+ * Single codepath for focusing a graph node from any trigger.
+ * Always clears stale highlights and applies fresh neighborhood dimming.
+ *
+ * @param {string} nodeId  - Cytoscape node ID
+ * @param {object} opts
+ * @param {boolean} opts.zoom        - Animate camera to the node (default false)
+ * @param {boolean} opts.updatePanel - Open/replace the detail panel (default true)
  */
-function selectNode(nodeId) {
+function navigateToNode(nodeId, { zoom = false, updatePanel = true } = {}) {
   const cy = window.cy;
   if (!cy) return;
   const node = cy.getElementById(nodeId);
   if (!node || node.length === 0) return;
 
+  // 1. Select
   cy.elements().unselect();
   node.select();
+
+  // 2. Highlight neighborhood (always clears previous)
   clearNeighborhoodHighlight(cy);
   highlightNeighborhood(cy, node);
 
-  // Zoom to the node (same as flyToHotNode)
-  zoomToNode(node);
+  // 3. Optionally zoom
+  if (zoom) {
+    zoomToNode(node);
+  }
 
-  // Open detail panel after animation settles
-  const delay = typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion ? 0 : 350;
-  setTimeout(() => {
-    openNodeDetailPanel(node);
-  }, delay);
+  // 4. Optionally open detail panel (after animation settles if zooming)
+  if (updatePanel) {
+    const delay = zoom && !(typeof prefersReducedMotion !== 'undefined' && prefersReducedMotion)
+      ? 350 : 0;
+    if (delay > 0) {
+      setTimeout(() => openNodeDetailPanel(node), delay);
+    } else {
+      openNodeDetailPanel(node);
+    }
+  }
 }
 
 /**

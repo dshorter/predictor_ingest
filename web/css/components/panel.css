@@ -402,6 +402,26 @@
   margin: 0;
 }
 
+/* Relationship list items in the detail panel */
+.detail-rel-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--easing-default);
+}
+
+.detail-rel-item:hover {
+  background-color: var(--gray-100);
+}
+
+.detail-rel-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
 /* Hidden utility for panels */
 .hidden {
   display: none !important;

@@ -82,19 +82,8 @@ function buildTourSteps() {
         align: 'center'
       },
       onHighlightStarted: () => {
-        const cy = window.cy;
-        if (!cy) return;
-        const node = cy.getElementById(SPOTLIGHT_NODE_ID);
-        if (node && node.length) {
-          cy.elements().unselect();
-          node.select();
-          if (typeof highlightNeighborhood === 'function') {
-            clearNeighborhoodHighlight(cy);
-            highlightNeighborhood(cy, node);
-          }
-          if (typeof zoomToNode === 'function') {
-            zoomToNode(node);
-          }
+        if (typeof navigateToNode === 'function') {
+          navigateToNode(SPOTLIGHT_NODE_ID, { zoom: true, updatePanel: false });
         }
       }
     },
@@ -112,21 +101,8 @@ function buildTourSteps() {
         align: 'start'
       },
       onHighlightStarted: () => {
-        const cy = window.cy;
-        if (!cy) return;
-        const node = cy.getElementById(SPOTLIGHT_NODE_ID);
-        if (node && node.length) {
-          cy.elements().unselect();
-          node.select();
-          if (typeof clearNeighborhoodHighlight === 'function') {
-            clearNeighborhoodHighlight(cy);
-          }
-          if (typeof highlightNeighborhood === 'function') {
-            highlightNeighborhood(cy, node);
-          }
-          if (typeof openNodeDetailPanel === 'function') {
-            openNodeDetailPanel(node);
-          }
+        if (typeof navigateToNode === 'function') {
+          navigateToNode(SPOTLIGHT_NODE_ID, { zoom: false, updatePanel: true });
         }
       }
     },
