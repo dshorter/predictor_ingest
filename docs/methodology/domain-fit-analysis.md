@@ -108,6 +108,13 @@ compared to film which has been stuck at 18–19% after 45+ days of operation.
 If the hypothesis is wrong (overlap stays low), it tells us the pipeline itself has
 structural problems independent of domain shape — and that's equally valuable to know.
 
+> **Why 30%?** At 30% overlap, enough entities have 2+ appearances to make velocity
+> scoring reliable across a meaningful fraction of the graph. Below ~20%, most
+> "velocity spikes" are just a second article appearing after a long gap — not
+> acceleration. The 30% figure is a heuristic, not a derived threshold. See
+> [semiconductor-domain-design.md](semiconductor-domain-design.md) for the full
+> rationale and what a proper validation would look like.
+
 ---
 
 ## 7-Day Experiment: 2026-04-01 through 2026-04-08
