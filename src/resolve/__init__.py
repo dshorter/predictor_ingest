@@ -486,11 +486,27 @@ class EntityResolver:
             "merges_performed": 0,
         }
 
-        # Get all entities grouped by type
+        # Load all entities once, grouped by type, to avoid O(n) per-entity
+        # SELECT queries inside the loop.  With 7k+ entities, calling
+        # find_similar_entities() per entity issues one full-type SELECT per
+        # call (e.g. 3,106 queries × 3,106 rows for Person = ~9.6M row reads).
+        # Building an in-memory type→entities map reduces that to one query.
+        from collections import defaultdict
         cursor = self.conn.execute(
-            "SELECT entity_id, name, type FROM entities ORDER BY type, first_seen"
+            "SELECT entity_id, name, type, aliases FROM entities ORDER BY type, first_seen"
         )
-        entities = [dict(row) for row in cursor.fetchall()]
+        by_type: dict[str, list[dict]] = defaultdict(list)
+        for row in cursor.fetchall():
+            entry = dict(row)
+            if entry.get("aliases"):
+                try:
+                    entry["aliases"] = json.loads(entry["aliases"])
+                except (ValueError, TypeError):
+                    entry["aliases"] = []
+            by_type[entry["type"]].append(entry)
+
+        # Flatten back to ordered list for the merge loop
+        entities = [e for group in by_type.values() for e in group]
 
         processed = set()
 
@@ -500,19 +516,25 @@ class EntityResolver:
             if entity["entity_id"] in processed:
                 continue
 
-            # Find similar entities of same type
-            matches = find_similar_entities(
-                self.conn,
-                entity["name"],
-                entity["type"],
-                self.threshold,
-            )
+            # Find similar entities within the pre-loaded type group
+            same_type = by_type.get(entity["type"], [])
+            matches = []
+            for candidate in same_type:
+                if candidate["entity_id"] == entity["entity_id"]:
+                    continue
+                sim = name_similarity(entity["name"], candidate["name"])
+                if sim < self.threshold:
+                    # Also check aliases
+                    for alias in (candidate.get("aliases") or []):
+                        sim = max(sim, name_similarity(entity["name"], alias))
+                if sim >= self.threshold:
+                    candidate["similarity"] = sim
+                    matches.append(candidate)
 
-            # Filter to only other entities (not self)
+            # Filter to only unprocessed entities
             duplicates = [
                 m for m in matches
-                if m["entity_id"] != entity["entity_id"]
-                and m["entity_id"] not in processed
+                if m["entity_id"] not in processed
             ]
 
             # Merge duplicates into this entity (earliest one wins as canonical)

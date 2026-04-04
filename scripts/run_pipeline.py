@@ -981,6 +981,7 @@ def main() -> int:
             ],
             "parse": parse_resolve_output,
             "fatal": False,
+            "timeout": 1800,  # fuzzy pass + LLM disambiguation on 10k+ entity corpus
         },
         {
             "name": "infer",

@@ -1,0 +1,68 @@
+Extract entities, relationships, and technical terms from the following semiconductor industry document.
+
+## Document Metadata
+- docId: {docId}
+- Title: {title}
+- URL: {url}
+- Published: {published}
+
+## Document Text
+{text}
+
+## Instructions
+
+Extract the following and return as JSON:
+
+1. **entities**: List of entities mentioned in the document
+   - name: Surface form of the entity name
+   - type: One of {entity_types}
+   - aliases: Optional list of alternative names
+   - idHint: Optional suggested canonical ID (e.g., "co:nvidia", "chip:h100", "node:tsmc_n3e")
+
+2. **relations**: Relationships between entities
+   - source: Entity name
+   - rel: One of {relation_types}
+   - target: Entity name
+   - kind: "asserted" (explicitly stated), "inferred", or "hypothesis"
+   - confidence: 0.0 to 1.0
+   - evidence: For asserted relations, include at least one evidence object:
+     - docId: "{docId}"
+     - url: "{url}"
+     - published: "{published}"
+     - snippet: Short quote from the text (<=200 chars)
+
+3. **techTerms**: List of technical concepts, methodologies, or specifications
+   (e.g., "gate-all-around transistor", "backside power delivery", "UCIe", "HBM3e")
+
+4. **dates**: Important dates mentioned
+   - text: Raw date text (e.g., "H2 2025", "late 2026", "Q3")
+   - start/end: ISO dates if determinable
+
+5. **notes**: Any ambiguities or extraction notes
+
+## Output Format
+
+Return valid JSON with this structure:
+```json
+{{{{
+  "docId": "{docId}",
+  "extractorVersion": "{extractor_version}",
+  "entities": [...],
+  "relations": [...],
+  "techTerms": [...],
+  "dates": [...],
+  "notes": [...]
+}}}}
+```
+
+## Entity Specificity
+This is a semiconductor knowledge graph. Do NOT extract generic terms like {suppressed_entities_sample}
+as standalone entities. Extract SPECIFIC names (e.g., "TSMC N3E" not "process node",
+"H100 SXM5" not "chip", "CoWoS-L" not "packaging"). Put broad concepts in techTerms[] instead.
+
+## Critical Rules
+- Asserted relations MUST include evidence with a snippet COPIED from the document text
+- Do not fabricate entities or relations not supported by the text
+- COMPETES_WITH and OUTPERFORMS are hypothesis-only — require explicit competitive framing
+- Supply chain relations require explicit statement, not general industry knowledge
+- Every relation source and target MUST exactly match an entity name in your entities list

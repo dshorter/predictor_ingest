@@ -1,0 +1,383 @@
+# Domain Profile: Semiconductors & Chips
+# Schema: schemas/domain-profile.json
+#
+# Tracks the semiconductor industry from fab process → chip architecture →
+# GPU/accelerator compute → supply chain → geopolitics/policy.
+# Central tension: the race between process node advancement, packaging
+# innovation, AI workload demands, and export control constraints.
+#
+# Sources are technical trade press, deep-analysis newsletters, and
+# practitioner community blogs — content that rewards precise extraction
+# over journalistic paraphrase.
+
+domain:
+  name: "Semiconductors & Chips"
+  slug: "semiconductors"
+  description: "Semiconductor process nodes, chip architecture, GPU/accelerator compute, supply chain, and policy"
+
+# --- Entity Types ---
+# The supply chain runs from materials → fab → chip → system → workload.
+# Policy and geopolitics cut across the entire chain.
+entity_types:
+  - Company       # NVIDIA, AMD, Intel, TSMC, ASML, Qualcomm, ARM, Synopsys, Cadence, SK Hynix
+  - Fab           # TSMC, Samsung Foundry, Intel Foundry, SMIC, GlobalFoundries (as fab entities)
+  - Chip          # H100, MI300X, A17 Pro, Gaudi 3, Blackwell B200 — specific named chips
+  - Architecture  # Hopper, Ada Lovelace, Zen 5, RISC-V, ARM Cortex-X — microarchitectures
+  - ProcessNode   # 3nm, N3E, 2nm, Intel 18A, GAA, FinFET — fab process generations
+  - Packaging     # CoWoS, HBM, HBM3e, 3DIC, EMIB, UCIe, chiplet — advanced packaging
+  - Material      # EUV, ASML NXE, LPDDR5X, HBM3e, SiC, GaN — key materials/equipment
+  - Tool          # EDA tools (Synopsys VCS, Cadence Virtuoso), lithography equipment
+  - Policy        # CHIPS Act, export controls, entity list additions, BIS rules
+  - Org           # Standards bodies: JEDEC, IEEE, SEMI, OCP; research labs
+  - Person        # CEOs, architects, researchers, analysts
+  - Event         # Hot Chips, ISSCC, SC conference, Computex, earnings calls
+  - Location      # Fabs, R&D centers, HQ cities (Hsinchu, Eindhoven, Santa Clara)
+  - Topic         # Supply chain resilience, AI accelerators, power efficiency, yield
+  - Other         # Catch-all
+
+# --- Relation Taxonomy ---
+relation_taxonomy:
+  canonical:
+    # Document-level (base layer)
+    - MENTIONS
+    - CITES
+    - ANNOUNCES
+    - REPORTED_BY
+
+    # Design & manufacturing
+    - DESIGNS         # Company/Person → Chip/Architecture
+    - MANUFACTURES    # Fab/Company → Chip
+    - FABRICATES      # Fab → ProcessNode (uses this process node in production)
+    - LICENSES        # Company → Architecture (ARM licensing, RISC-V adoption)
+    - BUILT_ON        # Chip → Architecture (H100 BUILT_ON Hopper)
+    - USES_PROCESS    # Chip → ProcessNode (H100 USES_PROCESS TSMC N4)
+    - USES_PACKAGING  # Chip/Product → Packaging (H100 USES_PACKAGING CoWoS)
+    - USES_MATERIAL   # ProcessNode/Chip → Material
+    - INTEGRATES      # Chip → Chip (chiplet integration, HBM stacking)
+    - POWERS          # Chip → Product/Application (H100 POWERS DGX H100)
+
+    # Supply chain
+    - SUPPLIES        # Company → Company (TSMC SUPPLIES NVIDIA)
+    - DEPENDS_ON      # Company/Chip → Company/Material (supply dependency)
+    - SOURCES_FROM    # Company → Company/Location (procurement)
+    - COMPETES_WITH   # Company ↔ Company (hypothesis only — explicit statements)
+
+    # Business
+    - ACQUIRES        # Company → Company/Technology
+    - INVESTS_IN      # Company/Fund → Company
+    - PARTNERS_WITH   # Company ↔ Company
+    - SPINS_OUT       # Company → Company
+    - FOUNDED         # Person → Company
+
+    # People
+    - WORKS_AT        # Person → Company
+    - LEADS           # Person → Company/Project/Team
+    - PRESENTS        # Person/Company → Event (paper/product presentation)
+
+    # Policy & regulation
+    - RESTRICTS       # Policy → Company/Technology/Location
+    - GOVERNS         # Org/Policy → Topic/Industry
+    - COMPLIES_WITH   # Company → Policy/Regulation
+    - EXEMPTS         # Policy → Company/Technology
+    - TARGETS         # Policy → Company/Location (export control target)
+
+    # Performance & evaluation
+    - BENCHMARKS      # Chip/Tool → Chip (comparative evaluation)
+    - OUTPERFORMS     # Chip → Chip (hypothesis — must be explicitly stated)
+    - PRESENTED_AT    # Chip/Research → Event
+
+  groups:
+    document:
+      - MENTIONS
+      - CITES
+      - ANNOUNCES
+      - REPORTED_BY
+    design_manufacturing:
+      - DESIGNS
+      - MANUFACTURES
+      - FABRICATES
+      - LICENSES
+      - BUILT_ON
+      - USES_PROCESS
+      - USES_PACKAGING
+      - USES_MATERIAL
+      - INTEGRATES
+      - POWERS
+    supply_chain:
+      - SUPPLIES
+      - DEPENDS_ON
+      - SOURCES_FROM
+      - COMPETES_WITH
+    business:
+      - ACQUIRES
+      - INVESTS_IN
+      - PARTNERS_WITH
+      - SPINS_OUT
+      - FOUNDED
+    people:
+      - WORKS_AT
+      - LEADS
+      - PRESENTS
+    policy:
+      - RESTRICTS
+      - GOVERNS
+      - COMPLIES_WITH
+      - EXEMPTS
+      - TARGETS
+    evaluation:
+      - BENCHMARKS
+      - OUTPERFORMS
+      - PRESENTED_AT
+
+  normalization:
+    # Design / manufacturing synonyms
+    DESIGNED: DESIGNS
+    DESIGNED_BY: DESIGNS
+    DEVELOPED: DESIGNS
+    DEVELOPED_BY: DESIGNS
+    MANUFACTURED: MANUFACTURES
+    MANUFACTURED_BY: MANUFACTURES
+    PRODUCED: MANUFACTURES
+    PRODUCED_BY: MANUFACTURES
+    MADE: MANUFACTURES
+    MADE_BY: MANUFACTURES
+    FABBED: FABRICATES
+    FABBED_BY: FABRICATES
+    TAPED_OUT: FABRICATES
+    BUILT: BUILT_ON
+    BASED_ON: BUILT_ON
+    USES: USES_PROCESS
+    USES_ARCH: BUILT_ON
+    STACKS: INTEGRATES
+    INTEGRATING: INTEGRATES
+    INTEGRATED: INTEGRATES
+    LICENSED: LICENSES
+    LICENSED_BY: LICENSES
+
+    # Supply chain synonyms
+    SUPPLIED: SUPPLIES
+    SUPPLIED_BY: SUPPLIES
+    PROVIDES: SUPPLIES
+    PROVIDES_TO: SUPPLIES
+    SELLS_TO: SUPPLIES
+    DEPENDS: DEPENDS_ON
+    RELIANT_ON: DEPENDS_ON
+    SOURCED: SOURCES_FROM
+    SOURCED_FROM: SOURCES_FROM
+    PURCHASES_FROM: SOURCES_FROM
+    COMPETES: COMPETES_WITH
+    COMPETING_WITH: COMPETES_WITH
+    RIVAL: COMPETES_WITH
+
+    # Business synonyms
+    ACQUIRED: ACQUIRES
+    ACQUIRED_BY: ACQUIRES
+    BOUGHT: ACQUIRES
+    BOUGHT_BY: ACQUIRES
+    MERGED_WITH: ACQUIRES
+    INVESTED: INVESTS_IN
+    INVESTED_IN: INVESTS_IN
+    BACKED: INVESTS_IN
+    BACKED_BY: INVESTS_IN
+    PARTNERED: PARTNERS_WITH
+    PARTNERED_WITH: PARTNERS_WITH
+    COLLABORATED: PARTNERS_WITH
+    COLLABORATED_WITH: PARTNERS_WITH
+    SPUN_OUT: SPINS_OUT
+    SPUN_OFF: SPINS_OUT
+    FOUNDED_BY: FOUNDED
+
+    # People synonyms
+    EMPLOYED_BY: WORKS_AT
+    JOINED: WORKS_AT
+    HIRED_BY: WORKS_AT
+    LED: LEADS
+    HEADING: LEADS
+    HEADING_UP: LEADS
+    RUNNING: LEADS
+    PRESENTED: PRESENTS
+    UNVEILED: ANNOUNCES
+    REVEALED: ANNOUNCES
+
+    # Policy synonyms
+    RESTRICTED: RESTRICTS
+    RESTRICTED_BY: RESTRICTS
+    BANNED: RESTRICTS
+    BLOCKED: RESTRICTS
+    SANCTIONED: RESTRICTS
+    REGULATES: GOVERNS
+    REGULATED: GOVERNS
+    REGULATED_BY: GOVERNS
+    COMPLIED: COMPLIES_WITH
+    ADHERES_TO: COMPLIES_WITH
+    EXEMPT: EXEMPTS
+    EXEMPTED: EXEMPTS
+    EXEMPTED_FROM: EXEMPTS
+    TARGETED: TARGETS
+    TARGETED_BY: TARGETS
+
+    # Evaluation synonyms
+    BENCHMARKED: BENCHMARKS
+    TESTED: BENCHMARKS
+    COMPARED: BENCHMARKS
+    OUTPERFORMED: OUTPERFORMS
+    FASTER_THAN: OUTPERFORMS
+    BEATS: OUTPERFORMS
+
+    # General
+    ANNOUNCED: ANNOUNCES
+    MENTIONED: MENTIONS
+    CITED: CITES
+    REPORTED: REPORTED_BY
+    REPORTS: REPORTED_BY
+
+# --- Relation metadata enums ---
+relation_kinds:
+  - asserted
+  - inferred
+  - hypothesis
+
+polarity_values:
+  - pos
+  - neg
+  - unclear
+
+modality_values:
+  - observed
+  - planned
+  - speculative
+
+# --- ID Prefixes ---
+id_prefixes:
+  Company: co
+  Fab: fab
+  Chip: chip
+  Architecture: arch
+  ProcessNode: node
+  Packaging: pkg
+  Material: mat
+  Tool: tool
+  Policy: policy
+  Org: org
+  Person: person
+  Event: event
+  Location: location
+  Topic: topic
+  Other: other
+
+# --- Base Relation ---
+base_relation: MENTIONS
+
+# --- Gate Thresholds ---
+# All four gates active. Semiconductor trade press is precise and
+# technical — evidence fidelity should be high. Calibrate after
+# first 2 weeks of production runs.
+gate_thresholds:
+  evidence_fidelity_min: 0.70
+  orphan_max: 0.0
+  zero_value_min_entities: 1
+  zero_value_min_doc_chars: 500
+  high_confidence_threshold: 0.8
+
+# --- Trend Weights ---
+# Semiconductor trends move on longer cycles than film but spike hard
+# around process node announcements and earnings. Raise max_age_days
+# to capture multi-quarter storylines.
+trend_weights:
+  velocity: 0.4
+  novelty: 0.3
+  activity: 0.3
+  velocity_cap: 5.0
+  activity_cap: 20
+  max_age_days: 540       # 18 months — process node storylines are long-running
+  novelty_age_weight: 0.6
+  novelty_rarity_weight: 0.4
+
+# --- Suppressed Entities ---
+# Too generic for a semiconductor knowledge graph.
+suppressed_entities:
+  - chip
+  - chips
+  - semiconductor
+  - semiconductors
+  - processor
+  - processors
+  - silicon
+  - technology
+  - technologies
+  - device
+  - devices
+  - transistor
+  - node
+  - process
+  - wafer
+  - die
+  - architecture
+  - system
+  - platform
+  - solution
+  - market
+  - industry
+  - company
+  - product
+  - products
+  - performance
+  - efficiency
+  - computing
+  - compute
+  - data
+  - memory
+  - storage
+  - design
+  - manufacturing
+  - production
+  - generation
+  - next-generation
+  - advanced
+  - new
+
+# --- LLM Leverage Features ---
+features:
+  llm_disambiguation:
+    enabled: true
+    similarity_lower_bound: 0.40
+    similarity_upper_bound: 0.85
+    max_pairs_per_run: 500
+    batch_size: 15
+    entity_types_to_disambiguate: []  # empty = all types; nano handles this cheaply
+    # Key disambiguation challenges in this domain:
+    # - ProcessNode: "3nm" vs "N3" vs "N3E" vs "TSMC 3nm" — same node, many names
+    # - Chip: "H100" vs "H100 SXM5" vs "H100 PCIe" — variants of same chip
+    # - Company: "TSMC" vs "Taiwan Semiconductor" vs "TSM"
+    # - Architecture: "Hopper" vs "GH100" vs "NVIDIA Hopper"
+
+  relation_inference:
+    enabled: true
+    confidence_discount: 0.8
+    max_inferences_per_run: 500
+    rules_file: "inference_rules.yaml"
+    # Supply chain chains are the key inference target:
+    # Fab MANUFACTURES Chip + Company DESIGNS Chip → Fab SUPPLIES Company
+
+  cross_document_synthesis:
+    enabled: true
+    batch_size: 5
+    min_shared_entities: 1
+    max_batches_per_run: 10
+    synthesis_patterns:
+      - "corroboration"       # Multiple sources reporting same yield/process news
+      - "implicit_relations"  # Supply chain dependencies implied across articles
+      - "event_clustering"    # Earnings + analyst reports + trade press on same announcement
+
+  trend_narratives:
+    enabled: true
+    top_n: 10
+    max_tokens_per_narrative: 200
+    style: "technical"  # Analyst tone, not trade press
+
+# --- Prompts ---
+prompts:
+  dir: prompts
+  system_prompt: system.txt
+  user_prompt: user.txt
+  single_message_prompt: single_message.txt
