@@ -386,6 +386,100 @@ tracking that cross-cuts filter and layout modules.
 
 ---
 
+## Sprint 13 — Trend Methodology Upgrade + Semiconductor Onboarding
+
+Incorporates findings from the academic vetting review
+([vetting.txt](methodology/research/vetting.txt)) and the semiconductor domain
+design rationale ([semiconductor-domain-design.md](methodology/semiconductor-domain-design.md)).
+Three layers: onboarding process documentation, framework formula fixes, and
+semiconductor domain retrofit.
+
+**Ordering rationale:** Layer 1 (guide) informs Layer 2 (framework fixes), which
+must land before Layer 3 (semiconductor launch) so the new domain benefits from
+corrected formulas on day one.
+
+**Origin:** Discussion session 2026-04-04 reviewing vetting.txt against current
+trending strategy. Key insight: our system is a *hypothesis generator* (curated
+alerting), not a *hypothesis confirmer* (GDELT-scale detection). The onboarding
+process should set that expectation and guide domain authors toward the parameters
+that match their domain's shape.
+
+### Layer 1 — Domain Design Guide
+
+New document: `docs/guides/domain-design-guide.md`. Sits between the mechanical
+template README (`domains/_template/README.md`) and the architecture docs
+(`docs/architecture/domain-separation.md`). Captures methodological judgment that
+took three domains to learn.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 13.1 | Domain Fitness Checklist | Shape test gate: entity persistence, source independence, claim corroborability, story cycle vs. velocity window, entity density. Rejection criteria with worked examples (semiconductors passes, film fails on persistence, academia fails on cycle speed). Based on `semiconductor-domain-design.md` §Domain Candidate Evaluation | [Opus] |
+| 13.2 | Trend Calibration Worksheet | Per-domain parameter reasoning: story half-life → novelty λ, velocity window sizing, min-mention threshold, entity churn rate → novelty flooding risk. Worked examples for AI (fast churn, λ≈0.05), semiconductors (slow burn, λ≈0.02), biosafety (regulatory, λ≈0.03). Based on vetting.txt §2 (novelty decay) and semiconductor doc §30% Overlap Target | [Opus] |
+| 13.3 | Source Selection Rationale Template | Required per-feed documentation: signal type, known limitations, editorial independence assessment, temporal fingerprinting risk. Semiconductor feeds section as the model. Based on vetting.txt §3 (source independence) and semiconductor doc §Feed Selection Rationale | [Opus] |
+| 13.4 | Hypothesis-Generator Framing | Explicit expectation-setting: what the pipeline can/cannot claim at different maturity stages. Overlap rate health table (from semiconductor doc). Multi-signal fusion maturity roadmap: news-only → +structured signals → confirmation capability. Based on vetting.txt §8 (scale constraints) and discussion of GDELT vs. curated alerting | [Opus] |
+| 13.5 | Inference Rules Phasing Guide | Start with 0–3 rules, run 2 weeks, check for false inferences, then expand. Mirrors normalization phasing lesson from biosafety post-mortem. Based on semiconductor doc §Supply Chain Inference and `docs/fix-details/new-domain-lessons-learned.md` | [Opus] |
+
+**Output:** Single document covering 13.1–13.5.
+
+### Layer 2 — Framework Formula Fixes (from vetting review)
+
+Code changes to `src/trend/__init__.py` and domain configs. Each item includes
+specific test requirements — tests should validate mathematical properties, not
+just "returns a float."
+
+| # | Item | What changes | Model |
+|---|------|-------------|-------|
+| 13.6 | Exponential novelty decay | Replace linear `1 - (age/max_age)` with `exp(-λ × days)` in `compute_novelty()`. λ configurable per domain via `trend_weights.novelty_decay_lambda` in `domain.yaml`. Default λ=0.05 (~14-day half-life). Vetting §2: "365-day linear age decay is inappropriate... exponential decay with λ ≈ 0.05–0.10 would better match empirical reality" | [Opus] |
+| 13.7 | Corpus-normalized rarity | Replace `1/(1+ln(1+mentions))` with `log(1+N/(1+mentions))/log(1+N)` where N = total entity count. Vetting §2: "rarity function lacks corpus normalization... 100 mentions might be extremely common [or] rare" depending on corpus size | [Opus] |
+| 13.8 | Min-mention velocity gate | Add `min_mentions_for_velocity` to `trend_weights` (default 3). Below threshold, velocity = 1.0 (neutral). Vetting §2: "minimum mention threshold (e.g., ≥3 mentions in either window) before velocity contributes to the composite score" | [Opus] |
+| 13.9 | Update domain.yaml for all domains | Add new config keys with domain-appropriate values. AI: λ=0.05, min_mentions=3. Biosafety: λ=0.03, min_mentions=2. Semiconductors: λ=0.02, min_mentions=3. Film: λ=0.07 (fast cycle), min_mentions=2 | [Sonnet] |
+| 13.10 | Update `domain-profile.json` schema | Add new optional keys with defaults so existing configs validate without changes | [Sonnet] |
+
+**Test requirements for Layer 2** (not optional — these are the safety net):
+
+- **13.6 tests:** Verify decay curve at 0, 7, 14, 30, 90, 365 days for multiple λ
+  values. Edge cases: λ=0, negative age. Regression guard: old linear behavior must
+  NOT be preserved. Property: monotonically decreasing with age.
+- **13.7 tests:** Rarity at mentions=0, 1, 10, 100 for corpus sizes 50, 500, 5000.
+  Edge case: single-entity corpus. Properties: monotonically decreasing with mentions;
+  increasing with corpus size at fixed mentions.
+- **13.8 tests:** Entity with 1 mention gets velocity 1.0. Entity with 3+ mentions
+  gets real velocity. Threshold=0 disables gate. Regression guard: 1→2 mention
+  scenario must NOT produce 2.0x velocity when threshold=3.
+- **Cross-domain tests:** Same formula with AI params vs. semiconductor params produces
+  qualitatively different but individually correct results.
+
+### Layer 3 — Semiconductor Domain Retrofit + Launch Readiness
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 13.11 | Semiconductor design guide audit | Walk semiconductor config through Domain Design Guide checklist (13.1–13.5). Document gaps in existing design rationale. Fill in: velocity window justification, novelty decay reasoning, source independence matrix. Output: addendum to `semiconductor-domain-design.md` | [Opus] |
+| 13.12 | Overlap rate health check script | `scripts/check_domain_health.py` — computes entity overlap rate after N days of data. Outputs the overlap table from the semiconductor doc with actual numbers. Flags if <20% with warning | [Sonnet] |
+| 13.13 | Source-type field preparation | Verify `source_type` column exists (Sprint 7 item 7A.4). If not yet landed, add it as prerequisite for future multi-signal fusion. Tag existing feeds as `rss` | [Sonnet] |
+
+**Risk:** Low-moderate. Formula changes are mathematically simple but affect every
+domain's trending output. The test suite is the safety net — tests should be written
+*with old expected values first*, then updated after formula changes land.
+
+**Estimated effort:** ~1.5 sprint days. Layer 1 is a writing session. Layer 2 is
+focused code changes with thorough tests. Layer 3 is light.
+
+**Dependency:** The resolve bug noted in `semiconductor-domain-design.md` decision
+log (2026-04-02: "O(n²) DB queries must be fixed on server before semiconductors
+launches"). If unresolved, 13.11–13.13 wait for that fix.
+
+**Future backlog (not this sprint):**
+
+| Item | Priority | Trigger |
+|------|----------|---------|
+| Retrofit AI domain trend params | Medium | After 13.6–13.8 land; tune AI's weights using vetting recommendations |
+| Source-count corroboration weighting | Medium | Implement the step-function from prediction-methodology.md §4.1 (1 source: 0.5×, 2: 0.75×, 3+: 1.0×) |
+| Fix validation metric inconsistencies | Low | Update prediction-methodology.md §5.2: resolve FPR/precision contradiction, lower recall to 0.30–0.40, extend eval windows to T+180 |
+| Multi-signal fusion: earnings transcripts | Low | After semiconductor domain has 30+ days of news-only data; SEC EDGAR ingest for TSMC/Intel/Samsung quarterly transcripts |
+| Biosafety/film design guide audit | Low | Walk existing domains through 13.1–13.5 checklist; document known limitations |
+
+---
+
 ## Backend Track (parallel, data-dependent)
 
 These items run independently of the UI work. Most are waiting on pipeline data.
@@ -444,6 +538,7 @@ Not scheduled. Documented so they're not forgotten.
 | 10 — Guided Entry | Pending | — |
 | 11 — Medium Gap Features | Pending | — |
 | 12 — Branding & Wrap-up | Pending | — |
+| 13 — Trend Methodology + Semiconductor Onboarding | Pending | — |
 
 ---
 
@@ -453,10 +548,11 @@ Not scheduled. Documented so they're not forgotten.
 |--------|-------|
 | Working pace | ~2 sprints/day (faster than original estimate) |
 | Start date | 2026-02-27 |
-| As of | 2026-03-28 (9 planned sprints + 7 unplanned items done in 29 days) |
-| Sprints remaining | 4.5 sprints (7, 9–12) |
+| As of | 2026-04-04 (9 planned sprints + 7 unplanned items done in 36 days) |
+| Sprints remaining | 5.5 sprints (7, 9–13) |
 | Backend track | Parallel, partially blocked on data (≥30 days data now available) |
-| **Revised target** | **~early April 2026** |
+| Sprint 13 | Backend methodology track — independent of UI sprints 9–12 |
+| **Revised target** | **~mid-April 2026** |
 
 **Milestone (Sprint 6 + 6B, March 7):** Domain plugin architecture delivered AND
 validated with biosafety as second domain. Framework is domain-agnostic, grep-audit
