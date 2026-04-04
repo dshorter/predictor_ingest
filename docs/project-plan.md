@@ -457,12 +457,31 @@ just "returns a float."
 | 13.12 | Overlap rate health check script | `scripts/check_domain_health.py` — computes entity overlap rate after N days of data. Outputs the overlap table from the semiconductor doc with actual numbers. Flags if <20% with warning | [Sonnet] |
 | 13.13 | Source-type field preparation | Verify `source_type` column exists (Sprint 7 item 7A.4). If not yet landed, add it as prerequisite for future multi-signal fusion. Tag existing feeds as `rss` | [Sonnet] |
 
+### Layer 4 — Logging, Instrumentation & Reporting
+
+Formula changes without audit trails produce uninterpretable historical data.
+Currently `trend_history` logs score outputs (velocity=1.23, novelty=0.45) but
+not the configuration that produced them. The metrics gist
+(`scripts/collect_metrics_gist.sh`) collects 10 files across batch jobs, feeds,
+pipelines, and funnels but has **zero trend scoring visibility** — no trend_history
+queries, no formula config capture, no scoring distribution data.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 13.14 | Add config snapshot columns to `trend_history` | Add columns to `schemas/sqlite.sql` and `_save_trend_history()`: `novelty_decay_lambda REAL`, `min_mentions_for_velocity INTEGER`, `corpus_entity_count INTEGER`, `velocity_gated INTEGER DEFAULT 0` (1 if velocity forced to 1.0 by gate). Makes every historical row self-describing — you can always tell which formula version produced which score | [Sonnet] |
+| 13.15 | Add `trend_config` to pipeline run log | Log formula parameters in daily pipeline JSON (`data/logs/pipeline_*.json`) under a `trend_config` key: `{lambda, min_mentions, corpus_size, velocity_cap, activity_cap, weights}`. Also add `trend_config TEXT` column to `pipeline_runs` table for DB-backed queries. Makes formula changes visible in dashboard and gist without needing trend_history joins | [Sonnet] |
+| 13.16 | Update health report for trend formula validation | Add section to `scripts/health_report.py`: velocity gate effectiveness (% entities gated vs. real velocity), novelty score distribution (quartiles — are scores bunched or spread?), corpus entity count trend over time. Ensures `02_health_report.txt` in the gist reflects formula behavior, not just pipeline throughput | [Sonnet] |
+| 13.17 | Add trend scoring to metrics gist | Add file `11_trend_scoring.csv` to `scripts/collect_metrics_gist.sh`: query `trend_history` for last 7 days — entity_id, run_date, velocity, novelty, trend_score, velocity_gated, corpus_entity_count, novelty_decay_lambda. Also add `12_trend_config_history.csv`: per-run formula config from `pipeline_runs.trend_config`. Closes the blind spot where gist captures everything *except* the scoring that drives What's Hot | [Sonnet] |
+
 **Risk:** Low-moderate. Formula changes are mathematically simple but affect every
 domain's trending output. The test suite is the safety net — tests should be written
 *with old expected values first*, then updated after formula changes land.
+Instrumentation items (Layer 4) should land *alongside* the formula changes in
+Layer 2 so that the first run with new formulas is fully logged.
 
-**Estimated effort:** ~1.5 sprint days. Layer 1 is a writing session. Layer 2 is
-focused code changes with thorough tests. Layer 3 is light.
+**Estimated effort:** ~2 sprint days. Layer 1 is a writing session. Layer 2 is
+focused code changes with thorough tests. Layer 3 is light. Layer 4 is
+straightforward schema + query additions but must be coordinated with Layer 2.
 
 **Dependency:** The resolve bug noted in `semiconductor-domain-design.md` decision
 log (2026-04-02: "O(n²) DB queries must be fixed on server before semiconductors
