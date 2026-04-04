@@ -17,6 +17,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
+def _load_dotenv() -> None:
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                os.environ.setdefault(key.strip(), val.strip())
+
+
 def _bootstrap_domain() -> None:
     """Set PREDICTOR_DOMAIN from --domain arg before any domain-aware imports."""
     for i, arg in enumerate(sys.argv):
@@ -28,6 +40,7 @@ def _bootstrap_domain() -> None:
             return
 
 
+_load_dotenv()
 _bootstrap_domain()
 
 from config import DEFAULT_DATE_WINDOW_DAYS

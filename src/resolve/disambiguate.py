@@ -251,11 +251,16 @@ def collect_gray_zone_pairs(
         ]
 
     pairs: list[EntityPair] = []
-    # Preload all existing decisions into memory to avoid per-pair DB queries
-    # in the O(n^2) loop. With all entity types enabled, the inner loop can
-    # iterate millions of pairs; a set lookup is O(1) vs O(log n) for each query.
+    # Preload decided pairs into memory to avoid per-pair DB queries in the
+    # O(n^2) loop. Excludes 'uncertain' verdicts so pairs that were marked
+    # uncertain due to API failures (not genuine ambiguity) get re-evaluated
+    # once the API is healthy. Intentionally uncertain pairs will be re-sent
+    # to the LLM and may resolve to keep_separate or merge on a subsequent run.
     existing_decisions: set[tuple[str, str]] = set()
-    for row in conn.execute("SELECT entity_a_id, entity_b_id FROM disambiguation_decisions"):
+    for row in conn.execute(
+        "SELECT entity_a_id, entity_b_id FROM disambiguation_decisions "
+        "WHERE llm_verdict != 'uncertain'"
+    ):
         existing_decisions.add((row[0], row[1]))
 
     # Group by type for O(n^2) within type (small groups)

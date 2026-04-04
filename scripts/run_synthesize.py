@@ -7,11 +7,27 @@ cross-document connections, corroboration, and implicit relations.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 # Add src/ to import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+
+def _load_dotenv() -> None:
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                os.environ.setdefault(key.strip(), val.strip())
+
+
+_load_dotenv()
 
 from db import init_db
 from domain import set_active_domain
