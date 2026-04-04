@@ -25,6 +25,20 @@ def _bootstrap_domain() -> None:
             return
 
 
+def _load_dotenv() -> None:
+    """Load .env from project root so standalone invocations pick up API keys."""
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                os.environ.setdefault(key.strip(), val.strip())
+
+
+_load_dotenv()
 _bootstrap_domain()
 
 from db import init_db
