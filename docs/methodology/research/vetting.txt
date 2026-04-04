@@ -1,0 +1,169 @@
+# Vetting an AI trend detection pipeline against the literature
+
+**This methodology is architecturally sound but methodologically uneven.** The pipeline's layered approach—RSS ingest through knowledge graph visualization—reflects established patterns from news intelligence systems. Three components stand on firm ground: the deduplication strategy, LLM quality gates, and the overall cascade architecture. Three others require significant revision: the bridge score is theoretically invalid as a betweenness centrality proxy, the novelty formula uses inappropriate decay functions contradicted by empirical research, and the validation framework contains an internal mathematical inconsistency. The system's most fundamental constraint is scale: at **30–60 articles per day**, it operates five orders of magnitude below production trend detection systems like GDELT, making many of its methodological choices either overkill or statistically underpowered. What follows is a component-by-component assessment against current best practices, with specific citations and actionable recommendations.
+
+---
+
+## 1. Article pre-selection scores the right signals at the wrong weights
+
+The five-signal scoring system (word count, metadata, source tier, signal type, recency) captures meaningful pre-extraction information, but the weight allocation inverts the literature's priorities. **Word count receives the highest weight (30%) despite being the weakest quality proxy.** Horne and Adali (2017, "This Just In," ICWSM) found that article length discriminates low-quality stubs from legitimate articles, but above ~500 words, length alone is a poor predictor of information density. Shen et al. (2019) confirm that structural features like word count explain only **15–20% of variance** in human quality judgments. Meanwhile, source authority—the signal most consistently validated across decades of IR research (Agichtein et al., 2006, "Improving Web Search Ranking," SIGIR)—receives only 20%.
+
+The recommended rebalancing: source tier at 25–30%, signal type at 20–25%, word count reduced to 15–20%. The 800–3,000 word quality peak should extend to at least 5,000 words, since many high-value AI analysis pieces (Stratechery, The Information, long-form research posts) exceed 3,000 words routinely.
+
+The recency decay curve (1.0 at 0–3 days, decaying to 0.3 floor at 14+ days) aligns well with empirical findings. Leskovec, Backstrom, and Kleinberg (2009, "Meme-tracking and the Dynamics of the News Cycle," KDD) found median news story peaks within **2.5 days** of publication, with volume dropping to ~50% of peak within 3.5 days. Yang and Leskovec (2011, "Patterns of Temporal Variation in Online Media," WSDM) identified 2–4 day half-lives for technology stories specifically. However, the decay function itself should be **exponential rather than linear**—`score = max(0.3, exp(-0.18 × days))` better matches the empirically observed power-law attention decay.
+
+Three high-value signals are missing entirely. **Near-duplicate detection on titles** (via MinHash on title shingles) would cheaply filter echo articles before LLM extraction—critical given that RSS feeds routinely surface the same story from multiple outlets. Domain authority scoring and title specificity features (Baykan et al., 2009, CIKM) would further improve selection. For budget-constrained LLM extraction specifically, Chen, Zaharia, and Zou (2023, "FrugalGPT") demonstrate that LLM cascading—trying cheaper models first, escalating selectively—can reduce costs by **90%+** with minimal quality loss. Li et al. (2010, "A Contextual-Bandit Approach to Personalized News Article Recommendation," WWW) provide the theoretical framework for treating document selection as a contextual bandit problem with exploration-exploitation tradeoffs.
+
+**Assessment: Adequate.** Reasonable baseline with clear improvement paths. Reweight signals, extend the word-count peak, add near-duplicate pre-filtering, and switch to exponential recency decay.
+
+---
+
+## 2. Trend scoring has one strong, one adequate, and one invalid component
+
+### Velocity (40% weight): adequate with a known and fixable flaw
+
+The 7-day velocity ratio—`mentions(t-7d..t) / mentions(t-14d..t-7d)`—is structurally identical to financial Rate of Change momentum indicators and captures weekly periodicity effects identified by Vlachos, Meek, and Vagena (2004, KDD). The window length is a reasonable middle ground for AI news: Mathioudakis and Koudas (2010, "TwitterMonitor," SIGMOD) found 1–7 day windows effective for topic-level trends, while Kleinberg (2002, "Bursty and Hierarchical Structure in Streams," KDD) argues for multi-scale detection. A single 7-day window is a defensible simplification.
+
+The **low-count sensitivity** problem (1→2 mentions = 2.0× velocity) is well-studied and solvable. The current `mentions+1` default for new entities is a minimal Laplace smoothing, but it should be applied universally, not just to new entities. The literature offers several superior approaches:
+
+- **Empirical Bayes shrinkage** (Efron and Morris, 1975): estimate a prior from the population of all entities' mention rates and shrink individual estimates toward this prior. Formula: `velocity = (mentions_current + k×μ) / (mentions_previous + k×μ)` where μ is the global mean mention rate.
+- **Wilson score interval** (used in Reddit's ranking): use the lower bound of a confidence interval rather than the point estimate, naturally penalizing low-count entities.
+- **Beta-binomial model** (Gelman et al., 2013, *Bayesian Data Analysis*): treats mention occurrence as binomial with a Beta prior, providing principled uncertainty quantification.
+
+The cap at 5.0 is pragmatic but should be accompanied by a **minimum mention threshold** (e.g., ≥3 mentions in either window) before velocity contributes to the composite score.
+
+### Novelty (30% weight): adequate concept, flawed implementation
+
+The novelty formula—`0.6 × age_novelty + 0.4 × rarity`—combines two meaningful signals but both sub-components have calibration problems.
+
+**The 365-day linear age decay is inappropriate.** Yang and Leskovec (2011) demonstrated that topic attention follows log-normal or power-law decay with half-lives of days to weeks for technology stories, not months. The TDT literature (Allan, Papka, and Lavrenko, 1998, "On-Line New Event Detection," SIGIR) consistently shows that effective novelty detection depends on *information coverage*, not simply elapsed time. An exponential decay—`age_novelty = exp(-λ × days_since_first_seen)` with λ ≈ 0.05–0.10 (14–7 day half-life)—would better match empirical reality while still allowing longer-lived novelty for structural trends.
+
+**The rarity function lacks corpus normalization.** The formula `1/(1 + ln(1 + total_mentions))` resembles IDF (Sparck Jones, 1972) but critically omits the total entity count as a denominator. In a small corpus, 100 mentions might be extremely common; in a large one, rare. Replace with: `rarity = log(1 + N_entities / (1 + total_mentions)) / log(1 + N_entities)`, which normalizes against corpus size.
+
+The **0.6/0.4 weighting** of age over rarity also inverts TDT findings. Allan et al. (2000, "Topic Detection and Tracking Evaluation Overview") consistently showed that content-based novelty measures outperformed temporal features. Consider either reversing the weights or using a **multiplicative combination**—`novelty = age_novelty × rarity`—which captures the intuition that something is only novel if it is both recent *and* rare.
+
+### Bridge score (30% weight): theoretically invalid
+
+The formula `sqrt((outgoing + 1) × (incoming + 1)) - 1` computes the geometric mean of adjusted in-degree and out-degree. **This is not a recognized approximation of betweenness centrality in network science literature.** Freeman (1977, "A Set of Measures of Centrality Based on Betweenness") defined betweenness centrality as a fundamentally *global* property—the fraction of all shortest paths passing through a node—that depends on the entire graph topology, not just local degree.
+
+Borgatti (2005, "Centrality and Network Flow," *Social Networks*) demonstrated that degree and betweenness capture fundamentally different network properties: degree measures local activity while betweenness measures brokerage. Valente and Foreman (1998) showed the correlation between degree and betweenness is **only 0.2–0.5 in scale-free networks**—the topology most likely in a knowledge graph of AI entities where a few hub entities (e.g., "transformer," "GPT") connect many peripheral ones.
+
+Three alternatives are more defensible:
+
+- **Sampling-based approximate betweenness** (Riondato and Kornaropoulos, 2016, "Fast Approximation of Betweenness Centrality through Sampling"): provable (ε, δ)-approximation guarantees, orders of magnitude faster than exact computation. Best option if true betweenness matters.
+- **PageRank** (Brin and Page, 1998): well-understood, computationally efficient, widely used in knowledge graphs. The most pragmatic replacement.
+- **Burt's structural holes constraint** (Burt, 1992, *Structural Holes*): directly measures brokerage using local information, capturing the "bridging" concept the current formula aims for.
+
+However, at the system's scale of 30–60 articles per day, the knowledge graph will be extremely sparse. The graph likely accumulates only hundreds of entity-relationship triples per week. At this density, **any centrality measure will be noisy**, and simpler entity co-occurrence tracking may provide equal analytical value with far less complexity.
+
+### Composite weights (0.40 / 0.30 / 0.30): adequate starting point
+
+Most production trend systems weight velocity/momentum most heavily: Twitter's trending algorithm, Reddit's hot algorithm (`log10(score) + time_decay`), and Hacker News's formula all implicitly weight acceleration at **50–70%** of the composite. The 40% velocity weight is at the low end of industry practice. The literature's strongest recommendation is to replace hand-tuned weights with **learning-to-rank** methods (Liu, 2011, *Learning to Rank for Information Retrieval*): even 50–100 labeled examples of "which entity is more trending" would enable effective weight calibration via pairwise LTR.
+
+**Assessment: The velocity and novelty components are adequate with specific fixes needed; the bridge score should be replaced entirely.** Consider whether the knowledge graph adds sufficient analytical value at this scale to justify graph-based centrality measures.
+
+---
+
+## 3. Source corroboration uses defensible logic but crude implementation
+
+The step-function corroboration weights (1 source: 0.5×, 2: 0.75×, 3+: 1.0×, 3+ across 2+ categories: 1.25×) approximate the right principle from information fusion theory but lack mathematical sophistication.
+
+**Dempster-Shafer theory** (Shafer, 1976, *A Mathematical Theory of Evidence*) prescribes multiplicative evidence combination for independent sources, not additive step functions. Under Bayesian belief fusion, if each source has reliability *r*, the combined confidence after *n* independent sources is `P(true | n) = 1 - (1-r)^n`. For r = 0.6: one source gives 0.60, two give 0.84, three give 0.94—a much steeper curve than the proposed 0.50/0.75/1.0 schedule.
+
+The **source independence problem** is the most serious gap. Leskovec et al. (2009) demonstrated that online news outlets frequently copy from each other with minimal delay, creating an illusion of independent corroboration. For AI/tech news specifically, press releases, arXiv preprints, and corporate announcements serve as common upstream sources for many "independent" outlets. Three concrete independence tests should be implemented: **temporal fingerprinting** (publications within minutes of each other likely share a source), **content similarity** (cosine similarity > 0.8 suggests copy-paste rather than independent verification), and **source graph analysis** (corroboration from outlets in the same editorial cluster should be discounted).
+
+The **1.25× category diversity bonus** is supported by intelligence analysis methodology (Heuer, 1999, *Psychology of Intelligence Analysis*), which distinguishes same-type corroboration from multi-intelligence fusion. However, Castillo, Mendoza, and Poblete (2011, "Information Credibility on Twitter," WWW) found cross-type verification was the **strongest single predictor** of information credibility, suggesting a larger bonus (1.5–2.0×) for true cross-category corroboration.
+
+**Assessment: Adequate.** Replace the step function with a smooth Bayesian curve and implement source independence testing to avoid echo chamber amplification.
+
+---
+
+## 4. The validation framework contains an internal inconsistency
+
+The proposed metrics—Precision@10 ≥ 0.50, Precision@20 ≥ 0.40, Recall ≥ 0.60, lead time > 0 days, FPR ≤ 0.30 for top-20—contain a **mathematical contradiction**. An FPR of 0.30 in the top-20 means at most 6 false positives out of 20, yielding precision ≥ 0.70. This directly contradicts the P@20 ≥ 0.40 target. Either FPR is computed over a different denominator than top-20 results, or one target must be revised.
+
+**Precision targets** are within range of comparable systems. TDT systems achieved F1 of 0.40–0.65 for online event detection (Yang, Pierce, and Carbonell, 1998, SIGIR). Social media trend detectors report precision of 0.65–0.85 for bursty keyword detection (Mathioudakis and Koudas, 2010) and 0.65–0.75 for trend classification (Zubiaga et al., 2015, JASIST). However, these systems operate on high-volume data streams, making direct comparison misleading at the proposed system's scale.
+
+The **recall target of ≥ 0.60 is likely unachievable** at 30–60 articles per day. Recall measures coverage of all real trends, but the system can only detect trends that appear in its monitored RSS feeds. Recommend either lowering to 0.30–0.40 or redefining recall as coverage *within the monitored source universe*.
+
+**Ground truth sources all carry significant biases.** Google Trends reflects search behavior, not real-world adoption—the cautionary tale of Google Flu Trends (Lazer et al., 2014, *Science*) demonstrated 50–100% overestimation due to media-driven search behavior and algorithmic confounding. GitHub stars correlate with visibility, not adoption or technical significance; Borges et al. (2016, ICSME) showed stars are driven by Hacker News exposure and README quality rather than sustained usage. Papers With Code SOTA tables cover only ML benchmarks with established leaderboards, miss paradigm shifts entirely, and carry publication lag of weeks to months. **Triangulation across ≥2 sources** for ground truth labeling is essential, and additional signals should be added: npm/PyPI download trends, Stack Overflow tag velocity, and Crunchbase funding activity.
+
+The retrospective evaluation windows need extension. **T+30 is too short** for technology trends, which typically take 3–12 months to become clearly established. Small et al. (2014, "Identifying Emerging Topics in Science and Technology," *Research Policy*) achieved precision of 0.55–0.70 when evaluating emerging topic detection against expert panels, but used 6–12 month validation windows. Add T+180 and T+365 checkpoints.
+
+Perhaps most critically, the concept of "trend" itself needs operationalization. Rotolo, Hicks, and Martin (2015, "What Is an Emerging Technology?," *Research Policy*) proposed five formal attributes: radical novelty, relatively fast growth, coherence, prominent impact, and uncertainty. The system should distinguish between hype spikes, sustained adoption growth, and paradigm-level shifts, as each requires different evaluation criteria and different ground truth signals.
+
+**Assessment: Weak.** Resolve the FPR/precision inconsistency, lower the recall target, extend evaluation windows, triangulate ground truth, and operationalize "trend" formally.
+
+---
+
+## 5. The deduplication strategy follows established best practices
+
+The four-layer cascade—URL canonicalization → exact-match fingerprints → near-duplicate detection → entity-level dedup—follows the **cheapest-first funnel pattern** standard in production news systems (Das et al., 2007, "Google News Personalization," WWW; Leban et al., 2014, "Event Registry," WWW). The ordering is correct, and the progression from O(1) string comparisons to expensive NLP-based resolution is well-reasoned.
+
+For the SimHash vs. MinHash decision, the literature favors **MinHash for news articles**. Henzinger (2006, "Finding Near-Duplicate Web Pages," SIGIR) directly compared the two approaches and found MinHash-based methods outperformed SimHash in precision and recall. SimHash's advantage is extreme compactness (64-bit fingerprints), which matters at Google's billion-page scale but not at 30–60 articles per day. MinHash with LSH banding (Indyk and Motwani, 1998, STOC) and **word 3-gram shingles at Jaccard threshold 0.75** for body content is the recommended configuration. For titles, a lower threshold of **0.60 Jaccard** is appropriate given their brevity.
+
+Layer 2 (exact fingerprinting) should be expanded to include a **body content hash** alongside the title+domain+date composite key, since the same article can appear across domains via syndication (AP/Reuters wire distribution).
+
+Layer 4 (entity resolution) is the most underspecified component. For AI/tech entities with systematic naming patterns (GPT-4 vs GPT4 vs gpt-4-turbo), a **multi-strategy cascade** is needed: rule-based normalization (regex patterns for version extraction) → Jaro-Winkler string similarity at ≥0.85 threshold (Cohen et al., 2003) → lightweight internal knowledge base linking → LLM-based resolution for ambiguous cases. No widely adopted benchmark exists for AI/tech entity resolution specifically, so building an **internal evaluation set of ~500–1,000 annotated mentions** with gold-standard canonical forms is strongly recommended.
+
+A supplementary **embedding-based semantic dedup layer** using Sentence-BERT (Reimers and Gurevych, 2019, EMNLP) with cosine similarity ≥ 0.92 should be considered as a future enhancement to catch paraphrased duplicates that token-overlap methods miss.
+
+**Assessment: Strong.** The architecture is well-designed. Use MinHash over SimHash, add body content hashing to Layer 2, and specify the entity resolution strategy in detail.
+
+---
+
+## 6. LLM quality gates target the right failure modes
+
+The four-gate architecture addresses the most critical extraction failure modes identified in recent hallucination research. **Gate 4—high-confidence paired with bad evidence triggering escalation—is the most valuable component**, directly targeting a well-documented hallucination signature. Kadavath et al. (2022, "Language Models (Mostly) Know What They Know") and Xiong et al. (2024, "Can LLMs Express Their Uncertainty?") both demonstrate that LLMs exhibit systematic overconfidence on fabricated outputs, making this high-confidence-plus-poor-grounding pattern a reliable hallucination detector.
+
+Gate 1's **70% evidence fidelity threshold** is a pragmatic starting point but should evolve toward entailment-based verification. AlignScore (Zha et al., 2023, ACL) unifies factual consistency checking into a single framework and consistently outperforms substring overlap; MiniCheck (Tang et al., 2024) offers a lightweight alternative specifically designed for LLM output verification. The recommended cascade: keep substring overlap as a **fast CPU pre-filter** (resolving ~80% of cases), then apply entailment-based scoring on borderline cases. FActScore (Min et al., 2023, "Fine-grained Atomic Evaluation," EMNLP) found that even GPT-4 achieves only **~73% factual precision** on biography generation, suggesting 70% overlap is appropriately conservative for entity extraction.
+
+Gate 2 (orphan endpoints at 0% tolerance) and Gate 3 (zero-value check) are standard referential integrity and silent-failure guards. Gate 3 should become **adaptive based on document length**—a 5,000-word technical article should yield substantially more than one entity. A minimum extraction density metric (≥1 entity per 500 words for technical content) would better capture extraction completeness.
+
+The escalation architecture should follow a tiered pattern established in recent LLM agent research: self-correction via re-prompting (Madaan et al., 2023, "Self-Refine," NeurIPS) → prompt variation (chain-of-thought, few-shot correction examples) → model escalation (smaller to larger model) → human-in-the-loop review. A fifth gate—**multi-sample consistency checking** inspired by SelfCheckGPT (Manakul et al., 2023, EMNLP)—would catch hallucinations that happen to have high substring overlap by running extraction 2–3 times with temperature > 0 and requiring agreement.
+
+**Assessment: Strong.** The gates target correct failure modes. Upgrade evidence fidelity to entailment-based verification, add consistency checking, and implement tiered escalation.
+
+---
+
+## 7. BERTopic plus LDA is complementary but operationally redundant in 2025
+
+The dual-model approach captures genuinely different signals—LDA finds word co-occurrence patterns while BERTopic captures semantic similarity—and Egger and Yu (2022, "A Topic Modeling Comparison," *Frontiers in Sociology*) confirm they produce meaningfully different topic structures. However, maintaining two topic modeling systems doubles operational complexity, and **BERTopic's dynamic mode now subsumes most of LDA's advantages** while adding temporal trend tracking capabilities that the pipeline explicitly needs.
+
+BERTopic (Grootendorst, 2022) with its modular pipeline—sentence embeddings → UMAP → HDBSCAN → c-TF-IDF representation—consistently outperforms LDA on topic coherence benchmarks (Bianchi, Terragni, and Hovy, 2021, "Pre-training is a Hot Topic," ACL). Its `topics_over_time()` method directly supports temporal trend analysis. For the trend detection use case, the critical BERTopic configuration choices are: **embedding model** (domain-tuned, e.g., `BAAI/bge-large-en-v1.5`), HDBSCAN `min_cluster_size` of 10–50 for news, and **LLM-based topic labeling** for interpretability.
+
+Contextualized Topic Models (Bianchi et al., 2021) and Dynamic ETM (Dieng et al., 2019) offer alternatives, but BERTopic's modularity—each component independently swappable—makes it the most practical choice for an evolving pipeline. Top2Vec (Angelov, 2020) is simpler but lacks BERTopic's streaming capabilities and topic representation quality.
+
+The key capability to implement is **emerging topic detection**: monitoring cluster birth rates (new clusters not mapping to previous topics), topic velocity (rate of c-TF-IDF vector change over time), and novelty detection (documents with low maximum similarity to any existing cluster). BERTopic's online mode (`.partial_fit()`) enables truly streaming topic evolution at modest computational cost.
+
+**Assessment: Adequate.** Replace the dual system with BERTopic Dynamic mode plus LLM-based topic labeling. Add emerging topic detection via cluster birth monitoring.
+
+---
+
+## 8. Scale is the pipeline's most fundamental architectural constraint
+
+The system's **30–60 articles per day** places it five orders of magnitude below production trend detection systems. GDELT processes millions of articles daily across 100+ languages with 15-minute update cycles (Leetaru and Schrodt, 2013). Event Registry handles 300,000+ articles per day from 75,000+ sources (Leban et al., 2014). This scale gap has profound methodological implications.
+
+**Statistical power is severely limited.** Kleinberg's burst detection (2002) requires sufficient volume to distinguish signal from noise. At 30–60 articles per day, even a modest uptick of 2–3 extra mentions appears as a "burst" due to small-number statistics—precisely the low-count sensitivity the velocity formula acknowledges. The knowledge graph will be extremely sparse, accumulating only hundreds of entity-relationship triples per week. At this density, graph-based centrality measures will be noisy and may not add analytical value over simpler entity frequency tracking.
+
+**Sampling bias dominates at this scale.** The RSS feed selection entirely determines which trends can be detected. This makes the system closer to an **AI-assisted intelligence analyst workflow** than a comprehensive trend detector—a legitimate and valuable niche, but one that should shape how the system is validated and positioned.
+
+Four critical architectural gaps relative to production systems deserve attention. First, **feedback loops are absent**: without any mechanism for the system to learn from its predictions, weight calibration cannot improve. Even simple thumbs-up/thumbs-down on detected trends enables calibration tracking. Second, **engagement signals** (social shares, Hacker News points, Reddit upvotes, Stack Overflow tag growth) are missing—these are higher-signal trend indicators than article publication counts. Third, **source diversity** should extend beyond RSS to include arXiv feeds, Hacker News front page, Reddit ML communities, and Twitter/X tech accounts. Fourth, **temporal modeling** beyond the velocity ratio—even basic EWMA or CUSUM change-point detection on entity mention frequencies—would add analytical rigor.
+
+The Cytoscape.js visualization choice is appropriate for this scale, and the overall cascade architecture (ingest → select → extract → resolve → score → visualize) follows established news intelligence patterns. The pipeline would benefit from the CB Insights model of **multi-signal fusion**: combining news mentions with patent filings, funding data, hiring trends, and code repository activity for more robust trend signals.
+
+**Assessment: Adequate architecture for its scale, but the validation framework and marketing should accurately reflect that this is a curated alerting system, not a comprehensive trend detection platform.**
+
+---
+
+## Top 5 highest-priority improvements ranked by expected impact
+
+**1. Replace the bridge score with a valid centrality measure or remove it.** The current formula is not a recognized betweenness centrality approximation. At the system's scale, consider whether graph centrality adds value at all—if retained, use PageRank or sampling-based approximate betweenness (Riondato and Kornaropoulos, 2016). If removed, redistribute the 30% weight to velocity and novelty. **Impact: eliminates a theoretically invalid component contributing 30% of the trend score.**
+
+**2. Add Bayesian smoothing to velocity and fix the novelty decay function.** Replace the simple ratio with a shrinkage estimator incorporating the global mean mention rate. Switch age novelty from 365-day linear decay to exponential decay with a 7–14 day half-life calibrated to tech news dynamics. These two changes directly improve the mathematical soundness of 70% of the composite trend score. **Impact: reduces false positive trend signals from low-count artifacts and stale novelty inflation.**
+
+**3. Implement source independence testing in the corroboration framework.** Temporal fingerprinting, content similarity checking, and source clustering would prevent echo chamber amplification—the most dangerous failure mode for a small-scale system where a single press release can appear as "corroborated" across multiple RSS feeds. **Impact: prevents the most common source of false corroboration at this scale.**
+
+**4. Fix the validation framework: resolve the FPR/precision inconsistency, lower recall targets, extend evaluation windows, and triangulate ground truth.** The current framework risks measuring the wrong things. Operationalize "trend" using Rotolo et al.'s (2015) framework, add T+180 windows, require multi-source ground truth convergence, and acknowledge the system's scope limitations. **Impact: ensures the system is evaluated against achievable, meaningful criteria rather than impossible benchmarks.**
+
+**5. Upgrade evidence fidelity from substring matching to entailment-based verification.** Replace or supplement the 70% overlap threshold with AlignScore or MiniCheck for borderline cases, and add multi-sample consistency checking as a fifth quality gate. Keep substring overlap as a fast pre-filter but use NLI-based scoring for the cases that matter most—high-confidence extractions on which downstream trend signals depend. **Impact: significantly reduces hallucinated entity-relationship triples entering the knowledge graph.**
