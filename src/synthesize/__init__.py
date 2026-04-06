@@ -125,19 +125,33 @@ def find_document_clusters(
     run_date: str,
     config: SynthesisConfig,
 ) -> list[DocCluster]:
-    """Find groups of today's documents that share entities.
+    """Find groups of extracted documents that share entities and haven't been synthesized.
 
-    Clusters documents extracted on ``run_date`` by shared entity mentions.
+    Previously filtered by fetched_at >= run_date, which broke when the
+    batch API was introduced: documents are fetched on day N but their
+    MENTIONS relations only exist after batch results are imported on day N+1.
+    Now filters by status='extracted' and excludes doc_ids already processed
+    in any prior synthesis batch.
     """
-    # Get documents extracted today (by their MENTIONS relations)
+    # Preload all doc_ids already processed in previous synthesis batches
+    # so we don't re-run synthesis on the same document combinations.
+    already_synthesized: set[str] = set()
+    for row in conn.execute("SELECT batch_docs FROM synthesis_runs"):
+        try:
+            for doc_id in json.loads(row[0]):
+                already_synthesized.add(doc_id)
+        except (ValueError, TypeError):
+            pass
+
+    # Get all extracted documents that have MENTIONS relations and haven't
+    # been included in a synthesis batch yet.
     docs = conn.execute(
         """SELECT DISTINCT r.doc_id
            FROM relations r
            JOIN documents d ON r.doc_id = d.doc_id
-           WHERE d.fetched_at >= ? AND r.rel = 'MENTIONS'""",
-        (run_date,),
+           WHERE d.status = 'extracted' AND r.rel = 'MENTIONS'""",
     ).fetchall()
-    doc_ids = [d[0] for d in docs if d[0]]
+    doc_ids = [d[0] for d in docs if d[0] and d[0] not in already_synthesized]
 
     if not doc_ids:
         return []
