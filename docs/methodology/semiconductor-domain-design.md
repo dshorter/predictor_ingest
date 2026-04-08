@@ -265,3 +265,78 @@ accumulates on durable technical entities rather than on human names that change
 | 2026-04-01 | 8 feeds, not 12–15 | Source quality over volume; technical feeds produce more relations/doc than general tech |
 | 2026-04-01 | 3 inference rules only | Start sparse; avoid false inference explosion in first 30 days |
 | 2026-04-02 | Experiment start delayed | Resolve bug (O(n²) DB queries) must be fixed on server before semiconductors launches |
+
+---
+
+## Addendum: Sprint 13 Trend Scoring Audit (2026-04-08)
+
+Item 13.11 — domain-specific calibration review for the semiconductor trend scoring
+parameters. This audit confirms the current settings are appropriate and documents the
+reasoning for future reference.
+
+### Velocity Window
+
+The 7-day velocity window (`velocity_cap: 5.0`) is adequate for semiconductor news
+cycles. Earnings-driven spikes happen on a weekly/quarterly cadence, and process node
+announcements cluster within ~1-week windows around conferences and tape-out
+milestones. The `min_mentions_for_velocity: 3` threshold prevents noise from
+low-volume weeks — an entity needs 3+ mentions before velocity is computed, which
+filters out one-off rumors that would otherwise spike the signal.
+
+### Novelty Decay
+
+`novelty_decay_lambda: 0.02` gives a ~35-day half-life, the slowest decay of any
+active domain. This reflects the semiconductor industry's multi-quarter storylines:
+a process node like TSMC N3E stays relevant for 12-18 months from announcement
+through HVM ramp. Linear decay (the prior formula) penalized these long-tail entities
+too aggressively — an entity at day 60 was scored identically to one at day 120.
+Exponential decay with lambda=0.02 preserves meaningful novelty signal through the
+first ~100 days, then asymptotes gracefully. The `novelty_age_weight: 0.6` /
+`novelty_rarity_weight: 0.4` split ensures that age dominates but rare entities
+(e.g., a newly announced packaging technology) still get a boost.
+
+### Source Independence Matrix
+
+The domain's 13+ feeds include at least four independent editorial voices:
+
+- **Trade press / deep analysis**: SemiAnalysis, The Chip Letter, Chips and Cheese
+- **Industry organization**: SEMI.org, Semiconductor Engineering
+- **Wire / general tech**: The Register, Tom's Hardware, EE Times
+- **Practitioner community**: SemiWiki
+
+Not all sources are perfectly independent — The Register and Tom's Hardware
+occasionally aggregate the same wire reports, and SemiWiki contributors sometimes
+cross-post from SemiAnalysis. However, the four editorial clusters produce
+sufficiently distinct coverage angles (supply chain depth, architecture benchmarks,
+policy/standards, product launches) that entity corroboration across clusters
+represents genuine multi-source validation.
+
+### Sprint 13 Formula Updates
+
+The domain now benefits from three framework-level improvements introduced in
+Sprint 13, with domain-specific calibration already in place:
+
+1. **Exponential novelty decay** (replacing linear) — calibrated via
+   `novelty_decay_lambda: 0.02` as described above.
+2. **Corpus-normalized rarity** — entity rarity is computed relative to the
+   semiconductor corpus size, not a fixed denominator. As the corpus grows,
+   rarity scores self-adjust.
+3. **Velocity gate** — entities below `min_mentions_for_velocity` (3) are excluded
+   from velocity scoring entirely, preventing low-evidence noise from dominating
+   the trending list.
+
+### Known Gaps for Future Work
+
+- **Earnings transcript ingest (SEC EDGAR)**: Quarterly earnings calls from TSMC,
+  Intel, NVIDIA, and AMD contain forward-looking capacity and demand signals not
+  available in trade press. Planned for multi-signal fusion when SEC EDGAR
+  integration is built.
+- **Process node timeline tracking**: Entities like "TSMC 2nm" need temporal
+  linking across lifecycle stages (announcement → risk production → HVM → mature).
+  Current extraction captures each mention independently; a temporal linking pass
+  would enable stage-aware trending.
+- **Supply chain inference rules**: Currently 3 rules (see above). Expand after
+  2-week validation of production data to confirm false-positive rate is
+  acceptable. Candidate additions: equipment dependency chains (ASML → EUV →
+  ProcessNode) and packaging capacity constraints (CoWoS capacity → chip
+  availability).
