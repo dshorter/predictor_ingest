@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//predictor_ingest//Sprint Planning//EN
+BEGIN:VEVENT
+DTSTART:20260508T100000
+DTEND:20260508T103000
+SUMMARY:Semiconductor multi-signal fusion — plan Sprint 14
+DESCRIPTION:30 days of news-only semiconductor data should be available.\n\nReview:\n- Entity overlap rate (target 30%+): python scripts/check_domain_health.py --domain semiconductors\n- Calibration report: make calibration-report DOMAIN=semiconductors\n- Trending output quality\n\nIf healthy\, plan Sprint 14:\n- SEC EDGAR quarterly transcript ingest (TSMC/Intel/NVIDIA/AMD)\n- Source-count corroboration weighting (step-function from prediction-methodology.md §4.1)\n- Cross-type verification bonus\n- Structured signal → entity mapping\n\nRef: docs/project-plan.md line 498\, docs/methodology/semiconductor-domain-design.md §Known Gaps\, docs/methodology/deep-research-report.md
+LOCATION:
+STATUS:CONFIRMED
+UID:sprint14-semi-fusion-20260508@predictor-ingest
+END:VEVENT
+END:VCALENDAR
