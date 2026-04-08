@@ -215,6 +215,18 @@
           "maximum": 1,
           "default": 0.4,
           "description": "Weight of rarity component in novelty score"
+        },
+        "novelty_decay_lambda": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0.05,
+          "description": "Exponential decay rate for age-based novelty. λ=0.05 gives ~14-day half-life. Lower = slower decay (regulatory domains), higher = faster decay (fast-churn domains)."
+        },
+        "min_mentions_for_velocity": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 3,
+          "description": "Minimum recent mentions before velocity signal is trusted. Below threshold, velocity = 1.0 (neutral). Set to 0 to disable gate."
         }
       },
       "description": "Weights for trend scoring. velocity + novelty + activity should sum to 1.0."

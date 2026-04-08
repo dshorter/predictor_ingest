@@ -21,7 +21,7 @@ mkdir -p "$OUTDIR"
 echo "=== Collecting metrics into $OUTDIR (domain: $DOMAIN) ==="
 
 # 1. Batch jobs summary (ADR-008: Anthropic Batch API replaced two-tier escalation)
-echo "[1/10] Batch jobs summary..."
+echo "[1/12] Batch jobs summary..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, status,
        COUNT(*) as job_count,
@@ -35,11 +35,11 @@ ORDER BY run_date DESC, status;
 " > "$OUTDIR/01_batch_jobs.csv" 2>&1 || echo "(no batch_jobs data yet)" > "$OUTDIR/01_batch_jobs.csv"
 
 # 2. Health report (docs per source, stage counts, errors)
-echo "[2/10] Health report..."
+echo "[2/12] Health report..."
 $PYTHON scripts/health_report.py --db "$DB" --domain "$DOMAIN" > "$OUTDIR/02_health_report.txt" 2>&1 || true
 
 # 3. Batch job details — pending vs complete breakdown
-echo "[3/10] Batch job detail..."
+echo "[3/12] Batch job detail..."
 sqlite3 -header -csv "$DB" "
 SELECT job_id, run_date, status,
        json_array_length(doc_ids) as doc_count,
@@ -52,7 +52,7 @@ LIMIT 50;
 " > "$OUTDIR/03_batch_job_detail.csv" 2>&1 || echo "(no batch_jobs data)" > "$OUTDIR/03_batch_job_detail.csv"
 
 # 4. Extracted document stats — entity and relation counts per doc
-echo "[4/10] Extraction output per document..."
+echo "[4/12] Extraction output per document..."
 sqlite3 -header -csv "$DB" "
 SELECT d.doc_id, d.source, d.source_type, d.status, d.extracted_by,
        COUNT(DISTINCT e.id) as entity_count,
@@ -67,7 +67,7 @@ LIMIT 100;
 " > "$OUTDIR/04_extraction_output.csv" 2>&1 || echo "(no extracted documents)" > "$OUTDIR/04_extraction_output.csv"
 
 # 5. Pending batch docs — doc_ids waiting for collection
-echo "[5/10] Pending batch docs..."
+echo "[5/12] Pending batch docs..."
 sqlite3 -header -csv "$DB" "
 SELECT job_id, run_date, submitted_at,
        json_array_length(doc_ids) as pending_docs
@@ -77,7 +77,7 @@ ORDER BY submitted_at DESC;
 " > "$OUTDIR/05_pending_batches.csv" 2>&1 || echo "(no pending batches)" > "$OUTDIR/05_pending_batches.csv"
 
 # 6. Selection efficiency — from doc_selection_log table (DB-backed)
-echo "[6/10] Selection efficiency (from DB)..."
+echo "[6/12] Selection efficiency (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, source_type,
        COUNT(*) as candidates,
@@ -93,7 +93,7 @@ LIMIT 100;
 " > "$OUTDIR/06_selection_efficiency.csv" 2>&1 || echo "(doc_selection_log not yet populated)" > "$OUTDIR/06_selection_efficiency.csv"
 
 # 7. Feed health — from feed_stats table (DB-backed)
-echo "[7/10] Feed health (from DB)..."
+echo "[7/12] Feed health (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, feed_name, source_type,
        docs_fetched, docs_new, docs_skipped, fetch_errors, error_message
@@ -103,7 +103,7 @@ LIMIT 200;
 " > "$OUTDIR/07_feed_health.csv" 2>&1 || echo "(feed_stats not yet populated)" > "$OUTDIR/07_feed_health.csv"
 
 # 8. Source extraction quality — from source_extraction_quality table
-echo "[8/10] Source extraction quality (from DB)..."
+echo "[8/12] Source extraction quality (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, source, source_type,
        docs_extracted, docs_failed,
@@ -114,7 +114,7 @@ LIMIT 200;
 " > "$OUTDIR/08_source_quality.csv" 2>&1 || echo "(source_extraction_quality not yet populated)" > "$OUTDIR/08_source_quality.csv"
 
 # 9. Pipeline run history — from pipeline_runs table
-echo "[9/10] Pipeline run history (from DB)..."
+echo "[9/12] Pipeline run history (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, status, ROUND(duration_sec, 0) as duration,
        docs_ingested, docs_selected, docs_excluded, docs_extracted,
@@ -127,7 +127,7 @@ LIMIT 30;
 " > "$OUTDIR/09_pipeline_history.csv" 2>&1 || echo "(pipeline_runs not yet populated)" > "$OUTDIR/09_pipeline_history.csv"
 
 # 10. Document funnel (last 7 days) — from funnel_stats table
-echo "[10/10] Document funnel (from DB)..."
+echo "[10/12] Document funnel (from DB)..."
 sqlite3 -header -csv "$DB" "
 SELECT run_date, stage, docs_in, docs_out, docs_dropped, drop_reasons
 FROM funnel_stats
@@ -135,6 +135,28 @@ WHERE domain = '${DOMAIN}'
 ORDER BY run_date DESC, stage
 LIMIT 100;
 " > "$OUTDIR/10_document_funnel.csv" 2>&1 || echo "(funnel_stats not yet populated)" > "$OUTDIR/10_document_funnel.csv"
+
+# 11. Trend scoring — from trend_history (Sprint 13)
+echo "[11/12] Trend scoring history..."
+sqlite3 -header -csv "$DB" "
+SELECT entity_id, run_date, velocity, novelty, trend_score,
+       velocity_gated, corpus_entity_count, novelty_decay_lambda,
+       mention_count_7d, mention_count_30d, in_trending_view
+FROM trend_history
+WHERE run_date >= DATE('now', '-7 days')
+ORDER BY run_date DESC, trend_score DESC
+LIMIT 500;
+" > "$OUTDIR/11_trend_scoring.csv" 2>&1 || echo "(trend_history not yet populated)" > "$OUTDIR/11_trend_scoring.csv"
+
+# 12. Trend config history — from pipeline_runs.trend_config (Sprint 13)
+echo "[12/12] Trend config history..."
+sqlite3 -header -csv "$DB" "
+SELECT run_date, trend_config
+FROM pipeline_runs
+WHERE domain = '${DOMAIN}' AND trend_config IS NOT NULL
+ORDER BY run_date DESC
+LIMIT 30;
+" > "$OUTDIR/12_trend_config_history.csv" 2>&1 || echo "(no trend_config data yet)" > "$OUTDIR/12_trend_config_history.csv"
 
 echo
 echo "=== Files collected ==="

@@ -292,6 +292,8 @@ trend_weights:
   max_age_days: 540       # 18 months — process node storylines are long-running
   novelty_age_weight: 0.6
   novelty_rarity_weight: 0.4
+  novelty_decay_lambda: 0.02 # ~35-day half-life (slow-burn process node storylines)
+  min_mentions_for_velocity: 3
 
 # --- Suppressed Entities ---
 # Too generic for a semiconductor knowledge graph.

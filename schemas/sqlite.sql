@@ -204,6 +204,11 @@ CREATE TABLE IF NOT EXISTS trend_history (
   bridge_score      REAL,
   trend_score       REAL,
   in_trending_view  INTEGER DEFAULT 0,  -- 1 if included in top-N export
+  -- Sprint 13 config snapshot columns (13.14)
+  novelty_decay_lambda      REAL,
+  min_mentions_for_velocity  INTEGER,
+  corpus_entity_count        INTEGER,
+  velocity_gated             INTEGER DEFAULT 0,  -- 1 if velocity forced to 1.0 by gate
   PRIMARY KEY (entity_id, run_date)
 );
 
@@ -243,6 +248,8 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
   infer_skipped           INTEGER DEFAULT 0,  -- inferences skipped (already existed)
   narratives_generated    INTEGER DEFAULT 0,  -- trend narratives generated
   resolve_merges          INTEGER DEFAULT 0,  -- total entity merges (fuzzy + LLM)
+  -- Sprint 13 trend config snapshot (13.15)
+  trend_config            TEXT,               -- JSON: {lambda, min_mentions, corpus_size, weights, ...}
   PRIMARY KEY (run_date, domain)
 );
 

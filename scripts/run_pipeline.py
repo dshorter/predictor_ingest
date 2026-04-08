@@ -716,6 +716,26 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
         # Ensure new columns exist (additive migration — safe to repeat)
         _ensure_pipeline_runs_columns(conn)
 
+        # Build trend_config snapshot (13.15)
+        trend_config_json = None
+        try:
+            from domain import get_active_profile
+            _tw = get_active_profile()["trend_weights"]
+            trend_config_json = json.dumps({
+                "novelty_decay_lambda": _tw.get("novelty_decay_lambda", 0.05),
+                "min_mentions_for_velocity": _tw.get("min_mentions_for_velocity", 3),
+                "velocity_cap": _tw.get("velocity_cap", 5.0),
+                "activity_cap": _tw.get("activity_cap", 20),
+                "max_age_days": _tw.get("max_age_days", 365),
+                "weights": {
+                    "velocity": _tw.get("velocity", 0.4),
+                    "novelty": _tw.get("novelty", 0.3),
+                    "activity": _tw.get("activity", 0.3),
+                },
+            })
+        except Exception:
+            pass  # domain not loaded; skip trend config
+
         # pipeline_runs — core columns + new feature columns
         conn.execute(
             """INSERT OR REPLACE INTO pipeline_runs
@@ -726,9 +746,9 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
                 synthesis_batches, synthesis_corroborated, synthesis_relations,
                 disambig_pairs, disambig_merges, disambig_kept_separate,
                 infer_rules, infer_relations, infer_skipped,
-                narratives_generated, resolve_merges)
+                narratives_generated, resolve_merges, trend_config)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                       ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (run_date, domain, run_log.get("status", "unknown"),
              run_log.get("durationSec"), run_log.get("startedAt"),
              run_log.get("completedAt"),
@@ -755,7 +775,8 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
              infer.get("relationsInferred", 0),
              infer.get("relationsSkipped", 0),
              trending.get("narrativesGenerated", 0),
-             resolve.get("mergesPerformed", 0)),
+             resolve.get("mergesPerformed", 0),
+             trend_config_json),
         )
 
         # funnel_stats — one row per stage (now includes synthesize, resolve, infer)
@@ -829,6 +850,7 @@ def _ensure_pipeline_runs_columns(conn: sqlite3.Connection) -> None:
         ("infer_skipped", "INTEGER DEFAULT 0"),
         ("narratives_generated", "INTEGER DEFAULT 0"),
         ("resolve_merges", "INTEGER DEFAULT 0"),
+        ("trend_config", "TEXT"),
     ]
     existing = {row[1] for row in conn.execute("PRAGMA table_info(pipeline_runs)").fetchall()}
     for col_name, col_def in new_columns:

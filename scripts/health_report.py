@@ -846,6 +846,120 @@ def section_llm_features(w: ReportWriter, conn: sqlite3.Connection, logs_dir: Pa
     return stats
 
 
+def section_trend_formula(w: ReportWriter, conn: sqlite3.Connection) -> dict:
+    """Trend formula validation: velocity gate effectiveness, novelty distribution,
+    corpus entity count trend (Sprint 13, item 13.16).
+
+    Reads from trend_history table (requires Sprint 13 columns).
+    """
+    stats: dict = {}
+
+    w.print("Trend Formula Validation")
+    w.print("=" * 72)
+
+    # Check if trend_history has Sprint 13 columns
+    try:
+        conn.execute("SELECT velocity_gated FROM trend_history LIMIT 1")
+    except Exception:
+        w.print("  No Sprint 13 trend_history columns yet (run scoring after schema update)")
+        w.print()
+        return stats
+
+    # --- 1. Velocity gate effectiveness ---
+    try:
+        row = conn.execute(
+            """SELECT COUNT(*) as total,
+                      SUM(CASE WHEN velocity_gated = 1 THEN 1 ELSE 0 END) as gated
+               FROM trend_history
+               WHERE run_date = (SELECT MAX(run_date) FROM trend_history)"""
+        ).fetchone()
+        total = row["total"] or 0
+        gated = row["gated"] or 0
+        if total > 0:
+            pct = gated / total * 100
+            w.print(f"\n  Velocity Gate (latest run)")
+            w.print(f"    Entities scored:  {total}")
+            w.print(f"    Velocity gated:   {gated} ({pct:.0f}%)")
+            if pct > 80:
+                w.print(f"    WARN: >80% gated — min_mentions_for_velocity may be too aggressive")
+            elif pct < 5:
+                w.print(f"    INFO: <5% gated — gate has minimal effect")
+            else:
+                w.print(f"    OK")
+            stats["velocity_gate_pct"] = round(pct, 1)
+    except Exception:
+        pass
+
+    # --- 2. Novelty score distribution ---
+    try:
+        row = conn.execute(
+            """SELECT MIN(novelty) as min_n, MAX(novelty) as max_n,
+                      AVG(novelty) as avg_n,
+                      COUNT(*) as cnt
+               FROM trend_history
+               WHERE run_date = (SELECT MAX(run_date) FROM trend_history)
+                 AND novelty IS NOT NULL"""
+        ).fetchone()
+        if row and row["cnt"] and row["cnt"] > 0:
+            w.print(f"\n  Novelty Score Distribution (latest run, n={row['cnt']})")
+            w.print(f"    min={row['min_n']:.3f}  avg={row['avg_n']:.3f}  max={row['max_n']:.3f}")
+
+            # Quartile approximation
+            quartiles = conn.execute(
+                """SELECT novelty FROM trend_history
+                   WHERE run_date = (SELECT MAX(run_date) FROM trend_history)
+                     AND novelty IS NOT NULL
+                   ORDER BY novelty"""
+            ).fetchall()
+            if len(quartiles) >= 4:
+                n = len(quartiles)
+                q25 = quartiles[n // 4]["novelty"]
+                q50 = quartiles[n // 2]["novelty"]
+                q75 = quartiles[3 * n // 4]["novelty"]
+                w.print(f"    Q25={q25:.3f}  Q50={q50:.3f}  Q75={q75:.3f}")
+
+                if q75 - q25 < 0.05:
+                    w.print(f"    WARN: IQR < 0.05 — novelty scores are compressed")
+                else:
+                    w.print(f"    OK — good score spread")
+                stats["novelty_q25"] = round(q25, 3)
+                stats["novelty_q50"] = round(q50, 3)
+                stats["novelty_q75"] = round(q75, 3)
+
+            # Lambda from latest row
+            lambda_row = conn.execute(
+                """SELECT novelty_decay_lambda FROM trend_history
+                   WHERE run_date = (SELECT MAX(run_date) FROM trend_history)
+                     AND novelty_decay_lambda IS NOT NULL LIMIT 1"""
+            ).fetchone()
+            if lambda_row:
+                w.print(f"    Active λ: {lambda_row['novelty_decay_lambda']}")
+                stats["decay_lambda"] = lambda_row["novelty_decay_lambda"]
+    except Exception:
+        pass
+
+    # --- 3. Corpus entity count trend ---
+    try:
+        rows = conn.execute(
+            """SELECT run_date, corpus_entity_count
+               FROM trend_history
+               WHERE corpus_entity_count IS NOT NULL
+               GROUP BY run_date
+               ORDER BY run_date DESC
+               LIMIT 7"""
+        ).fetchall()
+        if rows:
+            w.print(f"\n  Corpus Entity Count (last {len(rows)} runs)")
+            for r in rows:
+                w.print(f"    {r['run_date']}  {r['corpus_entity_count']:>6} entities")
+            stats["corpus_latest"] = rows[0]["corpus_entity_count"]
+    except Exception:
+        pass
+
+    w.print()
+    return stats
+
+
 def section_selection_efficiency(w: ReportWriter, logs_dir: Path, n: int = 14) -> dict:
     """Article selection budget efficiency from recent pipeline logs.
 
@@ -1004,6 +1118,7 @@ def run_report(db_path: Path, days: int | None, summary_only: bool = False,
     section_quality_gates(w, conn)
     section_token_cost(w, conn, days)
     section_llm_features(w, conn, logs_dir)
+    section_trend_formula(w, conn)
     section_selection_efficiency(w, logs_dir)
     section_source_contribution(w, conn)
     section_source_freshness(w, conn)
