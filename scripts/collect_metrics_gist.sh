@@ -13,6 +13,13 @@ if [ -z "$PYTHON" ]; then
 fi
 echo "Using: $PYTHON"
 
+# Resolve domain: explicit env var → .env PREDICTOR_DOMAIN → default "ai"
+if [ -z "${DOMAIN:-}" ] && [ -f .env ]; then
+    _pred_domain=$(grep -E '^PREDICTOR_DOMAIN=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '[:space:]"'"'" 2>/dev/null || true)
+    if [ -n "$_pred_domain" ]; then
+        DOMAIN="$_pred_domain"
+    fi
+fi
 DOMAIN="${DOMAIN:-ai}"
 DB="data/db/${DOMAIN}.db"
 OUTDIR="data/metrics_snapshot_$(date +%Y%m%d_%H%M%S)"
