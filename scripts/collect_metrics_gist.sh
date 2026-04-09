@@ -5,6 +5,13 @@
 # Requires: python3, sqlite3, gh (GitHub CLI, authenticated)
 set -euo pipefail
 
+# Resolve project root (one level above this script)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Change to project root so all relative paths (data/db/, etc.) work correctly
+cd "$PROJECT_ROOT"
+
 # Find python interpreter (some servers only have python3)
 PYTHON=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || true)
 if [ -z "$PYTHON" ]; then
@@ -13,13 +20,16 @@ if [ -z "$PYTHON" ]; then
 fi
 echo "Using: $PYTHON"
 
-# Resolve domain: explicit env var → .env PREDICTOR_DOMAIN → default "ai"
-if [ -z "${DOMAIN:-}" ] && [ -f .env ]; then
-    # cut the value, then strip double-quotes, single-quotes, and whitespace
-    _pred_domain=$(grep -E '^PREDICTOR_DOMAIN=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '[:space:]' || true)
+# Resolve domain: explicit DOMAIN env → PREDICTOR_DOMAIN env → .env → default "ai"
+if [ -z "${DOMAIN:-}" ]; then
+    DOMAIN="${PREDICTOR_DOMAIN:-}"
+fi
+if [ -z "${DOMAIN:-}" ] && [ -f "$PROJECT_ROOT/.env" ]; then
+    _pred_domain=$(grep -E '^PREDICTOR_DOMAIN=' "$PROJECT_ROOT/.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '[:space:]' || true)
     [ -n "$_pred_domain" ] && DOMAIN="$_pred_domain"
 fi
 DOMAIN="${DOMAIN:-ai}"
+echo "Domain: $DOMAIN"
 DB="data/db/${DOMAIN}.db"
 OUTDIR="data/metrics_snapshot_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUTDIR"
