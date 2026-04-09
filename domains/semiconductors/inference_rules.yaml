@@ -1,47 +1,43 @@
 # Inference rules for Semiconductors & Chips domain
-# Applied by the relation_inference pipeline stage.
-# confidence_discount multiplies the base confidence of the source relations.
+# Applied by the relation_inference pipeline stage (src/infer/__init__.py).
+#
+# Schema: each rule must use antecedents[]/consequent format.
+# The engine supports LINEAR chains only (antecedent[0].target == antecedent[1].source).
+# Diamond patterns (two antecedents sharing a common target) are not supported in V1.
+#
+# Valid entity types: Company, Fab, Chip, Architecture, ProcessNode, Tool,
+#                     Topic, Person, Benchmark, Dataset, Tech, Regulation
 
-rules:
-
-  # If a Fab MANUFACTURES a Chip AND a Company DESIGNS that Chip,
-  # infer the Fab SUPPLIES the Company.
-  # e.g., TSMC manufactures H100 + NVIDIA designs H100 → TSMC supplies NVIDIA
-  - name: fab_supplies_designer
-    pattern:
-      - { subject: "?fab", rel: MANUFACTURES, object: "?chip" }
-      - { subject: "?company", rel: DESIGNS, object: "?chip" }
-    infer:
-      subject: "?fab"
-      rel: SUPPLIES
-      object: "?company"
-      kind: inferred
-    confidence_discount: 0.80
-
-  # If a Chip USES_PROCESS a ProcessNode AND a Fab FABRICATES that ProcessNode,
-  # infer the Fab MANUFACTURES the Chip.
-  # e.g., H100 uses N4 + TSMC fabricates N4 → TSMC manufactures H100
-  - name: fab_manufactures_via_process
-    pattern:
-      - { subject: "?chip", rel: USES_PROCESS, object: "?node" }
-      - { subject: "?fab", rel: FABRICATES, object: "?node" }
-    infer:
-      subject: "?fab"
-      rel: MANUFACTURES
-      object: "?chip"
-      kind: inferred
-    confidence_discount: 0.75
+inference_rules:
 
   # If Company A SUPPLIES Company B AND Company B SUPPLIES Company C,
-  # infer Company A DEPENDS_ON Company C (transitive supply chain dependency).
-  # e.g., ASML supplies TSMC + TSMC supplies NVIDIA → NVIDIA depends on ASML
+  # infer Company C DEPENDS_ON Company A (transitive supply chain).
+  # e.g., ASML SUPPLIES TSMC + TSMC SUPPLIES NVIDIA → NVIDIA DEPENDS_ON ASML
   - name: supply_chain_dependency
-    pattern:
-      - { subject: "?company_b", rel: SUPPLIES, object: "?company_c" }
-      - { subject: "?company_a", rel: SUPPLIES, object: "?company_b" }
-    infer:
-      subject: "?company_c"
+    description: >
+      Transitive supply chain: if A supplies B and B supplies C,
+      infer C depends on A (2-hop upstream dependency).
+    antecedents:
+      - source_type: Company
+        rel: SUPPLIES
+        target_type: Company
+      - source_type: Company
+        rel: SUPPLIES
+        target_type: Company
+    consequent:
       rel: DEPENDS_ON
-      object: "?company_a"
-      kind: inferred
-    confidence_discount: 0.65  # lower — 2-hop inference
+      source: "antecedent[1].target"   # C — the downstream company
+      target: "antecedent[0].source"   # A — the upstream supplier
+    confidence_discount: 0.65
+
+  # NOTE: The following rules are diamond patterns (both antecedents share a
+  # common *target*) which the V1 engine cannot express. Leaving as comments
+  # until the engine supports non-chain joins.
+  #
+  # fab_supplies_designer:
+  #   Fab MANUFACTURES Chip + Company DESIGNS Chip → Fab SUPPLIES Company
+  #   (both antecedents point TO Chip — diamond, not chain)
+  #
+  # fab_manufactures_via_process:
+  #   Chip USES_PROCESS Node + Fab FABRICATES Node → Fab MANUFACTURES Chip
+  #   (both antecedents point TO Node — diamond, not chain)
