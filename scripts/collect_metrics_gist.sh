@@ -15,10 +15,9 @@ echo "Using: $PYTHON"
 
 # Resolve domain: explicit env var → .env PREDICTOR_DOMAIN → default "ai"
 if [ -z "${DOMAIN:-}" ] && [ -f .env ]; then
-    _pred_domain=$(grep -E '^PREDICTOR_DOMAIN=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '[:space:]"'"'" 2>/dev/null || true)
-    if [ -n "$_pred_domain" ]; then
-        DOMAIN="$_pred_domain"
-    fi
+    # cut the value, then strip double-quotes, single-quotes, and whitespace
+    _pred_domain=$(grep -E '^PREDICTOR_DOMAIN=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '[:space:]' || true)
+    [ -n "$_pred_domain" ] && DOMAIN="$_pred_domain"
 fi
 DOMAIN="${DOMAIN:-ai}"
 DB="data/db/${DOMAIN}.db"
