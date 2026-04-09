@@ -17,9 +17,10 @@
 // When a new domain is added, add it here and it appears everywhere.
 // ---------------------------------------------------------------------------
 const KNOWN_DOMAINS = [
-  { slug: 'ai',        label: 'AI / ML',    title: 'AI Trend Graph' },
-  { slug: 'biosafety', label: 'Biosafety',  title: 'Biosafety Trend Graph' },
-  { slug: 'film',      label: 'Film',       title: 'Film & Indie Cinema Trend Graph' },
+  { slug: 'ai',            label: 'AI / ML',        title: 'AI Trend Graph' },
+  { slug: 'biosafety',     label: 'Biosafety',      title: 'Biosafety Trend Graph' },
+  { slug: 'film',          label: 'Film',           title: 'Film & Indie Cinema Trend Graph' },
+  { slug: 'semiconductors', label: 'Semiconductors', title: 'Semiconductor Trend Graph' },
 ];
 
 // ---------------------------------------------------------------------------
