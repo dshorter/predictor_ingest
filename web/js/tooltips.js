@@ -7,8 +7,10 @@
 
 const TOOLTIP_DELAY = 400; // ms before showing
 const TOOLTIP_OFFSET = 12; // px from cursor
+const TOOLTIP_HIDE_DELAY = 200; // ms grace period before hiding (lets cursor reach tooltip)
 
 let tooltipTimeout = null;
+let tooltipHideTimeout = null;
 let currentTooltipTarget = null;
 
 /**
@@ -21,6 +23,7 @@ function initializeTooltips(cy) {
   // Node hover - add .hover class for styling + show tooltip
   cy.on('mouseover', 'node', (e) => {
     clearTooltipTimeout();
+    clearHideTimeout();
     currentTooltipTarget = e.target;
     e.target.addClass('hover');
 
@@ -34,12 +37,13 @@ function initializeTooltips(cy) {
   cy.on('mouseout', 'node', (e) => {
     e.target.removeClass('hover');
     clearTooltipTimeout();
-    hideTooltip(tooltip);
+    scheduleHideTooltip(tooltip);
   });
 
   // Edge hover - add .hover class for styling + show tooltip
   cy.on('mouseover', 'edge', (e) => {
     clearTooltipTimeout();
+    clearHideTimeout();
     currentTooltipTarget = e.target;
     e.target.addClass('hover');
 
@@ -53,18 +57,28 @@ function initializeTooltips(cy) {
   cy.on('mouseout', 'edge', (e) => {
     e.target.removeClass('hover');
     clearTooltipTimeout();
-    hideTooltip(tooltip);
+    scheduleHideTooltip(tooltip);
   });
 
   // Hide on pan/zoom
   cy.on('pan zoom', () => {
     clearTooltipTimeout();
+    clearHideTimeout();
+    hideTooltip(tooltip);
+  });
+
+  // Keep tooltip visible while cursor is over it
+  tooltip.addEventListener('mouseenter', () => {
+    clearHideTimeout();
+  });
+
+  tooltip.addEventListener('mouseleave', () => {
     hideTooltip(tooltip);
   });
 }
 
 /**
- * Clear pending tooltip timeout
+ * Clear pending tooltip show timeout
  */
 function clearTooltipTimeout() {
   if (tooltipTimeout) {
@@ -72,6 +86,26 @@ function clearTooltipTimeout() {
     tooltipTimeout = null;
   }
   currentTooltipTarget = null;
+}
+
+/**
+ * Clear pending tooltip hide timeout
+ */
+function clearHideTimeout() {
+  if (tooltipHideTimeout) {
+    clearTimeout(tooltipHideTimeout);
+    tooltipHideTimeout = null;
+  }
+}
+
+/**
+ * Schedule tooltip hide after a grace period (lets cursor travel to tooltip)
+ */
+function scheduleHideTooltip(tooltip) {
+  clearHideTimeout();
+  tooltipHideTimeout = setTimeout(() => {
+    hideTooltip(tooltip);
+  }, TOOLTIP_HIDE_DELAY);
 }
 
 /**

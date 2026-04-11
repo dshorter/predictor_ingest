@@ -283,9 +283,8 @@ async function initializeApp() {
     // Decide data source: tour sample data for first-time visitors, live otherwise
     const urlParams = new URLSearchParams(window.location.search);
     const forceSample = urlParams.has('sample');
-    const tourCompleted = typeof isTourCompleted === 'function' && isTourCompleted();
 
-    if (forceSample || (!tourCompleted && !urlParams.has('domain'))) {
+    if (forceSample) {
       AppState.dataSource = 'tour-sample';
     } else {
       AppState.dataSource = 'live';
@@ -366,10 +365,10 @@ async function initializeApp() {
       // Initialize navigator minimap after layout is done
       initNavigator(AppState.cy);
 
-      // Guided tour — check after layout settles so nodes are positioned
-      if (typeof initTour === 'function') {
-        initTour();
-      }
+      // Guided tour disabled — uncomment to re-enable
+      // if (typeof initTour === 'function') {
+      //   initTour();
+      // }
     });
 
     // Update stats display
