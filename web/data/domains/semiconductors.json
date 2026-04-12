@@ -1,0 +1,33 @@
+{
+  "domain": "semiconductors",
+  "title": "Semiconductor Trend Graph",
+  "titleShort": "Chip Trends",
+  "entityTypes": [
+    "Company", "Fab", "Chip", "Architecture", "ProcessNode",
+    "Packaging", "Material", "Tool", "Policy", "Org",
+    "Person", "Event", "Location", "Topic", "Other"
+  ],
+  "typeGroups": [
+    { "label": "Industry", "types": ["Company", "Fab", "Org"] },
+    { "label": "Silicon", "types": ["Chip", "Architecture", "ProcessNode"] },
+    { "label": "Materials & Packaging", "types": ["Packaging", "Material", "Tool"] },
+    { "label": "Context", "types": ["Policy", "Person", "Event", "Location", "Topic", "Other"] }
+  ],
+  "typeColors": {
+    "Company":     "#4A90D9",
+    "Fab":         "#0D9488",
+    "Chip":        "#7C3AED",
+    "Architecture":"#6366F1",
+    "ProcessNode": "#8B5CF6",
+    "Packaging":   "#F59E0B",
+    "Material":    "#D97706",
+    "Tool":        "#EAB308",
+    "Policy":      "#F43F5E",
+    "Org":         "#0EA5E9",
+    "Person":      "#50B4A8",
+    "Event":       "#F97316",
+    "Location":    "#0EA5E9",
+    "Topic":       "#64748B",
+    "Other":       "#A1A1AA"
+  }
+}
