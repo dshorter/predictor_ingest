@@ -113,6 +113,12 @@ def _sync_fallback(
             continue
 
         text = Path(text_path).read_text(encoding="utf-8")
+        # Truncate very long articles to keep output within token budget.
+        # At ~3 chars/token, 12000 chars ≈ 4000 input tokens, leaving
+        # ample headroom for a 16384-token output.
+        MAX_INPUT_CHARS = 12000
+        if len(text) > MAX_INPUT_CHARS:
+            text = text[:MAX_INPUT_CHARS]
         doc = {
             "docId": doc_id,
             "title": row["title"] or "",
@@ -126,7 +132,7 @@ def _sync_fallback(
         try:
             response = client.messages.create(
                 model=model,
-                max_tokens=8192,
+                max_tokens=16384,
                 messages=[{"role": "user", "content": build_extraction_prompt(doc, EXTRACTOR_VERSION)}],
                 output_config={
                     "format": {
