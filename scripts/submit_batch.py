@@ -141,7 +141,7 @@ def submit(
             "custom_id": doc["docId"],
             "params": {
                 "model": model,
-                "max_tokens": 8192,
+                "max_tokens": 16384,
                 "messages": [{"role": "user", "content": build_extraction_prompt(doc, EXTRACTOR_VERSION)}],
                 "output_config": {
                     "format": {
