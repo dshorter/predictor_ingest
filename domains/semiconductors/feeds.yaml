@@ -72,26 +72,26 @@ feeds:
   - name: "EE Times"
     url: "https://www.eetimes.com/feed/"
     type: rss
-    enabled: true
+    enabled: false  # DISABLED 2026-04-15: feed unreachable per metrics gist
     limit: 15
     tier: 2
     signal: primary
     # Design and tooling coverage. EDA, FPGA, embedded, automotive chips.
     # Fills gaps that deep-analysis newsletters skip. Good on Cadence/Synopsys
     # news and design methodology trends.
-    # [VERIFY] feed accessibility from VPS.
+    # STATUS: unreachable since at least 2026-04-07. Re-evaluate if URL changes.
 
   - name: "The Register Hardware"
     url: "https://www.theregister.com/hardware/semiconductors/headlines.atom"
     type: atom
-    enabled: true
+    enabled: false  # DISABLED 2026-04-15: feed unreachable per metrics gist
     limit: 15
     tier: 2
     signal: echo
     # Good on supply chain, geopolitics, and export control news.
     # Different editorial angle from US trade press — catches UK/EU policy
     # angles and ASML/TSMC stories from a non-US perspective.
-    # [VERIFY] feed URL — may need /headlines.atom or /feed path.
+    # STATUS: unreachable since at least 2026-04-07. Re-evaluate URL path.
 
   - name: "SemiWiki"
     url: "https://semiwiki.com/feed/"
@@ -128,12 +128,12 @@ feeds:
   - name: "Real World Tech"
     url: "https://www.realworldtech.com/feed/"
     type: rss
-    enabled: false  # [VERIFY] site may be low-activity — confirm before enabling
+    enabled: true  # Enabled 2026-04-15: phase 2 source. Low volume, high signal.
     limit: 5
     tier: 2
     signal: commentary
     # David Kanter. Extremely deep technical analysis of CPU/GPU architecture.
-    # Low volume but authoritative. Enable once feed accessibility confirmed.
+    # Low volume but authoritative. If feed returns errors, disable and revisit.
 
   # --- Bluesky: Keyword search ---
   # Semiconductor practitioners are active on Bluesky post-Twitter migration.
@@ -141,7 +141,7 @@ feeds:
 
   - name: "Bluesky Semiconductors"
     type: bluesky
-    enabled: false  # Enable once BSKY credentials confirmed on VPS
+    enabled: true  # Enabled 2026-04-15: phase 2. Falls back to public API if no creds.
     tier: 2
     signal: community
     limit: 20
@@ -161,7 +161,7 @@ feeds:
 
   - name: "Reddit r/semiconductors"
     type: reddit
-    enabled: false  # pending credentials
+    enabled: true  # Enabled 2026-04-15: phase 2. Falls back to unauth JSON if no creds.
     tier: 2
     signal: community
     subreddit: "semiconductors"
@@ -173,7 +173,7 @@ feeds:
 
   - name: "Reddit r/chipdesign"
     type: reddit
-    enabled: false  # pending credentials
+    enabled: true  # Enabled 2026-04-15: phase 2. Falls back to unauth JSON if no creds.
     tier: 2
     signal: community
     subreddit: "chipdesign"
@@ -181,3 +181,59 @@ feeds:
     limit: 10
     # Practitioners: RTL designers, layout engineers, verification engineers.
     # Catches EDA toolchain trends and design methodology shifts early.
+
+  # --- Phase 2: Structured signals (multi-signal fusion) ---
+  # Non-RSS sources that provide commercialization, governance, and IP signals.
+  # See docs/methodology/deep-research-report.md §Ingestion methods beyond RSS
+  # and docs/methodology/research/vetting.txt §8 (CB Insights multi-signal fusion).
+
+  - name: "SEC EDGAR Semiconductors"
+    type: edgar
+    enabled: true
+    tier: 2
+    signal: primary
+    limit: 20
+    companies:
+      - {name: "Intel Corporation", cik: "0000050863"}
+      - {name: "NVIDIA Corporation", cik: "0001045810"}
+      - {name: "Advanced Micro Devices", cik: "0000002488"}
+      - {name: "Qualcomm Inc", cik: "0000804328"}
+      - {name: "Taiwan Semiconductor (TSMC)", cik: "0001046179"}
+      - {name: "Texas Instruments", cik: "0000097476"}
+      - {name: "Broadcom Inc", cik: "0001649338"}
+    filing_types: ["10-K", "10-Q", "8-K", "20-F", "6-K"]
+    # SEC filings: quarterly/annual reports, material events.
+    # TSMC files 20-F/6-K as a foreign private issuer.
+    # Captures capacity guidance, capex signals, yield commentary,
+    # and supply chain commitments not found in news coverage.
+    # Rate limit: 10 req/sec. Requires User-Agent with contact email.
+    # Env: SEC_EDGAR_EMAIL (required by SEC fair access policy).
+
+  - name: "USPTO Semiconductor Patents"
+    type: patents
+    enabled: true
+    tier: 2
+    signal: primary
+    limit: 25
+    cpc_codes:
+      - "H01L"   # Semiconductor devices; electric solid-state devices
+      - "H10B"   # Electronic memory devices (3D NAND, HBM)
+      - "H01L21"  # Processes for manufacture of semiconductors
+      - "H01L23"  # Semiconductor packaging (CoWoS, chiplet interconnects)
+      - "H01L25"  # Assemblies of multiple semiconductor devices (MCM, chiplets)
+    keywords:
+      - "extreme ultraviolet lithography"
+      - "gate all around"
+      - "chiplet"
+      - "high bandwidth memory"
+    assignees:
+      - "Taiwan Semiconductor Manufacturing"
+      - "Intel Corporation"
+      - "Samsung Electronics"
+      - "ASML"
+      - "NVIDIA"
+      - "Advanced Micro Devices"
+    # USPTO PatentsView API: process node patents, packaging innovations,
+    # EUV lithography IP, chiplet interconnect designs.
+    # Captures IP filings 12-18 months before product announcements.
+    # Rate limit: 45 req/min. Env: USPTO_API_KEY (optional, higher limits).
