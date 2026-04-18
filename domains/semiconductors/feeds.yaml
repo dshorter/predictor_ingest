@@ -112,14 +112,20 @@ feeds:
     url: "https://www.tomshardware.com/feeds/all"
     type: rss
     enabled: true
-    limit: 10
+    limit: 3
     tier: 2
     signal: echo
     # Consumer-facing but high volume on GPU benchmarks, product launches.
     # Primary value: early product announcement velocity and benchmark
     # comparisons that name specific chip variants (H100 SXM5, RX 7900 XTX).
-    # Filter aggressively in selection scoring — most content is reviews.
-    # [VERIFY] feed URL from VPS.
+    #
+    # LIMIT REDUCED 2026-04-18: 10 → 3. Across the first 10 days of operation
+    # Tom's Hardware supplied 80/172 docs (40% of corpus) and 2,047/3,102
+    # entities (66% of total). The review-specific entities (variant SKUs,
+    # benchmark configs, test rigs) churn per-article and never appear in
+    # a second doc, inflating the denominator of the overlap metric while
+    # contributing nothing to persistence. See
+    # docs/methodology/semiconductor-experiment-10day-findings.md.
 
   # --- Tier 2: Policy & geopolitics ---
   # Export controls and CHIPS Act are slow-moving but high-persistence
@@ -134,6 +140,118 @@ feeds:
     signal: commentary
     # David Kanter. Extremely deep technical analysis of CPU/GPU architecture.
     # Low volume but authoritative. Enable once feed accessibility confirmed.
+
+  # --- Tier 1: Primary-source filings & earnings (HIGH-PERSISTENCE PLACEHOLDER) ---
+  # Motivation: after 10 days the corpus plateaued at ~20% entity overlap
+  # (target 30%). Diagnosis: the current stack is news-weighted — trade press
+  # churns through product SKUs but rarely re-names the underlying corporate
+  # and supply-chain entities. Earnings calls and 10-K filings re-assert the
+  # SAME company / fab / customer relationships quarter after quarter, giving
+  # the graph a persistence layer it currently lacks. None of these are
+  # plain RSS — each needs a connector. See:
+  #   - docs/methodology/semiconductor-experiment-10day-findings.md
+  #   - docs/methodology/deep-research-report.md (EDGAR notes)
+  #
+  # Status: DISABLED placeholders. Keep in the file so the ingestion-strategy
+  # discussion is visible in one place; wire up the connectors in a later sprint.
+  #
+  # Connector types needed (none exist yet):
+  #   type: edgar       — SEC EDGAR RSS per-CIK (10-K, 10-Q, 8-K filings)
+  #   type: earnings    — earnings call transcript aggregator
+  #   type: ir_rss      — company investor-relations news RSS
+
+  - name: "SEC EDGAR — NVIDIA filings"
+    type: edgar
+    enabled: false
+    tier: 1
+    signal: primary
+    cik: "0001045810"
+    forms: ["10-K", "10-Q", "8-K"]
+    limit: 10
+    # NVIDIA's 10-Ks name TSMC fab nodes, HBM suppliers (Micron/SK Hynix/Samsung),
+    # and CoWoS packaging capacity. These are the "slow-moving" entities that
+    # anchor the supply chain — exactly the persistence layer the corpus lacks.
+
+  - name: "SEC EDGAR — Intel filings"
+    type: edgar
+    enabled: false
+    tier: 1
+    signal: primary
+    cik: "0000050863"
+    forms: ["10-K", "10-Q", "8-K"]
+    limit: 10
+    # Intel Foundry roadmap, process node milestones (18A, 14A), customer wins.
+
+  - name: "SEC EDGAR — AMD filings"
+    type: edgar
+    enabled: false
+    tier: 1
+    signal: primary
+    cik: "0000002488"
+    forms: ["10-K", "10-Q", "8-K"]
+    limit: 10
+
+  - name: "SEC EDGAR — TSMC filings (20-F)"
+    type: edgar
+    enabled: false
+    tier: 1
+    signal: primary
+    cik: "0001046179"
+    forms: ["20-F", "6-K"]
+    limit: 10
+    # TSMC is a foreign private issuer — 20-F annual, 6-K interim.
+    # Names every customer segment, capacity by node, Arizona fab progress.
+
+  - name: "SEC EDGAR — ASML filings (20-F)"
+    type: edgar
+    enabled: false
+    tier: 1
+    signal: primary
+    cik: "0000937966"
+    forms: ["20-F", "6-K"]
+    limit: 10
+    # EUV/High-NA tool shipments, customer concentration, China export impact.
+
+  - name: "NVIDIA IR News"
+    type: ir_rss
+    enabled: false
+    tier: 1
+    signal: primary
+    url: "https://investor.nvidia.com/rss/news-releases.xml"
+    limit: 10
+    # [VERIFY] URL. Press-release feed — product launches, partnerships,
+    # earnings guidance. Higher cadence than 8-K, broader content.
+
+  - name: "Intel IR News"
+    type: ir_rss
+    enabled: false
+    tier: 1
+    signal: primary
+    url: "https://www.intc.com/rss/news-releases.xml"
+    limit: 10
+    # [VERIFY] URL.
+
+  - name: "AMD IR News"
+    type: ir_rss
+    enabled: false
+    tier: 1
+    signal: primary
+    url: "https://ir.amd.com/rss/news-releases.xml"
+    limit: 10
+    # [VERIFY] URL.
+
+  - name: "Seeking Alpha — Semiconductor Transcripts"
+    type: earnings
+    enabled: false
+    tier: 1
+    signal: primary
+    tickers: ["NVDA", "INTC", "AMD", "TSM", "ASML", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC"]
+    limit: 15
+    # Quarterly transcripts. Highest entity-density documents in the entire
+    # stack — one TSMC call names dozens of customers, nodes, and partners.
+    # Seeking Alpha transcripts are paywalled but headlines + summaries are
+    # free. Full text requires alternative sources (company IR pages host
+    # their own transcripts ~1 week after the call).
 
   # --- Bluesky: Keyword search ---
   # Semiconductor practitioners are active on Bluesky post-Twitter migration.
