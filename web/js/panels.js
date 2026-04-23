@@ -309,8 +309,9 @@ function updateCyContainer() {
  *
  * @param {string} nodeId  - Cytoscape node ID
  * @param {object} opts
- * @param {boolean} opts.zoom        - Animate camera to the node (default false)
- * @param {boolean} opts.updatePanel - Open/replace the detail panel (default true)
+ * @param {boolean|'neighborhood'} opts.zoom  - false: no zoom; true: zoom to node (2x);
+ *                                              'neighborhood': fit camera to closed neighborhood
+ * @param {boolean} opts.updatePanel          - Open/replace the detail panel (default true)
  */
 function navigateToNode(nodeId, { zoom = false, updatePanel = true } = {}) {
   const cy = window.cy;
@@ -327,7 +328,9 @@ function navigateToNode(nodeId, { zoom = false, updatePanel = true } = {}) {
   highlightNeighborhood(cy, node);
 
   // 3. Optionally zoom
-  if (zoom) {
+  if (zoom === 'neighborhood') {
+    zoomToNeighborhood(node);
+  } else if (zoom) {
     zoomToNode(node);
   }
 
@@ -372,6 +375,19 @@ function zoomToNode(node) {
   window.cy.animate({
     center: { x: pos.x - offset, y: pos.y },
     zoom: targetZoom,
+    duration: 300
+  });
+}
+
+/**
+ * Fit the camera to a node's closed neighborhood (node + neighbors + connecting edges).
+ * Used by double-click to "zoom to neighborhood" rather than to a single node.
+ */
+function zoomToNeighborhood(node) {
+  if (!node || !window.cy) return;
+  const neighborhood = node.closedNeighborhood();
+  window.cy.animate({
+    fit: { eles: neighborhood, padding: 50 },
     duration: 300
   });
 }

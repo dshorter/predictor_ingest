@@ -441,10 +441,13 @@ function initializeEventHandlers(cy) {
     }
   });
 
-  // Double-click node: expand hidden neighbors, then navigate with zoom
+  // Double-click node: fit camera to the neighborhood + highlight it + open panel.
+  // Reveal any filtered-out neighbors inline so they're included in the fit,
+  // but do NOT animate here — navigateToNode's zoomToNeighborhood owns the animation.
   cy.on('dbltap', 'node', (e) => {
-    expandNeighbors(e.target);
-    navigateToNode(e.target.id(), { zoom: true, updatePanel: true });
+    const node = e.target;
+    node.closedNeighborhood().removeClass('filtered-out').show();
+    navigateToNode(node.id(), { zoom: 'neighborhood', updatePanel: true });
   });
 
   // Double-click background: fit all
