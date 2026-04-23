@@ -149,6 +149,13 @@ function buildTestHTML() {
     removeClass(cls) { this._eles.forEach(e => e.removeClass(cls)); return this; }
     unselect() { this._eles.forEach(e => e._selected = false); return this; }
     select() { this._eles.forEach(e => e._selected = true); return this; }
+    show() { this._eles.forEach(e => e.removeClass('filtered-out')); return this; }
+    edges() {
+      return new EleCollection(this._eles.filter(e => e._group === 'edges'));
+    }
+    nodes() {
+      return new EleCollection(this._eles.filter(e => e._group === 'nodes'));
+    }
     edgesWith(other) {
       const ids = new Set(other._eles.map(e => e._data.id));
       return new EleCollection(_edges.filter(e =>
@@ -207,6 +214,24 @@ function buildTestHTML() {
       }
       return new EleCollection(neighbors);
     }
+    closedNeighborhood() {
+      // Self + neighbor nodes + connecting edges (matches Cytoscape semantics)
+      const connectedIds = new Set();
+      const connectedEdges = [];
+      _edges.forEach(e => {
+        if (e._data.source === this._data.id) {
+          connectedIds.add(e._data.target);
+          connectedEdges.push(e);
+        }
+        if (e._data.target === this._data.id) {
+          connectedIds.add(e._data.source);
+          connectedEdges.push(e);
+        }
+      });
+      const neighbors = _nodes.filter(n => connectedIds.has(n._data.id));
+      return new EleCollection([this, ...neighbors, ...connectedEdges]);
+    }
+    show() { this._classes.delete('filtered-out'); return this; }
     emit(event) {
       const handlers = _handlers[event + '-' + this._group] || [];
       handlers.forEach(fn => fn({ target: this }));
@@ -287,8 +312,17 @@ function formatDocId(id) { return id || ''; }
 function extractDomain(url) { if (!url) return ''; try { return new URL(url).hostname; } catch { return ''; } }
 function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 function truncateLabel(s, n) { return s && s.length > n ? s.slice(0,n) + '…' : (s || ''); }
-function highlightNeighborhood() {}
-function clearNeighborhoodHighlight() {}
+// Mirrors app.js — defined here so dbltap tests can assert dimming
+function highlightNeighborhood(cy, node) {
+  if (cy.nodes('.search-match').length > 0) return;
+  const neighborhood = node.closedNeighborhood();
+  cy.elements().addClass('neighborhood-dimmed');
+  neighborhood.removeClass('neighborhood-dimmed');
+  neighborhood.edges().removeClass('neighborhood-dimmed');
+}
+function clearNeighborhoodHighlight(cy) {
+  cy.elements().removeClass('neighborhood-dimmed');
+}
 function announceToScreenReader(msg) {
   const el = document.getElementById('sr-announcer');
   if (el) el.textContent = msg;
@@ -323,6 +357,14 @@ var prefersReducedMotion = true; // skip animations in tests
     edge.select();
     clearNeighborhoodHighlight(cy);
     openEvidencePanel(edge);
+  });
+
+  // Node dbltap → zoom to neighborhood + highlight + open panel
+  // (mirrors app.js initializeEventHandlers)
+  cy.on('dbltap', 'node', (e) => {
+    const node = e.target;
+    node.closedNeighborhood().removeClass('filtered-out').show();
+    navigateToNode(node.id(), { zoom: 'neighborhood', updatePanel: true });
   });
 
   // Initialize panel close buttons
@@ -696,5 +738,123 @@ test.describe('Zoom Offset with Panel Open (8B.4)', () => {
 
     // With no panel open, center.x should equal node.x (no offset)
     expect(result.animate.center.x).toBe(result.nodeX);
+  });
+});
+
+
+// =========================================================================
+//  6. Double-Click: Zoom to Neighborhood
+// =========================================================================
+//
+// Regression coverage for the "double-click should zoom to the neighborhood
+// AND highlight it" behavior. Previously dbltap fired two conflicting
+// animations (fit-neighborhood then zoom-to-node-2x); the second overrode
+// the first so the user saw a single-node zoom. The fix routes everything
+// through navigateToNode({zoom:'neighborhood'}) which owns the single animation.
+
+test.describe('Double-Click: Zoom to Neighborhood', () => {
+
+  test('dbltap on node triggers a fit animation (not a center+zoom animation)', async ({ page }) => {
+    await loadApp(page);
+
+    const result = await page.evaluate(() => {
+      window._lastCyAnimate = null;
+      window.cy.getElementById('org:apex-studios').emit('dbltap');
+      return window._lastCyAnimate;
+    });
+
+    expect(result).not.toBeNull();
+    // zoom-to-neighborhood uses { fit: { eles, padding } }, NOT { center, zoom }
+    expect(result.fit).toBeDefined();
+    expect(result.fit.eles).toBeDefined();
+    expect(result.center).toBeUndefined();
+    expect(result.zoom).toBeUndefined();
+  });
+
+  test('dbltap fits to the closed neighborhood (self + neighbors + edges)', async ({ page }) => {
+    await loadApp(page);
+
+    const count = await page.evaluate(() => {
+      window._lastCyAnimate = null;
+      window.cy.getElementById('org:apex-studios').emit('dbltap');
+      // closedNeighborhood includes the node itself, its neighbors, and their connecting edges.
+      // For apex-studios in the fixture that's clearly > 1 element.
+      return window._lastCyAnimate.fit.eles.length;
+    });
+
+    expect(count).toBeGreaterThan(1);
+  });
+
+  test('dbltap applies neighborhood-dimmed to non-neighbor nodes', async ({ page }) => {
+    await loadApp(page);
+
+    const dimming = await page.evaluate(() => {
+      const cy = window.cy;
+      const target = cy.getElementById('org:apex-studios');
+      target.emit('dbltap');
+
+      const neighborhoodIds = new Set(
+        target.closedNeighborhood()._eles.map(e => e._data.id)
+      );
+
+      let dimmedOutside = 0;
+      let dimmedInside = 0;
+      cy.elements().forEach(el => {
+        const inNeighborhood = neighborhoodIds.has(el._data.id);
+        if (el.hasClass('neighborhood-dimmed')) {
+          if (inNeighborhood) dimmedInside++;
+          else dimmedOutside++;
+        }
+      });
+      return { dimmedInside, dimmedOutside };
+    });
+
+    // Non-neighbors should be dimmed; the neighborhood itself should NOT be dimmed.
+    expect(dimming.dimmedOutside).toBeGreaterThan(0);
+    expect(dimming.dimmedInside).toBe(0);
+  });
+
+  test('dbltap opens the detail panel for the target node', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      window.cy.getElementById('org:apex-studios').emit('dbltap');
+    });
+    await expect(page.locator('#detail-panel')).not.toHaveClass(/hidden/);
+    const text = await page.locator('#detail-content').textContent();
+    expect(text).toContain('Apex Studios');
+  });
+
+  test('dbltap selects the target node', async ({ page }) => {
+    await loadApp(page);
+    const selected = await page.evaluate(() => {
+      const node = window.cy.getElementById('org:apex-studios');
+      node.emit('dbltap');
+      return node._selected;
+    });
+    expect(selected).toBe(true);
+  });
+
+  test('dbltap reveals filtered-out neighbors so they are included in the fit', async ({ page }) => {
+    await loadApp(page);
+
+    const result = await page.evaluate(() => {
+      const cy = window.cy;
+      const target = cy.getElementById('org:apex-studios');
+      // Pre-filter: hide every neighbor of apex-studios
+      target.closedNeighborhood()._eles
+        .filter(e => e._data.id !== target._data.id)
+        .forEach(e => e.addClass('filtered-out'));
+
+      const hiddenBefore = cy.elements().filter(e => e.hasClass('filtered-out')).length;
+
+      target.emit('dbltap');
+
+      const hiddenAfter = cy.elements().filter(e => e.hasClass('filtered-out')).length;
+      return { hiddenBefore, hiddenAfter };
+    });
+
+    expect(result.hiddenBefore).toBeGreaterThan(0);
+    // dbltap must un-hide the neighborhood so they're visible for the fit
+    expect(result.hiddenAfter).toBeLessThan(result.hiddenBefore);
   });
 });
