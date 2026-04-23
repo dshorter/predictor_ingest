@@ -858,3 +858,148 @@ test.describe('Double-Click: Zoom to Neighborhood', () => {
     expect(result.hiddenAfter).toBeLessThan(result.hiddenBefore);
   });
 });
+
+
+// =========================================================================
+//  7. Single Tap: Node Selection + Neighborhood Highlight
+// =========================================================================
+//
+// Single-click must highlight the neighborhood (dim non-neighbors, keep the
+// closed neighborhood lit) and select the node — without zooming.
+
+test.describe('Single Tap: Select + Highlight Neighborhood', () => {
+
+  test('tap selects only the target node', async ({ page }) => {
+    await loadApp(page);
+    const result = await page.evaluate(() => {
+      const cy = window.cy;
+      const target = cy.getElementById('org:apex-studios');
+      target.emit('tap');
+      const selected = [];
+      cy.elements().forEach(el => { if (el._selected) selected.push(el._data.id); });
+      return selected;
+    });
+    expect(result).toEqual(['org:apex-studios']);
+  });
+
+  test('tap dims non-neighbors and lights the closed neighborhood', async ({ page }) => {
+    await loadApp(page);
+
+    const dimming = await page.evaluate(() => {
+      const cy = window.cy;
+      const target = cy.getElementById('org:apex-studios');
+      target.emit('tap');
+
+      const neighborhoodIds = new Set(
+        target.closedNeighborhood()._eles.map(e => e._data.id)
+      );
+
+      let dimmedInside = 0, dimmedOutside = 0, litOutside = 0;
+      cy.elements().forEach(el => {
+        const inNeighborhood = neighborhoodIds.has(el._data.id);
+        const dimmed = el.hasClass('neighborhood-dimmed');
+        if (dimmed && inNeighborhood) dimmedInside++;
+        if (dimmed && !inNeighborhood) dimmedOutside++;
+        if (!dimmed && !inNeighborhood) litOutside++;
+      });
+      return { dimmedInside, dimmedOutside, litOutside };
+    });
+
+    expect(dimming.dimmedInside).toBe(0);
+    expect(dimming.dimmedOutside).toBeGreaterThan(0);
+    expect(dimming.litOutside).toBe(0);
+  });
+
+  test('tap does NOT trigger a camera animation (no zoom on single-click)', async ({ page }) => {
+    await loadApp(page);
+    const animate = await page.evaluate(() => {
+      window._lastCyAnimate = null;
+      window.cy.getElementById('org:apex-studios').emit('tap');
+      return window._lastCyAnimate;
+    });
+    expect(animate).toBeNull();
+  });
+
+  test('tapping a second node repaints highlight on the new neighborhood', async ({ page }) => {
+    await loadApp(page);
+
+    const result = await page.evaluate(() => {
+      const cy = window.cy;
+      cy.getElementById('org:apex-studios').emit('tap');
+
+      const second = cy.getElementById('org:nova-labs');
+      second.emit('tap');
+
+      const secondIds = new Set(
+        second.closedNeighborhood()._eles.map(e => e._data.id)
+      );
+
+      let dimmedInside = 0, dimmedOutside = 0;
+      cy.elements().forEach(el => {
+        if (!el.hasClass('neighborhood-dimmed')) return;
+        if (secondIds.has(el._data.id)) dimmedInside++;
+        else dimmedOutside++;
+      });
+
+      const apexStillSelected = cy.getElementById('org:apex-studios')._selected;
+      const secondSelected = second._selected;
+
+      return { dimmedInside, dimmedOutside, apexStillSelected, secondSelected };
+    });
+
+    // New neighborhood lit, stale dimming cleared, selection moved to second node.
+    expect(result.dimmedInside).toBe(0);
+    expect(result.dimmedOutside).toBeGreaterThan(0);
+    expect(result.apexStillSelected).toBe(false);
+    expect(result.secondSelected).toBe(true);
+  });
+
+  test('background tap clears all neighborhood dimming', async ({ page }) => {
+    await loadApp(page);
+
+    const result = await page.evaluate(() => {
+      const cy = window.cy;
+      cy.getElementById('org:apex-studios').emit('tap');
+      const dimmedBefore = cy.elements().filter(e => e.hasClass('neighborhood-dimmed')).length;
+
+      // Background tap is the raw 'tap' event with target === cy; the harness
+      // wires node taps only, so invoke the handler path directly.
+      clearNeighborhoodHighlight(cy);
+
+      const dimmedAfter = cy.elements().filter(e => e.hasClass('neighborhood-dimmed')).length;
+      return { dimmedBefore, dimmedAfter };
+    });
+
+    expect(result.dimmedBefore).toBeGreaterThan(0);
+    expect(result.dimmedAfter).toBe(0);
+  });
+
+  test('closed neighborhood includes connecting edges, not just nodes', async ({ page }) => {
+    await loadApp(page);
+
+    const result = await page.evaluate(() => {
+      const cy = window.cy;
+      const target = cy.getElementById('org:apex-studios');
+      target.emit('tap');
+
+      const neighborhoodIds = new Set(
+        target.closedNeighborhood()._eles.map(e => e._data.id)
+      );
+
+      let litEdges = 0, dimmedEdges = 0;
+      cy.edges().forEach(edge => {
+        const connectsNeighborhood =
+          neighborhoodIds.has(edge._data.source) &&
+          neighborhoodIds.has(edge._data.target);
+        if (!connectsNeighborhood) return;
+        if (edge.hasClass('neighborhood-dimmed')) dimmedEdges++;
+        else litEdges++;
+      });
+      return { litEdges, dimmedEdges };
+    });
+
+    // Every edge inside the closed neighborhood must be lit (i.e. undimmed).
+    expect(result.litEdges).toBeGreaterThan(0);
+    expect(result.dimmedEdges).toBe(0);
+  });
+});
