@@ -42,9 +42,8 @@ web/data/graphs/live/
 
 # Node.js (Playwright test dependencies)
 node_modules/
-package.json
-package-lock.json
 test-results/
+playwright-report/
 
 # Editors and OS files
 .vscode/

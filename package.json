@@ -1,0 +1,13 @@
+{
+  "name": "predictor-ingest-web-tests",
+  "private": true,
+  "description": "Playwright web tests for the Cytoscape.js client. Python pipeline lives alongside; this file only governs JS test deps.",
+  "scripts": {
+    "test:web": "playwright test --config=tests/web/playwright.config.js --reporter=list",
+    "test:web:smoke": "playwright test tests/web/smoke.spec.js --config=tests/web/playwright.config.js --reporter=list",
+    "test:web:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
