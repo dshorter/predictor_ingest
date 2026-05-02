@@ -203,6 +203,62 @@ PYTHONPATH=src pytest tests/test_db.py::TestDateRangeQueries tests/test_graph.py
 
 ---
 
+## Freshness Anchor: `today` vs `latest`
+
+The export's `end_date` is normally pinned to the run date (today). For live
+domains updated daily this is correct: the 30-day rolling window tracks
+real-world recency.
+
+When a domain is **paused for demo purposes** (no daily ingestion), the rolling
+window slides past the most recent article after ~30 days and the graph empties
+out. The freshness anchor toggle prevents this by pinning `end_date` to
+`MAX(documents.published_at)` — the freshest article actually in the corpus —
+instead of today.
+
+### Configuring per domain
+
+In `domains/<slug>/domain.yaml`:
+
+```yaml
+freshness_anchor: latest   # default: today
+```
+
+Live domains can omit the field entirely. Demo / archived domains set it to
+`latest`.
+
+### CLI override
+
+`scripts/run_export.py` accepts `--anchor today|latest`. The explicit flag wins
+over the domain profile setting; if neither is given, defaults to `today`.
+
+```bash
+python scripts/run_export.py --domain biosafety --anchor latest
+```
+
+When `--anchor latest` is active and at least one document has a
+`published_at`, the export prints:
+
+```
+Anchor=latest: end_date pinned to 2025-08-15 (MAX documents.published_at)
+```
+
+### Frontend behavior
+
+The exported `meta.dateRange` always reflects what was actually written. The
+web client (`web/js/graph.js handleGraphMeta`) detects when `dateRange.end` is
+more than 3 days behind today and:
+
+1. Sets `AppState.anchorDate = dateRange.end` so the 7d/30d/90d preset buttons
+   anchor to the data's latest article (otherwise the default 30d filter would
+   filter the snapshot away).
+2. Appends `(snapshot)` to the toolbar's date-range display, with a tooltip
+   explaining the domain isn't currently being updated.
+
+The 3-day threshold tolerates normal weekend gaps without flagging a live
+domain as a snapshot.
+
+---
+
 ## Future Considerations
 
 - **Sliding window in daily cron.** The `Makefile` `export` target should
