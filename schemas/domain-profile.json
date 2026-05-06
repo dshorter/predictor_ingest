@@ -226,6 +226,13 @@
       "description": "Entity names that are too generic for the domain and should be suppressed during extraction. Case-insensitive matching."
     },
 
+    "freshness_anchor": {
+      "type": "string",
+      "enum": ["today", "latest"],
+      "default": "today",
+      "description": "How the export's date window is anchored. 'today' (default) uses the run date as end_date — correct for live domains updated daily. 'latest' pins end_date to MAX(documents.published_at) so the graph stays populated for demo purposes when the domain is paused or only updated periodically."
+    },
+
     "prompts": {
       "type": "object",
       "required": ["dir"],

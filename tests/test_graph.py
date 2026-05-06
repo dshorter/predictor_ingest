@@ -779,3 +779,109 @@ class TestDateFiltering:
             assert data["meta"]["dateRange"]["start"] == "2026-01-01"
             assert data["meta"]["dateRange"]["end"] == "2026-02-12"
         conn.close()
+
+
+class TestRunExportAnchorLatest:
+    """Integration tests for run_export.py --anchor latest.
+
+    Verifies the freshness-anchor toggle that pins the export window's end_date
+    to MAX(documents.published_at) instead of today, so paused-domain demos
+    don't empty out as the 30-day rolling window slides past the data.
+    """
+
+    def _seed_db(self, db_path: Path, latest_pub: str = "2025-08-15"):
+        """Seed a DB with documents whose latest published_at is intentionally
+        far in the past so 'today' and 'latest' produce different windows."""
+        conn = init_db(db_path)
+        insert_entity(conn, "org:demo", "Demo Org", "Org",
+                      first_seen=f"{latest_pub}T00:00:00Z",
+                      last_seen=f"{latest_pub}T00:00:00Z")
+        insert_entity(conn, "model:demo", "Demo Model", "Model",
+                      first_seen=f"{latest_pub}T00:00:00Z",
+                      last_seen=f"{latest_pub}T00:00:00Z")
+        conn.execute(
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            ("doc_demo", "https://example.com/demo", "Test", "Demo",
+             latest_pub, "2026-02-12T00:00:00Z", "extracted"),
+        )
+        conn.commit()
+        insert_relation(conn, "org:demo", "CREATED", "model:demo",
+                        "asserted", 0.9, "doc_demo", "1.0.0")
+        conn.close()
+
+    def _run_export(self, tmp_path: Path, anchor: str, run_date: str):
+        """Invoke scripts/run_export.py as a subprocess and return parsed output."""
+        import os
+        import subprocess
+        import sys
+
+        project_root = Path(__file__).resolve().parents[1]
+        db_path = tmp_path / "test.db"
+        out_dir = tmp_path / "graphs"
+
+        env = {**os.environ, "PREDICTOR_DOMAIN": "ai"}
+        result = subprocess.run(
+            [
+                sys.executable, "scripts/run_export.py",
+                "--db", str(db_path),
+                "--output-dir", str(out_dir),
+                "--date", run_date,
+                "--anchor", anchor,
+                "--domain", "ai",
+            ],
+            capture_output=True, text=True, cwd=project_root, env=env,
+        )
+        assert result.returncode == 0, (
+            f"run_export.py failed: stdout={result.stdout} stderr={result.stderr}"
+        )
+        # Output dir is <out_dir>/<run_date>/
+        return out_dir / run_date, result.stdout
+
+    def test_anchor_latest_pins_end_to_max_published(self, tmp_path: Path):
+        """--anchor latest sets meta.dateRange.end to MAX(documents.published_at)."""
+        latest_pub = "2025-08-15"
+        self._seed_db(tmp_path / "test.db", latest_pub=latest_pub)
+
+        out_dir, stdout = self._run_export(
+            tmp_path, anchor="latest", run_date="2026-05-01"
+        )
+
+        with open(out_dir / "claims.json") as f:
+            data = json.load(f)
+
+        assert data["meta"]["dateRange"]["end"] == latest_pub
+        # 30-day window backwards from latest_pub
+        assert data["meta"]["dateRange"]["start"] == "2025-07-16"
+        assert "Anchor=latest" in stdout
+
+    def test_anchor_today_uses_run_date(self, tmp_path: Path):
+        """--anchor today (default behavior) uses --date as end_date."""
+        self._seed_db(tmp_path / "test.db", latest_pub="2025-08-15")
+
+        out_dir, _ = self._run_export(
+            tmp_path, anchor="today", run_date="2026-05-01"
+        )
+
+        with open(out_dir / "claims.json") as f:
+            data = json.load(f)
+
+        assert data["meta"]["dateRange"]["end"] == "2026-05-01"
+        assert data["meta"]["dateRange"]["start"] == "2026-04-01"
+
+    def test_anchor_latest_with_no_documents_falls_back(self, tmp_path: Path):
+        """If documents table has no published_at, anchor=latest falls back to --date."""
+        # Init schema with no documents
+        conn = init_db(tmp_path / "test.db")
+        insert_entity(conn, "org:demo", "Demo Org", "Org")
+        conn.close()
+
+        out_dir, stdout = self._run_export(
+            tmp_path, anchor="latest", run_date="2026-05-01"
+        )
+
+        with open(out_dir / "claims.json") as f:
+            data = json.load(f)
+
+        assert data["meta"]["dateRange"]["end"] == "2026-05-01"
+        assert "no documents" in stdout.lower()

@@ -31,7 +31,8 @@ def _bootstrap_domain() -> None:
 _bootstrap_domain()
 
 from config import DEFAULT_DATE_WINDOW_DAYS
-from db import init_db
+from db import get_latest_published_date, init_db
+from domain import get_active_profile
 from graph import GraphExporter
 
 
@@ -68,6 +69,13 @@ def main() -> int:
         "--end-date", default=None,
         help="Explicit end date (ISO). Defaults to --date value.",
     )
+    parser.add_argument(
+        "--anchor", choices=["today", "latest"], default=None,
+        help="Date anchor for the export window. 'today' uses --date (default for "
+             "live domains). 'latest' pins end_date to MAX(documents.published_at) "
+             "so the graph stays populated when ingestion is paused. If omitted, "
+             "reads freshness_anchor from the domain profile (default: today).",
+    )
     args = parser.parse_args()
 
     # Resolve domain-scoped defaults
@@ -77,8 +85,36 @@ def main() -> int:
     if args.output_dir is None:
         args.output_dir = str(get_graphs_dir(args.domain))
 
-    # Resolve date range
-    end_date = args.end_date or args.date
+    # Resolve anchor: explicit CLI flag > domain profile > "today"
+    if args.anchor is None:
+        try:
+            profile = get_active_profile()
+            anchor = profile.get("freshness_anchor", "today")
+        except Exception:
+            anchor = "today"
+    else:
+        anchor = args.anchor
+
+    output_dir = Path(args.output_dir) / args.date
+    conn = init_db(Path(args.db))
+
+    # Resolve date range. With anchor=latest, end_date pins to the most recent
+    # article instead of today; this keeps demo graphs populated for paused
+    # domains. Explicit --end-date / --start-date still win over anchor.
+    if args.end_date:
+        end_date = args.end_date
+    elif anchor == "latest":
+        latest = get_latest_published_date(conn)
+        end_date = latest or args.date
+        if latest:
+            print(f"Anchor=latest: end_date pinned to {end_date} "
+                  f"(MAX documents.published_at)")
+        else:
+            print("Anchor=latest: no documents with published_at; "
+                  f"falling back to {args.date}")
+    else:
+        end_date = args.date
+
     if args.start_date:
         start_date = args.start_date
     elif args.days > 0:
@@ -86,8 +122,6 @@ def main() -> int:
     else:
         start_date = None  # No lower bound
 
-    output_dir = Path(args.output_dir) / args.date
-    conn = init_db(Path(args.db))
     exporter = GraphExporter(conn)
 
     paths = exporter.export_all_views(

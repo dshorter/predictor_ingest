@@ -16,6 +16,7 @@ from db import (
     get_entity,
     get_entity_by_name,
     get_relations_for_entity,
+    get_latest_published_date,
     add_alias,
     resolve_alias,
     list_entities,
@@ -456,3 +457,43 @@ class TestDateRangeQueries:
             db_conn, start_date="2025-11-01", end_date="2025-12-31"
         )
         assert len(result) == 1  # only doc_mid
+
+
+class TestGetLatestPublishedDate:
+    """Test the latest-published-date helper used by export's anchor=latest mode."""
+
+    def _insert_doc(self, db_conn, doc_id, published_at):
+        db_conn.execute(
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, status) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (doc_id, f"https://example.com/{doc_id}", "Test", f"Doc {doc_id}",
+             published_at, "2026-02-12T00:00:00Z", "extracted"),
+        )
+        db_conn.commit()
+
+    def test_returns_max_when_present(self, db_conn):
+        """Returns the most recent published_at as a YYYY-MM-DD string."""
+        self._insert_doc(db_conn, "doc_a", "2025-07-01")
+        self._insert_doc(db_conn, "doc_b", "2026-01-15")
+        self._insert_doc(db_conn, "doc_c", "2025-11-30")
+        assert get_latest_published_date(db_conn) == "2026-01-15"
+
+    def test_returns_none_when_empty(self, db_conn):
+        """Returns None for an empty documents table."""
+        assert get_latest_published_date(db_conn) is None
+
+    def test_ignores_null_published_at(self, db_conn):
+        """Returns None when all rows have NULL published_at."""
+        db_conn.execute(
+            "INSERT INTO documents (doc_id, url, source, title, fetched_at, status) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            ("doc_null", "https://example.com/n", "Test", "Doc N",
+             "2026-02-12T00:00:00Z", "extracted"),
+        )
+        db_conn.commit()
+        assert get_latest_published_date(db_conn) is None
+
+    def test_truncates_iso_timestamps_to_date(self, db_conn):
+        """Full ISO datetimes get truncated to the YYYY-MM-DD prefix."""
+        self._insert_doc(db_conn, "doc_iso", "2026-03-15T14:22:00Z")
+        assert get_latest_published_date(db_conn) == "2026-03-15"

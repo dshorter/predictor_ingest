@@ -62,11 +62,32 @@ function handleGraphMeta(meta) {
     AppState.dateRange = dateRange;
   }
 
+  // Snapshot mode: when the export's end date is meaningfully behind today
+  // (paused-domain demo case), pin the client's anchor to the data's latest
+  // article so default presets (7d/30d/90d) don't filter the snapshot away.
+  // Threshold of 3 days tolerates normal weekend gaps without showing a badge.
+  const SNAPSHOT_STALE_DAYS = 3;
+  let isSnapshot = false;
+  if (dateRange && dateRange.end) {
+    const endMs = new Date(dateRange.end).getTime();
+    const ageDays = (Date.now() - endMs) / 86400000;
+    if (ageDays > SNAPSHOT_STALE_DAYS) {
+      isSnapshot = true;
+      AppState.anchorDate = dateRange.end;
+      const dateInput = document.getElementById('date-anchor');
+      if (dateInput) dateInput.value = dateRange.end;
+    }
+  }
+  AppState.isSnapshot = isSnapshot;
+
   // Update date range display in toolbar if present
   const dateInfo = document.getElementById('date-range-info');
   if (dateInfo && dateRange && dateRange.start) {
-    dateInfo.textContent = `${formatDate(dateRange.start)} – ${formatDate(dateRange.end)}`;
-    dateInfo.title = `Articles published ${dateRange.start} to ${dateRange.end}`;
+    const suffix = isSnapshot ? ' (snapshot)' : '';
+    dateInfo.textContent = `${formatDate(dateRange.start)} – ${formatDate(dateRange.end)}${suffix}`;
+    dateInfo.title = isSnapshot
+      ? `Snapshot: latest article ${dateRange.end}. This domain is not currently being updated.`
+      : `Articles published ${dateRange.start} to ${dateRange.end}`;
   }
 
   // Handle empty graph

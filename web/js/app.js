@@ -20,6 +20,7 @@ const AppState = {
   anchorDate: null,          // ISO date string — the "as of" anchor for filtering
   activePresetDays: 30,      // which preset is active (7, 30, 90, or null for All)
   dateRange: null,           // { start, end } from meta — article publication dates
+  isSnapshot: false,         // true when meta.dateRange.end is meaningfully behind today
   isLoading: false,
   cy: null,
   navigator: null,
@@ -797,14 +798,19 @@ function updateDateRangeDisplay() {
   const anchor = AppState.anchorDate || today();
   const days = AppState.activePresetDays;
 
+  const suffix = AppState.isSnapshot ? ' (snapshot)' : '';
   if (days === null) {
-    dateInfo.textContent = 'All dates';
-    dateInfo.title = 'Showing all dates';
+    dateInfo.textContent = `All dates${suffix}`;
+    dateInfo.title = AppState.isSnapshot
+      ? `Snapshot: latest article ${anchor}. This domain is not currently being updated.`
+      : 'Showing all dates';
   } else {
     const startMs = new Date(anchor).getTime() - days * 86400000;
     const startDate = new Date(startMs).toISOString().split('T')[0];
-    dateInfo.textContent = `${formatDate(startDate)} – ${formatDate(anchor)}`;
-    dateInfo.title = `Showing ${days} days ending ${anchor}`;
+    dateInfo.textContent = `${formatDate(startDate)} – ${formatDate(anchor)}${suffix}`;
+    dateInfo.title = AppState.isSnapshot
+      ? `Snapshot: latest article ${anchor}. This domain is not currently being updated.`
+      : `Showing ${days} days ending ${anchor}`;
   }
 }
 

@@ -284,6 +284,25 @@ def list_entities_in_date_range(
     return entities
 
 
+def get_latest_published_date(conn: sqlite3.Connection) -> Optional[str]:
+    """Return the most recent documents.published_at as an ISO date (YYYY-MM-DD).
+
+    Used by export's `--anchor latest` mode so the date window pins to the
+    freshest article in the corpus instead of today's date — keeping the
+    graph populated when a domain's pipeline is paused.
+
+    Returns:
+        ISO date string (YYYY-MM-DD) or None if no documents have a published_at.
+    """
+    cursor = conn.execute(
+        "SELECT MAX(published_at) FROM documents WHERE published_at IS NOT NULL"
+    )
+    row = cursor.fetchone()
+    if not row or not row[0]:
+        return None
+    return str(row[0])[:10]
+
+
 def list_relations_in_date_range(
     conn: sqlite3.Connection,
     start_date: Optional[str] = None,
