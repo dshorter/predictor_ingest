@@ -201,6 +201,115 @@ sources and domains once Movers is real.
 
 ---
 
+## Does Movers break the domain model?
+
+No. This is one of the cleaner aspects of the direction.
+
+- **Domain model itself: untouched.** Node types, relation taxonomy,
+  canonical IDs, slugging, evidence/provenance contracts — all unchanged.
+  Movers reads the same entities and relations; it just asks different
+  questions of them.
+- **Schema: additive at most.** `trend_history` already persists per-day
+  scores (`src/trend/__init__.py:338`). `entities.first_seen` already
+  exists. `score_all()` already iterates every entity in the DB — the
+  top-50 cut is applied *after* scoring, so the data Movers needs is
+  already being computed and (mostly) kept. Possible additions are
+  convenience columns (e.g., `rank`, `rank_delta_7d`) but they're all
+  derivable; nothing structurally new.
+- **Domain profile config: additive.** A new `movers:` weights block in
+  `domain.yaml` sits alongside the existing trend block. Doesn't disturb
+  it.
+- **Export: one new file.** `movers.json` joins the four existing views
+  (`mentions`, `claims`, `dependencies`, `trending`). No contract change
+  to any existing artifact.
+
+**The caveat worth being honest about.** The domain model isn't broken,
+but the *upstream pipeline* has been tacitly tuned for Current Landscape:
+
+- Article-selection scoring favors corroboration-friendly content
+- Extraction quality gates drop low-yield documents
+- Source pruning has downgraded sources like Bluesky for low
+  relations/doc — not for low mention signal
+
+None of that breaks the model. But Movers' *quality* depends on whether
+those upstream filters get reconsidered now that they're no longer the
+only consumers downstream. Bluesky/SRC-5 is exactly this dynamic. The
+"ingest-only / velocity-only" source mode (parking lot) is the
+architectural fix for it.
+
+---
+
+## Is there a treasure trove of pre-Movers data we can use?
+
+Yes, and it's already structured. Verified at `src/trend/__init__.py:368-372`:
+
+`_save_trend_history` writes a row to `trend_history` daily for **every
+entity with `mention_count_30d > 0`** — not just the top 50. Each row is
+tagged with `in_trending_view = 1 or 0` and carries the full scoring
+breakdown (velocity, novelty, bridge_score, trend_score, mention counts,
+plus a config snapshot of decay lambda, min-mentions threshold, corpus
+size).
+
+So we already have, persisted daily and historically:
+
+- Full scored population per day
+- Top-50 vs. not flag per day
+- All score components per day
+
+Rank Δ over any time window is a SQL query, not a backfill. Nothing was
+discarded at the export step; the full picture has been accumulating
+since Sprint 13. Movers can read directly from `trend_history` without
+touching anything upstream.
+
+The one gap, as noted above, is the upstream filters — entities that
+were rejected at article selection or extraction quality gates never
+became entities, so they're not in `trend_history`. Different problem,
+can't be fixed downstream. The chatter-source "ingest-only velocity
+mode" is the lever for that one.
+
+---
+
+## Where the pipeline forks for Movers
+
+Cleanly: **after scoring, before view-shaping.**
+
+`TrendScorer.score_all()` is the last computational step both views
+genuinely share. From there, `run_trending.py` does view-specific work —
+top-N slice, Cytoscape node construction, bridge-entity logic, region
+tags, narrative generation. None of that applies to Movers.
+
+Even cleaner: Movers doesn't necessarily need to call `score_all()` at
+all, because `trend_history` already has the scored daily snapshots
+persisted. A new `scripts/run_movers.py` can be a `trend_history` query →
+rank Δ computation → flat row emission. It barely overlaps with
+`run_trending.py`'s computational path. The two scripts share the
+*substrate* (scoring function + DB schema), not the *shaping logic*.
+
+The fork is at the export tier. Nothing splits earlier in the pipeline.
+That's clean.
+
+## Duplication strategy
+
+**Duplicate first, refactor later.** Mechanical duplication between
+`run_trending.py` and a new `run_movers.py`:
+
+- dotenv prelude + `_bootstrap_domain` (~15 lines, pure boilerplate)
+- argparse skeleton (~10 lines)
+- DB init + output dir creation (~5 lines)
+- Output meta-object stamping (~5 lines)
+
+~30–40 lines of structural duplication. The substantive logic —
+selection, scoring blend, output shape, bridge handling — is genuinely
+different. Trying to parameterize one function to do both would create
+branches and config plumbing worse than the duplication.
+
+The right shared abstraction will only be visible once both scripts have
+run a while and we know which bits are stable. Predicted endgame: a
+`scripts/_pipeline_bootstrap.py` for the dotenv/domain/argparse
+boilerplate. View scripts themselves stay separate.
+
+---
+
 ## Open threads / parking lot
 
 Things to come back to once we keep talking:
