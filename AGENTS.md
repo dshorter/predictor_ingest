@@ -13,21 +13,30 @@ Build a small, reliable, **domain-agnostic** pipeline that:
 
 The end product is a growing knowledge graph that can reveal **emerging trends early**, using velocity/novelty/bridge signals.
 
-### Active Domains 
+### Active Domains
 - **AI/ML** (`domains/ai/`) — the original domain, fully operational
-- **Biosafety** (`domains/biosafety/`) — second domain, added 2026-03-07. Monitors
-  Federal Select Agent Program, dual-use research, gain-of-function policy, BSL
-  facility oversight, and global health security governance. 13 RSS feeds, 14 entity
-  types (incl. `SelectAgent`, `Facility`, `Regulation`), 35 canonical relations.
+- **Biosafety** (`domains/biosafety/`) — added 2026-03-07. Monitors Federal Select
+  Agent Program, dual-use research, gain-of-function policy, BSL facility oversight,
+  and global health security governance. Entity types include `SelectAgent`,
+  `Facility`, `Regulation`.
+- **Film** (`domains/film/`) — independent film production, screenwriting, festivals,
+  and distribution. Entity types include `Production`, `Festival`, `Distributor`,
+  `Agency`, `Fund`. **This is the current Makefile default (`DOMAIN ?= film`).**
+- **Semiconductors** (`domains/semiconductors/`) — fab process, chip architecture,
+  GPU/accelerator compute, supply chain, and policy. Entity types include `Fab`,
+  `Chip`, `Architecture`, `ProcessNode`, `Packaging`, `Material`, `Policy`.
 
 ### Multi-Domain Architecture (completed Sprint 6 + 6B)
 - Each domain is a directory under `domains/` with `domain.yaml`, `feeds.yaml`,
-  `views.yaml`, and `prompts/`
+  `views.yaml`, `inference_rules.yaml` (optional), and `prompts/`
 - `--domain <name>` CLI flag (or `PREDICTOR_DOMAIN` env var) selects the active domain
-- Databases are isolated: `data/db/{domain}.db`
-- Web client accepts `?domain=biosafety` URL parameter
+- The Makefile uses `DOMAIN ?= film`; override with `make <target> DOMAIN=<slug>`
+- Databases are isolated: `data/db/{domain}.db`; exports land in
+  `data/graphs/{domain}/{date}/` and publish to `web/data/graphs/live/{domain}/`
+- Web client accepts `?domain=<slug>` URL parameter; `web/js/domain-switcher.js`
+  holds the `KNOWN_DOMAINS` registry (single source of truth for domain enumeration)
 - `domains/_template/` provides scaffolding for new domains
-- Framework code (`src/`) is domain-agnostic — enforced by grep-audit test
+- Framework code (`src/`) is domain-agnostic — enforced by `tests/test_grep_audit.py`
 
 ## Non-goals (V1)
 - Perfect "truth." We represent claims with provenance + confidence, and allow ambiguity.
@@ -57,17 +66,34 @@ Prefer plain Python + SQLite + JSONL. No complex infra required.
 ---
 
 ## Repository Layout
-- `src/` — `config/`, `db/`, `schema/`, `ingest/`, `extract/`, `util/`, `clean/`, `resolve/`, `graph/`, `trend/`
-- `domains/` — domain-specific config directories
-  - `domains/ai/` — AI/ML domain (entity types, relations, prompts, feeds, views)
-  - `domains/biosafety/` — Biosafety domain
+- `src/` — framework code, all domain-agnostic:
+  - `config/`, `db/`, `schema/`, `util/` — infrastructure
+  - `ingest/` — `rss.py`, `bluesky.py`, `reddit.py`, `dispatch.py`, `run_all.py`
+  - `clean/` — readability + boilerplate removal
+  - `doc_select/` — article scoring / pre-extraction selection
+  - `extract/` — LLM prompt building, parsing, quality gates (`prompts.py`)
+  - `resolve/` — entity canonicalization, alias merging (`disambiguate.py`)
+  - `infer/` — rule-driven inferred edges (per-domain `inference_rules.yaml`)
+  - `synthesize/` — cross-document synthesis (runs after extraction)
+  - `graph/` — Cytoscape.js export (4 views)
+  - `trend/` — velocity/novelty/bridge scoring, narrative generation (`narratives.py`)
+  - `domain/` — domain profile loader
+- `domains/` — one directory per domain:
+  - `domains/ai/`, `domains/biosafety/`, `domains/film/`, `domains/semiconductors/`
   - `domains/_template/` — scaffolding for new domains
-- `config/feeds.yaml` — legacy RSS feed definitions (domains have their own)
+  - Each contains `domain.yaml`, `feeds.yaml`, `views.yaml`, `inference_rules.yaml`
+    (optional), and `prompts/` (`system.txt`, `user.txt`, `single_message.txt`,
+    `disambiguate_system.txt`, `narrative_system.txt`, `synthesis_system.txt`)
+- `config/` — legacy feed config (superseded by per-domain `feeds.yaml`)
 - `data/` (gitignored) — `raw/`, `text/`, `docpacks/`, `extractions/`, `graphs/`, `db/`
-- `schemas/` — `domain-profile.json` (domain schema), `sqlite.sql` (DB schema)
-- `scripts/` — pipeline orchestration and helper scripts
-- `tests/` — pytest tests; network tests marked with `@pytest.mark.network`
-- `web/` — thin Cytoscape.js client (static site, domain-aware via URL params)
+  — all keyed by domain slug (e.g., `data/db/film.db`, `data/graphs/ai/2026-04-22/`)
+- `schemas/` — `domain-profile.json`, `extraction.json`, `sqlite.sql`
+- `scripts/` — pipeline orchestration and diagnostics (see Developer Workflow below)
+- `tests/` — pytest tests; markers: `network`, `llm_live`. Includes
+  `test_grep_audit.py` which enforces the domain-agnostic boundary in `src/`.
+- `web/` — static Cytoscape.js client (desktop `index.html`, `dashboard.html`,
+  `ontology.html`, `mobile/index.html`); domain-aware via `?domain=<slug>`
+- `calendar/`, `diagnostics/` — operational artifacts (calendar events, log dumps)
 
 ---
 
@@ -124,17 +150,33 @@ Prefer `MENTIONS` as base layer; only emit semantic edges when evidence supports
 
 ## Modes of Operation
 
-### Mode A — LLM API available
-- `make extract` calls an LLM with strict JSON output.
-- Validate output with JSON Schema.
+### Mode A — Anthropic Batch API (current default; ADR-008)
+Since 2026-03-25 (Sprint 9), Mode A uses the Anthropic Batch API instead of the
+prior two-tier escalation scheme. The batch pipeline is:
+1. `make docpack` — build JSONL from docs with `status='cleaned'`
+2. `make submit` — submit batch to Anthropic Batch API, persist `batch_id`
+3. `make collect` — poll and collect completed results into `data/extractions/{domain}/`
+4. `make import` → `resolve` → `export` → `trending` → `copy-to-live`
+
+`make daily` runs the full sequence for a domain. `make backlog` chunk-submits any
+docs that were missed on prior runs. See
+[docs/architecture/adr-008-batch-api-extraction.md](docs/architecture/adr-008-batch-api-extraction.md).
 
 ### Mode B — No API key (manual)
 1) `make docpack` produces JSONL + MD bundle.
 2) Paste/upload into ChatGPT web and request extraction in schema.
-3) Save returned JSON under `data/extractions/`.
-4) `make import_manual` validates and stores.
+3) Save returned JSON under `data/extractions/{domain}/`.
+4) `make import` validates and stores. Then run `make daily-manual` (skips extract).
 
-Downstream steps (`resolve`, `export`) must not care whether extractions came from API or manual.
+Downstream steps (`resolve`, `export`, `trending`) do not care whether extractions
+came from the batch API or manual workflow.
+
+### Synthesis + Narratives
+After extraction, `run_synthesize.py` runs per-domain synthesis (summarization /
+cross-doc reasoning), and `run_trending.py --narratives` generates trending
+narratives. These use the cheaper `NARRATIVE_MODEL` (default
+`claude-haiku-4-5-20251001`); the primary extraction model is `PRIMARY_MODEL`
+(default `claude-sonnet-4-6`).
 
 ---
 
@@ -183,24 +225,56 @@ See **[docs/ux/README.md](docs/ux/README.md)** for the full implementation spec 
 
 ```bash
 pip install -e .
+cp .env.example .env                                # Fill in ANTHROPIC_API_KEY
 
-# AI domain (default)
-make daily                                          # Full daily pipeline
-make ingest                                         # RSS ingestion only
-pytest tests/ -m "not network"                      # Unit tests
+# Default domain is `film` (see Makefile `DOMAIN ?= film`).
+# Override with DOMAIN=<slug> for any target:
+make daily                                          # Full pipeline (film)
+make daily DOMAIN=ai
+make daily DOMAIN=biosafety
+make daily DOMAIN=semiconductors
 
-# Biosafety domain
-make daily DOMAIN=biosafety                         # Full daily pipeline
-make ingest DOMAIN=biosafety                        # RSS ingestion only
+# Pipeline stages (per domain)
+make ingest                                         # RSS/social ingestion
+make docpack                                        # Build JSONL bundles
+make submit                                         # Submit batch to Anthropic
+make collect                                        # Collect completed batch
+make backlog                                        # Submit any missed docs
+make import                                         # Import extractions
+make resolve                                        # Entity resolution
+make export                                         # Cytoscape view export
+make trending                                       # Trend scores + narratives
+make copy-to-live                                   # Publish to web/data/graphs/live/
 
-# Direct script invocation
-python scripts/run_pipeline.py --domain ai          # Explicit domain flag
-python scripts/run_pipeline.py --domain biosafety
+# Diagnostics & health
+make health-report                                  # Pipeline health
+make dashboard-data                                 # Dashboard JSON
+make calibration-report                             # 7-day quality calibration
+make export_ontology                                # Regenerate ontology JSON
 python scripts/diagnose_feeds.py                    # Debug feed dedup
+python scripts/wipe_domain_data.py --domain <slug>  # Reset a domain (dry-run default)
+
+# Testing
+make test                                           # Unit tests (no network, no LLM)
+make test-network                                   # Network-dependent tests
+make test-all                                       # Everything
+pytest tests/ -m "not network and not llm_live"     # Equivalent to `make test`
 ```
 
 See **[docs/backend/workflow-guide.md](docs/backend/workflow-guide.md)** for the complete step-by-step guide.
 See **[docs/backend/operational-state.md](docs/backend/operational-state.md)** for current extraction mode, gate overrides, and env requirements per domain.
+
+### Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ANTHROPIC_API_KEY` | Required for Mode A (batch API extraction + synthesis + narratives) |
+| `PRIMARY_MODEL` | Primary extraction / synthesis model (default: `claude-sonnet-4-6`) |
+| `NARRATIVE_MODEL` | Trending-narrative model (default: `claude-haiku-4-5-20251001`) |
+| `UNDERSTUDY_MODEL` | Shadow-mode comparison model (default: `gpt-5-nano`) |
+| `OPENAI_API_KEY` | Required only if `UNDERSTUDY_MODEL` is an OpenAI model |
+| `PREDICTOR_DOMAIN` | Default domain if `--domain` / `DOMAIN=` is omitted |
+| `BSKY_HANDLE` | Optional — Bluesky handle for social ingestion |
 
 ### Web Tests (Playwright)
 
@@ -213,11 +287,25 @@ Tests use a **self-contained HTML harness** with a Cytoscape mock — no CDN or 
 
 ---
 
-## Sources (V1)
+## Sources
 
-Runtime configuration in `config/feeds.yaml`. See **[docs/source-selection-strategy.md](docs/source-selection-strategy.md)** for tier model and expansion strategy.
+Runtime configuration lives per-domain at `domains/<slug>/feeds.yaml` (the
+top-level `config/feeds.yaml` is legacy). See
+**[docs/source-selection-strategy.md](docs/source-selection-strategy.md)** for the
+tier model and expansion strategy.
 
-Core sources: arXiv CS.AI (academic), Hugging Face Blog (open-source), Anthropic/Google AI (industry), TechCrunch/Ars Technica/The Verge (echo/velocity), Simon Willison/Interconnects (community).
+Ingestion supports three fetcher types, dispatched by `src/ingest/dispatch.py`:
+- `rss` — RSS/Atom feeds (`src/ingest/rss.py`)
+- `bluesky` — Bluesky posts (`src/ingest/bluesky.py`; requires `BSKY_HANDLE`)
+- `reddit` — Reddit (`src/ingest/reddit.py`)
+
+Example core sources by domain:
+- **AI** — arXiv CS.AI, Hugging Face Blog, Anthropic/Google AI, TechCrunch,
+  Ars Technica, The Verge, Simon Willison, Interconnects
+- **Film** — Deadline, Variety, IndieWire, No Film School, John August
+- **Semiconductors** — technical trade press, deep-analysis newsletters,
+  practitioner community blogs
+- **Biosafety** — Federal Register, CDC, WHO, GHSA, domain-specialist newsletters
 
 ---
 
@@ -238,10 +326,17 @@ for the boundary definition and enforcement rules.
 | Document | Purpose |
 |----------|---------|
 | [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal distillation formulas, source requirements, validation framework, weight tuning protocol |
+| [docs/methodology/semiconductor-domain-design.md](docs/methodology/semiconductor-domain-design.md) | Semiconductor domain design rationale, entity coverage targets |
+| [docs/methodology/domain-fit-analysis.md](docs/methodology/domain-fit-analysis.md) | How well each candidate domain fits the framework |
 | [docs/architecture/domain-separation.md](docs/architecture/domain-separation.md) | Boundary between framework and domain config; rules for what goes where |
 | [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md) | Post-V2 vision for applying the framework to other domains |
 | [docs/architecture/date-filtering.md](docs/architecture/date-filtering.md) | Why published_at (not fetched_at) is used for filtering; 30-day default window; NULL handling |
 | [docs/architecture/convergence-narrative.md](docs/architecture/convergence-narrative.md) | **Read first for big picture.** How 5 vectors (insights, sources, cost spectrum, plugin arch, connectors) converge mid-March; decision log |
+| [docs/architecture/adr-005-regional-lens.md](docs/architecture/adr-005-regional-lens.md) | ADR-005: Regional-lens filtering |
+| [docs/architecture/adr-006-chatter-sources.md](docs/architecture/adr-006-chatter-sources.md) | ADR-006: Chatter sources (Bluesky, Reddit) |
+| [docs/architecture/adr-007-llm-leverage-features.md](docs/architecture/adr-007-llm-leverage-features.md) | ADR-007: LLM leverage features |
+| [docs/architecture/adr-008-batch-api-extraction.md](docs/architecture/adr-008-batch-api-extraction.md) | **ADR-008: Replace two-tier escalation with Anthropic Batch API (current extraction mode)** |
+| [docs/architecture/adr-009-unified-left-panel-slot.md](docs/architecture/adr-009-unified-left-panel-slot.md) | ADR-009: Unified left-panel slot (UI) |
 
 #### Pipeline & Backend
 
@@ -250,10 +345,13 @@ for the boundary definition and enforcement rules.
 | [docs/backend/operational-state.md](docs/backend/operational-state.md) | **Current extraction mode, gate config, and model for each domain. Read first when resuming work.** |
 | [docs/backend/workflow-guide.md](docs/backend/workflow-guide.md) | Step-by-step guide for running the full pipeline (Mode A and Mode B) |
 | [docs/backend/article-selection-scoring.md](docs/backend/article-selection-scoring.md) | Pre-extraction scoring signals, weights, bench backfill, thresholds, and change log |
+| [docs/backend/calibration-report.md](docs/backend/calibration-report.md) | 7-day calibration report: gate pass rates, quality drift, suggested threshold moves |
 | [docs/backend/daily-run-log.md](docs/backend/daily-run-log.md) | Pipeline health monitoring: JSON log format, per-stage metrics, healthy thresholds |
 | [docs/backend/manual-workflow-plan.md](docs/backend/manual-workflow-plan.md) | Backend pipeline script specs (build_docpack, import, resolve, export, trending) |
-| [docs/llm-selection.md](docs/llm-selection.md) | LLM model tiers, escalation mode architecture, shadow mode, cost model, quality scoring weights |
+| [docs/backend/automated-setup.md](docs/backend/automated-setup.md) | Deployment + cron setup on VPS |
+| [docs/llm-selection.md](docs/llm-selection.md) | LLM model tiers, batch API architecture, shadow mode, cost model, quality scoring weights |
 | [docs/source-selection-strategy.md](docs/source-selection-strategy.md) | Feed tier model (primary/secondary/echo), entity overlap strategy, coverage targets |
+| [docs/guides/new-domain-features.md](docs/guides/new-domain-features.md) | How to onboard a new domain from `domains/_template/` |
 | [docs/research/extract-quality-analysis.md](docs/research/extract-quality-analysis.md) | Quality gate design, evaluation architecture (Phase 0–4), calibration plan, CPU vs LLM cost matrix |
 | [docs/research/trend-insights.md](docs/research/trend-insights.md) | Insight articulation layer: templates, categories, deterministic vs LLM generation, backtest protocol |
 
@@ -309,4 +407,8 @@ for the boundary definition and enforcement rules.
 - Better entity resolution (Wikidata IDs for high-degree nodes)
 - Community detection + clustering views
 - Source-type enrichment (paper/repo/hiring/product changelog) for earlier weak signals
-- Multi-domain support (see [docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md))
+
+Multi-domain support is complete (Sprint 6 + 6B). Four domains are live: AI,
+Biosafety, Film, Semiconductors. See
+[docs/architecture/multi-domain-futures.md](docs/architecture/multi-domain-futures.md)
+for the post-V2 vision.
