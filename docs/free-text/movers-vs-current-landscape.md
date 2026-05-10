@@ -310,30 +310,122 @@ boilerplate. View scripts themselves stay separate.
 
 ---
 
+## Movers columns (the table contract)
+
+The table serves two questions that often get conflated: **existing entities
+climbing** (needs historical rank) and **just-appeared entities** (has no
+historical rank). Columns:
+
+| Column | Purpose | Source |
+|---|---|---|
+| Label | Identify | `entities.label` |
+| Type | Filter (Org / Person / Model / Tech / ...) | `entities.type` |
+| Current rank | Where it sits today | `trend_history` today |
+| Rank 7d ago | Baseline for movement | `trend_history` 7d back |
+| **Rank Δ (7d)** | Headline movement signal | computed |
+| Velocity (uncapped) | Raw growth ratio — not the trend_score-capped one | re-derive |
+| 7d mentions | Volume now | `trend_history.mention_count_7d` |
+| 30d mentions | Volume in window | `trend_history.mention_count_30d` |
+| Days since first_seen | Newness | `entities.first_seen` |
+| Distinct sources (7d) | Breadth, not just volume | join on `mentions` |
+| In top 50? | Quick filter to exclude prominence | `trend_history.in_trending_view` |
+
+Two non-obvious choices worth flagging:
+
+- **Uncapped velocity** is the column value. The existing `velocity` field
+  is capped at 5.0 because trend_score has to be bounded — but for the
+  Movers table the cap throws away exactly the signal we care about (a 50×
+  growth ratio looks identical to a 5× one). The column shows the raw
+  value.
+- **Distinct sources (7d)** is its own signal independent of mention
+  volume. A single source spamming an entity 20× isn't the same as 20
+  sources mentioning it once.
+
+---
+
+## Chatter source types: ingest-only by default
+
+Decision: Bluesky, Reddit, and any future short-form / user-post source
+(Mastodon, Hacker News comments, etc.) **skip extraction by default** and
+contribute only to mention counts.
+
+**Why.** Not the platform — the document unit. Short user posts cost the
+same to extract as a long article but yield ~5% as much. SRC-5's data
+point: Bluesky SE Film produces 0.7 relations/doc vs. source average ~14.
+
+**Architecture.** The flag belongs to `source_type`, not individual feeds.
+ADR-006 already distinguishes `rss` / `bluesky` / `reddit` / `substack`.
+Clean implementation: a registry in the dispatcher (`src/ingest/dispatch.py`
+or a new config block) mapping source_type → `{ extract: true|false }`.
+Set `extract: false` for `bluesky` and `reddit`. Every present and future
+feed of those types inherits the right behavior. No per-feed flag.
+
+**The V1 asterisk.** "Always" is right for V1, probably wrong forever.
+There genuinely are substantive long-form Reddit threads (and the rare
+long Bluesky post) that would yield at extraction. The right eventual
+refinement is a **length/density filter** at ingest time — if a chatter
+post crosses a content threshold, route it through extraction; otherwise
+ingest-only. V2 nuance, not V1. Document the asterisk.
+
+**Side effect worth highlighting.** This is a *cost decrease* at the LLM
+tier, not an increase. Today every ingested doc goes through extraction.
+Ingest-only mode skips the LLM step for low-density sources while still
+feeding Movers the velocity signal.
+
+---
+
+## Sort + filter UX: presets, not raw controls
+
+The useful "sort orders" identified for Movers aren't all pure sorts —
+some are sort+filter combos. Worth separating cleanly:
+
+- **Sort** = pure orderings (Rank Δ desc/asc, Days since first_seen,
+  uncapped velocity, distinct sources, 7d mentions, ...)
+- **Filter** = exclusions (Hide top 50, first seen within last X days,
+  entity type, source, min mentions, ...)
+
+But asking a user to compose sort + filters from scratch is a lot. The
+useful combinations *are* the point of the view. So the table front-ends
+with named **presets**, with a Custom mode that exposes sort + filters
+separately for power users.
+
+| Preset | Sort | Filter |
+|---|---|---|
+| **Biggest climbers** (default) | Rank Δ desc | Hide top 50 |
+| **Just appeared** | Days since first_seen asc | First seen ≤ 14 days |
+| **Fastest accelerators** | Uncapped velocity desc | Min 7d mentions ≥ 3 |
+| **Emerging consensus** | Distinct sources (7d) desc | Hide top 50 |
+| **Sanity reference** | 7d mentions desc | (none) |
+| **Custom** | user-controlled | user-controlled |
+
+Each preset is a tight expression of one question Movers is good at. The
+five line up with the actual use cases; "Custom" is the escape hatch.
+
+---
+
 ## Open threads / parking lot
 
-Things to come back to once we keep talking:
+Things still to settle:
 
-- **Two architecture questions** (peer view vs. panel; click-into entity
-  behavior) — held above
-- **Scoring for Movers** — same scores re-presented, or a new formula?
-  Probably new. Rank Δ over 7 days is the obvious starting point.
-  Activity weight likely drops to zero or near-zero for the Movers score,
-  since activity is the thing suppressing what we want to see.
+- **Two architecture questions** (peer view vs. side panel; click-into
+  entity behavior) — held above. **These are the gate for any frontend
+  planning.** Backend planning can proceed without them.
+- **Scoring specifics** — mostly solidified (column set + preset table
+  above). Remaining: default window length (likely 7d, configurable),
+  how to display rank Δ for just-appeared entities (probably "NEW" badge
+  instead of a numeric Δ), and whether to add a stored `rank` column to
+  `trend_history` vs. computing via `ROW_NUMBER()` at query time.
 - **What's Hot's future** — keep it as a Current Landscape sub-rendering,
-  retire it, or merge into a unified entity panel?
+  retire it, or merge into a unified entity panel? Probably "keep until
+  Movers stabilizes, then revisit."
 - **Re-promote film domain** — once Movers is real, film stops being a
   stress-test domain and becomes the flagship for the new lens.
-- **"Ingest-only / velocity-only" source mode** — pipeline flag that lets
-  Bluesky/Reddit/other chatter sources contribute mention counts without
-  consuming extraction budget. Architectural gap.
 - **Sweep of other downgraded sources/domains** through the Movers lens.
   Likely there's good signal we've quietly written off.
-- **Cross-domain bridges in Movers** — does a Movers view make cross-domain
-  emergence easier to spot? (Same entity moving in semi *and* AI feeds, etc.)
-- **Naming** — "Current Landscape" / "Movers" feels right, but reserve the
-  right to rename. "Landscape" might be too geographic. "Movers" is plain
-  but possibly too unspecific. Live with it for a while.
+- **Cross-domain bridges in Movers** — does the view make cross-domain
+  emergence easier to spot? (Same entity moving in semi *and* AI feeds.)
+- **Naming** — "Current Landscape" / "Movers" feels right, but reserve
+  the right to rename. Live with it for a while.
 
 ---
 
