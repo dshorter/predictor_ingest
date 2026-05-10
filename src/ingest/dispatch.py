@@ -2,9 +2,11 @@
 
 The pipeline calls this module to process all feeds in a domain's feeds.yaml.
 Each feed has a `type` field that determines which fetcher handles it:
-  - rss/atom → src/ingest/rss.py (existing)
-  - bluesky  → src/ingest/bluesky.py
-  - reddit   → src/ingest/reddit.py
+  - rss/atom  → src/ingest/rss.py (existing)
+  - bluesky   → src/ingest/bluesky.py
+  - reddit    → src/ingest/reddit.py
+  - edgar     → src/ingest/edgar.py (SEC EDGAR filings)
+  - patents   → src/ingest/patents.py (USPTO PatentsView)
 
 Substack feeds use type=rss since they serve standard RSS.
 """
@@ -22,6 +24,8 @@ _FETCHER_REGISTRY: dict[str, str] = {
     "atom": "ingest.rss",       # atom feeds use the same feedparser-based fetcher
     "bluesky": "ingest.bluesky",
     "reddit": "ingest.reddit",
+    "edgar": "ingest.edgar",    # SEC EDGAR company filings
+    "patents": "ingest.patents",  # USPTO PatentsView patent search
 }
 
 

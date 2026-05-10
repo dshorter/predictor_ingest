@@ -256,6 +256,82 @@ def main(argv: list[str] | None = None) -> int:
                                 0, 0, 0, 1, str(exc)[:500])
                 total_errors += 1
 
+        elif feed_type == "edgar":
+            try:
+                from ingest.edgar import ingest_edgar
+                feed_config = {
+                    "name": feed.name,
+                    "limit": effective_limit,
+                    **feed.extra,
+                }
+                fetched, skipped, errors = ingest_edgar(
+                    feed_config=feed_config,
+                    conn=conn,
+                    raw_dir=raw_dir,
+                    text_dir=text_dir,
+                    repo=repo,
+                    skip_existing=args.skip_existing,
+                )
+                total_fetched += fetched
+                total_skipped += skipped
+                total_errors += errors
+                _log_feed_stats(conn, _run_date, feed.name, "edgar",
+                                fetched + skipped, fetched, skipped, errors)
+                if fetched > 0 or skipped > 0:
+                    total_reachable += 1
+                    print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped",
+                          flush=True)
+                elif errors == 0:
+                    total_reachable += 1
+                    print(f"    Feed OK: 0 new documents, 0 duplicates skipped", flush=True)
+                else:
+                    print(f"    Feed errors: {errors} errors, {fetched} saved", flush=True)
+            except Exception as exc:
+                print(f"    Feed CRASHED: {type(exc).__name__}: {exc}",
+                      file=sys.stderr, flush=True)
+                print(f"    Feed CRASHED: {feed.name}", flush=True)
+                _log_feed_stats(conn, _run_date, feed.name, "edgar",
+                                0, 0, 0, 1, str(exc)[:500])
+                total_errors += 1
+
+        elif feed_type == "patents":
+            try:
+                from ingest.patents import ingest_patents
+                feed_config = {
+                    "name": feed.name,
+                    "limit": effective_limit,
+                    **feed.extra,
+                }
+                fetched, skipped, errors = ingest_patents(
+                    feed_config=feed_config,
+                    conn=conn,
+                    raw_dir=raw_dir,
+                    text_dir=text_dir,
+                    repo=repo,
+                    skip_existing=args.skip_existing,
+                )
+                total_fetched += fetched
+                total_skipped += skipped
+                total_errors += errors
+                _log_feed_stats(conn, _run_date, feed.name, "patents",
+                                fetched + skipped, fetched, skipped, errors)
+                if fetched > 0 or skipped > 0:
+                    total_reachable += 1
+                    print(f"    Feed OK: {fetched} new documents, {skipped} duplicates skipped",
+                          flush=True)
+                elif errors == 0:
+                    total_reachable += 1
+                    print(f"    Feed OK: 0 new documents, 0 duplicates skipped", flush=True)
+                else:
+                    print(f"    Feed errors: {errors} errors, {fetched} saved", flush=True)
+            except Exception as exc:
+                print(f"    Feed CRASHED: {type(exc).__name__}: {exc}",
+                      file=sys.stderr, flush=True)
+                print(f"    Feed CRASHED: {feed.name}", flush=True)
+                _log_feed_stats(conn, _run_date, feed.name, "patents",
+                                0, 0, 0, 1, str(exc)[:500])
+                total_errors += 1
+
         else:
             print(f"    Feed SKIPPED: unknown feed type '{feed_type}'",
                   file=sys.stderr, flush=True)
