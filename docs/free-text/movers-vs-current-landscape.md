@@ -103,22 +103,94 @@ Velocity sorted independently of activity. Possibly a "pure movement" score
 that *doesn't* mix in activity at all, since activity is precisely the thing
 suppressing emerging signal.
 
-## Two architecture questions — held for later
+## Two architecture questions — resolved
 
-These are real and need to be answered, but not now:
+Originally held for later; resolved during the design conversation.
 
-1. Is the Movers table a peer view to the graph (tab/toggle), or a side
-   panel inside the existing trending view?
-2. When sort/filter and click into an entity in the table, does the graph
-   *replace* its current top-50 layout with that entity's 1-hop
-   neighborhood, or open a focused subview alongside?
+**Q1: Is Movers a peer view (tab/toggle on the graph page), a side
+panel, or its own page?**
+→ **Separate page.** The cleanness argument carries. The "huge download"
+worry is overstated — movers.json is flat rows (~300-500 bytes each), so
+even 2,000 entities is ~1MB raw / ~200KB gzipped, fetched once per page
+load. Two views are different enough that bidirectional toggling isn't
+the actual usage pattern; "tell me more" navigation is.
 
-The answer affects export shape. Right now the graph is hard-bound to the 50
-nodes shipped in `trending.json` — a row for entity #200 has no neighborhood
-data on the client. Either (a) Movers is its own page that flips the graph
-into "focus this entity" mode and loads neighborhoods on demand, or (b) the
-export grows to ship a flatter "all entities + scores" feed alongside the
-current trending.json. Both reasonable; different complexity.
+**Q2: When the user clicks a row, what happens?**
+→ **Deep-link to the graph page with a focus parameter** (e.g.
+`?focus=org:rivian`). The graph page implements a focus mode that
+renders the entity's 1-hop neighborhood. No "replace top-50 layout in
+place" complexity, no "subview alongside" mode.
+
+**V1 / V2 phasing for the graph side:**
+
+- **V1:** Movers ships standalone. Row click opens an inline detail
+  side-panel (mentions, sources, sample evidence, link to source docs).
+  For entities that *are* in top 50, an explicit "View in graph" link
+  deep-links to the existing graph page and selects the node. For
+  entities *not* in top 50, that link is absent or falls back gracefully.
+  No graph-page changes required for V1.
+- **V2:** Add graph focus mode (universal). Movers row link works for
+  any entity, in or out of top 50. See next section for why this is its
+  own thing, not just "V2 of Movers."
+
+---
+
+## Graph focus mode — a convergent primitive
+
+Two independent journeys arrived at the same primitive:
+
+1. **Movers deep-link** — "I'm reading a Movers row. I want to see this
+   entity in context in the graph." The entity may not be in trending.json.
+2. **Locked-neighborhood navigation (pre-existing pain point)** — User
+   selects neighborhood view of a well-connected node. Multiple edges
+   connect it to a single neighbor. Clicking the connection drops the
+   user *out* of neighborhood view back into the full-graph spaghetti,
+   forcing them to manually re-pick the 2nd, 3rd, 4th connections. Want:
+   a "locked" neighborhood that persists until explicitly released.
+
+Both want the same thing: **a graph mode where focus is an explicit,
+persistent state, and clicks operate within or extend that focus rather
+than dropping back to the global view.**
+
+Today the graph has one mode: render trending.json's 50 nodes; click to
+dim non-neighbors transiently; click again to clear. The new mode:
+explicitly enter focus on entity X (or {X, Y, Z}); clicks navigate
+within or extend focus; explicit gesture (button, esc key) exits focus.
+
+**This deserves its own justification, not piggybacking on Movers.** It
+serves at least three needs:
+
+- Locked-neighborhood navigation (existing pain point)
+- Movers row deep-link
+- Search-result "explore this hit" affordance
+
+It becomes the universal "explore in graph" verb. Once it exists, it
+absorbs every "show me what surrounds this entity" gesture in the UI.
+
+**Build order is interesting.** The locked-neighborhood version is the
+cleaner entry point to build *first*, because the data is already on the
+client — it's just being un-filtered when you click. No new endpoint
+required. The Movers deep-link variant is harder: it needs to fetch a
+neighborhood for an entity that may not be in trending.json, which means
+a new on-demand neighborhood endpoint. So the order could reasonably be:
+
+1. **Locked-neighborhood mode** (no backend change, all client work)
+2. **On-demand neighborhood endpoint** (backend: serve N-hop neighborhood
+   for any entity_id)
+3. **Movers deep-link wired through the focus mode** (uses both above)
+
+That phasing also means the existing graph view gets a UX win
+independent of Movers, on its own merit.
+
+**Open UX questions for focus mode** (worth thinking about, not blocking):
+
+- When focus is set and the user clicks a peripheral node, does focus
+  *expand* to include it, *swap* to it, or *add it as a pin*?
+- Visual language for "you are in focus mode" — chip / breadcrumb /
+  border treatment?
+- Multi-entity focus — can the user accumulate {X, Y, Z} as the focused
+  set? (Useful for compare-and-contrast.)
+- Persistence — does focus survive page reload / URL state?
 
 ---
 
@@ -407,14 +479,16 @@ five line up with the actual use cases; "Custom" is the escape hatch.
 
 Things still to settle:
 
-- **Two architecture questions** (peer view vs. side panel; click-into
-  entity behavior) — held above. **These are the gate for any frontend
-  planning.** Backend planning can proceed without them.
 - **Scoring specifics** — mostly solidified (column set + preset table
   above). Remaining: default window length (likely 7d, configurable),
   how to display rank Δ for just-appeared entities (probably "NEW" badge
   instead of a numeric Δ), and whether to add a stored `rank` column to
   `trend_history` vs. computing via `ROW_NUMBER()` at query time.
+- **Focus mode UX details** — see "Graph focus mode" section above for
+  the open UX questions (focus expand vs. swap vs. pin, visual language,
+  multi-entity focus, URL persistence). Not blocking for V1 (locked-
+  neighborhood version) since it's just better behavior on the existing
+  click pattern.
 - **What's Hot's future** — keep it as a Current Landscape sub-rendering,
   retire it, or merge into a unified entity panel? Probably "keep until
   Movers stabilizes, then revisit."
