@@ -405,6 +405,8 @@ trend_weights:
   max_age_days: 365
   novelty_age_weight: 0.6
   novelty_rarity_weight: 0.4
+  novelty_decay_lambda: 0.07 # ~10-day half-life (fast production news cycle)
+  min_mentions_for_velocity: 2
 
 # --- Suppressed Entities ---
 # Too generic for a film knowledge graph.

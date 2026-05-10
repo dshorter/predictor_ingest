@@ -6,6 +6,7 @@ Computes lightweight trend signals for entities per AGENTS.md specification.
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 from datetime import date, timedelta
 from pathlib import Path
@@ -84,6 +85,14 @@ def compute_velocity(
     # Recent window
     recent = count_mentions(conn, entity_id, days=window, as_of=as_of)
 
+    # Min-mention velocity gate (13.8)
+    # Below threshold, velocity is neutral (1.0) — too few mentions for signal
+    # Only gates when there ARE some mentions but not enough for a reliable ratio;
+    # zero mentions falls through to existing dormant/decline logic.
+    min_mentions = int(_TREND_WEIGHTS.get("min_mentions_for_velocity", 3))
+    if min_mentions > 0 and 0 < recent < min_mentions:
+        return 1.0
+
     # Previous window
     prev_date = as_of - timedelta(days=window)
     previous = count_mentions(conn, entity_id, days=window, as_of=prev_date)
@@ -142,18 +151,23 @@ def compute_novelty(
     except (ValueError, TypeError):
         return 0.5
 
-    # Age-based novelty (1.0 for new, decreasing with age)
-    age_novelty = max(0.0, 1.0 - (age_days / max_age_days))
+    # Age-based novelty: exponential decay (13.6)
+    # exp(-λ × days): default λ=0.05 gives ~14-day half-life
+    decay_lambda = float(_TREND_WEIGHTS.get("novelty_decay_lambda", 0.05))
+    age_novelty = math.exp(-decay_lambda * max(0, age_days))
 
-    # Rarity factor (fewer mentions = rarer = more novel)
+    # Corpus-normalized rarity (13.7)
+    # log(1 + N/(1+mentions)) / log(1+N) where N = total entity count
     total_mentions = count_mentions(conn, entity_id, days=max_age_days, as_of=as_of)
+    corpus_size = conn.execute("SELECT COUNT(*) FROM entities").fetchone()[0]
 
-    if total_mentions == 0:
-        rarity = 1.0
+    if corpus_size <= 1:
+        rarity = 1.0 if total_mentions == 0 else 0.5
     else:
-        # Logarithmic rarity (high mentions = low rarity)
-        import math
-        rarity = 1.0 / (1.0 + math.log1p(total_mentions))
+        rarity = (
+            math.log(1 + corpus_size / (1 + total_mentions))
+            / math.log(1 + corpus_size)
+        )
 
     # Combine age and rarity (weighted average from domain profile)
     age_w = _TREND_WEIGHTS.get("novelty_age_weight", 0.6)
@@ -205,7 +219,6 @@ def compute_bridge_score(
 
     # Bridge score is product of connections (high when connecting many)
     # Using geometric mean to balance
-    import math
     if outgoing == 0 and incoming == 0:
         return 0.0
 
@@ -235,11 +248,22 @@ class TrendScorer:
         Returns:
             Dict with all trend metrics
         """
+        mention_7d = count_mentions(self.conn, entity_id, days=7)
+        velocity = compute_velocity(self.conn, entity_id)
+
+        # Detect if velocity was gated (13.14)
+        min_vel_mentions = int(_TREND_WEIGHTS.get("min_mentions_for_velocity", 3))
+        velocity_gated = (
+            1 if (min_vel_mentions > 0 and 0 < mention_7d < min_vel_mentions)
+            else 0
+        )
+
         return {
             "entity_id": entity_id,
-            "mention_count_7d": count_mentions(self.conn, entity_id, days=7),
+            "mention_count_7d": mention_7d,
             "mention_count_30d": count_mentions(self.conn, entity_id, days=30),
-            "velocity": compute_velocity(self.conn, entity_id),
+            "velocity": velocity,
+            "velocity_gated": velocity_gated,
             "novelty": compute_novelty(self.conn, entity_id),
             "bridge_score": compute_bridge_score(self.conn, entity_id),
         }
@@ -320,6 +344,27 @@ class TrendScorer:
         run_date = date.today().isoformat()
         trending_ids = {s["entity_id"] for s in trending}
 
+        # Additive migration for Sprint 13 columns (safe to repeat)
+        for col, typedef in [
+            ("novelty_decay_lambda", "REAL"),
+            ("min_mentions_for_velocity", "INTEGER"),
+            ("corpus_entity_count", "INTEGER"),
+            ("velocity_gated", "INTEGER DEFAULT 0"),
+        ]:
+            try:
+                self.conn.execute(
+                    f"ALTER TABLE trend_history ADD COLUMN {col} {typedef}"
+                )
+            except Exception:
+                pass  # column already exists
+
+        # Config snapshot for every row (13.14) — makes historical rows self-describing
+        decay_lambda = float(_TREND_WEIGHTS.get("novelty_decay_lambda", 0.05))
+        min_vel = int(_TREND_WEIGHTS.get("min_mentions_for_velocity", 3))
+        corpus_count = self.conn.execute(
+            "SELECT COUNT(*) FROM entities"
+        ).fetchone()[0]
+
         # Only save entities with at least one mention (skip the dormant mass)
         to_save = [
             s for s in all_scores.values()
@@ -331,8 +376,10 @@ class TrendScorer:
                 self.conn.execute(
                     """INSERT OR REPLACE INTO trend_history
                        (entity_id, run_date, mention_count_7d, mention_count_30d,
-                        velocity, novelty, bridge_score, trend_score, in_trending_view)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        velocity, novelty, bridge_score, trend_score, in_trending_view,
+                        novelty_decay_lambda, min_mentions_for_velocity,
+                        corpus_entity_count, velocity_gated)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (scores["entity_id"], run_date,
                      scores.get("mention_count_7d", 0),
                      scores.get("mention_count_30d", 0),
@@ -340,7 +387,9 @@ class TrendScorer:
                      scores.get("novelty", 0),
                      scores.get("bridge_score", 0),
                      scores.get("trend_score", 0),
-                     1 if scores["entity_id"] in trending_ids else 0),
+                     1 if scores["entity_id"] in trending_ids else 0,
+                     decay_lambda, min_vel, corpus_count,
+                     scores.get("velocity_gated", 0)),
                 )
             except Exception:
                 pass  # table may not exist in older DBs; don't block pipeline

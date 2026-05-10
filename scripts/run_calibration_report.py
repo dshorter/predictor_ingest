@@ -199,6 +199,90 @@ def collect_batch_latency(conn: sqlite3.Connection, domain: str, days: int) -> l
     return results
 
 
+def collect_velocity_gate_saturation(conn: sqlite3.Connection, days: int) -> dict | None:
+    """Fraction of scored entities with velocity_gated=1 (Sprint 13, item 13.18)."""
+    try:
+        row = conn.execute(
+            """SELECT COUNT(*) as total,
+                      SUM(CASE WHEN velocity_gated = 1 THEN 1 ELSE 0 END) as gated
+               FROM trend_history
+               WHERE run_date = (SELECT MAX(run_date) FROM trend_history
+                                 WHERE run_date >= ?)""",
+            (_window_start(days),),
+        ).fetchone()
+        total = row["total"] or 0
+        if total == 0:
+            return None
+        return {"total": total, "gated": row["gated"] or 0, "pct": (row["gated"] or 0) / total}
+    except Exception:
+        return None
+
+
+def collect_novelty_compression(conn: sqlite3.Connection, days: int) -> dict | None:
+    """Novelty score distribution quartiles (Sprint 13, item 13.18)."""
+    try:
+        rows = conn.execute(
+            """SELECT novelty FROM trend_history
+               WHERE run_date = (SELECT MAX(run_date) FROM trend_history
+                                 WHERE run_date >= ?)
+                 AND novelty IS NOT NULL
+               ORDER BY novelty""",
+            (_window_start(days),),
+        ).fetchall()
+        if len(rows) < 4:
+            return None
+        vals = [r["novelty"] for r in rows]
+        n = len(vals)
+        return {
+            "count": n,
+            "q10": vals[n // 10],
+            "q25": vals[n // 4],
+            "q50": vals[n // 2],
+            "q75": vals[3 * n // 4],
+            "q90": vals[9 * n // 10],
+            "pct_below_01": sum(1 for v in vals if v < 0.1) / n,
+            "pct_above_08": sum(1 for v in vals if v > 0.8) / n,
+        }
+    except Exception:
+        return None
+
+
+def collect_trending_churn(conn: sqlite3.Connection, days: int) -> list[dict]:
+    """Day-over-day overlap of top-10 trending entities (Sprint 13, item 13.18)."""
+    try:
+        dates = conn.execute(
+            """SELECT DISTINCT run_date FROM trend_history
+               WHERE run_date >= ?
+               ORDER BY run_date DESC LIMIT 7""",
+            (_window_start(days),),
+        ).fetchall()
+        if len(dates) < 2:
+            return []
+
+        results = []
+        for i in range(len(dates) - 1):
+            d_new = dates[i]["run_date"]
+            d_old = dates[i + 1]["run_date"]
+            new_ids = {r["entity_id"] for r in conn.execute(
+                """SELECT entity_id FROM trend_history
+                   WHERE run_date = ? AND in_trending_view = 1
+                   ORDER BY trend_score DESC LIMIT 10""",
+                (d_new,),
+            ).fetchall()}
+            old_ids = {r["entity_id"] for r in conn.execute(
+                """SELECT entity_id FROM trend_history
+                   WHERE run_date = ? AND in_trending_view = 1
+                   ORDER BY trend_score DESC LIMIT 10""",
+                (d_old,),
+            ).fetchall()}
+            if new_ids and old_ids:
+                overlap = len(new_ids & old_ids) / max(len(new_ids), len(old_ids))
+                results.append({"date_pair": f"{d_old}→{d_new}", "overlap_pct": overlap})
+        return results
+    except Exception:
+        return []
+
+
 def collect_source_quality(conn: sqlite3.Connection, domain: str, days: int) -> list[dict]:
     """Per-source entity yield over the window."""
     rows = conn.execute(
@@ -229,6 +313,10 @@ def generate_suggestions(
     batch_latency: list[dict],
     source_quality: list[dict],
     days: int,
+    *,
+    velocity_gate: dict | None = None,
+    novelty_compression: dict | None = None,
+    trending_churn: list[dict] | None = None,
 ) -> list[dict]:
     """Return list of {signal, severity, suggestion, parameter, current, suggested}."""
     suggestions = []
@@ -350,6 +438,92 @@ def generate_suggestions(
                         "parameter": "feeds.yaml",
                         "direction": None,
                     })
+
+    # --- Sprint 13 trending-layer signals ---
+
+    # Velocity gate saturation (13.18)
+    if velocity_gate and velocity_gate["total"] > 0:
+        pct = velocity_gate["pct"]
+        if pct > 0.80:
+            suggestions.append({
+                "signal": "velocity_gate_saturation",
+                "severity": "WARN",
+                "message": (
+                    f"{pct:.0%} of entities had velocity gated "
+                    f"({velocity_gate['gated']}/{velocity_gate['total']})"
+                ),
+                "suggestion": (
+                    "min_mentions_for_velocity is too aggressive for this domain's volume; "
+                    "lower by 1 in domain.yaml trend_weights"
+                ),
+                "parameter": "min_mentions_for_velocity",
+                "direction": "decrease",
+            })
+
+    # Novelty score compression (13.18)
+    if novelty_compression:
+        nc = novelty_compression
+        if nc["pct_below_01"] > 0.90:
+            suggestions.append({
+                "signal": "novelty_compressed_low",
+                "severity": "WARN",
+                "message": (
+                    f"{nc['pct_below_01']:.0%} of entities have novelty < 0.1 "
+                    f"(Q50={nc['q50']:.3f}) — λ may be too aggressive"
+                ),
+                "suggestion": (
+                    "Decrease novelty_decay_lambda by 0.01 in domain.yaml trend_weights"
+                ),
+                "parameter": "novelty_decay_lambda",
+                "direction": "decrease",
+            })
+        elif nc["pct_above_08"] > 0.90:
+            suggestions.append({
+                "signal": "novelty_compressed_high",
+                "severity": "WARN",
+                "message": (
+                    f"{nc['pct_above_08']:.0%} of entities have novelty > 0.8 "
+                    f"(Q50={nc['q50']:.3f}) — λ may be too slow"
+                ),
+                "suggestion": (
+                    "Increase novelty_decay_lambda by 0.01 in domain.yaml trend_weights"
+                ),
+                "parameter": "novelty_decay_lambda",
+                "direction": "increase",
+            })
+
+    # Trending list churn (13.18)
+    if trending_churn:
+        avg_overlap = mean(c["overlap_pct"] for c in trending_churn)
+        if avg_overlap < 0.10:
+            suggestions.append({
+                "signal": "trending_churn_unstable",
+                "severity": "WARN",
+                "message": (
+                    f"Trending top-10 overlap is {avg_overlap:.0%} day-over-day — "
+                    f"scoring is unstable"
+                ),
+                "suggestion": (
+                    "Review composite weights (velocity/novelty/activity) in domain.yaml; "
+                    "consider increasing activity weight for stability"
+                ),
+                "parameter": "trend_weights",
+                "direction": None,
+            })
+        elif avg_overlap > 0.70:
+            suggestions.append({
+                "signal": "trending_churn_stale",
+                "severity": "INFO",
+                "message": (
+                    f"Trending top-10 overlap is {avg_overlap:.0%} day-over-day — "
+                    f"scoring may be stale"
+                ),
+                "suggestion": (
+                    "Review composite weights; consider increasing velocity or novelty weight"
+                ),
+                "parameter": "trend_weights",
+                "direction": None,
+            })
 
     return suggestions
 
@@ -516,10 +690,18 @@ def main() -> int:
     batch_latency = collect_batch_latency(conn, args.domain, args.days)
     source_quality = collect_source_quality(conn, args.domain, args.days)
 
+    # Sprint 13 trending-layer signals
+    velocity_gate = collect_velocity_gate_saturation(conn, args.days)
+    novelty_compression = collect_novelty_compression(conn, args.days)
+    trending_churn = collect_trending_churn(conn, args.days)
+
     suggestions = generate_suggestions(
         entity_yield, orphan_rates, feed_errors,
         bench_ratios, batch_latency, source_quality,
         args.days,
+        velocity_gate=velocity_gate,
+        novelty_compression=novelty_compression,
+        trending_churn=trending_churn,
     )
 
     print_report(

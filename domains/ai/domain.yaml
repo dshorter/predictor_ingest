@@ -239,6 +239,8 @@ trend_weights:
   max_age_days: 365          # maximum age for novelty scoring
   novelty_age_weight: 0.6    # weight of age component in novelty
   novelty_rarity_weight: 0.4 # weight of rarity component in novelty
+  novelty_decay_lambda: 0.05 # ~14-day half-life (fast churn, new models/tools weekly)
+  min_mentions_for_velocity: 3
 
 # --- Suppressed Entities ---
 # Entity names too generic for this domain. Case-insensitive matching.

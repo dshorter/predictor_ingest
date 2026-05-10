@@ -298,6 +298,8 @@ trend_weights:
   max_age_days: 730       # 2 years; regulatory changes have longer relevance cycles
   novelty_age_weight: 0.5
   novelty_rarity_weight: 0.5
+  novelty_decay_lambda: 0.03 # ~23-day half-life (regulatory cycles are slower)
+  min_mentions_for_velocity: 2
 
 # --- Suppressed Entities ---
 # Generic terms the LLM tends to extract as entities but add noise.
