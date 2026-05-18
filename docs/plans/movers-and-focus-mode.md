@@ -10,38 +10,38 @@
 
 *Last updated: 2026-05-10*
 
-**Planning phase complete.** All four sprints are defined in
-[`docs/project-plan.md`](../project-plan.md) (Sprints 14 / 14B / 15 / 16).
-The design rationale lives in
-[`docs/free-text/movers-vs-current-landscape.md`](../free-text/movers-vs-current-landscape.md).
+**Sprint 14 backend implementation complete.** All eight items (14.1
+through 14.8 minus the manual smoke run) are shipped. Pending PR
+contains the full chunk.
 
-**Tracking PR:** #255 (merge gate for planning artifacts; #254 was the
-initial design + plan).
+### Sprint status
 
-### Ready to start now
-
-- **Sprint 14 — Backend Movers** — all decisions locked (see §"Before A"
-  below). `movers.json` schema in Appendix A.
-- **Sprint 14B — Locked-neighborhood focus mode** — client-only,
-  independent of Sprint 14. Can ship in parallel.
-
-### Gated
-
-- **Sprint 15 — Movers Frontend V1** — execution-gated on a UI
-  wireframe pass (column layout, preset chip placement, detail panel
-  positioning). Items 15.1 / 15.3 / 15.4 / 15.6 / 15.9 shape to the
-  wireframe; other items can begin earlier with mock data.
-- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15 to
-  ship first.
+- **Sprint 14 — Backend Movers — IMPLEMENTED.** Awaiting
+  the manual smoke run (item 14.8) on real domain databases.
+  Source-type extraction policy, `run_movers.py`, `schemas/movers.json`,
+  `make movers` target, pipeline integration, and 47 new tests all
+  shipped.
+- **Sprint 14B — Locked-neighborhood focus mode** — ready to start
+  (no backend dependency, client-only).
+- **Sprint 15 — Movers Frontend V1** — execution-gated on the UI
+  wireframe pass.
+- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15.
 
 ### Open human-action items
 
-- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even a
-  hand-drawn napkin referencing the visual idiom of `dashboard.html` /
-  `ontology.html` is enough to unblock the wireframe-dependent items.
+- **Smoke run for Sprint 14 (item 14.8)** —
+  `make daily DOMAIN={ai,semiconductors,film,biosafety}` should now
+  produce `movers.json` in each domain's live data dir. Qualitative
+  check: film domain produces meaningfully different top entries than
+  its trending top-50 (the proof-point for the new lens).
+- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even
+  a hand-drawn napkin referencing the visual idiom of `dashboard.html`
+  / `ontology.html` is enough to unblock the wireframe-dependent items.
 
 ### Recently completed
 
+- Sprint 14 backend implementation: source-type policy, run_movers.py,
+  schema, pipeline integration, tests (this PR)
 - Locked the three "Before A" open items (PR #255)
 - Added `movers.json` schema as Appendix A (PR #255)
 - Drafted Sprints 14 / 14B / 15 / 16 in project-plan.md (PR #255)
