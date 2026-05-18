@@ -5,6 +5,12 @@ evolves. No code yet — this session is intellectual output, not implementation
 
 *Started: 2026-05-10*
 
+**Actionable companion:** [`docs/plans/movers-and-focus-mode.md`](../plans/movers-and-focus-mode.md)
+— the implementation plan derived from this conversation. That doc has
+locked decisions, the `movers.json` schema, and a "Status / Next Action"
+section pointing at the active sprints
+([project-plan.md](../project-plan.md) Sprints 14 / 14B / 15 / 16).
+
 ---
 
 ## Where this started

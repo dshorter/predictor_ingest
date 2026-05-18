@@ -6,6 +6,48 @@
 
 ---
 
+## Status / Next Action
+
+*Last updated: 2026-05-10*
+
+**Planning phase complete.** All four sprints are defined in
+[`docs/project-plan.md`](../project-plan.md) (Sprints 14 / 14B / 15 / 16).
+The design rationale lives in
+[`docs/free-text/movers-vs-current-landscape.md`](../free-text/movers-vs-current-landscape.md).
+
+**Tracking PR:** #255 (merge gate for planning artifacts; #254 was the
+initial design + plan).
+
+### Ready to start now
+
+- **Sprint 14 — Backend Movers** — all decisions locked (see §"Before A"
+  below). `movers.json` schema in Appendix A.
+- **Sprint 14B — Locked-neighborhood focus mode** — client-only,
+  independent of Sprint 14. Can ship in parallel.
+
+### Gated
+
+- **Sprint 15 — Movers Frontend V1** — execution-gated on a UI
+  wireframe pass (column layout, preset chip placement, detail panel
+  positioning). Items 15.1 / 15.3 / 15.4 / 15.6 / 15.9 shape to the
+  wireframe; other items can begin earlier with mock data.
+- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15 to
+  ship first.
+
+### Open human-action items
+
+- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even a
+  hand-drawn napkin referencing the visual idiom of `dashboard.html` /
+  `ontology.html` is enough to unblock the wireframe-dependent items.
+
+### Recently completed
+
+- Locked the three "Before A" open items (PR #255)
+- Added `movers.json` schema as Appendix A (PR #255)
+- Drafted Sprints 14 / 14B / 15 / 16 in project-plan.md (PR #255)
+
+---
+
 ## Overview
 
 Two related features being planned together:
