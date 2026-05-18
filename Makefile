@@ -57,6 +57,9 @@ export:
 trending:
 	python scripts/run_trending.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE) --narratives $(DOMAIN_FLAG)
 
+movers:
+	python scripts/run_movers.py --db $(DB) --output-dir $(GRAPHS_DIR)/$(DATE) $(DOMAIN_FLAG)
+
 copy-to-live:
 	@mkdir -p web/data/graphs/live/$(DOMAIN)
 	cp $(GRAPHS_DIR)/$(DATE)/*.json web/data/graphs/live/$(DOMAIN)/
@@ -72,7 +75,7 @@ export_ontology:
 
 post-collect:
 	@touch data/pipeline.lock
-	$(MAKE) import resolve export trending copy-to-live
+	$(MAKE) import resolve export trending movers copy-to-live
 	@rm -f data/pipeline.lock
 
 daily:

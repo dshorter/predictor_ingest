@@ -10,6 +10,7 @@ Runs all stages in order:
   7. infer      — rule-based relation inference (domain-configurable)
   8. export     — export Cytoscape.js graph views
   9. trending   — compute and export trending view with narratives
+ 10. movers     — export Movers tabular view (rank delta / velocity)
 
 Writes a JSON run log to data/logs/pipeline_YYYY-MM-DD.json and prints
 a one-liner summary suitable for cron email capture.
@@ -484,6 +485,24 @@ def parse_export_output(stdout: str) -> dict:
     return stats
 
 
+def parse_movers_output(stdout: str) -> dict:
+    """Parse movers stage stdout for stats.
+
+    Expected lines from run_movers.py:
+        - "Exported Movers view to <path>"
+        - "  - N rows (window: D days)"
+    """
+    import re as _re
+    stats = {"moversRows": 0, "moversWindowDays": 0}
+    for line in stdout.splitlines():
+        m = _re.search(r"(\d+)\s+rows\s+\(window:\s+(\d+)\s+days\)", line)
+        if m:
+            stats["moversRows"] = int(m.group(1))
+            stats["moversWindowDays"] = int(m.group(2))
+            break
+    return stats
+
+
 def parse_trending_output(stdout: str) -> dict:
     """Parse trending stage stdout for stats.
 
@@ -710,6 +729,7 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
         infer = stages.get("infer", {})
         export = stages.get("export", {})
         trending = stages.get("trending", {})
+        movers = stages.get("movers", {})
 
         run_date = run_log.get("runDate", "")
 
@@ -817,6 +837,9 @@ def _persist_run_stats(db_path: Path, run_log: dict, domain: str) -> None:
             ("trending", export.get("totalNodes", 0), trending.get("trendingNodes", 0), 0,
              json.dumps({"narratives": trending.get("narrativesGenerated", 0)})
              if trending.get("narrativesGenerated", 0) else None),
+            ("movers", movers.get("moversRows", 0), movers.get("moversRows", 0), 0,
+             json.dumps({"window_days": movers.get("moversWindowDays", 0)})
+             if movers.get("moversWindowDays", 0) else None),
         ]
         for stage, docs_in, docs_out, docs_dropped, drop_reasons in funnel_data:
             conn.execute(
@@ -1039,6 +1062,17 @@ def main() -> int:
             "parse": parse_trending_output,
             "fatal": False,
         },
+        {
+            "name": "movers",
+            "cmd": [
+                sys.executable, "scripts/run_movers.py",
+                "--db", db_path,
+                "--output-dir", f"{graphs_dir}/{run_date}",
+                "--domain", args.domain,
+            ],
+            "parse": parse_movers_output,
+            "fatal": False,
+        },
         # Phase 2: ingest + docpack + submit (staggered handoff — ADR-008)
         # These run after graph stages so today's articles are submitted
         # as a batch job and collected at the start of tomorrow's run.
@@ -1169,7 +1203,7 @@ def main() -> int:
                 continue
 
             # Skip graph stages when batch collection is still pending (ADR-008)
-            _graph_stages = {"import", "synthesize", "resolve", "infer", "export", "trending"}
+            _graph_stages = {"import", "synthesize", "resolve", "infer", "export", "trending", "movers"}
             if skip_graph_stages and name in _graph_stages:
                 print(f"[{name}] SKIPPED (batch pending)")
                 run_log["stages"][name] = {"status": "skipped", "reason": "batch_pending"}
