@@ -500,6 +500,165 @@ launches"). If unresolved, 13.11–13.13 wait for that fix.
 
 ---
 
+## Sprint 14 — Backend Movers (Workstream A)
+
+Backend half of the Movers + Focus Mode feature. Produces a new
+`movers.json` export that surfaces the full scored entity population
+(not just the top-50 Current Landscape) as the substrate for a tabular
+movement-tracking UI. Adds the source-type registry that lets chatter
+sources (`bluesky`, `reddit`) contribute velocity signal without
+consuming extraction tokens.
+
+**Design docs:** [docs/plans/movers-and-focus-mode.md](plans/movers-and-focus-mode.md)
+(implementation plan + `movers.json` schema in Appendix A) and
+[docs/free-text/movers-vs-current-landscape.md](free-text/movers-vs-current-landscape.md)
+(design conversation).
+
+**Origin:** Trends-view analysis discussion (May 2026). Insight: the
+top-50 trending view is structurally biased toward established
+entities; truly emerging entities (rank 140→75, just-appeared) need a
+different lens. `trend_history` already persists the full scored
+population daily — no backfill required. See PRs #254 and #255.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 14.1 | Source-type extraction registry | New config block in `src/ingest/dispatch.py` (or new `src/config/source_types.py`) mapping `source_type → { extract: bool }`. Set `bluesky` and `reddit` to `extract: false`; default `rss` / `substack` to `extract: true`. Registry is tied to source_type, not individual feeds | [Sonnet] |
+| 14.2 | `doc_select` honors registry | Update `src/doc_select/` to filter out docs whose source_type is non-extracting before extraction-budget allocation. Unit test confirming bluesky/reddit docs are ingested but never extraction-queued | [Sonnet] |
+| 14.3 | `run_movers.py` skeleton | New `scripts/run_movers.py` — argparse, dotenv prelude, domain bootstrap, DB init. Mirrors `scripts/run_trending.py` structure. Accepts `--domain`, `--db`, `--output-dir`, `--window-days` (default 7) | [Sonnet] |
+| 14.4 | Movers row builder | SQL query reading `trend_history` for today + `today − window_days`. Compute `rank_delta`, `is_new`, `velocity_raw` (uncapped — re-derive from mention counts; do NOT pull capped `velocity` from trend_history). Join `entities` for label / type / first_seen. Join `mentions` × `documents` for `distinct_sources_7d`. Exact field contract: [plans/movers-and-focus-mode.md](plans/movers-and-focus-mode.md) Appendix A | [Opus] |
+| 14.5 | `movers.json` schema | New `schemas/movers.json` JSON Schema matching Appendix A. Validate output of 14.4 against it before write. Match the existing schema convention used for the other four views | [Sonnet] |
+| 14.6 | `make movers` target | Add `movers` target invoking `python scripts/run_movers.py --domain $(DOMAIN)`. Insert into `make daily` between `trending` and `copy-to-live`. Verify `copy-to-live` publishes movers.json automatically (it already globs `*.json` from the export dir) | [Sonnet] |
+| 14.7 | Unit tests | rank Δ math, `is_new` behavior for entities lacking a prior-window row, empty `trend_history` corner case, source-type registry filtering, velocity_raw null when undefined. Must pass `tests/test_grep_audit.py` (no hardcoded domain logic) | [Sonnet] |
+| 14.8 | All-domain smoke run | `make daily DOMAIN={ai,semiconductors,film,biosafety}`. Confirm non-empty movers.json. Qualitative check: film domain produces meaningfully different top entries than its trending top-50 — this is the proof-point that the new lens works. Confirm `feed_stats` shows bluesky/reddit docs ingested with zero extraction tokens | [Manual] |
+
+**Output:** `data/graphs/{domain}/{date}/movers.json` published to
+`web/data/graphs/live/{domain}/movers.json` for all four domains.
+
+**Acceptance:** All four domains produce schema-valid movers.json on the
+next `make daily` run. Chatter source token cost drops to zero. Film
+domain movers surface noticeably different entities than its trending
+top-50.
+
+**Dependency:** None blocking. All "Before A" decisions locked per
+[plans/movers-and-focus-mode.md](plans/movers-and-focus-mode.md)
+§"Before A".
+
+---
+
+## Sprint 14B — Locked-neighborhood focus mode (Workstream C1, parallel with 14)
+
+Fixes a pre-existing graph UX pain point: in neighborhood view of a
+well-connected node, clicking an edge to a multiply-connected neighbor
+drops the user back to the full-graph spaghetti, forcing them to
+manually re-pick the 2nd / 3rd / 4th connections. Introduces a
+**persistent focus state** that doesn't dissolve on click and operates
+on focused entities instead of reverting to global view.
+
+**Independently justified.** Even without Movers this is a graph UX win.
+Also serves as the foundation for Sprint 16's universal Movers deep-link.
+
+**Design docs:** [docs/plans/movers-and-focus-mode.md](plans/movers-and-focus-mode.md)
+§"Workstream C1" and §"Graph focus mode — a convergent primitive."
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 14B.1 | Focus state model | JS state in `web/js/graph.js` (or new `web/js/focus.js`): `{ focusedIds: Set<string>, active: bool }`. Persisted to URL as `?focus=<id>` (comma-separated for future multi-entity expansion) | [Sonnet] |
+| 14B.2 | Entry gesture | Button labeled "Focus on this entity" on the node detail panel. **Do not** hijack left-click — existing transient-highlight click behavior stays unchanged | [Sonnet] |
+| 14B.3 | Render in focus mode | When `focusActive`, dim all nodes outside `focusedIds` ∪ 1-hop neighbors. New CSS class `.focus-dimmed` (separate from `.neighborhood-dimmed` per ux/troubleshooting.md guidance about not mixing dimming contexts) | [Sonnet] |
+| 14B.4 | Click-in-focus expand semantics | Clicking a peripheral (dimmed-but-visible neighbor) node adds it to `focusedIds`; re-render. Matches the original pain point — user keeps siblings visible while exploring | [Sonnet] |
+| 14B.5 | Focus chip UI | Top-of-canvas chip / breadcrumb: "Focused: {label}" with close button. Multi-entity displays as "Focused: {label} + N more" | [Sonnet] |
+| 14B.6 | Exit gestures | Esc key, chip close button, clearing `?focus=` from URL all exit focus mode | [Sonnet] |
+| 14B.7 | URL round-trip | Page reload with `?focus=<id>` re-enters focus mode on that entity. Browser back/forward respect focus state | [Sonnet] |
+| 14B.8 | Playwright tests | Self-contained harness: enter focus, expand via peripheral click, exit via esc, URL round-trip after reload | [Sonnet] |
+
+**Output:** Locked-neighborhood mode on the existing graph page. No
+backend changes.
+
+**Acceptance:** Pre-existing pain point demonstrably fixed — user can
+navigate between connected nodes without falling back to full graph.
+Existing left-click transient highlight unchanged.
+
+**Dependency:** None. Independent of Sprint 14; can ship in parallel.
+
+---
+
+## Sprint 15 — Movers Frontend V1 (Workstream B)
+
+Standalone Movers page consuming `movers.json`. Table with five named
+presets + Custom mode, inline detail panel, opportunistic graph
+deep-link for top-50 entities. Universal entity deep-link arrives in
+Sprint 16.
+
+**Design docs:** [docs/plans/movers-and-focus-mode.md](plans/movers-and-focus-mode.md)
+§"Workstream B" + §"Sort + filter UX" + Appendix A.
+
+**Execution gate:** UI wireframe pass — column layout, preset chip
+placement, detail panel positioning. Items 15.1, 15.3, 15.4, 15.6, 15.9
+shape themselves around the wireframe; other items are wireframe-
+independent and can start earlier.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 15.1 | `web/movers.html` shell | New page mirroring `dashboard.html` / `ontology.html` visual idiom. Toolbar with domain switcher (reuse `domain-switcher.js`), title, link back to graph view | [Sonnet] |
+| 15.2 | Data loader | New `web/js/movers.js`: load `movers.json` for `?domain=<slug>`. Loading / empty / error states. Tolerate unknown fields (forward compat per Appendix A) | [Sonnet] |
+| 15.3 | Table component | Render columns from Appendix A. Sticky header. Reuse `badge-type-{type}` classes. "NEW" badge for `is_new: true` rows. Rank Δ as ↑65 / ↓3 / — | [Sonnet] |
+| 15.4 | Preset chip group | Five presets — Biggest climbers (default), Just appeared, Fastest accelerators, Emerging consensus, Sanity reference — + Custom. Each preset is a `{sort, filter}` tuple per plan doc §"Sort + filter UX" | [Sonnet] |
+| 15.5 | Custom-mode controls | Sort dropdown (all columns) + filter pills (Hide top 50, First seen ≤ N days, entity type, min mentions). State persisted in URL | [Sonnet] |
+| 15.6 | Detail side-panel | Slide-in from right (or below-row inline — wireframe-dependent). Entity label, type, mention timeline, top sources with favicons, sample evidence snippets with source links | [Opus] |
+| 15.7 | Deep-link to graph (top-50 only) | "View in graph" link on rows where `in_trending_view: true` — deep-links to `index.html?domain=<slug>` and selects the node via existing `navigateToNode`. For `in_trending_view: false`, no link in V1 (Sprint 16 adds universal) | [Sonnet] |
+| 15.8 | Navigation entry points | Movers link added to `index.html` toolbar. Add to `dashboard.html` if appropriate (decide during impl) | [Sonnet] |
+| 15.9 | Basic responsive layout | Mobile screens must not break. Detail panel becomes overlay rather than slide-in. Mobile-tuned layout is V2 | [Sonnet] |
+| 15.10 | Playwright smoke test | Self-contained harness with mock movers.json fixture: page loads, preset switching works, table renders, row click opens panel, deep-link works for top-50 entity | [Sonnet] |
+| 15.11 | Manual QA across domains | Each preset surfaces something interesting in AI, semiconductors, biosafety, and **especially film**. Film is the proof-point for the new lens; if Movers doesn't make film useful, V1 has shipped without its main justification | [Manual] |
+
+**Output:** Movers page live at `/movers.html?domain={slug}` for all
+four domains.
+
+**Acceptance:** All five presets demonstrably surface different views.
+Custom mode allows arbitrary sort + filter compositions. Film domain
+QA produces a "yes, this is genuinely useful" qualitative reaction.
+
+**Dependency:** Sprint 14 (needs movers.json). Wireframe pass before
+execution starts.
+
+---
+
+## Sprint 16 — Universal Movers deep-link via on-demand neighborhoods (Workstream C2)
+
+Closes the loop on Movers ↔ graph navigation. Makes "View in graph"
+work for *any* entity in Movers, not just the top-50 already in
+trending.json. Requires per-entity neighborhood data published as
+static files.
+
+**Design docs:** [docs/plans/movers-and-focus-mode.md](plans/movers-and-focus-mode.md)
+§"Workstream C2."
+
+**Why static fan-out, not a dynamic endpoint:** The project's hosting
+model is static. Per-entity neighborhood files (`{entity_id}.json`) are
+cacheable, scale with the corpus, and don't require new infrastructure.
+File count budget is the key open item — confirm during impl.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 16.1 | Neighborhood fan-out exporter | New `scripts/export_neighborhoods.py`. For each entity in `trend_history` with `mention_count_30d > 0`, write `data/graphs/{domain}/{date}/neighborhoods/{slug}.json` containing the entity, its 1-hop neighbors, and connecting edges. Cap at e.g. 30 neighbors by edge weight | [Opus] |
+| 16.2 | File count budget verification | Per-domain file count check. Tune the inclusion threshold (default: any entity with 30d mentions) if counts get unwieldy. Document the chosen rule in the plan doc | [Sonnet] |
+| 16.3 | Publish path | Verify `copy-to-live` publishes the `neighborhoods/` subdirectory correctly. Adjust glob if not | [Sonnet] |
+| 16.4 | Graph page focus-fetch | When `?focus=<id>` lands on an entity not in current trending.json, fetch `neighborhoods/{slug}.json` from live data dir and inject those nodes/edges before entering focus mode (Sprint 14B) | [Opus] |
+| 16.5 | Movers row universal link | Update Sprint 15.7 — "View in graph" link present on every row. Deep-link uses `?focus=<id>` URL param. Top-50 vs non-top-50 distinction in UI becomes informational only ("In Current Landscape" indicator) rather than affecting navigation availability | [Sonnet] |
+| 16.6 | Cache freshness documentation | Document file size / count / freshness expectations in the plan doc. Note that ≤24h staleness is acceptable; daily pipeline run refreshes | [Manual] |
+| 16.7 | Playwright test | Click Movers row → graph deep-link for an entity *not* in top-50 → focus mode loads its neighborhood | [Sonnet] |
+
+**Output:** Universal Movers → graph navigation. Neighborhood files
+published as part of `make daily`.
+
+**Acceptance:** Any Movers row's "View in graph" link works. Graph
+loads the entity's 1-hop neighborhood and enters focus mode.
+
+**Dependency:** Sprint 14B (focus mode), Sprint 15 (Movers row link
+target), Sprint 14 (`trend_history` is the iteration target for fan-out).
+
+---
+
 ## Backend Track (parallel, data-dependent)
 
 These items run independently of the UI work. Most are waiting on pipeline data.
@@ -559,6 +718,10 @@ Not scheduled. Documented so they're not forgotten.
 | 11 — Medium Gap Features | Pending | — |
 | 12 — Branding & Wrap-up | Pending | — |
 | 13 — Trend Methodology + Semiconductor Onboarding | Pending | — |
+| 14 — Backend Movers | Pending | — |
+| 14B — Locked-neighborhood focus mode | Pending | — |
+| 15 — Movers Frontend V1 | Pending | — |
+| 16 — Universal Movers deep-link | Pending | — |
 
 ---
 

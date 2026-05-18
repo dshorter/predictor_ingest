@@ -6,6 +6,48 @@
 
 ---
 
+## Status / Next Action
+
+*Last updated: 2026-05-10*
+
+**Planning phase complete.** All four sprints are defined in
+[`docs/project-plan.md`](../project-plan.md) (Sprints 14 / 14B / 15 / 16).
+The design rationale lives in
+[`docs/free-text/movers-vs-current-landscape.md`](../free-text/movers-vs-current-landscape.md).
+
+**Tracking PR:** #255 (merge gate for planning artifacts; #254 was the
+initial design + plan).
+
+### Ready to start now
+
+- **Sprint 14 — Backend Movers** — all decisions locked (see §"Before A"
+  below). `movers.json` schema in Appendix A.
+- **Sprint 14B — Locked-neighborhood focus mode** — client-only,
+  independent of Sprint 14. Can ship in parallel.
+
+### Gated
+
+- **Sprint 15 — Movers Frontend V1** — execution-gated on a UI
+  wireframe pass (column layout, preset chip placement, detail panel
+  positioning). Items 15.1 / 15.3 / 15.4 / 15.6 / 15.9 shape to the
+  wireframe; other items can begin earlier with mock data.
+- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15 to
+  ship first.
+
+### Open human-action items
+
+- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even a
+  hand-drawn napkin referencing the visual idiom of `dashboard.html` /
+  `ontology.html` is enough to unblock the wireframe-dependent items.
+
+### Recently completed
+
+- Locked the three "Before A" open items (PR #255)
+- Added `movers.json` schema as Appendix A (PR #255)
+- Drafted Sprints 14 / 14B / 15 / 16 in project-plan.md (PR #255)
+
+---
+
 ## Overview
 
 Two related features being planned together:
@@ -282,13 +324,19 @@ Nothing is wasted if you stop after any phase.
 
 ## Open items to resolve before each workstream
 
-**Before A:**
+**Before A:** *(decided 2026-05-10 — no further discussion needed)*
 
-- Window length default — recommended: 7d, configurable via flag.
-- Rank Δ for just-appeared entities — recommended: "NEW" badge,
-  non-numeric.
-- Stored `rank` column vs. ROW_NUMBER — recommended: ROW_NUMBER (defer
-  the column).
+- Window length — **default 7d**, configurable via `--window-days` flag
+  on `run_movers.py`.
+- Rank Δ for just-appeared entities — **`is_new: true` flag in the row;
+  `rank_delta` is null; UI renders a "NEW" badge instead of a numeric Δ.**
+- Stored `rank` column vs. `ROW_NUMBER` — **compute via
+  `ROW_NUMBER() OVER (ORDER BY trend_score DESC)` at query time. Do not
+  add a `rank` column to `trend_history`.** Revisit only if query
+  performance demands it.
+- `movers.json` schema — **see Appendix A below for the field-level
+  contract.** Any new field added during implementation must be appended
+  to that schema.
 
 **Before B:**
 
@@ -347,3 +395,122 @@ self-contained harness pattern from `docs/testing/playwright-guide.md`.
 Domains," "Repository Layout," and "Developer Workflow" sections as
 needed. The freeform working doc stays as historical context; this plan
 gets folded into operational state once shipped.
+
+---
+
+## Appendix A — `movers.json` schema
+
+Authoritative field-level contract for the Movers export. One file per
+domain per export, written to:
+
+- `data/graphs/{domain}/{date}/movers.json` (per-day snapshot)
+- `web/data/graphs/live/{domain}/movers.json` (published live copy)
+
+### Top-level structure
+
+```json
+{
+  "meta": { ... },
+  "rows": [ { ... }, { ... }, ... ]
+}
+```
+
+### `meta` object
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `view` | string | ✓ | Literal `"movers"` |
+| `domain` | string | ✓ | Domain slug (`ai`, `film`, `semiconductors`, `biosafety`) |
+| `rank_window_days` | integer | ✓ | Window for rank Δ calculation (default 7) |
+| `rowCount` | integer | ✓ | Number of entries in `rows` |
+| `exportedAt` | string (ISO 8601) | ✓ | UTC timestamp of export |
+| `dateRange.start` | string (ISO date) | ✓ | Earliest `first_seen` represented |
+| `dateRange.end` | string (ISO date) | ✓ | Export date |
+| `scoring.novelty_decay_lambda` | number | ✓ | Config snapshot from `domain.yaml` |
+| `scoring.min_mentions_for_velocity` | integer | ✓ | Config snapshot from `domain.yaml` |
+
+### `rows[]` element
+
+Each row represents one scored entity. Sorted by `current_rank` ascending
+in the file; the client re-sorts per preset.
+
+| Field | Type | Required | Nullable | Description |
+|---|---|---|---|---|
+| `entity_id` | string | ✓ | no | Canonical ID (`org:rivian`, `tech:cowos`, etc.) |
+| `label` | string | ✓ | no | Display label |
+| `type` | string | ✓ | no | Entity type enum (`Org`, `Person`, `Tool`, `Model`, `Dataset`, `Benchmark`, `Paper`, `Repo`, `Tech`, `Topic`, `Event`, `Location`, `Program`, `Other`) |
+| `current_rank` | integer | ✓ | no | 1-indexed rank by today's `trend_score` |
+| `rank_prior` | integer | ✓ | yes | Rank `rank_window_days` ago. Null if entity had no `trend_history` row that day. |
+| `rank_delta` | integer | ✓ | yes | `rank_prior - current_rank` (positive = climbed). Null when `rank_prior` is null. |
+| `is_new` | boolean | ✓ | no | True iff `rank_prior` is null. Drives the "NEW" UI badge. |
+| `velocity_raw` | number | ✓ | yes | Uncapped 7d / prior-7d mention ratio. Null when undefined (no prior-window mentions). |
+| `mention_count_7d` | integer | ✓ | no | From `trend_history.mention_count_7d`. |
+| `mention_count_30d` | integer | ✓ | no | From `trend_history.mention_count_30d`. |
+| `first_seen` | string (ISO date) | ✓ | no | From `entities.first_seen`. |
+| `days_since_first_seen` | integer | ✓ | no | `dateRange.end - first_seen`, in days. |
+| `distinct_sources_7d` | integer | ✓ | no | Count of distinct source feeds mentioning this entity in last 7 days (count via join on `mentions` × `documents.source_id`). |
+| `in_trending_view` | boolean | ✓ | no | True iff the entity is in today's Current Landscape top-N. Drives the "View in graph" link visibility in V1. |
+| `trend_score` | number | ✓ | no | The composite score from `TrendScorer` (kept for sortable column and cross-view sanity reference). |
+
+### Example row
+
+```json
+{
+  "entity_id": "org:rivian",
+  "label": "Rivian",
+  "type": "Org",
+  "current_rank": 75,
+  "rank_prior": 140,
+  "rank_delta": 65,
+  "is_new": false,
+  "velocity_raw": 8.5,
+  "mention_count_7d": 17,
+  "mention_count_30d": 42,
+  "first_seen": "2026-03-15",
+  "days_since_first_seen": 56,
+  "distinct_sources_7d": 5,
+  "in_trending_view": false,
+  "trend_score": 0.412
+}
+```
+
+### Just-appeared entity example
+
+```json
+{
+  "entity_id": "tech:retentive_attention",
+  "label": "Retentive Attention",
+  "type": "Tech",
+  "current_rank": 88,
+  "rank_prior": null,
+  "rank_delta": null,
+  "is_new": true,
+  "velocity_raw": null,
+  "mention_count_7d": 4,
+  "mention_count_30d": 4,
+  "first_seen": "2026-05-06",
+  "days_since_first_seen": 4,
+  "distinct_sources_7d": 3,
+  "in_trending_view": false,
+  "trend_score": 0.218
+}
+```
+
+### Empty-export shape
+
+If no entities qualify (fresh DB, etc.), the file is still written with
+`rowCount: 0` and an empty `rows` array. The client should render an
+empty-state, not error.
+
+### Validation
+
+A JSON Schema mirror of this contract should live at
+`schemas/movers.json` and be validated as part of the `run_movers.py`
+export step (matching the convention of the existing four views).
+
+### Forward compatibility
+
+Adding new fields to either `meta` or `rows[]` is allowed without a
+schema version bump *only if* all clients tolerate unknown fields
+(current client should be written to do so). Removing or renaming a
+field is a breaking change and requires coordination with the frontend.
