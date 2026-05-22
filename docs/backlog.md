@@ -145,6 +145,43 @@ guidance and critical rules section.
 **Verify:** Next biosafety pipeline run should show specialist validation
 pass rate > 0% (was 0/5 before fix).
 
+### EXT-7: Publishers extracted as `Org` entities (Tom's Hardware, Future US)
+
+**Observed:** 2026-05-19 (Sprint 14 smoke test) | **Priority:** Medium
+
+The semiconductors Movers exporter surfaces `Tom's Hardware` at rank #1 and
+`Future US` at rank #4 — both publishers being treated as `Org` entities
+with high `trend_score`. They rank above Intel (#2), NVIDIA (#3), TSMC (#5)
+because they appear in many documents as the *source*, not as a semantically
+mentioned entity.
+
+Same pattern likely affects every domain (e.g. Deadline / IndieWire / Variety
+in film) but only became visible because Movers exposes the full scored
+population, not just the trending top-50.
+
+**Root cause:** The extraction prompt doesn't explicitly tell the LLM to
+*not* extract the publication itself as an entity. The publication name
+appears at the top of every article it scrapes, so the model treats it as
+a salient `Org`.
+
+**Options:**
+- Add a negative example to per-domain `system.txt`: "Do not extract the
+  publication itself (e.g. 'Tom's Hardware', 'Deadline') as an entity. The
+  source is captured separately in `documents.source`."
+- Post-extraction filter: maintain a `publishers.yaml` per domain and drop
+  entities matching publisher names at import time.
+- Use the existing `documents.source` column as a deny-list for entity
+  names extracted from that source's articles.
+
+**Impact:** Not a Movers bug — Sprint 14 surfaces this pre-existing noise,
+it doesn't create it. Affects Current Landscape view too (publishers
+appear in trending top-50). Worth fixing before the Movers UI ships
+(Sprint 15) so users don't see "Tom's Hardware" as a #1 mover.
+
+**Waiting on:** Decision on which option above (prompt, post-filter, or
+deny-list). Probably the prompt negative-example as the cheapest first
+attempt, then post-filter if the prompt-only fix doesn't stick.
+
 ---
 
 ## Entity Resolution
