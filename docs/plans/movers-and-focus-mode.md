@@ -8,19 +8,18 @@
 
 ## Status / Next Action
 
-*Last updated: 2026-05-10*
+*Last updated: 2026-05-19*
 
-**Sprint 14 backend implementation complete.** All eight items (14.1
-through 14.8 minus the manual smoke run) are shipped. Pending PR
-contains the full chunk.
+**Sprint 14 implemented and smoke-tested.** PR #256 contains the full
+chunk including a schema fix that landed during testing. Ready to merge.
 
 ### Sprint status
 
-- **Sprint 14 — Backend Movers — IMPLEMENTED.** Awaiting
-  the manual smoke run (item 14.8) on real domain databases.
-  Source-type extraction policy, `run_movers.py`, `schemas/movers.json`,
-  `make movers` target, pipeline integration, and 47 new tests all
-  shipped.
+- **Sprint 14 — Backend Movers — IMPLEMENTED + SMOKE-TESTED.** PR #256
+  ready to merge. Source-type extraction policy, `run_movers.py`,
+  `schemas/movers.json` (with the domain-taxonomy fix applied during
+  testing), `make movers` target, pipeline integration, 56 tests, and a
+  reusable smoke-test runbook with findings all on the branch.
 - **Sprint 14B — Locked-neighborhood focus mode** — ready to start
   (no backend dependency, client-only).
 - **Sprint 15 — Movers Frontend V1** — execution-gated on the UI
@@ -29,19 +28,36 @@ contains the full chunk.
 
 ### Open human-action items
 
-- **Smoke run for Sprint 14 (item 14.8)** —
-  `make daily DOMAIN={ai,semiconductors,film,biosafety}` should now
-  produce `movers.json` in each domain's live data dir. Qualitative
-  check: film domain produces meaningfully different top entries than
-  its trending top-50 (the proof-point for the new lens).
+- **Merge PR #256** when convenient.
 - **Wireframe pass for Sprint 15** — cannot be done by an agent. Even
   a hand-drawn napkin referencing the visual idiom of `dashboard.html`
   / `ontology.html` is enough to unblock the wireframe-dependent items.
 
+### Known follow-ups (out of scope for Sprint 14)
+
+- **Pre-existing extraction noise:** semis Movers top-list shows
+  publishers (Tom's Hardware, Future US) ranked unreasonably high as
+  Org-type entities. Not a Movers bug — extraction is creating Org
+  entities for publication names. Track in `docs/backlog.md` for a
+  future extraction-prompt tuning pass.
+- **Real film proof-point:** the qualitative "does Movers earn its
+  keep on film?" check needs fresh film extractions. Synthetic
+  bootstrap (Phase 0 in the smoke-test runbook) exercises the
+  infrastructure but not the qualitative claim. Defer until either
+  film extractions resume or Sprint 15 lands and we can judge against
+  real UI.
+- **Bootstrap rows cleanup:** ai / biosafety / film carry synthesized
+  trend_history rows from the smoke test. Drop them per the runbook's
+  Cleanup section once they're no longer useful.
+
 ### Recently completed
 
 - Sprint 14 backend implementation: source-type policy, run_movers.py,
-  schema, pipeline integration, tests (this PR)
+  schema, pipeline integration, tests (PR #256)
+- Smoke test executed across all four domains via Phase 0 bootstrap;
+  findings captured in `docs/free-text/sprint-14-smoke-test.md`
+- Schema fix: `entityType` opened from closed AI-domain enum to
+  domain-agnostic open string with `minLength: 1` (PR #256)
 - Locked the three "Before A" open items (PR #255)
 - Added `movers.json` schema as Appendix A (PR #255)
 - Drafted Sprints 14 / 14B / 15 / 16 in project-plan.md (PR #255)
