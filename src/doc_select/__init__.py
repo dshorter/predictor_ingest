@@ -428,7 +428,10 @@ def load_bench(
     """Load unexpired, unextracted bench docs for backfill.
 
     Returns docs ordered by quality_score descending, excluding any that
-    have already been extracted (status != 'cleaned').
+    have already been extracted (status != 'cleaned'). Also excludes any
+    docs from non-extracting source_types — they should never have
+    reached the bench, but the filter guards against historical bench
+    state from before the source-type policy was introduced.
 
     Args:
         conn: SQLite connection
@@ -438,19 +441,24 @@ def load_bench(
     Returns:
         List of document dicts ready for docpack building.
     """
+    from ingest.source_policy import extracting_source_types
+
     ref = (reference_date or date.today()).isoformat()
+    extract_types = extracting_source_types()
+    type_placeholders = ",".join("?" * len(extract_types))
 
     rows = conn.execute(
-        """SELECT d.doc_id, d.url, d.source, d.title, d.published_at,
+        f"""SELECT d.doc_id, d.url, d.source, d.title, d.published_at,
                   d.fetched_at, d.text_path, b.quality_score
            FROM bench b
            JOIN documents d ON b.doc_id = d.doc_id
            WHERE b.expires_at > ?
              AND d.status = 'cleaned'
              AND d.text_path IS NOT NULL
+             AND d.source_type IN ({type_placeholders})
            ORDER BY b.quality_score DESC
            LIMIT ?""",
-        (ref, limit),
+        (ref, *extract_types, limit),
     ).fetchall()
 
     return [dict(r) for r in rows]

@@ -21,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from db import init_db
+from ingest.source_policy import extracting_source_types
 
 
 def _log_selection_decisions(
@@ -127,18 +128,25 @@ def build_docpack(
     conn = init_db(db_path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Restrict the candidate set to source_types that should go through
+    # extraction (chatter sources like Bluesky/Reddit are ingested for
+    # mention counting only — see src/ingest/source_policy.py).
+    extract_types = extracting_source_types()
+    type_placeholders = ",".join("?" * len(extract_types))
+
     # Query documents - only select docs that have text files recorded
     if all_docs:
         cursor = conn.execute(
-            """
+            f"""
             SELECT doc_id, url, source, title, published_at, fetched_at, text_path
             FROM documents
             WHERE status = 'cleaned'
               AND text_path IS NOT NULL
+              AND source_type IN ({type_placeholders})
             ORDER BY fetched_at DESC
             LIMIT ?
             """,
-            (max_docs,),
+            (*extract_types, max_docs),
         )
         bundle_label = label or "all"
     else:
@@ -147,17 +155,18 @@ def build_docpack(
         # published_at is stored as ISO-8601 date or datetime; substr
         # extracts the date portion for comparison.
         cursor = conn.execute(
-            """
+            f"""
             SELECT doc_id, url, source, title, published_at, fetched_at, text_path
             FROM documents
             WHERE status = 'cleaned'
               AND text_path IS NOT NULL
               AND published_at IS NOT NULL
               AND substr(published_at, 1, 10) = ?
+              AND source_type IN ({type_placeholders})
             ORDER BY fetched_at DESC
             LIMIT ?
             """,
-            (target_date, max_docs),
+            (target_date, *extract_types, max_docs),
         )
         bundle_label = label or target_date
     rows = [dict(row) for row in cursor.fetchall()]
@@ -173,7 +182,7 @@ def build_docpack(
         cutoff_date = (date.fromisoformat(target_date) - timedelta(days=180)).isoformat()
         if remaining > 0:
             backlog_cursor = conn.execute(
-                """
+                f"""
                 SELECT doc_id, url, source, title, published_at, fetched_at, text_path
                 FROM documents
                 WHERE status = 'cleaned'
@@ -181,10 +190,11 @@ def build_docpack(
                   AND (published_at IS NULL OR substr(published_at, 1, 10) != ?)
                   AND COALESCE(substr(published_at, 1, 10),
                                substr(fetched_at, 1, 10)) >= ?
+                  AND source_type IN ({type_placeholders})
                 ORDER BY fetched_at DESC
                 LIMIT ?
                 """,
-                (target_date, cutoff_date, remaining),
+                (target_date, cutoff_date, *extract_types, remaining),
             )
             backlog_rows = [dict(r) for r in backlog_cursor.fetchall()
                            if r["doc_id"] not in already_ids]

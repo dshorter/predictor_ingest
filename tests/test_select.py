@@ -73,6 +73,7 @@ def _make_bench_db() -> sqlite3.Connection:
             doc_id TEXT PRIMARY KEY,
             url TEXT,
             source TEXT,
+            source_type TEXT NOT NULL DEFAULT 'rss',
             title TEXT,
             published_at TEXT,
             fetched_at TEXT,
@@ -542,7 +543,7 @@ class TestBench:
         """save_bench inserts overflow docs into bench table."""
         conn = _make_bench_db()
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
              "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
         )
@@ -569,7 +570,7 @@ class TestBench:
         """Inserting same doc_id twice should not fail."""
         conn = _make_bench_db()
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
              "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
         )
@@ -592,12 +593,12 @@ class TestBench:
         conn = _make_bench_db()
         # One cleaned, one extracted
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
              "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
         )
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc2", "http://example.com/2", "Feed", "Title2", "2026-03-16",
              "2026-03-16T12:00:00Z", "/tmp/doc2.txt", "extracted"),
         )
@@ -615,7 +616,7 @@ class TestBench:
         """load_bench should skip expired entries."""
         conn = _make_bench_db()
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc1", "http://example.com", "Feed", "Title", "2026-03-10",
              "2026-03-10T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
         )
@@ -632,7 +633,7 @@ class TestBench:
         conn = _make_bench_db()
         for i, score in enumerate([0.55, 0.82, 0.71]):
             conn.execute(
-                "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (f"doc{i}", f"http://example.com/{i}", "Feed", "Title",
                  "2026-03-16", "2026-03-16T12:00:00Z", f"/tmp/doc{i}.txt", "cleaned"),
             )
@@ -648,12 +649,12 @@ class TestBench:
         """expire_bench should remove stale entries."""
         conn = _make_bench_db()
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc1", "http://example.com", "Feed", "Title", "2026-03-10",
              "2026-03-10T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
         )
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc2", "http://example.com/2", "Feed", "Title2", "2026-03-14",
              "2026-03-14T12:00:00Z", "/tmp/doc2.txt", "cleaned"),
         )
@@ -675,7 +676,7 @@ class TestBench:
         """clear_bench_doc should remove a specific doc."""
         conn = _make_bench_db()
         conn.execute(
-            "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO documents (doc_id, url, source, title, published_at, fetched_at, text_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("doc1", "http://example.com", "Feed", "Title", "2026-03-16",
              "2026-03-16T12:00:00Z", "/tmp/doc1.txt", "cleaned"),
         )

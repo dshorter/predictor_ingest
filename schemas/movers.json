@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://predictor-ingest/schemas/movers.json",
+  "title": "Movers Export",
+  "description": "Tabular movement-tracking view: rank delta, velocity, just-appeared entities. See docs/plans/movers-and-focus-mode.md Appendix A for the design rationale.",
+  "type": "object",
+  "required": ["meta", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": { "$ref": "#/$defs/meta" },
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/row" }
+    }
+  },
+  "$defs": {
+    "meta": {
+      "type": "object",
+      "required": [
+        "view",
+        "domain",
+        "rank_window_days",
+        "rowCount",
+        "exportedAt",
+        "dateRange",
+        "scoring"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "view": {
+          "type": "string",
+          "const": "movers"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Domain slug (ai, film, semiconductors, biosafety, ...)"
+        },
+        "rank_window_days": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of days back used to compute rank_prior and rank_delta. Default 7."
+        },
+        "rowCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC ISO-8601 timestamp of export"
+        },
+        "dateRange": {
+          "type": "object",
+          "required": ["start", "end"],
+          "additionalProperties": false,
+          "properties": {
+            "start": {
+              "type": ["string", "null"],
+              "format": "date",
+              "description": "Earliest first_seen represented in the row set (null if rowCount is 0)"
+            },
+            "end": {
+              "type": "string",
+              "format": "date",
+              "description": "Export date (today)"
+            }
+          }
+        },
+        "scoring": {
+          "type": "object",
+          "required": ["novelty_decay_lambda", "min_mentions_for_velocity"],
+          "additionalProperties": true,
+          "properties": {
+            "novelty_decay_lambda": {
+              "type": "number",
+              "description": "Config snapshot from domain.yaml"
+            },
+            "min_mentions_for_velocity": {
+              "type": "integer",
+              "description": "Config snapshot from domain.yaml"
+            }
+          }
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "required": [
+        "entity_id",
+        "label",
+        "type",
+        "current_rank",
+        "rank_prior",
+        "rank_delta",
+        "is_new",
+        "velocity_raw",
+        "mention_count_7d",
+        "mention_count_30d",
+        "first_seen",
+        "days_since_first_seen",
+        "distinct_sources_7d",
+        "in_trending_view",
+        "trend_score"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "description": "Canonical entity ID (e.g. org:rivian, tech:cowos)"
+        },
+        "label": { "type": "string" },
+        "type": { "$ref": "#/$defs/entityType" },
+        "current_rank": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-indexed rank by today's trend_score"
+        },
+        "rank_prior": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Rank rank_window_days ago. Null if entity had no trend_history row that day."
+        },
+        "rank_delta": {
+          "type": ["integer", "null"],
+          "description": "rank_prior - current_rank (positive = climbed). Null when rank_prior is null."
+        },
+        "is_new": {
+          "type": "boolean",
+          "description": "True iff rank_prior is null. Drives the NEW UI badge."
+        },
+        "velocity_raw": {
+          "type": ["number", "null"],
+          "description": "Uncapped 7d / prior-7d mention ratio. Null when undefined (no prior-window mentions)."
+        },
+        "mention_count_7d": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mention_count_30d": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_seen": {
+          "type": "string",
+          "format": "date"
+        },
+        "days_since_first_seen": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinct_sources_7d": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of distinct documents.source values touching this entity in the last 7 days"
+        },
+        "in_trending_view": {
+          "type": "boolean",
+          "description": "True iff the entity is in today's Current Landscape top-N"
+        },
+        "trend_score": {
+          "type": "number",
+          "description": "Composite score from TrendScorer (sortable column + cross-view sanity reference)"
+        }
+      }
+    },
+    "entityType": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Entity type label. Open string: each domain defines its own taxonomy (e.g. semiconductors adds Fab/Chip/Architecture/ProcessNode/Packaging/Material/Policy/Company; biosafety adds SelectAgent/Facility/Regulation; film adds Production/Festival/Distributor/Agency/Fund). The V1 framework defaults are Org/Person/Program/Tool/Model/Dataset/Benchmark/Paper/Repo/Document/Tech/Topic/Event/Location/Other."
+    }
+  }
+}

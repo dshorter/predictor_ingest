@@ -8,40 +8,56 @@
 
 ## Status / Next Action
 
-*Last updated: 2026-05-10*
+*Last updated: 2026-05-19*
 
-**Planning phase complete.** All four sprints are defined in
-[`docs/project-plan.md`](../project-plan.md) (Sprints 14 / 14B / 15 / 16).
-The design rationale lives in
-[`docs/free-text/movers-vs-current-landscape.md`](../free-text/movers-vs-current-landscape.md).
+**Sprint 14 implemented and smoke-tested.** PR #256 contains the full
+chunk including a schema fix that landed during testing. Ready to merge.
 
-**Tracking PR:** #255 (merge gate for planning artifacts; #254 was the
-initial design + plan).
+### Sprint status
 
-### Ready to start now
-
-- **Sprint 14 — Backend Movers** — all decisions locked (see §"Before A"
-  below). `movers.json` schema in Appendix A.
-- **Sprint 14B — Locked-neighborhood focus mode** — client-only,
-  independent of Sprint 14. Can ship in parallel.
-
-### Gated
-
-- **Sprint 15 — Movers Frontend V1** — execution-gated on a UI
-  wireframe pass (column layout, preset chip placement, detail panel
-  positioning). Items 15.1 / 15.3 / 15.4 / 15.6 / 15.9 shape to the
-  wireframe; other items can begin earlier with mock data.
-- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15 to
-  ship first.
+- **Sprint 14 — Backend Movers — IMPLEMENTED + SMOKE-TESTED.** PR #256
+  ready to merge. Source-type extraction policy, `run_movers.py`,
+  `schemas/movers.json` (with the domain-taxonomy fix applied during
+  testing), `make movers` target, pipeline integration, 56 tests, and a
+  reusable smoke-test runbook with findings all on the branch.
+- **Sprint 14B — Locked-neighborhood focus mode** — ready to start
+  (no backend dependency, client-only).
+- **Sprint 15 — Movers Frontend V1** — execution-gated on the UI
+  wireframe pass.
+- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15.
 
 ### Open human-action items
 
-- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even a
-  hand-drawn napkin referencing the visual idiom of `dashboard.html` /
-  `ontology.html` is enough to unblock the wireframe-dependent items.
+- **Merge PR #256** when convenient.
+- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even
+  a hand-drawn napkin referencing the visual idiom of `dashboard.html`
+  / `ontology.html` is enough to unblock the wireframe-dependent items.
+
+### Known follow-ups (out of scope for Sprint 14)
+
+- **Pre-existing extraction noise:** semis Movers top-list shows
+  publishers (Tom's Hardware, Future US) ranked unreasonably high as
+  Org-type entities. Not a Movers bug — extraction is creating Org
+  entities for publication names. Track in `docs/backlog.md` for a
+  future extraction-prompt tuning pass.
+- **Real film proof-point:** the qualitative "does Movers earn its
+  keep on film?" check needs fresh film extractions. Synthetic
+  bootstrap (Phase 0 in the smoke-test runbook) exercises the
+  infrastructure but not the qualitative claim. Defer until either
+  film extractions resume or Sprint 15 lands and we can judge against
+  real UI.
+- **Bootstrap rows cleanup:** ai / biosafety / film carry synthesized
+  trend_history rows from the smoke test. Drop them per the runbook's
+  Cleanup section once they're no longer useful.
 
 ### Recently completed
 
+- Sprint 14 backend implementation: source-type policy, run_movers.py,
+  schema, pipeline integration, tests (PR #256)
+- Smoke test executed across all four domains via Phase 0 bootstrap;
+  findings captured in `docs/free-text/sprint-14-smoke-test.md`
+- Schema fix: `entityType` opened from closed AI-domain enum to
+  domain-agnostic open string with `minLength: 1` (PR #256)
 - Locked the three "Before A" open items (PR #255)
 - Added `movers.json` schema as Appendix A (PR #255)
 - Drafted Sprints 14 / 14B / 15 / 16 in project-plan.md (PR #255)

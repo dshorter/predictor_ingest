@@ -338,3 +338,216 @@ class TestSchemaFiles:
             schema = json.load(f)
         assert "$schema" in schema
         assert "properties" in schema
+
+    def test_movers_schema_exists(self):
+        """Schema file should exist at schemas/movers.json."""
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        assert schema_path.exists(), f"Schema not found at {schema_path}"
+
+    def test_movers_schema_valid_json(self):
+        """Movers schema should be valid JSON with the expected structure."""
+        import json
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        assert schema.get("$schema", "").startswith("https://json-schema.org/")
+        assert schema["title"] == "Movers Export"
+        # Top-level requires meta + rows
+        assert set(schema["required"]) == {"meta", "rows"}
+        # row $def has the 15 fields from Appendix A
+        row_required = set(schema["$defs"]["row"]["required"])
+        expected_row_fields = {
+            "entity_id", "label", "type",
+            "current_rank", "rank_prior", "rank_delta", "is_new",
+            "velocity_raw", "mention_count_7d", "mention_count_30d",
+            "first_seen", "days_since_first_seen",
+            "distinct_sources_7d", "in_trending_view", "trend_score",
+        }
+        assert row_required == expected_row_fields
+
+    def test_movers_schema_validates_example(self):
+        """A canonical Movers example should validate against the schema."""
+        import json
+        try:
+            from jsonschema import Draft202012Validator
+        except ImportError:
+            pytest.skip("jsonschema not installed")
+
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        Draft202012Validator.check_schema(schema)
+
+        example = {
+            "meta": {
+                "view": "movers",
+                "domain": "ai",
+                "rank_window_days": 7,
+                "rowCount": 2,
+                "exportedAt": "2026-05-10T20:30:00Z",
+                "dateRange": {"start": "2026-03-15", "end": "2026-05-10"},
+                "scoring": {
+                    "novelty_decay_lambda": 0.05,
+                    "min_mentions_for_velocity": 3,
+                },
+            },
+            "rows": [
+                {
+                    "entity_id": "org:rivian",
+                    "label": "Rivian",
+                    "type": "Org",
+                    "current_rank": 75,
+                    "rank_prior": 140,
+                    "rank_delta": 65,
+                    "is_new": False,
+                    "velocity_raw": 8.5,
+                    "mention_count_7d": 17,
+                    "mention_count_30d": 42,
+                    "first_seen": "2026-03-15",
+                    "days_since_first_seen": 56,
+                    "distinct_sources_7d": 5,
+                    "in_trending_view": False,
+                    "trend_score": 0.412,
+                },
+                {
+                    "entity_id": "tech:retentive_attention",
+                    "label": "Retentive Attention",
+                    "type": "Tech",
+                    "current_rank": 88,
+                    "rank_prior": None,
+                    "rank_delta": None,
+                    "is_new": True,
+                    "velocity_raw": None,
+                    "mention_count_7d": 4,
+                    "mention_count_30d": 4,
+                    "first_seen": "2026-05-06",
+                    "days_since_first_seen": 4,
+                    "distinct_sources_7d": 3,
+                    "in_trending_view": False,
+                    "trend_score": 0.218,
+                },
+            ],
+        }
+        v = Draft202012Validator(schema)
+        errors = sorted(v.iter_errors(example), key=lambda e: e.path)
+        assert not errors, "\n".join(e.message for e in errors)
+
+    def test_movers_schema_rejects_missing_required(self):
+        """Schema should reject a row missing a required field."""
+        import json
+        try:
+            from jsonschema import Draft202012Validator
+        except ImportError:
+            pytest.skip("jsonschema not installed")
+
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        v = Draft202012Validator(schema)
+
+        # Row missing is_new (a required field)
+        bad = {
+            "meta": {
+                "view": "movers", "domain": "ai", "rank_window_days": 7,
+                "rowCount": 1,
+                "exportedAt": "2026-05-10T20:30:00Z",
+                "dateRange": {"start": "2026-05-10", "end": "2026-05-10"},
+                "scoring": {"novelty_decay_lambda": 0.05,
+                            "min_mentions_for_velocity": 3},
+            },
+            "rows": [{
+                "entity_id": "org:x", "label": "X", "type": "Org",
+                "current_rank": 1, "rank_prior": None, "rank_delta": None,
+                # is_new missing
+                "velocity_raw": None,
+                "mention_count_7d": 0, "mention_count_30d": 0,
+                "first_seen": "2026-05-10", "days_since_first_seen": 0,
+                "distinct_sources_7d": 0, "in_trending_view": False,
+                "trend_score": 0.0,
+            }],
+        }
+        errors = list(v.iter_errors(bad))
+        assert errors, "Expected validation error for missing is_new"
+
+    def test_movers_schema_accepts_domain_specific_entity_types(self):
+        """entityType is an open string: domain-specific types like 'Company',
+        'Chip', 'Fab', 'SelectAgent', 'Production' must pass validation. The
+        framework V1 enum is a default; each domain extends it."""
+        import json
+        try:
+            from jsonschema import Draft202012Validator
+        except ImportError:
+            pytest.skip("jsonschema not installed")
+
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        v = Draft202012Validator(schema)
+
+        def _row(entity_type):
+            return {
+                "meta": {
+                    "view": "movers", "domain": "semiconductors",
+                    "rank_window_days": 7, "rowCount": 1,
+                    "exportedAt": "2026-05-10T20:30:00Z",
+                    "dateRange": {"start": "2026-05-10", "end": "2026-05-10"},
+                    "scoring": {"novelty_decay_lambda": 0.05,
+                                "min_mentions_for_velocity": 3},
+                },
+                "rows": [{
+                    "entity_id": "z:x", "label": "X",
+                    "type": entity_type,
+                    "current_rank": 1, "rank_prior": None, "rank_delta": None,
+                    "is_new": True, "velocity_raw": None,
+                    "mention_count_7d": 0, "mention_count_30d": 0,
+                    "first_seen": "2026-05-10", "days_since_first_seen": 0,
+                    "distinct_sources_7d": 0, "in_trending_view": False,
+                    "trend_score": 0.0,
+                }],
+            }
+
+        for t in ("Company", "Chip", "Fab", "ProcessNode", "SelectAgent",
+                  "Production", "Festival", "Org"):
+            assert not list(v.iter_errors(_row(t))), (
+                f"Expected {t!r} to validate as an entity type"
+            )
+
+    def test_movers_schema_rejects_structurally_invalid_entity_type(self):
+        """entityType still rejects non-strings and empty strings."""
+        import json
+        try:
+            from jsonschema import Draft202012Validator
+        except ImportError:
+            pytest.skip("jsonschema not installed")
+
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        v = Draft202012Validator(schema)
+
+        def _row(entity_type):
+            return {
+                "meta": {
+                    "view": "movers", "domain": "ai", "rank_window_days": 7,
+                    "rowCount": 1,
+                    "exportedAt": "2026-05-10T20:30:00Z",
+                    "dateRange": {"start": "2026-05-10", "end": "2026-05-10"},
+                    "scoring": {"novelty_decay_lambda": 0.05,
+                                "min_mentions_for_velocity": 3},
+                },
+                "rows": [{
+                    "entity_id": "z:x", "label": "X",
+                    "type": entity_type,
+                    "current_rank": 1, "rank_prior": None, "rank_delta": None,
+                    "is_new": True, "velocity_raw": None,
+                    "mention_count_7d": 0, "mention_count_30d": 0,
+                    "first_seen": "2026-05-10", "days_since_first_seen": 0,
+                    "distinct_sources_7d": 0, "in_trending_view": False,
+                    "trend_score": 0.0,
+                }],
+            }
+
+        for bad_value in ("", 42, None, ["Org"]):
+            assert list(v.iter_errors(_row(bad_value))), (
+                f"Expected validation error for entity type {bad_value!r}"
+            )
