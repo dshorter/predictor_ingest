@@ -469,8 +469,10 @@ class TestSchemaFiles:
         errors = list(v.iter_errors(bad))
         assert errors, "Expected validation error for missing is_new"
 
-    def test_movers_schema_rejects_unknown_entity_type(self):
-        """Schema's entityType enum should reject unknown types."""
+    def test_movers_schema_accepts_domain_specific_entity_types(self):
+        """entityType is an open string: domain-specific types like 'Company',
+        'Chip', 'Fab', 'SelectAgent', 'Production' must pass validation. The
+        framework V1 enum is a default; each domain extends it."""
         import json
         try:
             from jsonschema import Draft202012Validator
@@ -481,25 +483,71 @@ class TestSchemaFiles:
         with open(schema_path) as f:
             schema = json.load(f)
         v = Draft202012Validator(schema)
-        bad = {
-            "meta": {
-                "view": "movers", "domain": "ai", "rank_window_days": 7,
-                "rowCount": 1,
-                "exportedAt": "2026-05-10T20:30:00Z",
-                "dateRange": {"start": "2026-05-10", "end": "2026-05-10"},
-                "scoring": {"novelty_decay_lambda": 0.05,
-                            "min_mentions_for_velocity": 3},
-            },
-            "rows": [{
-                "entity_id": "z:x", "label": "X",
-                "type": "Vehicle",  # not in the enum
-                "current_rank": 1, "rank_prior": None, "rank_delta": None,
-                "is_new": True, "velocity_raw": None,
-                "mention_count_7d": 0, "mention_count_30d": 0,
-                "first_seen": "2026-05-10", "days_since_first_seen": 0,
-                "distinct_sources_7d": 0, "in_trending_view": False,
-                "trend_score": 0.0,
-            }],
-        }
-        errors = list(v.iter_errors(bad))
-        assert errors, "Expected validation error for unknown entity type"
+
+        def _row(entity_type):
+            return {
+                "meta": {
+                    "view": "movers", "domain": "semiconductors",
+                    "rank_window_days": 7, "rowCount": 1,
+                    "exportedAt": "2026-05-10T20:30:00Z",
+                    "dateRange": {"start": "2026-05-10", "end": "2026-05-10"},
+                    "scoring": {"novelty_decay_lambda": 0.05,
+                                "min_mentions_for_velocity": 3},
+                },
+                "rows": [{
+                    "entity_id": "z:x", "label": "X",
+                    "type": entity_type,
+                    "current_rank": 1, "rank_prior": None, "rank_delta": None,
+                    "is_new": True, "velocity_raw": None,
+                    "mention_count_7d": 0, "mention_count_30d": 0,
+                    "first_seen": "2026-05-10", "days_since_first_seen": 0,
+                    "distinct_sources_7d": 0, "in_trending_view": False,
+                    "trend_score": 0.0,
+                }],
+            }
+
+        for t in ("Company", "Chip", "Fab", "ProcessNode", "SelectAgent",
+                  "Production", "Festival", "Org"):
+            assert not list(v.iter_errors(_row(t))), (
+                f"Expected {t!r} to validate as an entity type"
+            )
+
+    def test_movers_schema_rejects_structurally_invalid_entity_type(self):
+        """entityType still rejects non-strings and empty strings."""
+        import json
+        try:
+            from jsonschema import Draft202012Validator
+        except ImportError:
+            pytest.skip("jsonschema not installed")
+
+        schema_path = Path(__file__).parent.parent / "schemas" / "movers.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        v = Draft202012Validator(schema)
+
+        def _row(entity_type):
+            return {
+                "meta": {
+                    "view": "movers", "domain": "ai", "rank_window_days": 7,
+                    "rowCount": 1,
+                    "exportedAt": "2026-05-10T20:30:00Z",
+                    "dateRange": {"start": "2026-05-10", "end": "2026-05-10"},
+                    "scoring": {"novelty_decay_lambda": 0.05,
+                                "min_mentions_for_velocity": 3},
+                },
+                "rows": [{
+                    "entity_id": "z:x", "label": "X",
+                    "type": entity_type,
+                    "current_rank": 1, "rank_prior": None, "rank_delta": None,
+                    "is_new": True, "velocity_raw": None,
+                    "mention_count_7d": 0, "mention_count_30d": 0,
+                    "first_seen": "2026-05-10", "days_since_first_seen": 0,
+                    "distinct_sources_7d": 0, "in_trending_view": False,
+                    "trend_score": 0.0,
+                }],
+            }
+
+        for bad_value in ("", 42, None, ["Org"]):
+            assert list(v.iter_errors(_row(bad_value))), (
+                f"Expected validation error for entity type {bad_value!r}"
+            )

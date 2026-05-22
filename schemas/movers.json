@@ -165,23 +165,8 @@
     },
     "entityType": {
       "type": "string",
-      "enum": [
-        "Org",
-        "Person",
-        "Program",
-        "Tool",
-        "Model",
-        "Dataset",
-        "Benchmark",
-        "Paper",
-        "Repo",
-        "Document",
-        "Tech",
-        "Topic",
-        "Event",
-        "Location",
-        "Other"
-      ]
+      "minLength": 1,
+      "description": "Entity type label. Open string: each domain defines its own taxonomy (e.g. semiconductors adds Fab/Chip/Architecture/ProcessNode/Packaging/Material/Policy/Company; biosafety adds SelectAgent/Facility/Regulation; film adds Production/Festival/Distributor/Agency/Fund). The V1 framework defaults are Org/Person/Program/Tool/Model/Dataset/Benchmark/Paper/Repo/Document/Tech/Topic/Event/Location/Other."
     }
   }
 }
