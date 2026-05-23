@@ -114,9 +114,10 @@
   --color-bg-secondary: #F9FAFB;       /* gray-50 */
   --color-bg-tertiary: #F3F4F6;        /* gray-100 */
   --color-bg-info: #EFF6FF;
-  /* Letterbox: page-edge frame distinct from any other surface. Used by
-     wide content pages (movers) to delineate the centered content area. */
-  --color-bg-letterbox: #E8EBF0;       /* cool gray, unique in the palette */
+  /* Letterbox: page-edge frame, sits visually ABOVE the centered content
+     column (lighter than the content surface in both modes, never reused
+     elsewhere). Used by wide content pages (movers). */
+  --color-bg-letterbox: #FAFBFD;       /* near-white with a cool cast, unique */
   --color-text-primary: #1F2937;        /* gray-800 */
   --color-text-secondary: #6B7280;      /* gray-500 */
   --color-text-tertiary: #9CA3AF;       /* gray-400 */
@@ -199,7 +200,7 @@
   --color-bg-secondary: #1F2937;        /* gray-800 */
   --color-bg-tertiary: #374151;         /* gray-700 */
   --color-bg-info: #1E3A5F;
-  --color-bg-letterbox: #0A0F1A;        /* darker than gray-900, unique */
+  --color-bg-letterbox: #1A2540;        /* lighter than gray-900 content, unique slate */
   --color-text-primary: #F3F4F6;        /* gray-100 */
   --color-text-secondary: #9CA3AF;      /* gray-400 */
   --color-text-tertiary: #6B7280;       /* gray-500 */
