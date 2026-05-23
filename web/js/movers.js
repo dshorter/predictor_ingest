@@ -15,6 +15,7 @@ const MoversState = {
   data: null,         // { meta, rows[] } from movers.json
   sortedRows: null,   // filtered + sorted view of data.rows for the active preset
   preset: null,       // active preset slug
+  openEntity: null,   // entity_id whose detail panel is open (or null)
   loading: false,
   error: null,
 };
@@ -296,6 +297,7 @@ function renderDataState() {
   }
   renderPresetChips();
   applyPreset(MoversState.preset || resolvePresetFromUrl());
+  initDetailPanelFromUrl();
 }
 
 /* -------------------------------------------------------------------------
@@ -431,6 +433,202 @@ function escAttr(s) {
 }
 
 /* -------------------------------------------------------------------------
+ * Detail panel — 15.6
+ *
+ * Right slide-in 320px wide. Shows entity rank/mentions/timeline plus a
+ * "View in graph" link (only when in_trending_view: true, per the
+ * wireframe — universal deep-link is Sprint 16). Closes via X, Esc, or
+ * background click. URL ?entity=<id> opens the panel on page load.
+ * ----------------------------------------------------------------------- */
+
+/** Open the detail panel for an entity id. Updates ?entity= URL param. */
+function openDetailPanel(entityId, { pushUrl = true } = {}) {
+  if (!MoversState.data) return;
+  const row = MoversState.data.rows.find(r => r.entity_id === entityId);
+  if (!row) return;
+
+  const panel = document.getElementById('movers-detail-panel');
+  if (!panel) return;
+
+  panel.innerHTML = renderDetailPanelContent(row);
+  panel.classList.remove('hidden');
+  panel.classList.add('movers-detail-open');
+  MoversState.openEntity = entityId;
+
+  if (pushUrl) writeEntityToUrl(entityId);
+}
+
+function closeDetailPanel({ pushUrl = true } = {}) {
+  const panel = document.getElementById('movers-detail-panel');
+  if (!panel) return;
+  panel.classList.add('hidden');
+  panel.classList.remove('movers-detail-open');
+  MoversState.openEntity = null;
+  if (pushUrl) writeEntityToUrl(null);
+}
+
+function writeEntityToUrl(entityId) {
+  const url = new URL(window.location.href);
+  if (entityId) {
+    url.searchParams.set('entity', entityId);
+  } else {
+    url.searchParams.delete('entity');
+  }
+  window.history.replaceState({ entity: entityId }, '', url.toString());
+}
+
+function readEntityFromUrl() {
+  return new URLSearchParams(window.location.search).get('entity');
+}
+
+function renderDetailPanelContent(row) {
+  const type = (row.type || 'Other');
+  const typeClass = `badge-type-${type.toLowerCase()}`;
+  const rank = row.current_rank ?? '—';
+  const rankPrior = row.rank_prior ?? '—';
+  const rankDelta = row.is_new ? 'NEW' : renderInlineDelta(row.rank_delta);
+  const velocity = formatVelocityValue(row.velocity_raw);
+  const firstSeen = row.first_seen || '—';
+  const daysSince = row.days_since_first_seen != null ? `${row.days_since_first_seen} days ago` : '';
+  const newBadge = row.is_new ? `<span class="movers-detail-new-badge">NEW</span>` : '';
+  const trendScore = (row.trend_score != null) ? Number(row.trend_score).toFixed(2) : '—';
+
+  return `
+    <header class="movers-detail-header">
+      <button type="button" class="movers-detail-close"
+              aria-label="Close detail panel" title="Close (Esc)">&times;</button>
+      <div class="movers-detail-title-row">
+        <span class="badge ${typeClass}">${escText(type)}</span>
+        ${newBadge}
+      </div>
+      <h2 class="movers-detail-title">${escText(row.label || row.entity_id)}</h2>
+      <p class="movers-detail-entity-id">${escText(row.entity_id)}</p>
+    </header>
+
+    <section class="movers-detail-section">
+      <h3 class="movers-detail-section-title">Rank</h3>
+      <div class="movers-detail-rank-grid">
+        <div><div class="movers-detail-stat-label">Today</div><div class="movers-detail-stat-value">${rank}</div></div>
+        <div><div class="movers-detail-stat-label">Prior</div><div class="movers-detail-stat-value">${rankPrior}</div></div>
+        <div><div class="movers-detail-stat-label">Δ</div><div class="movers-detail-stat-value">${rankDelta}</div></div>
+      </div>
+    </section>
+
+    <section class="movers-detail-section">
+      <h3 class="movers-detail-section-title">Mentions</h3>
+      <div class="movers-detail-rows">
+        <div class="movers-detail-row"><span>Last 7 days</span><span>${row.mention_count_7d ?? 0}</span></div>
+        <div class="movers-detail-row"><span>Last 30 days</span><span>${row.mention_count_30d ?? 0}</span></div>
+        <div class="movers-detail-row"><span>Velocity (7d ÷ prior 7d)</span><span>${velocity}</span></div>
+      </div>
+    </section>
+
+    <section class="movers-detail-section">
+      <h3 class="movers-detail-section-title">Sources</h3>
+      <div class="movers-detail-rows">
+        <div class="movers-detail-row"><span>Distinct sources (7d)</span><span>${row.distinct_sources_7d ?? 0}</span></div>
+      </div>
+      <p class="movers-detail-note">Per-source detail comes in a future update.</p>
+    </section>
+
+    <section class="movers-detail-section">
+      <h3 class="movers-detail-section-title">Timeline</h3>
+      <div class="movers-detail-rows">
+        <div class="movers-detail-row"><span>First seen</span><span>${escText(firstSeen)}</span></div>
+        ${daysSince ? `<div class="movers-detail-row movers-detail-row-muted"><span></span><span>${escText(daysSince)}</span></div>` : ''}
+      </div>
+    </section>
+
+    <section class="movers-detail-section">
+      <h3 class="movers-detail-section-title">Score</h3>
+      <div class="movers-detail-rows">
+        <div class="movers-detail-row"><span>Trend score</span><span>${trendScore}</span></div>
+      </div>
+    </section>
+
+    <footer class="movers-detail-footer">
+      ${renderViewInGraphCta(row)}
+    </footer>
+  `;
+}
+
+function renderInlineDelta(d) {
+  if (d == null) return '—';
+  if (d > 0) return `<span class="movers-delta-up">▲ ${d}</span>`;
+  if (d < 0) return `<span class="movers-delta-down">▼ ${Math.abs(d)}</span>`;
+  return '—';
+}
+
+function formatVelocityValue(v) {
+  if (v == null) return '—';
+  return `${Number(v).toFixed(2)}×`;
+}
+
+/** Per the wireframe: button when in_trending_view, graceful note otherwise.
+ *  Actual deep-link wiring is item 15.7 — for now the href is the bare
+ *  graph URL with the domain. */
+function renderViewInGraphCta(row) {
+  if (row.in_trending_view) {
+    const domain = MoversState.domain || 'film';
+    const href = `index.html?domain=${encodeURIComponent(domain)}&entity=${encodeURIComponent(row.entity_id)}`;
+    return `
+      <a class="movers-detail-cta" href="${escAttr(href)}">
+        View in graph →
+      </a>
+    `;
+  }
+  return `
+    <p class="movers-detail-cta-disabled">
+      Not currently in Current Landscape — universal graph deep-link coming in a future update.
+    </p>
+  `;
+}
+
+/** Wire row click + background click + Esc + URL initial state.
+ *  Called once during initMovers. */
+function initDetailPanelHandlers() {
+  // Delegated click on the rows container — handles every row even after
+  // virtual scroll re-paints the DOM.
+  const tableMount = document.getElementById('movers-table');
+  if (tableMount) {
+    tableMount.addEventListener('click', (e) => {
+      const row = e.target.closest('.movers-row');
+      if (row && row.dataset.entityId) {
+        openDetailPanel(row.dataset.entityId);
+      }
+    });
+  }
+
+  // Delegated click on the panel itself — close button.
+  const panel = document.getElementById('movers-detail-panel');
+  if (panel) {
+    panel.addEventListener('click', (e) => {
+      if (e.target.closest('.movers-detail-close')) {
+        closeDetailPanel();
+      }
+    });
+  }
+
+  // Esc closes the panel.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!MoversState.openEntity) return;
+    // Don't fire if an input is focused (custom-mode controls may live here later)
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+    closeDetailPanel();
+    e.preventDefault();
+  });
+}
+
+/** Called once after data loads. If ?entity= is in the URL, open the panel. */
+function initDetailPanelFromUrl() {
+  const id = readEntityFromUrl();
+  if (!id) return;
+  openDetailPanel(id, { pushUrl: false });
+}
+
+/* -------------------------------------------------------------------------
  * Initialization
  * ----------------------------------------------------------------------- */
 
@@ -465,6 +663,9 @@ async function initMovers() {
   // Preset chip delegation — chips are rendered after data loads.
   initPresetChipDelegation();
 
+  // Detail panel handlers — row click, close button, Esc.
+  initDetailPanelHandlers();
+
   // Theme toggle wire (shared idiom with dashboard.html).
   const themeToggle = document.getElementById('theme-toggle');
   if (themeToggle) {
@@ -488,6 +689,8 @@ if (typeof window !== 'undefined') {
   window.moversDataUrl = moversDataUrl;
   window.applyPreset = applyPreset;
   window.findPreset = findPreset;
+  window.openDetailPanel = openDetailPanel;
+  window.closeDetailPanel = closeDetailPanel;
 }
 
 document.addEventListener('DOMContentLoaded', initMovers);
