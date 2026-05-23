@@ -24,6 +24,9 @@ from typing import Any, Optional
 from domain import get_active_profile
 from resolve import find_similar_entities, merge_entities, name_similarity
 
+# Domain-configured base "mention" relation. Loaded once at module import.
+_BASE_RELATION: str = get_active_profile()["base_relation"]
+
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -193,9 +196,9 @@ def _entity_context(
     # Fetch recent relations (as source)
     rels = conn.execute(
         """SELECT rel, target_id FROM relations
-           WHERE source_id = ? AND rel != 'MENTIONS'
+           WHERE source_id = ? AND rel != ?
            LIMIT 10""",
-        (entity_id,),
+        (entity_id, _BASE_RELATION),
     ).fetchall()
     if rels:
         rel_strs = [f"{r[0]} → {r[1]}" for r in rels]
@@ -204,9 +207,9 @@ def _entity_context(
     # Fetch recent relations (as target)
     rels_t = conn.execute(
         """SELECT source_id, rel FROM relations
-           WHERE target_id = ? AND rel != 'MENTIONS'
+           WHERE target_id = ? AND rel != ?
            LIMIT 10""",
-        (entity_id,),
+        (entity_id, _BASE_RELATION),
     ).fetchall()
     if rels_t:
         rel_strs = [f"{r[0]} {r[1]}" for r in rels_t]

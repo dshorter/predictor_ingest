@@ -24,6 +24,9 @@ from typing import Any, Optional
 
 from domain import get_active_profile
 
+# Domain-configured base "mention" relation. Loaded once at module import.
+_BASE_RELATION: str = get_active_profile()["base_relation"]
+
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -162,9 +165,9 @@ def gather_narrative_context(
             """SELECT DISTINCT d.title
                FROM relations r JOIN documents d ON r.doc_id = d.doc_id
                WHERE (r.source_id = ? OR r.target_id = ?)
-               AND r.rel = 'MENTIONS'
+               AND r.rel = ?
                ORDER BY d.published_at DESC LIMIT ?""",
-            (eid, eid, max_docs),
+            (eid, eid, _BASE_RELATION, max_docs),
         ).fetchall()
         ctx.recent_doc_titles = [d[0] for d in docs if d[0]]
 
@@ -173,9 +176,9 @@ def gather_narrative_context(
             """SELECT source_id, rel, target_id
                FROM relations
                WHERE (source_id = ? OR target_id = ?)
-               AND rel != 'MENTIONS'
+               AND rel != ?
                ORDER BY created_at DESC LIMIT ?""",
-            (eid, eid, max_relations),
+            (eid, eid, _BASE_RELATION, max_relations),
         ).fetchall()
         ctx.recent_relations = [f"{r[0]} {r[1]} {r[2]}" for r in rels]
 
