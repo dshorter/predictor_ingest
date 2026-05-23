@@ -69,6 +69,110 @@ body {
 #movers-detail-panel.hidden { display: none; }
 
 /* =========================================================================
+   Preset chips (15.4) — six chips above the table. Active chip uses the
+   flame-orange treatment to match the focus chip's visual language.
+   ========================================================================= */
+
+.movers-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.movers-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: var(--border-width) solid var(--color-border-primary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-default),
+    border-color var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default),
+    transform var(--duration-fast) var(--easing-default);
+}
+
+.movers-chip:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-400);
+}
+
+.movers-chip:active {
+  transform: translateY(1px);
+}
+
+.movers-chip:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+/* Active chip — flame-orange gradient, white text, no transition on bg
+   color so the swap feels snappy */
+.movers-chip-active {
+  color: white;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border-color: var(--flame-red);
+  font-weight: var(--weight-semibold);
+}
+
+.movers-chip-active:hover {
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  filter: brightness(1.05);
+  border-color: var(--flame-red);
+}
+
+/* Description strip — one sentence under the chips telling the user what
+   they're looking at for the active preset. */
+.movers-preset-description {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--flame-orange);
+}
+
+.movers-preset-description-placeholder {
+  font-style: italic;
+  border-left-color: var(--gray-300);
+}
+
+/* Empty table state — shown when the active preset filters everything out
+   or when the underlying export is empty. */
+.movers-empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--color-text-secondary);
+  border: var(--border-width) dashed var(--color-border-primary);
+  border-radius: var(--radius-md);
+}
+
+.movers-empty p {
+  margin: 0 0 var(--space-2);
+}
+
+.movers-empty-hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+.movers-empty code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* =========================================================================
    Table (15.3)
    - CSS Grid for column alignment between header and body rows
    - Sticky header inside a scroll container

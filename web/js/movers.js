@@ -13,10 +13,182 @@
 const MoversState = {
   domain: null,       // resolved domain slug
   data: null,         // { meta, rows[] } from movers.json
-  sortedRows: null,   // sorted view of data.rows for the active preset
+  sortedRows: null,   // filtered + sorted view of data.rows for the active preset
+  preset: null,       // active preset slug
   loading: false,
   error: null,
 };
+
+/* -------------------------------------------------------------------------
+ * Presets (15.4)
+ *
+ * Each preset is a {sort, filter, description} tuple per the wireframe.
+ * The sort/filter signatures take a row and return number / boolean.
+ * The Custom preset is a placeholder until 15.5 ships its controls.
+ *
+ * Source of truth: docs/ux/movers-wireframe.md §"Preset chip group".
+ * ----------------------------------------------------------------------- */
+
+// Helper: stable comparator that pushes null-valued rows to the end.
+function descBy(field) {
+  return (a, b) => {
+    const av = a[field];
+    const bv = b[field];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return bv - av;
+  };
+}
+function ascBy(field) {
+  return (a, b) => {
+    const av = a[field];
+    const bv = b[field];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return av - bv;
+  };
+}
+
+const PRESETS = [
+  {
+    slug: 'biggest-climbers',
+    label: 'Biggest climbers',
+    description: 'Entities that climbed the most ranks in the last 7d.',
+    sort: descBy('rank_delta'),
+    filter: (row) => (row.current_rank ?? 0) > 50,
+  },
+  {
+    slug: 'just-appeared',
+    label: 'Just appeared',
+    description: 'Entities first seen in the last two weeks.',
+    sort: ascBy('days_since_first_seen'),
+    filter: (row) => (row.days_since_first_seen ?? Infinity) <= 14,
+  },
+  {
+    slug: 'fastest-accelerators',
+    label: 'Fastest accelerators',
+    description: 'Entities with the steepest mention growth (min 3 mentions to filter noise).',
+    sort: descBy('velocity_raw'),
+    filter: (row) => (row.mention_count_7d ?? 0) >= 3,
+  },
+  {
+    slug: 'emerging-consensus',
+    label: 'Emerging consensus',
+    description: 'Entities being picked up across many independent sources.',
+    sort: descBy('distinct_sources_7d'),
+    filter: (row) => (row.current_rank ?? 0) > 50,
+  },
+  {
+    slug: 'sanity',
+    label: 'Sanity reference',
+    description: 'Top entities by raw 7d mention count — sanity check vs. the other lenses.',
+    sort: descBy('mention_count_7d'),
+    filter: () => true,
+  },
+  {
+    slug: 'custom',
+    label: 'Custom',
+    description: 'Custom sort + filter controls coming in a future update.',
+    sort: ascBy('current_rank'),
+    filter: () => true,
+  },
+];
+
+const DEFAULT_PRESET = 'biggest-climbers';
+
+function findPreset(slug) {
+  return PRESETS.find(p => p.slug === slug) || PRESETS.find(p => p.slug === DEFAULT_PRESET);
+}
+
+/** Read ?preset= from URL; fall back to default. */
+function resolvePresetFromUrl() {
+  const slug = new URLSearchParams(window.location.search).get('preset');
+  return findPreset(slug).slug;
+}
+
+/** Apply a preset by slug: re-filter + re-sort, update URL, re-render. */
+function applyPreset(slug, { pushUrl = true } = {}) {
+  if (!MoversState.data) return;
+  const preset = findPreset(slug);
+  MoversState.preset = preset.slug;
+
+  MoversState.sortedRows = MoversState.data.rows
+    .filter(preset.filter)
+    .sort(preset.sort);
+
+  if (pushUrl) writePresetToUrl(preset.slug);
+  renderPresetChips();           // updates which chip is active
+  renderDescriptionStrip();
+  renderTable();
+}
+
+function writePresetToUrl(slug) {
+  const url = new URL(window.location.href);
+  if (slug === DEFAULT_PRESET) {
+    url.searchParams.delete('preset');
+  } else {
+    url.searchParams.set('preset', slug);
+  }
+  window.history.replaceState({ preset: slug }, '', url.toString());
+}
+
+/** Render the chip row above the table. Mounts/replaces inside #movers-presets. */
+function renderPresetChips() {
+  const mount = document.getElementById('movers-presets');
+  if (!mount) return;
+  const active = MoversState.preset || DEFAULT_PRESET;
+  mount.innerHTML = PRESETS.map(p => `
+    <button type="button"
+            class="movers-chip${p.slug === active ? ' movers-chip-active' : ''}"
+            data-preset="${escAttr(p.slug)}"
+            title="${escAttr(p.description)}">
+      ${escText(p.label)}
+    </button>
+  `).join('');
+}
+
+function renderDescriptionStrip() {
+  const strip = document.getElementById('movers-preset-description');
+  if (!strip) return;
+  const preset = findPreset(MoversState.preset);
+  strip.textContent = preset.description;
+  // For Custom mode, show a different visual hint since controls aren't shipped yet.
+  strip.classList.toggle('movers-preset-description-placeholder', preset.slug === 'custom');
+}
+
+function renderEmptyTable() {
+  if (!MoversState.data) return '';
+  const domain = MoversState.data.meta.domain;
+  // Disambiguate: is the whole export empty, or did the active preset filter everything?
+  if (MoversState.data.rows.length === 0) {
+    return `
+      <div class="movers-empty">
+        <p>No movers data for <strong>${escText(domain)}</strong> yet.</p>
+        <p class="movers-empty-hint">Run <code>make daily DOMAIN=${escText(domain)}</code> to populate.</p>
+      </div>
+    `;
+  }
+  const preset = findPreset(MoversState.preset);
+  return `
+    <div class="movers-empty">
+      <p>No entities match <strong>${escText(preset.label)}</strong> for ${escText(domain)}.</p>
+      <p class="movers-empty-hint">Try <strong>Sanity reference</strong> or another preset.</p>
+    </div>
+  `;
+}
+
+/** Delegated click on the chip row. Called once during initMovers. */
+function initPresetChipDelegation() {
+  const mount = document.getElementById('movers-presets');
+  if (!mount) return;
+  mount.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-preset]');
+    if (!chip) return;
+    applyPreset(chip.dataset.preset);
+  });
+}
 
 const DEFAULT_DOMAIN = 'film';
 
@@ -122,7 +294,8 @@ function renderDataState() {
       status.textContent = `${data.rows.length.toLocaleString()} entities · exported ${exported}`;
     }
   }
-  renderTable();
+  renderPresetChips();
+  applyPreset(MoversState.preset || resolvePresetFromUrl());
 }
 
 /* -------------------------------------------------------------------------
@@ -139,23 +312,13 @@ function renderDataState() {
 const ROW_HEIGHT = 44;        // px — must match .movers-row CSS
 const OVERSCAN = 8;           // extra rows rendered above/below viewport
 
-/** Build a sorted-rows view of MoversState.data — default is by rank asc. */
-function defaultSortedRows() {
-  if (!MoversState.data) return [];
-  return MoversState.data.rows
-    .slice()
-    .sort((a, b) => (a.current_rank ?? Infinity) - (b.current_rank ?? Infinity));
-}
-
 function renderTable() {
   if (!MoversState.data) return;
   const mount = document.getElementById('movers-table');
   if (!mount) return;
 
-  MoversState.sortedRows = MoversState.sortedRows || defaultSortedRows();
-
-  if (MoversState.sortedRows.length === 0) {
-    mount.innerHTML = '';
+  if (!MoversState.sortedRows || MoversState.sortedRows.length === 0) {
+    mount.innerHTML = renderEmptyTable();
     return;
   }
 
@@ -298,6 +461,9 @@ async function initMovers() {
     initDomainSwitcher();
   }
 
+  // Preset chip delegation — chips are rendered after data loads.
+  initPresetChipDelegation();
+
   // Theme toggle wire (shared idiom with dashboard.html).
   const themeToggle = document.getElementById('theme-toggle');
   if (themeToggle) {
@@ -315,9 +481,12 @@ async function initMovers() {
 // Expose for tests + future modules.
 if (typeof window !== 'undefined') {
   window.MoversState = MoversState;
+  window.PRESETS = PRESETS;
   window.loadMoversData = loadMoversData;
   window.resolveDomain = resolveDomain;
   window.moversDataUrl = moversDataUrl;
+  window.applyPreset = applyPreset;
+  window.findPreset = findPreset;
 }
 
 document.addEventListener('DOMContentLoaded', initMovers);
