@@ -610,7 +610,7 @@ user signoff before coding begins.
 | 15.5 | Custom-mode controls | Sort dropdown (all columns) + filter pills (Hide top 50, First seen ≤ N days, entity type, min mentions). State persisted in URL | [Sonnet] |
 | 15.6 | Detail side-panel | Slide-in from right (or below-row inline — wireframe-dependent). Entity label, type, mention timeline, top sources with favicons, sample evidence snippets with source links | [Opus] |
 | 15.7 | Deep-link to graph (top-50 only) | "View in graph" link on rows where `in_trending_view: true` — deep-links to `index.html?domain=<slug>` and selects the node via existing `navigateToNode`. For `in_trending_view: false`, no link in V1 (Sprint 16 adds universal) | [Sonnet] |
-| 15.8 | Navigation entry points | Movers link added to `index.html` toolbar. Add to `dashboard.html` if appropriate (decide during impl) | [Sonnet] |
+| 15.8 | Navigation entry points (minimal) | Movers link from `index.html` toolbar and the existing Graph back-link on Movers — the bare minimum so Movers is reachable. Full cross-page nav consolidation across all five surfaces (Graph, Movers, Dashboard, Ontology, Mobile) is **Sprint 17**, not this item | [Sonnet] |
 | 15.9 | Basic responsive layout | Mobile screens must not break. Detail panel becomes overlay rather than slide-in. Mobile-tuned layout is V2 | [Sonnet] |
 | 15.10 | Playwright smoke test | Self-contained harness with mock movers.json fixture: page loads, preset switching works, table renders, row click opens panel, deep-link works for top-50 entity | [Sonnet] |
 | 15.11 | Manual QA across domains | Each preset surfaces something interesting in AI, semiconductors, biosafety, and **especially film**. Film is the proof-point for the new lens; if Movers doesn't make film useful, V1 has shipped without its main justification | [Manual] |
@@ -660,6 +660,71 @@ loads the entity's 1-hop neighborhood and enters focus mode.
 
 **Dependency:** Sprint 14B (focus mode), Sprint 15 (Movers row link
 target), Sprint 14 (`trend_history` is the iteration target for fan-out).
+
+---
+
+## Sprint 17 — Cross-page navigation (Workstream D)
+
+The predictor app is now five surfaces — Graph, Movers, Dashboard,
+Ontology, Mobile — and each one was built siloed. Movers added in
+Sprint 15 surfaced the pain point directly: there's no consistent way
+to move between them. Dashboard and Ontology have a one-way "Graph
+View" link but nothing else. Index has no idea Movers exists. Mobile
+is unreachable except by URL guessing or device detection.
+
+**Not a redesign.** Just consistent navigation controls so users can
+toggle between surfaces without retyping URLs.
+
+**Design parameter the user flagged:** open in a new browser
+tab/window when a "significant new surface" is opened (common pattern
+in many apps — e.g., clicking a dashboard tile that opens a deep-dive
+in a new tab to preserve the source context). Default is same-tab;
+new-tab is the exception for specifically marked transitions.
+
+**Domain state policy — forward-only inheritance.** The Graph is the
+"home base"; Movers / Dashboard / Ontology are subordinate lenses
+that can be re-pointed independently. Specifically:
+
+- **Forward:** When navigating from Graph (or any source) to a
+  detail page, the detail page inherits the source's `?domain=` URL
+  param. So clicking Movers from Graph viewing `?domain=film` lands
+  on `movers.html?domain=film`.
+- **No backward propagation:** If the user switches the detail
+  page's domain via its dropdown (e.g., to `semiconductors`), the
+  Graph still shows `?domain=film` when they navigate back. The
+  detail page's domain change is local — it doesn't reach back into
+  the source.
+- **Why this matters:** keeps the Graph as a stable anchor users
+  can return to without surprise; lets the detail pages be true
+  "scratch" surfaces freely repointed for comparison work.
+- **Implementation note for 17.2:** the shared nav component reads
+  the *current page's* `?domain=` when constructing outbound links.
+  No global state, no localStorage sync.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 17.1 | Surface inventory + nav matrix | Document each surface's role and which surfaces it should link to. Settle the same-tab vs new-tab policy per transition (e.g., Graph → Movers same-tab; Movers row → Graph entity new-tab to preserve table state). Document the **forward-only domain inheritance** rule from §"Domain state policy" above. Captured in `docs/ux/cross-page-nav.md` | [Sonnet] |
+| 17.2 | Shared nav component | Single source of truth for the nav links — JS module that injects the same set into every page's toolbar. Reuses existing button styles. No new framework | [Sonnet] |
+| 17.3 | Wire Graph (index.html) | Add Movers + Dashboard + Ontology links to the existing toolbar. Mobile inherits if applicable | [Sonnet] |
+| 17.4 | Wire Movers | Replace the single Graph back-link with the full nav. Domain switcher already there | [Sonnet] |
+| 17.5 | Wire Dashboard | Replace the single Graph View link with the full nav. Existing theme toggle stays | [Sonnet] |
+| 17.6 | Wire Ontology | Same treatment. Check that domain switcher works there | [Sonnet] |
+| 17.7 | Wire Mobile (read-only check) | Mobile UI is a separate codepath under `web/mobile/` — decide if it gets the same nav or stays minimal. Likely minimal (already constrained for touch) | [Sonnet] |
+| 17.8 | New-tab semantics | Implement `target="_blank" rel="noopener"` on the transitions designated as new-tab in 17.1. Visual hint (small "↗" glyph) on those links to set expectation | [Sonnet] |
+| 17.9 | Active-page indicator | The current page's nav link renders in a distinct active state (e.g., underline or background tint) so users know where they are | [Sonnet] |
+| 17.10 | Playwright tests | Each page reachable via nav from each other page. New-tab targets have correct `target="_blank"`. Active state matches the current page | [Sonnet] |
+| 17.11 | Manual QA | Click every nav link from every page in both themes. Mobile sanity check | [Manual] |
+
+**Output:** A consistent nav bar across all five surfaces. User can
+reach any page from any page in one click.
+
+**Acceptance:** Each surface lists the others in its toolbar. The
+current page is visually marked. New-tab transitions are explicit
+and consistent. No surface is reachable only by URL guessing.
+
+**Dependency:** None blocking. Could ship in parallel with Sprint 15;
+recommend after 15.6 (detail panel) so Movers is functionally
+complete before its toolbar is the showcase.
 
 ---
 
@@ -722,10 +787,11 @@ Not scheduled. Documented so they're not forgotten.
 | 11 — Medium Gap Features | Pending | — |
 | 12 — Branding & Wrap-up | Pending | — |
 | 13 — Trend Methodology + Semiconductor Onboarding | Pending | — |
-| 14 — Backend Movers | Pending | — |
-| 14B — Locked-neighborhood focus mode | Implemented (smoke pending) | 2026-05-22 |
-| 15 — Movers Frontend V1 | Pending | — |
+| 14 — Backend Movers | ✓ Done | 2026-05-22 |
+| 14B — Locked-neighborhood focus mode | ✓ Done | 2026-05-22 |
+| 15 — Movers Frontend V1 | In progress (15.1–15.4 done, polish iterations live) | 2026-05-23 |
 | 16 — Universal Movers deep-link | Pending | — |
+| 17 — Cross-page navigation | Pending — surfaced by Sprint 15 QA | — |
 
 ---
 
