@@ -14,13 +14,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
-  background: var(--color-bg-primary);
-  border: var(--border-width) solid var(--color-primary);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border: 2px solid var(--flame-red);
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(255, 69, 0, 0.35), var(--shadow-md);
   font-size: var(--text-sm);
-  color: var(--gray-800);
+  color: white;
   max-width: 480px;
 }
 
@@ -28,39 +28,35 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: white;
 }
 
 .focus-chip-text {
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
+  color: white;
 }
 
 .focus-chip-close {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--text-lg);
   line-height: 1;
-  color: var(--gray-500);
-  background: none;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: color var(--duration-fast) var(--easing-default),
-              background-color var(--duration-fast) var(--easing-default);
+  transition: background-color var(--duration-fast) var(--easing-default);
 }
 
 .focus-chip-close:hover {
-  color: var(--gray-800);
-  background: var(--gray-100);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .focus-chip.hidden {
   display: none;
-}
-
-[data-theme="dark"] .focus-chip {
-  color: var(--gray-100);
 }
