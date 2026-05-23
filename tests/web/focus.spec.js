@@ -46,17 +46,21 @@ const MOCK_EDGES = [
  */
 function buildTestHTML() {
   const focusJS = readWebJS('focus.js');
+  const tooltipsJS = readWebJS('tooltips.js');
 
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Focus Test</title>
 <style>
   .hidden { display: none !important; }
   #main-content { position: relative; width: 800px; height: 400px; }
+  #tooltip { position: absolute; opacity: 0; }
+  #tooltip.visible { opacity: 1; }
 </style>
 </head>
 <body>
 <div id="app">
   <main id="main-content"></main>
+  <div id="tooltip" role="tooltip"></div>
 </div>
 
 <script>
@@ -165,7 +169,11 @@ function createMockCy(nodes, edges) {
     edges() { return new Collection(edgeEles); },
     elements() {
       return new Collection(Array.from(nodeMap.values()).concat(edgeEles));
-    }
+    },
+    // Stub for cy.on — initializeTooltips registers Cytoscape event
+    // handlers we don't exercise from JS; the tooltip click delegation
+    // attaches to the DOM element, not Cytoscape.
+    on() { return this; }
   };
 }
 
@@ -177,10 +185,17 @@ window.cy = createMockCy(mockNodes, mockEdges);
 <!-- focus.js under test -->
 <script>${focusJS}</script>
 
+<!-- tooltips.js (delegated Focus button click handler under test) -->
+<script>${tooltipsJS}</script>
+
 <script>
 // Wire global handlers (Esc + popstate).
 if (typeof initFocusGlobalHandlers === 'function') {
   initFocusGlobalHandlers(window.cy);
+}
+// Wire tooltip click delegation (Sprint 14B follow-up).
+if (typeof initializeTooltips === 'function') {
+  initializeTooltips(window.cy);
 }
 // Re-enter focus from URL if ?focus= is present.
 if (typeof initFocusFromUrl === 'function') {
@@ -482,6 +497,119 @@ test.describe('Focus mode — URL state', () => {
 
     await page.goBack();
     expect(await page.evaluate(() => window.isFocusActive())).toBe(false);
+  });
+
+});
+
+test.describe('Tooltip Focus action', () => {
+
+  // Helper: inject the tooltip content that showNodeTooltip would render,
+  // so we can exercise the delegated click handler without simulating a
+  // real Cytoscape hover event (which our mock cy doesn't support).
+  async function injectTooltipFor(page, nodeId) {
+    await page.evaluate((id) => {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.classList.add('visible');
+      tooltip.innerHTML = `
+        <div class="tooltip-actions">
+          <span class="tooltip-hint">Click for details</span>
+          <button type="button"
+                  class="tooltip-action-btn"
+                  data-tooltip-action="focus"
+                  data-node-id="${id}">
+            Focus
+          </button>
+        </div>
+      `;
+    }, nodeId);
+  }
+
+  test('clicking the Focus button engages focus mode', async ({ page }) => {
+    await page.goto(`${serverInfo.url}/`);
+    await page.waitForFunction(() => window.__ready);
+
+    await injectTooltipFor(page, 'beta');
+    await page.locator('#tooltip [data-tooltip-action="focus"]').click();
+
+    const result = await page.evaluate(() => ({
+      active: window.isFocusActive(),
+      focusedIds: Array.from(window.FocusState.focusedIds),
+    }));
+
+    expect(result.active).toBe(true);
+    expect(result.focusedIds).toEqual(['beta']);
+  });
+
+  test('clicking the Focus button hides the tooltip', async ({ page }) => {
+    await page.goto(`${serverInfo.url}/`);
+    await page.waitForFunction(() => window.__ready);
+
+    await injectTooltipFor(page, 'beta');
+    await expect(page.locator('#tooltip')).toHaveClass(/visible/);
+
+    await page.locator('#tooltip [data-tooltip-action="focus"]').click();
+    await expect(page.locator('#tooltip')).not.toHaveClass(/visible/);
+  });
+
+  test('Focus button URL state matches direct enterFocus', async ({ page }) => {
+    await page.goto(`${serverInfo.url}/`);
+    await page.waitForFunction(() => window.__ready);
+
+    await injectTooltipFor(page, 'beta');
+    await page.locator('#tooltip [data-tooltip-action="focus"]').click();
+
+    expect(page.url()).toContain('focus=beta');
+    await expect(page.locator('#focus-chip')).toBeVisible();
+    await expect(page.locator('#focus-chip .focus-chip-text')).toHaveText('Beta');
+  });
+
+  test('Focus button focuses the right entity (delta, not beta)', async ({ page }) => {
+    await page.goto(`${serverInfo.url}/`);
+    await page.waitForFunction(() => window.__ready);
+
+    // Inject a tooltip for delta, click its Focus button.
+    await injectTooltipFor(page, 'delta');
+    await page.locator('#tooltip [data-tooltip-action="focus"]').click();
+
+    const focusedIds = await page.evaluate(() =>
+      Array.from(window.FocusState.focusedIds)
+    );
+    expect(focusedIds).toEqual(['delta']);
+  });
+
+  test('click on tooltip background (non-button) does NOT engage focus', async ({ page }) => {
+    await page.goto(`${serverInfo.url}/`);
+    await page.waitForFunction(() => window.__ready);
+
+    await injectTooltipFor(page, 'beta');
+    // Click on the hint span — same tooltip element, but not the button.
+    await page.locator('#tooltip .tooltip-hint').click();
+
+    const active = await page.evaluate(() => window.isFocusActive());
+    expect(active).toBe(false);
+  });
+
+  test('stopPropagation: button click does not bubble past the tooltip', async ({ page }) => {
+    await page.goto(`${serverInfo.url}/`);
+    await page.waitForFunction(() => window.__ready);
+
+    // Install a sentinel handler on the document body. If the button
+    // click bubbles past the tooltip's stopPropagation, this counter
+    // will tick.
+    await page.evaluate(() => {
+      window.__bubbleCount = 0;
+      document.body.addEventListener('click', (e) => {
+        if (e.target.closest('[data-tooltip-action="focus"]')) {
+          window.__bubbleCount += 1;
+        }
+      });
+    });
+
+    await injectTooltipFor(page, 'beta');
+    await page.locator('#tooltip [data-tooltip-action="focus"]').click();
+
+    const bubbleCount = await page.evaluate(() => window.__bubbleCount);
+    expect(bubbleCount).toBe(0);
   });
 
 });

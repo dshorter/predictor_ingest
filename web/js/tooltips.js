@@ -75,6 +75,20 @@ function initializeTooltips(cy) {
   tooltip.addEventListener('mouseleave', () => {
     hideTooltip(tooltip);
   });
+
+  // Delegated click for action buttons inside the tooltip (re-rendered
+  // on every hover, so event delegation avoids listener churn).
+  tooltip.addEventListener('click', (e) => {
+    const focusBtn = e.target.closest('[data-tooltip-action="focus"]');
+    if (focusBtn) {
+      e.stopPropagation();
+      const nodeId = focusBtn.dataset.nodeId;
+      if (nodeId && typeof enterFocus === 'function') {
+        enterFocus(cy, nodeId);
+      }
+      hideTooltip(tooltip);
+    }
+  });
 }
 
 /**
@@ -137,7 +151,16 @@ function showNodeTooltip(node, position, tooltip) {
         </div>
       ` : ''}
     </div>
-    <div class="tooltip-hint">Click for details</div>
+    <div class="tooltip-actions">
+      <span class="tooltip-hint">Click for details</span>
+      <button type="button"
+              class="tooltip-action-btn"
+              data-tooltip-action="focus"
+              data-node-id="${escapeHtml(data.id)}"
+              title="Focus on this entity (locks neighborhood)">
+        Focus
+      </button>
+    </div>
   `;
 
   positionAndShowTooltip(tooltip, content, position);

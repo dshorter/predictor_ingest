@@ -6,6 +6,21 @@
   <!-- Declare supported color schemes so Edge/browsers don't force their own
        dark mode overlay on top of our custom theme system. -->
   <meta name="color-scheme" content="light dark">
+
+  <!-- Set data-theme synchronously BEFORE CSS parses so the page never
+       paints in the wrong theme. Without this the page briefly shows
+       light theme before DOMContentLoaded runs initTheme() and flips
+       it to dark — a visible "two themes flying by" flash. -->
+  <script>
+    (function() {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      var dark = saved === 'dark' ||
+        (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
   <title>AI Trend Graph</title>
 
   <!-- Display font: Inter for headings and app title -->
@@ -16,9 +31,9 @@
   <!-- Theme tokens loaded as <link> (not @import) so attribute-based
        custom property overrides [data-theme="dark"] cascade correctly
        when the theme toggle changes the attribute at runtime. -->
-  <link rel="stylesheet" href="css/tokens.css?v=3">
+  <link rel="stylesheet" href="css/tokens.css?v=4">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/main.css?v=17">
+  <link rel="stylesheet" href="css/main.css?v=19">
   <!-- Cytoscape Navigator styles -->
   <link rel="stylesheet" href="https://unpkg.com/cytoscape-navigator@2.0.1/cytoscape-navigator.css">
   <!-- Driver.js — guided tour spotlight/popover -->
@@ -355,7 +370,7 @@
   <script src="js/filter.js?v=5"></script>
   <script src="js/search.js?v=3"></script>
   <script src="js/panels.js?v=9"></script>
-  <script src="js/tooltips.js?v=3"></script>
+  <script src="js/tooltips.js?v=4"></script>
   <script src="js/layout.js?v=5"></script>
   <script src="js/graph.js?v=6"></script>
   <script src="help/content.js?v=2"></script>

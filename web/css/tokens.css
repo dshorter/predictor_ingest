@@ -232,11 +232,14 @@
   --flame-orange: #FF8C00;
   --flame-gold: #FFD700;
 
-  /* Override grays used directly */
+  /* Override grays used directly. Inverts the scale: light-mode gray-700
+     (dark body text) becomes a light shade for dark-mode bodies, etc. */
   --gray-50: #1F2937;
   --gray-100: #374151;
   --gray-200: #4B5563;
   --gray-300: #6B7280;
+  --gray-600: #D1D5DB;
+  --gray-700: #E5E7EB;
   --gray-800: #F3F4F6;
   --gray-900: #F9FAFB;
 
