@@ -143,6 +143,12 @@ function openNodeDetailPanel(node) {
         Center
       </button>
     </div>
+    <div class="mt-2">
+      <button class="btn btn-sm btn-focus w-full"
+              onclick="enterFocus(window.cy, '${escapeHtml(data.id)}')">
+        Focus on this entity
+      </button>
+    </div>
   `;
 
   closeLeftPanels('detail-panel');

@@ -1,0 +1,66 @@
+/**
+ * Focus chip (Sprint 14B)
+ *
+ * Top-center breadcrumb shown while locked-neighborhood focus mode is
+ * active. Floats over the graph canvas just below the toolbar.
+ */
+
+.focus-chip {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  background: var(--color-bg-primary);
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+  color: var(--gray-800);
+  max-width: 480px;
+}
+
+.focus-chip-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.focus-chip-text {
+  font-weight: var(--weight-semibold);
+}
+
+.focus-chip-close {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--gray-500);
+  background: none;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--easing-default),
+              background-color var(--duration-fast) var(--easing-default);
+}
+
+.focus-chip-close:hover {
+  color: var(--gray-800);
+  background: var(--gray-100);
+}
+
+.focus-chip.hidden {
+  display: none;
+}
+
+[data-theme="dark"] .focus-chip {
+  color: var(--gray-100);
+}

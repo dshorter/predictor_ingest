@@ -377,6 +377,17 @@ function getCytoscapeStyles() {
       }
     },
 
+    // Focus-dimmed nodes (locked-neighborhood focus mode — Sprint 14B).
+    // Separate context from .neighborhood-dimmed: focus is a persistent
+    // state that survives clicks, neighborhood-dimmed is transient.
+    {
+      selector: 'node.focus-dimmed',
+      style: {
+        'opacity': 0.08,
+        'label': ''
+      }
+    },
+
     // New nodes (added in last 7 days)
     {
       selector: 'node.new',
@@ -505,6 +516,16 @@ function getCytoscapeStyles() {
         'line-color': edgeColors.dimmed,
         'target-arrow-color': edgeColors.dimmed,
         'opacity': 0.08
+      }
+    },
+
+    // Focus-dimmed edges (Sprint 14B)
+    {
+      selector: 'edge.focus-dimmed',
+      style: {
+        'line-color': edgeColors.dimmed,
+        'target-arrow-color': edgeColors.dimmed,
+        'opacity': 0.05
       }
     }
   ];
