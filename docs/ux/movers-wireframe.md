@@ -1,6 +1,6 @@
 # Movers page — wireframe v0
 
-**Status:** Draft — execution gate for Sprint 15.
+**Status:** Signed off — coding can begin. All five open decisions confirmed 2026-05-23.
 **Author:** Claude (assisted) — 2026-05-23
 **Sprint:** [15 — Movers Frontend V1](../project-plan.md#sprint-15-—-movers-frontend-v1)
 **Design parent:** [movers-and-focus-mode.md §Workstream B](../plans/movers-and-focus-mode.md)
@@ -270,10 +270,18 @@ Items that don't depend on the wireframe (can start in parallel):
 
 ---
 
-## Open questions for user signoff
+## Signoff record (2026-05-23)
 
-1. **Detail panel placement** — right slide-in confirmed, or prefer inline-row-expand / bottom-docked?
-2. **Default preset** — Biggest climbers confirmed, or Sanity reference for a more conservative first impression?
-3. **Default columns** — current set confirmed, or want `trend_score` / `velocity_raw` visible by default?
-4. **"View in graph" UX for non-top-50** — graceful note (current plan) vs. just no button vs. enable the link with a "loading neighborhood…" affordance (would defer behavior to Sprint 16)?
-5. **NEW badge color** — flame-orange (matches focus chip) vs. green (matches existing `.new` node treatment in the graph)?
+All five decisions confirmed. Locked in for V1 implementation.
+
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | Detail panel placement | **Right slide-in, 320px wide.** Matches dashboard convention; rank column stays visible behind it. |
+| 2 | Default preset on first visit | **Biggest climbers.** Per design doc — the headline daily-moves view. |
+| 3 | Default visible columns | **The 7 drafted above** (`#`, Entity, Δ rank, 7d, 30d, src 7d, first). `velocity_raw`, `trend_score`, raw `first_seen`, and aliases remain Custom-mode-only. |
+| 4 | "View in graph" UX for non-top-50 | **Graceful note.** Button absent for non-trending entities; replaced with "Not currently in Current Landscape — coming in a future update." Universal deep-link defers to Sprint 16. |
+| 5 | NEW badge color | **Flame-orange.** Matches focus chip; reinforces the "you're seeing emerging signal" visual language. Distinct from the green `.new` graph-node treatment by design. |
+
+Subsequent changes to these decisions should be tracked here as
+amendments rather than overwrites, so reviewers can see the history of
+the V1 frame.
