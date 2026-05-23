@@ -1,0 +1,70 @@
+/**
+ * Movers page layout (Sprint 15)
+ *
+ * Per docs/ux/movers-wireframe.md — sticky toolbar, body fills the rest.
+ * Preset chips, table, and detail panel CSS arrives in 15.3 / 15.4 / 15.6.
+ */
+
+body {
+  margin: 0;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Toolbar — sticky at the top, matches the dashboard rhythm */
+#movers-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-primary);
+  border-bottom: var(--border-width) solid var(--color-border-primary);
+}
+
+#movers-toolbar .toolbar-left,
+#movers-toolbar .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+#movers-toolbar .app-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+#movers-toolbar .btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Body */
+#movers-body {
+  padding: var(--space-4) var(--space-5);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.movers-status {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-3);
+}
+
+.movers-status-error {
+  color: var(--color-error, #DC2626);
+  font-weight: var(--weight-medium);
+}
+
+/* Mount points stay empty until later items wire them up */
+#movers-table { min-height: 200px; }
+#movers-detail-panel.hidden { display: none; }
