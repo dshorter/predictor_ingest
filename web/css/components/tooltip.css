@@ -144,12 +144,43 @@
 
 /* Tooltip action hint */
 .tooltip-hint {
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-  border-top: var(--border-width) solid var(--gray-200);
   font-size: var(--text-xs);
   color: var(--gray-500);
   cursor: pointer;
+}
+
+/* Tooltip actions row — hint on left, action button(s) on right */
+.tooltip-actions {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: var(--border-width) solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.tooltip-action-btn {
+  flex-shrink: 0;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: white;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: filter var(--duration-fast) var(--easing-default),
+              transform var(--duration-fast) var(--easing-default);
+}
+
+.tooltip-action-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.tooltip-action-btn:active {
+  transform: translateY(0);
 }
 
 /* Tooltip footer */
