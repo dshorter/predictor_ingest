@@ -408,8 +408,9 @@ function renderRankDelta(row) {
   }
   const d = row.rank_delta;
   if (d == null) return '<span class="movers-delta-zero">—</span>';
-  if (d > 0) return `<span class="movers-delta-up">↑${d}</span>`;
-  if (d < 0) return `<span class="movers-delta-down">↓${Math.abs(d)}</span>`;
+  // ▲/▼ (U+25B2/U+25BC) render bolder at small sizes than ↑/↓
+  if (d > 0) return `<span class="movers-delta-up">▲ ${d}</span>`;
+  if (d < 0) return `<span class="movers-delta-down">▼ ${Math.abs(d)}</span>`;
   return '<span class="movers-delta-zero">—</span>';
 }
 
