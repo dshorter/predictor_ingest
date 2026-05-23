@@ -597,6 +597,10 @@ placement, detail panel positioning. Items 15.1, 15.3, 15.4, 15.6, 15.9
 shape themselves around the wireframe; other items are wireframe-
 independent and can start earlier.
 
+**Wireframe v0:** [docs/ux/movers-wireframe.md](ux/movers-wireframe.md)
+— drafted 2026-05-23, five open questions flagged at the bottom for
+user signoff before coding begins.
+
 | # | Item | What | Model |
 |---|------|------|-------|
 | 15.1 | `web/movers.html` shell | New page mirroring `dashboard.html` / `ontology.html` visual idiom. Toolbar with domain switcher (reuse `domain-switcher.js`), title, link back to graph view | [Sonnet] |
