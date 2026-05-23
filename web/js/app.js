@@ -360,6 +360,14 @@ async function initializeApp() {
       }
     }
 
+    // Focus mode (Sprint 14B): Esc + popstate handlers, then re-enter from URL.
+    if (typeof initFocusGlobalHandlers === 'function') {
+      initFocusGlobalHandlers(AppState.cy);
+    }
+    if (typeof initFocusFromUrl === 'function') {
+      initFocusFromUrl(AppState.cy);
+    }
+
     // Run initial layout and initialize navigator after it completes
     const layout = runLayout(AppState.cy);
     layout.on('layoutstop', () => {
@@ -401,6 +409,9 @@ function highlightNeighborhood(cy, node) {
   // Don't override active search dimming
   if (cy.nodes('.search-match').length > 0) return;
 
+  // Focus mode owns the dimming while active — don't mix contexts.
+  if (typeof isFocusActive === 'function' && isFocusActive()) return;
+
   const neighborhood = node.closedNeighborhood();
 
   cy.elements().addClass('neighborhood-dimmed');
@@ -419,9 +430,17 @@ function clearNeighborhoodHighlight(cy) {
  * Initialize event handlers for the graph
  */
 function initializeEventHandlers(cy) {
-  // Node click - highlight neighborhood + open detail panel (no zoom)
+  // Node click - highlight neighborhood + open detail panel (no zoom).
+  // In focus mode, a tap on a peripheral (visible-but-not-focused) node
+  // also expands the focused set — that's the Sprint 14B pain-point fix.
   cy.on('tap', 'node', (e) => {
-    navigateToNode(e.target.id(), { zoom: false, updatePanel: true });
+    const nodeId = e.target.id();
+    if (typeof isFocusActive === 'function' && isFocusActive() &&
+        typeof isPeripheralNeighbor === 'function' &&
+        isPeripheralNeighbor(cy, nodeId)) {
+      expandFocus(cy, nodeId);
+    }
+    navigateToNode(nodeId, { zoom: false, updatePanel: true });
   });
 
   // Edge click - open evidence panel

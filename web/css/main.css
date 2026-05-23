@@ -34,6 +34,7 @@
 @import 'components/help-panel.css?v=2';
 @import 'components/domain-certificate.css?v=2';
 @import 'components/tour.css?v=1';
+@import 'components/focus-chip.css?v=1';
 
 /* 5. Graph-specific */
 @import 'graph/cytoscape.css?v=2';

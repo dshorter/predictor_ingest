@@ -719,7 +719,7 @@ Not scheduled. Documented so they're not forgotten.
 | 12 — Branding & Wrap-up | Pending | — |
 | 13 — Trend Methodology + Semiconductor Onboarding | Pending | — |
 | 14 — Backend Movers | Pending | — |
-| 14B — Locked-neighborhood focus mode | Pending | — |
+| 14B — Locked-neighborhood focus mode | Implemented (smoke pending) | 2026-05-22 |
 | 15 — Movers Frontend V1 | Pending | — |
 | 16 — Universal Movers deep-link | Pending | — |
 
