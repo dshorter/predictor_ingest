@@ -374,6 +374,10 @@ async function initializeApp() {
       // Initialize navigator minimap after layout is done
       initNavigator(AppState.cy);
 
+      // Sprint 15.7 — consume ?entity= URL param from Movers deep-link.
+      // Done after layout settles so the camera zoom lands accurately.
+      initEntitySelectionFromUrl(AppState.cy);
+
       // Guided tour disabled — uncomment to re-enable
       // if (typeof initTour === 'function') {
       //   initTour();
@@ -399,6 +403,38 @@ async function initializeApp() {
     hideLoading();
     showError(`Failed to initialize: ${error.message}`);
   }
+}
+
+/**
+ * Sprint 15.7 — consume ?entity=<id> URL param.
+ *
+ * Movers' "View in graph →" CTA deep-links to
+ * `index.html?domain=X&entity=Y`. When this page loads with that param,
+ * select + zoom to + open the panel for that entity.
+ *
+ * Graceful failure: if the entity isn't in the current view, leave the
+ * URL param alone (so reload / share still attempt it) and log a hint.
+ * Sprint 16 will add universal entity reachability via on-demand
+ * neighborhoods; for V1 only top-50 (in_trending_view) entities arrive
+ * here from Movers.
+ */
+function initEntitySelectionFromUrl(cy) {
+  if (!cy) return;
+  const id = new URLSearchParams(window.location.search).get('entity');
+  if (!id) return;
+
+  const node = cy.getElementById(id);
+  if (!node || node.length === 0) {
+    console.warn(
+      `[deep-link] entity "${id}" not in current view — Sprint 16 will ` +
+      `add universal reachability via on-demand neighborhoods.`
+    );
+    return;
+  }
+
+  // Use navigateToNode's existing codepath: select + neighborhood
+  // highlight + zoom + open panel. Same UX as clicking the node.
+  navigateToNode(id, { zoom: true, updatePanel: true });
 }
 
 /**

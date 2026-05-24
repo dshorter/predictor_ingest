@@ -94,15 +94,23 @@ body {
   border-left: 4px solid var(--flame-orange);
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.18);
   overflow-y: auto;
-  transform: translateX(0);
-  transition: transform 220ms cubic-bezier(0.34, 1.32, 0.64, 1);
+  /* Bounce-in matches the explorer's left panels (panel.css line 66).
+     y2=1.56 in the cubic-bezier gives the satisfying overshoot. */
+  animation: movers-detail-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 #movers-detail-panel.hidden {
-  /* Slide off-screen rather than display:none — preserves scroll position
-     and lets CSS handle the animation */
+  /* Mirror the explorer's pattern: no animation on close, just snap
+     off-screen by transform. Prevents the close from bouncing back in
+     from the wrong direction. */
+  animation: none;
   transform: translateX(calc(100% + 24px));
   display: block;
+}
+
+@keyframes movers-detail-slide-in {
+  0%   { transform: translateX(calc(100% + 24px)); }
+  100% { transform: translateX(0); }
 }
 
 .movers-detail-header {
