@@ -8,30 +8,28 @@
 
 ## Status / Next Action
 
-*Last updated: 2026-05-19*
-
-**Sprint 14 implemented and smoke-tested.** PR #256 contains the full
-chunk including a schema fix that landed during testing. Ready to merge.
+*Last updated: 2026-05-23*
 
 ### Sprint status
 
-- **Sprint 14 — Backend Movers — IMPLEMENTED + SMOKE-TESTED.** PR #256
-  ready to merge. Source-type extraction policy, `run_movers.py`,
-  `schemas/movers.json` (with the domain-taxonomy fix applied during
-  testing), `make movers` target, pipeline integration, 56 tests, and a
-  reusable smoke-test runbook with findings all on the branch.
-- **Sprint 14B — Locked-neighborhood focus mode** — ready to start
-  (no backend dependency, client-only).
-- **Sprint 15 — Movers Frontend V1** — execution-gated on the UI
-  wireframe pass.
-- **Sprint 16 — Universal Movers deep-link** — waits for 14B + 15.
+- **Sprint 14 — Backend Movers — MERGED.** PR #256. Source-type
+  extraction policy, `run_movers.py`, `schemas/movers.json`,
+  `make movers` target, pipeline integration, 56 tests, and the
+  smoke-test runbook all landed on main.
+- **Sprint 14B — Locked-neighborhood focus mode — MERGED.** PR #257
+  (core feature) + PR #258 (UX polish: focus chip pop, tooltip Focus
+  action, dark-mode contrast, FOUC suppression, 23 passing Playwright
+  tests).
+- **Sprint 15 — Movers Frontend V1 — WIREFRAME SIGNED OFF.** See
+  [docs/ux/movers-wireframe.md](../ux/movers-wireframe.md). All five
+  layout decisions locked (2026-05-23). Coding of wireframe-gated
+  items (15.1, 15.3, 15.4, 15.6, 15.9) can begin.
+- **Sprint 16 — Universal Movers deep-link** — waits for 15.
 
 ### Open human-action items
 
-- **Merge PR #256** when convenient.
-- **Wireframe pass for Sprint 15** — cannot be done by an agent. Even
-  a hand-drawn napkin referencing the visual idiom of `dashboard.html`
-  / `ontology.html` is enough to unblock the wireframe-dependent items.
+None blocking. Sprint 15 implementation in progress on
+`claude/sprint-15-movers-frontend`.
 
 ### Known follow-ups (out of scope for Sprint 14)
 

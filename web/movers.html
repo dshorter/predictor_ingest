@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Movers</title>
+
+  <!-- Display font matches index.html / dashboard.html -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Suppress theme flash — same idiom shipped in PR #258 for index.html -->
+  <script>
+    (function() {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      var dark = saved === 'dark' ||
+        (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/tokens.css?v=6">
+  <link rel="stylesheet" href="css/main.css?v=19">
+  <link rel="stylesheet" href="css/movers.css?v=9">
+</head>
+<body>
+
+<!-- Toolbar (sticky) -->
+<header id="movers-toolbar">
+  <div class="toolbar-left">
+    <h1 class="app-title">Movers</h1>
+  </div>
+
+  <div class="toolbar-right">
+    <a id="graph-link" class="btn btn-sm" href="index.html" title="Back to graph view">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Graph
+    </a>
+
+    <button id="theme-toggle" class="btn-icon" title="Toggle dark/light mode"
+            aria-label="Toggle dark/light mode">
+      <svg class="icon-theme-light" xmlns="http://www.w3.org/2000/svg"
+           width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-theme-dark" xmlns="http://www.w3.org/2000/svg"
+           width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Body -->
+<main id="movers-body">
+  <!-- Status line — fills in with load state then row count once data lands. -->
+  <p id="movers-status" class="movers-status">Initializing…</p>
+
+  <!-- Preset chips (15.4) — sticky group below status, above table -->
+  <div id="movers-presets" class="movers-presets" role="tablist" aria-label="Movers presets"></div>
+
+  <!-- Description strip — explains the active preset in one sentence -->
+  <p id="movers-preset-description" class="movers-preset-description"></p>
+
+  <!-- Table mount point -->
+  <div id="movers-table"></div>
+
+  <!-- Detail side-panel mount point — populated in 15.6 -->
+  <aside id="movers-detail-panel" class="hidden"></aside>
+</main>
+
+<script src="js/domain-switcher.js?v=2"></script>
+<script src="js/movers.js?v=5"></script>
+</body>
+</html>

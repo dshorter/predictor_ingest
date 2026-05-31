@@ -1,0 +1,525 @@
+/**
+ * Movers page layout (Sprint 15)
+ *
+ * Per docs/ux/movers-wireframe.md — sticky toolbar, body fills the rest.
+ * Preset chips, table, and detail panel CSS arrives in 15.3 / 15.4 / 15.6.
+ */
+
+body {
+  margin: 0;
+  /* Letterbox: the area outside the 1280px content column reads as a
+     distinct surface, framing the content. */
+  background: var(--color-bg-letterbox);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Toolbar — sticky at the top, spans full width, stays on the primary bg */
+#movers-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-primary);
+  border-bottom: var(--border-width) solid var(--color-border-primary);
+}
+
+#movers-toolbar .toolbar-left,
+#movers-toolbar .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+#movers-toolbar .app-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+#movers-toolbar .btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Body — centered content column. Sits "below" the letterbox: lighter
+   letterbox surrounds a slightly darker (or equally toned) content
+   surface. In light mode we use bg-secondary (a touch off-white) so
+   the letterbox actually reads as the lighter frame; in dark mode the
+   primary gray-900 stays darker than the new letterbox slate. */
+#movers-body {
+  padding: var(--space-4) var(--space-5);
+  max-width: 1280px;
+  margin: 0 auto;
+  background: var(--color-bg-secondary);
+  min-height: calc(100vh - 57px);   /* fills below sticky toolbar */
+}
+
+[data-theme="dark"] #movers-body {
+  background: var(--color-bg-primary);
+}
+
+.movers-status {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-3);
+}
+
+.movers-status-error {
+  color: var(--color-error, #DC2626);
+  font-weight: var(--weight-medium);
+}
+
+/* =========================================================================
+   Detail side-panel (15.6) — right slide-in, 320px wide.
+   Slides over the table; doesn't push it.
+   ========================================================================= */
+
+#movers-detail-panel {
+  position: fixed;
+  top: 57px;                       /* below the sticky toolbar */
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  z-index: var(--z-overlay);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-primary);
+  border-left: 4px solid var(--flame-orange);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.18);
+  overflow-y: auto;
+  /* Bounce-in matches the explorer's left panels (panel.css line 66).
+     y2=1.56 in the cubic-bezier gives the satisfying overshoot. */
+  animation: movers-detail-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+#movers-detail-panel.hidden {
+  /* Mirror the explorer's pattern: no animation on close, just snap
+     off-screen by transform. Prevents the close from bouncing back in
+     from the wrong direction. */
+  animation: none;
+  transform: translateX(calc(100% + 24px));
+  display: block;
+}
+
+@keyframes movers-detail-slide-in {
+  0%   { transform: translateX(calc(100% + 24px)); }
+  100% { transform: translateX(0); }
+}
+
+.movers-detail-header {
+  position: relative;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border-primary);
+}
+
+.movers-detail-close {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default);
+}
+
+.movers-detail-close:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.movers-detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.movers-detail-new-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+  color: white;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border-radius: var(--radius-full);
+}
+
+.movers-detail-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--leading-tight);
+  word-break: break-word;
+}
+
+.movers-detail-entity-id {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.movers-detail-section {
+  margin-bottom: var(--space-4);
+}
+
+.movers-detail-section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+}
+
+.movers-detail-rank-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.movers-detail-stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.movers-detail-stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.movers-detail-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.movers-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.movers-detail-row > span:first-child {
+  color: var(--color-text-secondary);
+}
+
+.movers-detail-row > span:last-child {
+  font-family: var(--font-mono);
+}
+
+.movers-detail-row-muted > span:last-child {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.movers-detail-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.movers-detail-footer {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border-primary);
+}
+
+.movers-detail-cta {
+  display: block;
+  text-align: center;
+  padding: var(--space-2) var(--space-3);
+  font-weight: var(--weight-semibold);
+  color: white;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: filter var(--duration-fast) var(--easing-default);
+}
+
+.movers-detail-cta:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+  color: white;
+}
+
+.movers-detail-cta-disabled {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+  font-size: var(--text-xs);
+  font-style: italic;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-secondary);
+  border: 1px dashed var(--color-border-primary);
+  border-radius: var(--radius-md);
+}
+
+/* =========================================================================
+   Preset chips (15.4) — six chips above the table. Active chip uses the
+   flame-orange treatment to match the focus chip's visual language.
+   ========================================================================= */
+
+.movers-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.movers-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: var(--border-width) solid var(--color-border-primary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-default),
+    border-color var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default),
+    transform var(--duration-fast) var(--easing-default);
+}
+
+.movers-chip:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-400);
+}
+
+.movers-chip:active {
+  transform: translateY(1px);
+}
+
+.movers-chip:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+/* Active chip — flame-orange gradient, white text, no transition on bg
+   color so the swap feels snappy */
+.movers-chip-active {
+  color: white;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border-color: var(--flame-red);
+  font-weight: var(--weight-semibold);
+}
+
+.movers-chip-active:hover {
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  filter: brightness(1.05);
+  border-color: var(--flame-red);
+}
+
+/* Description strip — one sentence under the chips telling the user what
+   they're looking at for the active preset. */
+.movers-preset-description {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--flame-orange);
+}
+
+.movers-preset-description-placeholder {
+  font-style: italic;
+  border-left-color: var(--gray-300);
+}
+
+/* Empty table state — shown when the active preset filters everything out
+   or when the underlying export is empty. */
+.movers-empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--color-text-secondary);
+  border: var(--border-width) dashed var(--color-border-primary);
+  border-radius: var(--radius-md);
+}
+
+.movers-empty p {
+  margin: 0 0 var(--space-2);
+}
+
+.movers-empty-hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+.movers-empty code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* =========================================================================
+   Table (15.3)
+   - CSS Grid for column alignment between header and body rows
+   - Sticky header inside a scroll container
+   - Virtual scroll: rows transform-shifted to match scrollTop
+   ========================================================================= */
+
+.movers-table {
+  border: var(--border-width) solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+.movers-table-header,
+.movers-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 80px 60px 60px 60px 80px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+}
+
+.movers-table-header {
+  height: 36px;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  background: var(--gray-50);
+  border-bottom: var(--border-width) solid var(--color-border-primary);
+}
+
+.movers-table-scroll {
+  height: calc(100vh - 220px);   /* fills below toolbar + status */
+  min-height: 400px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.movers-table-virtual {
+  position: relative;
+  width: 100%;
+}
+
+.movers-table-rows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.movers-row {
+  height: 44px;                  /* must match ROW_HEIGHT in movers.js */
+  border-bottom: var(--border-width) solid var(--gray-100);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-default);
+}
+
+.movers-row:hover {
+  background: var(--gray-50);
+}
+
+/* Cells */
+.movers-cell {
+  overflow: hidden;
+}
+
+.movers-cell-rank {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  text-align: right;
+  padding-right: var(--space-1);
+}
+
+.movers-cell-entity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.movers-entity-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.movers-cell-delta,
+.movers-cell-num,
+.movers-cell-first {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-size: var(--text-sm);
+}
+
+.movers-cell-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.movers-cell-first {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Rank delta */
+.movers-delta-up    { color: var(--color-success); font-weight: var(--weight-semibold); }
+.movers-delta-down  { color: var(--color-error);   font-weight: var(--weight-semibold); }
+.movers-delta-zero  { color: var(--color-text-tertiary); }
+
+/* NEW badge — flame-orange per signoff record */
+.movers-new-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+  color: white;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--flame-red) 100%);
+  border-radius: var(--radius-full);
+}
+
+/* Just-appeared visual cue on the "first" column */
+.movers-first-new {
+  color: var(--flame-orange);
+  font-weight: var(--weight-semibold);
+}
