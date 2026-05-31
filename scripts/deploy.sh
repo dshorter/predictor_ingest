@@ -8,7 +8,12 @@
 set -euo pipefail
 
 BRANCH="${1:-main}"
-REPO_DIR="/opt/predictor_ingest"
+# Sprint 18 — Phase A of site topology. Deploys land in the prod tree
+# (cloned from main, served at https://predictor.uzelhub.com via Caddy),
+# leaving /opt/predictor_ingest/ as a true dev workspace whose
+# uncommitted edits are no longer clobbered by merges to main.
+# See docs/project-plan.md Sprint 18 and /opt/_host/README.md.
+REPO_DIR="/opt/predictor_prod"
 LOG_TAG="predictor-deploy"
 DEPLOY_LOG="$REPO_DIR/data/logs/deploy.log"
 
