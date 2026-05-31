@@ -728,6 +728,58 @@ complete before its toolbar is the showcase.
 
 ---
 
+## Sprint 18 — Predictor production URL (Phase A of site topology)
+
+The predictor is about to be shared publicly. Today the dev workspace
+(`/opt/predictor_ingest/web/`) doubles as production via
+`uzelhub.com/apps/predictor/` — fine for solo iteration, risky once
+the link is in other people's hands. Phase A of the site topology
+plan creates a stable, pinned-to-main production URL on a separate
+subdomain so live development never breaks the public-facing app.
+
+**Scope:** predictor only. Not studio, not the future marketing site,
+not the blog. Other surfaces get their own splits when their own
+drivers demand it (probably never for studio at current cadence).
+
+**Future-state context:** see Daniel's site topology plan —
+eventually `predictor.uzelhub.com` may move to
+`predictor.studio.uzelhub.com` if positioning shifts, but for V1 it
+lives independently.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 18.1 | DNS — add `predictor` A record | `predictor.uzelhub.com` → server public IP. Caddy auto-provisions TLS on first request | [Manual] |
+| 18.2 | Production clone | `git clone /opt/predictor_ingest /opt/predictor_prod` (or `git worktree add` if Daniel prefers); checkout `main`, never anything else | [Sonnet] |
+| 18.3 | Data symlink | `rm -rf /opt/predictor_prod/web/data && ln -s /opt/predictor_ingest/web/data /opt/predictor_prod/web/data` so the pipeline writes once and both URLs see the same JSON. Avoids duplication, keeps the pipeline running in the dev tree where the DB lives | [Sonnet] |
+| 18.4 | Caddy server block | New top-level block: `predictor.uzelhub.com { root * /opt/predictor_prod/web; file_server }`. Validate + reload | [Sonnet] |
+| 18.5 | Auto-update mechanism | **TBD — Daniel said "something else" beyond cron / webhook / manual.** Options on the table: 5-min cron pull, GitHub webhook, manual only via `make deploy-prod`, OR a hybrid Daniel has in mind. Need a call before implementing | [TBD] |
+| 18.6 | `make deploy-prod` target | Convenience: `cd /opt/predictor_prod && git pull --ff-only && echo "prod synced to $(git rev-parse --short HEAD)"`. Belt-and-suspenders regardless of which auto-update strategy is picked | [Sonnet] |
+| 18.7 | README / topology doc | Document the prod vs dev URLs, the symlink, the update mechanism, the rollback procedure. Add to `/opt/README.md` and `docs/deployment/predictor-prod-split.md` | [Sonnet] |
+| 18.8 | Cross-page nav (Sprint 17) sanity | Verify all outbound links from predictor pages are relative (e.g., `index.html?domain=film`) not hardcoded `uzelhub.com/apps/predictor/...`. They are today, but worth a smoke test before public link goes out | [Sonnet] |
+| 18.9 | Live smoke test | Hit `https://predictor.uzelhub.com/` and `https://predictor.uzelhub.com/movers.html?domain=film` after deployment. Verify TLS cert provisions cleanly, page loads, no console errors | [Manual] |
+| 18.10 | Switch documentation | Update `docs/plans/movers-and-focus-mode.md` and any other public-facing reference to point at the prod URL once verified | [Sonnet] |
+
+**Output:** `https://predictor.uzelhub.com/` serves the predictor app
+from `/opt/predictor_prod/web` (pinned to `main`). Dev workspace
+unchanged. Data shared via symlink. Update mechanism per 18.5
+decision.
+
+**Acceptance:** Daniel can share `predictor.uzelhub.com` confidently
+knowing live dev changes can't break it. Merging to main propagates
+to prod automatically (via whatever mechanism 18.5 settles).
+
+**Dependency:** None blocking. Can ship in parallel with Sprint 15.
+Should ship before Daniel starts sharing the link externally.
+
+**Why "the dumbest way" (Daniel's words):** the prod-clone-pinned-to-main
+approach is intentionally simple. No build step, no static-site
+generator, no CDN, no orchestration layer. Just two checkouts and
+Caddy. Easy to reason about; easy to roll back (`git checkout` a
+prior commit in prod); easy to retire if the project's hosting model
+ever changes.
+
+---
+
 ## Backend Track (parallel, data-dependent)
 
 These items run independently of the UI work. Most are waiting on pipeline data.
@@ -792,6 +844,7 @@ Not scheduled. Documented so they're not forgotten.
 | 15 — Movers Frontend V1 | In progress (15.1–15.4 done, polish iterations live) | 2026-05-23 |
 | 16 — Universal Movers deep-link | Pending | — |
 | 17 — Cross-page navigation | Pending — surfaced by Sprint 15 QA | — |
+| 18 — Predictor production URL | Pending — needed before public sharing | — |
 
 ---
 
