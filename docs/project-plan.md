@@ -778,6 +778,47 @@ Caddy. Easy to reason about; easy to roll back (`git checkout` a
 prior commit in prod); easy to retire if the project's hosting model
 ever changes.
 
+**Shipped 2026-05-31.** Full runbook at
+[docs/deployment/predictor-prod-split.md](deployment/predictor-prod-split.md).
+PR #259 wired the deploy mechanism; PR #260 (Sprint 15 Movers) was the
+first real feature to ride the auto-deploy and confirmed it works
+end-to-end with no manual intervention.
+
+---
+
+## Sprint 19 — Backup restore drill + gap fixes
+
+Surfaced 2026-05-31 — the **classic IT story**. The host's backup
+system is genuinely well-designed (rotating local snapshots, off-site
+to Backblaze B2 with a delete-resistant scoped key, 7-day retention
+server-side, daily timer + `safe-reboot` integration), but the restore
+side has never been exercised end-to-end. The README's "verbatim trees
+ready to copy back" hand-waves several real questions, and a known
+gap (hvac-postgres volume isn't dumped) is acknowledged but unfixed.
+
+Sprint 19 turns the restore claim into a tested procedure.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 19.1 | Restore drill — full end-to-end on clean VM | Pull latest `host-*.tar.gz` from B2, restore into a fresh VPS, verify all services come up. Document every step the README hand-waves. Identify all gaps where "verbatim tree ready to copy back" hides real work | [Manual + Sonnet] |
+| 19.2 | Fix `hvac-postgres` backup gap | README acknowledges the volume isn't dumped. Add `pg_dumpall` to `backup.sh` OR document the manual workaround | [Sonnet] |
+| 19.3 | Audit `.git`-less restore for predictor + uzelhub-web | Backup excludes `.git/`. So restored `/opt/predictor_ingest/` has working-tree files but no git repo. Decide: fresh-clone + selectively copy from staging, or include `.git/` in backup. Document the canonical procedure | [Sonnet] |
+| 19.4 | Capture DNS + Cloudflare config separately | Backup doesn't include Cloudflare zone records. After a full VPS rebuild on a new IP, those need recreating. Export Cloudflare config to a separate repo OR document the manual recreation steps | [Manual] |
+| 19.5 | Caddy cert + state preservation | Verify what Caddy state lives in `/var/lib/caddy/` and whether the backup captures it. If not, restore = Caddy re-provisions all certs on first request → can hit Let's Encrypt rate limits. Document or include | [Sonnet] |
+| 19.6 | RTO measurement | Time the restore drill end-to-end. Document realistic time-to-first-byte from "VPS provider lost the box" to "uzelhub.com responds 200" | [Manual] |
+
+**Output:** A verified restore procedure documented in
+`/opt/_host/README.md` (or a new doc it links to). All hand-waves
+replaced with concrete commands. Known gaps closed.
+
+**Acceptance:** A new operator (or future-Daniel six months from now)
+could follow the restore doc against a fresh VPS and have the site
+back online without consulting anyone. The RTO number is published
+and matches reality.
+
+**Dependency:** None. Independent of the predictor product work.
+Could ship anytime; should ship before something forces it to.
+
 ---
 
 ## Backend Track (parallel, data-dependent)
@@ -841,10 +882,11 @@ Not scheduled. Documented so they're not forgotten.
 | 13 — Trend Methodology + Semiconductor Onboarding | Pending | — |
 | 14 — Backend Movers | ✓ Done | 2026-05-22 |
 | 14B — Locked-neighborhood focus mode | ✓ Done | 2026-05-22 |
-| 15 — Movers Frontend V1 | In progress (15.1–15.4 done, polish iterations live) | 2026-05-23 |
+| 15 — Movers Frontend V1 | ✓ V1 shipped (15.1–15.4, 15.6, 15.7 done; 15.5/15.8–15.11 deferred to follow-ups) | 2026-05-31 |
 | 16 — Universal Movers deep-link | Pending | — |
 | 17 — Cross-page navigation | Pending — surfaced by Sprint 15 QA | — |
-| 18 — Predictor production URL | Pending — needed before public sharing | — |
+| 18 — Predictor production URL | ✓ Phase A shipped (18.1–18.5, 18.9 done; 18.6/18.7/18.8/18.10 housekeeping in flight) | 2026-05-31 |
+| 19 — Backup restore drill + gap fixes | Pending — surfaced 2026-05-31 ("classic IT story" — backup designed, restore never tested) | — |
 
 ---
 
