@@ -753,11 +753,11 @@ lives independently.
 | 18.3 | Data symlink | `rm -rf /opt/predictor_prod/web/data && ln -s /opt/predictor_ingest/web/data /opt/predictor_prod/web/data` so the pipeline writes once and both URLs see the same JSON. Avoids duplication, keeps the pipeline running in the dev tree where the DB lives | [Sonnet] |
 | 18.4 | Caddy server block | New top-level block: `predictor.uzelhub.com { root * /opt/predictor_prod/web; file_server }`. Validate + reload | [Sonnet] |
 | 18.5 | Re-point existing GitHub Action at prod tree | The auto-update mechanism **already exists** — `.github/workflows/deploy.yml` runs on push to main, SSHes in via `appleboy/ssh-action`, runs `scripts/deploy.sh`. Today it targets `/opt/predictor_ingest/` (the dev workspace), which is fragile — any merge while uncommitted dev edits exist could clobber them. Change: edit `scripts/deploy.sh` `REPO_DIR=/opt/predictor_prod`. The Action then keeps doing exactly what it does today, just on the prod tree. Five-line change, no new infrastructure, no Node service, no Caddy webhook block | [Sonnet] |
-| 18.6 | `make deploy-prod` target | Convenience: `cd /opt/predictor_prod && git pull --ff-only && echo "prod synced to $(git rev-parse --short HEAD)"`. Belt-and-suspenders regardless of which auto-update strategy is picked | [Sonnet] |
-| 18.7 | README / topology doc | Document the prod vs dev URLs, the symlink, the update mechanism, the rollback procedure. Add to `/opt/README.md` and `docs/deployment/predictor-prod-split.md` | [Sonnet] |
-| 18.8 | Cross-page nav (Sprint 17) sanity | Verify all outbound links from predictor pages are relative (e.g., `index.html?domain=film`) not hardcoded `uzelhub.com/apps/predictor/...`. They are today, but worth a smoke test before public link goes out | [Sonnet] |
+| 18.6 ✓ | `make deploy-prod` target | Convenience: `cd /opt/predictor_prod && git pull --ff-only && echo "prod synced to $(git rev-parse --short HEAD)"`. Belt-and-suspenders regardless of which auto-update strategy is picked. **Done** — added to `Makefile` (`PROD_DIR ?= /opt/predictor_prod`, dry-run verified) | [Sonnet] |
+| 18.7 ✓ | README / topology doc | Document the prod vs dev URLs, the symlink, the update mechanism, the rollback procedure. Add to `/opt/README.md` and `docs/deployment/predictor-prod-split.md`. **Done** — runbook + `/opt/README.md` shipped 2026-06-02; 2026-06-10 added a "Deployment Topology" section to `CLAUDE.md` (the top-down entry point) and marked the runbook ARCHIVED | [Sonnet] |
+| 18.8 ✓ | Cross-page nav (Sprint 17) sanity | Verify all outbound links from predictor pages are relative (e.g., `index.html?domain=film`) not hardcoded `uzelhub.com/apps/predictor/...`. They are today, but worth a smoke test before public link goes out. **Done** — grep of `web/` found zero absolute `uzelhub.com` links; all cross-page nav is relative | [Sonnet] |
 | 18.9 | Live smoke test | Hit `https://predictor.uzelhub.com/` and `https://predictor.uzelhub.com/movers.html?domain=film` after deployment. Verify TLS cert provisions cleanly, page loads, no console errors | [Manual] |
-| 18.10 | Switch documentation | Update `docs/plans/movers-and-focus-mode.md` and any other public-facing reference to point at the prod URL once verified | [Sonnet] |
+| 18.10 ✓ | Switch documentation | Update `docs/plans/movers-and-focus-mode.md` and any other public-facing reference to point at the prod URL once verified. **Done** — that doc turned out to use only relative paths (nothing to switch); added a **Live app** link to `README.md` pointing at `predictor.uzelhub.com` as the canonical public reference | [Sonnet] |
 
 **Output:** `https://predictor.uzelhub.com/` serves the predictor app
 from `/opt/predictor_prod/web` (pinned to `main`). Dev workspace
@@ -885,7 +885,7 @@ Not scheduled. Documented so they're not forgotten.
 | 15 — Movers Frontend V1 | ✓ V1 shipped (15.1–15.4, 15.6, 15.7 done; 15.5/15.8–15.11 deferred to follow-ups) | 2026-05-31 |
 | 16 — Universal Movers deep-link | Pending | — |
 | 17 — Cross-page navigation | Pending — surfaced by Sprint 15 QA | — |
-| 18 — Predictor production URL | ✓ Phase A shipped (18.1–18.5, 18.9 done; 18.6/18.7/18.8/18.10 housekeeping in flight) | 2026-05-31 |
+| 18 — Predictor production URL | ✓ Complete (18.1–18.5, 18.9 shipped 2026-05-31; 18.6/18.7/18.8/18.10 housekeeping done 2026-06-03) | 2026-06-03 |
 | 19 — Backup restore drill + gap fixes | Pending — surfaced 2026-05-31 ("classic IT story" — backup designed, restore never tested) | — |
 
 ---

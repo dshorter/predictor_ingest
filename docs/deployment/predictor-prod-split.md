@@ -1,10 +1,13 @@
 # Predictor dev/prod split — Sprint 18 Phase A
 
-**Status:** Shipped 2026-05-31.
+**Status:** ARCHIVED 2026-06-10. Shipped 2026-05-31; the split is complete and
+operational. This was a one-off setup runbook — kept for the Caddy/Cloudflare
+procedures, the gotchas, and the rollback steps. For the current topology at a
+glance, see the "Deployment Topology" section of [CLAUDE.md](../../CLAUDE.md).
 **Scope:** predictor app only. Studio (`uzelhub.com/`), the planned marketing
 site, blog (`blog.uzelhub.com`), and the Uzella API proxy are unaffected.
-**Future-state context:** see [`site-topology-plan`](../../../../../home/claude/.claude/projects/-opt-predictor-ingest/memory/site_topology_plan.md)
-(in agent memory — phased move-out of all uzelhub.com surfaces).
+**Future-state context:** see [site-topology-plan.md](site-topology-plan.md)
+(phased move-out of all uzelhub.com surfaces).
 
 ---
 

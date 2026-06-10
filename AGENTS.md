@@ -26,6 +26,12 @@ The end product is a growing knowledge graph that can reveal **emerging trends e
   GPU/accelerator compute, supply chain, and policy. Entity types include `Fab`,
   `Chip`, `Architecture`, `ProcessNode`, `Packaging`, `Material`, `Policy`.
 
+**Operational status (2026-06-10):** the pipeline is **dormant in all four
+domains**. [ADR-010](docs/architecture/adr-010-two-domain-restart.md) plans a
+two-domain restart (film + semiconductors); AI and biosafety stay paused. See
+[docs/backend/operational-state.md](docs/backend/operational-state.md) for
+per-domain state and the pre-restart cleanup steps.
+
 ### Multi-Domain Architecture (completed Sprint 6 + 6B)
 - Each domain is a directory under `domains/` with `domain.yaml`, `feeds.yaml`,
   `views.yaml`, `inference_rules.yaml` (optional), and `prompts/`
@@ -221,6 +227,27 @@ See **[docs/ux/README.md](docs/ux/README.md)** for the full implementation spec 
 
 ---
 
+## Deployment Topology (dev/prod split — Sprint 18)
+
+Two clones of this repo live on the VPS:
+
+| Tree | URL | Branch | Updated by |
+|------|-----|--------|-----------|
+| `/opt/predictor_ingest` (**dev** — this one) | `https://uzelhub.com/apps/predictor/` | whatever's checked out | manual edits, live on save |
+| `/opt/predictor_prod` (**prod**) | `https://predictor.uzelhub.com/` | `main` (pinned) | GitHub Action on merge to main (`scripts/deploy.sh`) |
+
+- The pipeline runs in the **dev** tree (databases live in `data/db/`). Prod serves
+  the same generated JSON via symlinks (`/opt/predictor_prod/web/data/graphs/live`
+  and `.../dashboard` → the dev tree), so both URLs reflect new data instantly.
+- Dev is **not** auto-updated on merge; pull `main` into dev manually
+  (`git checkout main && git pull --ff-only`).
+- Manual prod sync (belt-and-suspenders): `make deploy-prod`.
+- Setup history, Caddy/Cloudflare procedures, and rollback steps:
+  [docs/deployment/predictor-prod-split.md](docs/deployment/predictor-prod-split.md)
+  (archived runbook — the split is complete and operational).
+
+---
+
 ## Developer Workflow
 
 ```bash
@@ -337,6 +364,7 @@ for the boundary definition and enforcement rules.
 | [docs/architecture/adr-007-llm-leverage-features.md](docs/architecture/adr-007-llm-leverage-features.md) | ADR-007: LLM leverage features |
 | [docs/architecture/adr-008-batch-api-extraction.md](docs/architecture/adr-008-batch-api-extraction.md) | **ADR-008: Replace two-tier escalation with Anthropic Batch API (current extraction mode)** |
 | [docs/architecture/adr-009-unified-left-panel-slot.md](docs/architecture/adr-009-unified-left-panel-slot.md) | ADR-009: Unified left-panel slot (UI) |
+| [docs/architecture/adr-010-two-domain-restart.md](docs/architecture/adr-010-two-domain-restart.md) | **ADR-010: Two-domain restart (film + semiconductors) under the two-lens model — current restart plan, budgets, synthetic-data cleanup** |
 
 #### Pipeline & Backend
 

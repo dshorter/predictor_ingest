@@ -1,4 +1,4 @@
-.PHONY: setup init-db ingest docpack submit collect health-report import resolve export trending copy-to-live dashboard-data export_ontology post-extract daily daily-check test test-network test-all migrate-batch backlog calibration-report calibration-report-log
+.PHONY: setup init-db ingest docpack submit collect health-report import resolve export trending copy-to-live dashboard-data export_ontology post-extract daily daily-check test test-network test-all migrate-batch backlog calibration-report calibration-report-log deploy-prod
 
 # Domain slug — all data paths derive from this
 DOMAIN ?= film
@@ -97,6 +97,16 @@ calibration-report-log:
 
 migrate:
 	python scripts/migrate_data_dirs.py
+
+# ── Deployment ─────────────────────────────────────────────────────────
+
+# Sync the production tree (/opt/predictor_prod, pinned to main) to the
+# latest pushed commit. Belt-and-suspenders alongside the auto-deploy
+# GitHub Action — safe to run by hand if the Action is ever skipped.
+PROD_DIR ?= /opt/predictor_prod
+
+deploy-prod:
+	cd $(PROD_DIR) && git pull --ff-only && echo "prod synced to $$(git rev-parse --short HEAD)"
 
 # ── Testing ────────────────────────────────────────────────────────────
 

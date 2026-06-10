@@ -10,6 +10,8 @@
 
 A pipeline for building AI trend knowledge graphs from RSS feeds and web sources. Extracts entities, relationships, and trends — then exports interactive Cytoscape.js visualizations that reveal emerging patterns early.
 
+**Live app:** [predictor.uzelhub.com](https://predictor.uzelhub.com/) — served from the production tree (`/opt/predictor_prod`, pinned to `main`). See [docs/deployment/predictor-prod-split.md](docs/deployment/predictor-prod-split.md) for the dev/prod topology.
+
 ## Overview
 
 ```
