@@ -40,6 +40,17 @@ web/data/**/*.zip
 # Live graph data is populated at runtime by the pipeline — never commit
 web/data/graphs/live/
 
+# Dashboard data is also generated at runtime (and is prod's symlink target)
+web/data/dashboard/
+
+# Generated operational artifacts at repo root (reports, calendar exports)
+/calendar.ics
+/health_report_*.txt
+/shadow-report.txt
+
+# Claude Code local config and worktrees
+.claude/
+
 # Node.js (Playwright test dependencies)
 node_modules/
 package.json
