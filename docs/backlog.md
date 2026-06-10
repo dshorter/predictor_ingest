@@ -190,6 +190,90 @@ attempt, then post-filter if the prompt-only fix doesn't stick.
 
 ---
 
+## Trend Scoring & Methodology
+
+> **Active thread:** These items were surfaced by the 2026-06-10 trend-methodology
+> and Movers/Landscape review. The decisions, restart runbook, and rationale live in
+> **[adr-010-two-domain-restart.md](../architecture/adr-010-two-domain-restart.md)** —
+> read that first. Each item below maps to a finding or follow-up in that ADR.
+
+### TREND-1: Bridge score is computed and stored but unused
+
+**Observed:** 2026-06-10 | **Priority:** Medium | **Ref:** ADR-010 review finding (bridge)
+
+`compute_bridge_score` runs for every entity on every pass and the result is
+persisted to `trend_history.bridge_score`, but the composite `trend_score`
+uses an *activity* proxy (raw 7d mention count) instead — so the structural
+signal is paid for and discarded. Decide one of: (a) wire bridge into the
+composite, or (b) stop computing it per-run. Either way, `bridge_delta`
+(change in bridge score over a 7d window) — the version that would actually
+be a leading indicator — remains unbuilt and is the more valuable target if
+bridge stays in.
+
+**Where:** `src/trend/__init__.py` (`compute_bridge_score`, `get_trending`).
+
+### TREND-2: Velocity window is not domain-configurable
+
+**Observed:** 2026-06-10 | **Priority:** Medium | **Ref:** ADR-010 review finding (velocity window) + D3 follow-up
+
+Novelty decay λ varies 3.5× across domains (0.02 semiconductors → 0.07 film),
+but every domain uses the same hardcoded 7d/7d velocity ratio. A 7-day window
+on semiconductors' 18-month process-node storylines mostly measures
+publication-schedule noise. Promote the velocity window to a `trend_weights`
+key in `domain.yaml` alongside λ. Natural companion to ADR-010 D3's follow-up
+(promote the doc budget from `DEFAULT_BUDGET` constant to a `domain.yaml`
+key) — same "hardcoded constant → per-domain key" change. The methodology's
+planned multi-window blend (7d/14d/30d) is the larger V2 version.
+
+**Where:** `src/trend/__init__.py` (`compute_velocity` window param),
+`domains/*/domain.yaml`.
+
+### TREND-3: Corroboration weighting not applied to the Landscape score
+
+**Observed:** 2026-06-10 | **Priority:** Medium | **Ref:** ADR-010 review finding (corroboration); methodology §4.1
+
+The composite `trend_score` cannot distinguish one source mentioning an
+entity 20× from 20 independent sources mentioning it once — methodology §4.1's
+source-count modifiers (1 src = 0.5×, 3+ = 1.0×, 3+/2+ categories = 1.25×)
+remain unimplemented. The substrate now exists: `run_movers.py` already
+computes `distinct_sources_7d` per entity. Wire an equivalent per-entity
+source-diversity count into `get_trending` and apply the modifier.
+
+**Where:** `src/trend/__init__.py` (`get_trending`); reuse the
+`_distinct_sources_7d` query shape from `scripts/run_movers.py`.
+
+### TREND-4: Movers lacks a movement-native score
+
+**Observed:** 2026-06-10 | **Priority:** Low (defer until D10 proof-point) | **Ref:** ADR-010 finding 3 + open thread
+
+`run_movers.py` ranks by the composite `trend_score` (0.4 velocity / 0.3
+novelty / 0.3 activity, activity capped at 20), so `rank_delta` measures
+movement *within a prominence-weighted ranking* — the same bias Movers was
+built to escape. The uncapped `velocity_raw` column and "hide top 50" filter
+partially compensate. A "pure movement" score that excludes activity is the
+open thread. Recommend deferring until ADR-010 D10's film proof-point shows
+whether the prominence bias actually distorts the Movers view in practice.
+
+**Where:** `scripts/run_movers.py` (`_ranks_for_run` ordering).
+
+### TREND-5: Source change log + transition dampening not implemented
+
+**Observed:** 2026-06-10 | **Priority:** Medium | **Ref:** ADR-010 D6 (manual restart dampening); methodology §2.7–2.8
+
+`config/source_changelog.yaml` (methodology §2.8) does not exist, and the
+pipeline has no automated transition dampening after feed swaps (§2.7) — so
+a velocity spike on the same day a source was added/removed is
+indistinguishable from a real trend. ADR-010 D6 handles the *restart*
+dampening manually for one event; this item is the standing mechanism for
+future swaps. First entries belong in the log on restart day, when dead
+feeds are removed (ADR-010 runbook item 2: Go Into The Story, SC Film
+Commission).
+
+**Where:** new `config/source_changelog.yaml`; consumed by velocity
+calculation in `src/trend/__init__.py`.
+
+---
+
 ## Graph Export & Visualization
 
 ### GEV-1: Cap bridge entity edge count to prevent artificial centrality
