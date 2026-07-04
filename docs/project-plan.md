@@ -788,6 +788,15 @@ end-to-end with no manual intervention.
 
 ## Sprint 19 — Backup restore drill + gap fixes
 
+> **Status update 2026-07-03:** much of this landed outside the sprint during
+> the 2026-07-01→03 backup overhaul: 19.2 (pg_dumpall) done 2026-06-10; 19.5
+> (`/var/lib/caddy` state now in the backup set) done 2026-07-02; the
+> "delete-resistant scoped key" the intro below *claimed* became actually true
+> only on 2026-07-03 (account-wide key rotated out; B2 Object Lock pending the
+> console toggle). Backup failures now page via Telegram. Remaining live
+> items: 19.1 (drill — scheduled monthly from 2026-08-01 on
+> `/opt/ai-agent-platform/ops/calendar.ics`), 19.3, 19.4, 19.6.
+
 Surfaced 2026-05-31 — the **classic IT story**. The host's backup
 system is genuinely well-designed (rotating local snapshots, off-site
 to Backblaze B2 with a delete-resistant scoped key, 7-day retention
@@ -818,6 +827,85 @@ and matches reality.
 
 **Dependency:** None. Independent of the predictor product work.
 Could ship anytime; should ship before something forces it to.
+
+---
+
+## Sprint 20 — Restart execution, methodology hardening, fusion onboarding
+
+Combines three things that belong in one window: (A) the accumulated
+ADR-010 restart debt — including the fact that the restart *half*-happened
+(film has been ingesting since late June with no trending run; semiconductors
+ran through 2026-06-23 then silently stalled; the synthetic `trend_history`
+rows D5 warned about are still present in ai/film/biosafety); (B) the
+methodology changes from the 2026-07-03 review — bundled here deliberately,
+because scoring changes mid-window create velocity artifacts (methodology
+§2.7), so the restart is the *only* cheap moment to change scoring; and
+(C) onboarding **fusion** as the first domain selected by the new
+pond-sizing criteria (coverage fraction + calendar-anchored ground truth)
+rather than by topic interest.
+
+**Design docs:** [adr-010-two-domain-restart.md](architecture/adr-010-two-domain-restart.md)
+(D1–D11), [prediction-methodology.md](methodology/prediction-methodology.md),
+[movers-vs-current-landscape.md](free-text/movers-vs-current-landscape.md).
+Methodology review findings (2026-07-03 session): component correlation,
+CI-lower-bound velocity, bridge-score bait-and-switch, corroboration as
+keystone, Movers' invisible-failure asymmetry, graduation-rate metric,
+type stratification for film, tripwire disposition for sparse domains.
+
+### Track A — Restart debt (do first, in order)
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 20.1 | Synthetic `trend_history` cleanup (D5) | Delete run dates 2026-05-19 / 2026-05-12 from **ai, film, biosafety** (NOT semiconductors). Verify with the zeroed-component fingerprint query in ADR-010 first. Blocks every honest Movers export | [Manual] |
+| 20.2 | Diagnose + clear the pipeline stall | Semiconductors: no runs since 2026-06-23 (9+ days, silent). Find why the daily run stopped (cron? error? never scheduled post-restart?), fix, resume under D1/D3 budgets | [Sonnet] |
+| 20.3 | Film full daily run resumes | Film is ingest-only since restart (docs through 2026-07-01, trending stuck at synthetic 05-19). Enable the full chain: extract → resolve → export → trending → movers, budget 35/day per D3 | [Sonnet] |
+| 20.4 | Pipeline staleness paging | If an active domain has no new `trend_history` row (or no new docs) in >48h, page via `notify-telegram PREDICTOR` (helper installed 2026-07-02, `[AGENT]`-prefix convention). The 9-day silent stall must be the last one. Timer or extension of the health script | [Sonnet] |
+| 20.5 | Doc budget → `domain.yaml` (D3 follow-up) | Promote `DEFAULT_BUDGET`/`DEFAULT_STRETCH_MAX` from framework constants to per-domain config (film 35, semis 20–25, fusion per 20.15) | [Sonnet] |
+| 20.6 | Doc reconciliation (D8) | Cost model actuals into `domain-fit-analysis.md`; methodology §3.4 updated to match Sprint-13 code; `source_policy.py` docstring corrected (or made true by 20.10) | [Sonnet] |
+
+### Track B — Methodology hardening (bundled at restart on purpose)
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 20.7 | CI-lower-bound velocity | Treat velocity as an estimate with uncertainty; Movers ranks by the confidence-interval **lower bound**, not the point ratio. Small-N rows render "NEW"/suppressed Δ instead of fake numbers. **Supersedes** planned Bayesian pseudocounts + multi-window blend | [Opus] |
+| 20.8 | Persistence-of-rise | `sustained` flag: velocity > 1 across k≥2 consecutive windows, from `trend_history`. New Movers column + "Sustained risers" preset. **Supersedes** the V2 spike-vs-sustained classifier | [Sonnet] |
+| 20.9 | `bridge_delta` Movers column | 7d change in `bridge_score` (already persisted daily in `trend_history` — same query pattern as rank_delta). First structural-emergence signal; makes the extraction tier earn its cost | [Sonnet] |
+| 20.10 | Chatter mention tagger (D4) | Non-LLM alias/string matcher over ingest-only doc text emitting `MENTIONS` edges (no relations, zero tokens). Acceptance: a `MENTIONS` edge with a `bluesky`/`reddit` doc_id exists (today: zero rows) | [Opus] |
+| 20.11 | Component correlation analysis | PCA/correlation over `trend_history` score components. Answers "how many independent signals does the composite actually have?" **Gates all weight tuning** — if velocity/novelty are as entangled as suspected, tuning three weights is theater | [Sonnet] |
+| 20.12 | Ground-truth definitions (pre-validation) | New `docs/methodology/ground-truth.md`: operational, dated outcome definitions per domain *before* the validation script runs. Film: festival lineups + acquisition announcements (scheduled calendar). Semis: earnings, export-control actions, product launches. Fusion: 20.15. Without this, D10's proof-point grades itself | [Manual + Opus] |
+| 20.13 | Validation script (D7) + graduation rate | Snapshot T vs outcomes at T+Δ: precision@10/@20, lead time, false-positive rate; first-surfacing-source log (which source led, by how many days). Plus **graduation rate**: conversion of Movers-flagged → Landscape top-50 arrivals, an internal precision proxy needing no external ground truth | [Opus] |
+| 20.14 | Two-axis fitness model + new axes (D9) | Landscape score + Movers score per domain, **plus coverage-fraction and ground-truth-calendar axes** (2026-07-03 criteria). Add a third disposition — *tripwire* — for domains below the ranking floor (biosafety). Type-stratified Movers defaults land here too (film: Person/Org/Fund are the movers; Productions are novelty) | [Sonnet] |
+
+### Track C — Fusion onboarding (the pond-sized experiment)
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 20.15 | Pre-registered hypothesis | Before any data: one page stating what fusion is expected to prove — at high coverage fraction with calendar ground truth (milestone announcements, funding rounds, DOE/regulatory events), lead time vs consensus outlets is measurable and positive. Predict its L/M/coverage-fraction scores now; 20.13 grades the prediction later. Budget ~10–15 docs/day | [Manual] |
+| 20.16 | Source discovery, adversarially supplemented | Company blogs (CFS, Helion, TAE, Tokamak Energy, First Light, Zap, …), Fusion Industry Association, ITER/DOE/national labs, arXiv plasma physics, specialist newsletters. Per ADR-010 finding 7: model-proposed lists skew consensus — deliberately add low-prestige/practitioner sources. Coverage profile (§2.6) per source | [Manual + Sonnet] |
+| 20.17 | `domains/fusion/` from `_template` | Ontology (Company, Device, Facility, Approach, Milestone, Investor, Lab, Agency), prompts, `feeds.yaml`, optional inference rules. Passes `test_grep_audit.py` | [Sonnet] |
+| 20.18 | Fusion first run + dampening | First `make daily DOMAIN=fusion`; 14-day dampening window (D6) — output flagged provisional; daily snapshots collected from day 1 so the validation dataset starts clean | [Manual] |
+
+**Output:** three domains (film, semiconductors, fusion) running daily
+with staleness paging; Movers ranked by uncertainty-aware, persistence-
+and structure-aware signals; a validation instrument producing its first
+report after the dampening window; fusion as a pre-registered experiment
+rather than a hobby domain.
+
+**Acceptance:** 20.1 verified before any Movers export ships. No silent
+stall >48h possible without a Telegram page. `movers.json` ranks by CI
+lower bound with NEW-badge small-N handling. A dated ground-truth doc
+exists for all three active domains *before* 20.13 runs. Fusion's
+hypothesis page is committed before its first extraction batch.
+
+**Explicitly deferred:** corroboration weighting inside the Landscape
+composite (needs per-entity `source_count` metric — next sprint, on top
+of 20.10's tagger); any weight tuning (double-gated on 20.11 + a
+completed 20.13 cycle); biopharma (D11 — after fusion proves or breaks
+the pond-sizing criteria).
+
+**Dependency:** Track A items 20.1–20.3 block everything downstream.
+Track B 20.7–20.9 should land *with* the restart, not after (scoring
+changes mid-window create artifacts). Track C is parallel after 20.4.
 
 ---
 
