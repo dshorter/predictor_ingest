@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predictor Ingest Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #f2ece0;
+  --ink: #18140f;
+  --muted: #6e6658;
+  --rule: #d4ccc0;
+  --card-bg: #faf7f2;
+  --c1: #2563eb;
+  --c2: #0891b2;
+  --c3: #0d9488;
+  --c4: #16a34a;
+  --c5: #ca8a04;
+  --c6: #ea580c;
+  --c7: #dc2626;
+  --c8: #be185d;
+  --spine-x: 88px;
+  --card-left: 136px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  padding: 64px 32px 80px;
+  min-height: 100vh;
+}
+
+.outer {
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ── HEADER ── */
+.header {
+  margin-bottom: 52px;
+  padding-left: var(--card-left);
+}
+.header-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.header-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* ── SPINE ── */
+.spine {
+  position: absolute;
+  left: var(--spine-x);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--rule);
+  transform: translateX(-50%);
+}
+
+/* ── STEPS ── */
+.steps { position: relative; }
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+/* left gutter */
+.step-left {
+  width: var(--card-left);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-right: 28px;
+  padding-top: 20px;
+  position: relative;
+}
+
+.ghost-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 60px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--rule);
+  position: absolute;
+  right: 24px;
+  top: 4px;
+  user-select: none;
+  letter-spacing: -0.04em;
+}
+
+/* dot on spine */
+.spine-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid var(--cream);
+  box-shadow: 0 0 0 2px var(--rule);
+  position: absolute;
+  right: -7px;
+  top: 22px;
+  z-index: 2;
+}
+
+/* ── CARD ── */
+.step-card {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1.5px solid var(--rule);
+  border-left: 5px solid var(--step-color, #ccc);
+  border-radius: 6px;
+  padding: 20px 24px 22px 22px;
+  box-shadow: 3px 3px 0px var(--rule);
+  position: relative;
+}
+
+.step-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--step-color, var(--muted));
+  margin-bottom: 5px;
+}
+
+.step-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.step-hook {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-bottom: 14px;
+  letter-spacing: 0.01em;
+}
+
+.divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 0 0 14px 0;
+}
+
+.step-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.detail {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  color: #3a3530;
+  line-height: 1.5;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.detail::before {
+  content: '–';
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--rule);
+  flex-shrink: 0;
+}
+
+/* ── TAGS ── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--tag-border, #ddd);
+  background: var(--tag-bg, #f5f5f5);
+  color: var(--tag-color, #555);
+  letter-spacing: 0.05em;
+}
+
+/* ── ANNOTATION (feedback loops) ── */
+.annotation {
+  margin: 4px 0 20px var(--card-left);
+  padding: 12px 16px;
+  border-left: 3px dashed var(--ann-color, var(--rule));
+  background: transparent;
+}
+.annotation-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ann-color, var(--muted));
+  margin-bottom: 5px;
+}
+.annotation-text {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── CONNECTOR arrow between cards ── */
+.arrow-gap {
+  display: flex;
+  justify-content: flex-start;
+  padding-left: calc(var(--card-left) + 20px);
+  margin: -10px 0;
+  position: relative;
+  z-index: 3;
+}
+.arrow-gap svg { display: block; }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 44px;
+  padding-left: var(--card-left);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.footer-line { height: 1px; flex: 1; background: var(--rule); }
+.footer-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rule);
+}
+
+@media (max-width: 520px) {
+  :root { --spine-x: 20px; --card-left: 40px; }
+  .ghost-num { display: none; }
+  .header { padding-left: 40px; }
+  .annotation { margin-left: 40px; }
+}
+</style>
+</head>
+<body>
+<div class="outer">
+  <div class="spine"></div>
+
+  <header class="header">
+    <p class="header-label">predictor_ingest · data pipeline</p>
+    <h1 class="header-title">From RSS to<br>Trend Signal</h1>
+    <p class="header-sub">8-step ingestion lifecycle</p>
+  </header>
+
+  <div class="steps">
+
+    <!-- ── 01 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">01</span>
+        <div class="spine-dot" style="background:var(--c1)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c1)">
+        <p class="step-tag">Step 01 · Input</p>
+        <h2 class="step-name">Ingest</h2>
+        <p class="step-hook">Archive-first RSS polling</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">10–20 curated sources per domain, polled daily</p>
+          <p class="detail">Raw HTML + metadata archived on every fetch</p>
+          <p class="detail">Nothing discarded — schemas can improve later</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#eff6ff;--tag-border:#bfdbfe;--tag-color:#1d4ed8">url</span>
+          <span class="tag" style="--tag-bg:#eff6ff;--tag-border:#bfdbfe;--tag-color:#1d4ed8">content-hash</span>
+          <span class="tag" style="--tag-bg:#eff6ff;--tag-border:#bfdbfe;--tag-color:#1d4ed8">fetch-date</span>
+          <span class="tag" style="--tag-bg:#eff6ff;--tag-border:#bfdbfe;--tag-color:#1d4ed8">publish-date</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- archive loop annotation -->
+    <div class="annotation" style="--ann-color:#93c5fd">
+      <p class="annotation-label">↺ Archive loop · step 01 → step 03</p>
+      <p class="annotation-text">Raw content preserved — re-extraction runs back to Extract as schemas evolve. No re-fetching required.</p>
+    </div>
+
+    <!-- ── 02 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">02</span>
+        <div class="spine-dot" style="background:var(--c2)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c2)">
+        <p class="step-tag">Step 02 · Prep</p>
+        <h2 class="step-name">Clean</h2>
+        <p class="step-hook">Deduplication + priority scoring</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">HTML stripped to plain text</p>
+          <p class="detail">Near-duplicate detection filters echo articles before extraction budget is spent</p>
+          <p class="detail">Priority score: source tier, signal type, recency, word count, metadata completeness</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#ecfeff;--tag-border:#a5f3fc;--tag-color:#0e7490">dedupe</span>
+          <span class="tag" style="--tag-bg:#ecfeff;--tag-border:#a5f3fc;--tag-color:#0e7490">priority-queue</span>
+          <span class="tag" style="--tag-bg:#ecfeff;--tag-border:#a5f3fc;--tag-color:#0e7490">plain-text</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 03 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">03</span>
+        <div class="spine-dot" style="background:var(--c3)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c3)">
+        <p class="step-tag">Step 03 · AI Layer</p>
+        <h2 class="step-name">Extract</h2>
+        <p class="step-hook">LLM structured claim extraction</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">Entities: orgs, people, tools, models, technologies</p>
+          <p class="detail">Every relationship carries evidence — source snippet, doc ID, URL, confidence score</p>
+          <p class="detail">Output validated against JSON Schema before proceeding</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#f0fdf4;--tag-border:#86efac;--tag-color:#166534">entities</span>
+          <span class="tag" style="--tag-bg:#f0fdf4;--tag-border:#86efac;--tag-color:#166534">relationships</span>
+          <span class="tag" style="--tag-bg:#f0fdf4;--tag-border:#86efac;--tag-color:#166534">confidence-score</span>
+          <span class="tag" style="--tag-bg:#f0fdf4;--tag-border:#86efac;--tag-color:#166534">json-schema</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 04 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">04</span>
+        <div class="spine-dot" style="background:var(--c4)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c4)">
+        <p class="step-tag">Step 04 · Quality</p>
+        <h2 class="step-name">Validate</h2>
+        <p class="step-hook">4-gate rejection before graph entry</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">Evidence fidelity: snippet must appear verbatim in source text</p>
+          <p class="detail">Orphan check: relation endpoints must match known entities</p>
+          <p class="detail">Zero-value check: non-trivial doc must yield at least one entity</p>
+          <p class="detail">High-confidence audit: strong claims must have strong evidence</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#dcfce7;--tag-border:#86efac;--tag-color:#14532d">fidelity</span>
+          <span class="tag" style="--tag-bg:#dcfce7;--tag-border:#86efac;--tag-color:#14532d">orphan-check</span>
+          <span class="tag" style="--tag-bg:#dcfce7;--tag-border:#86efac;--tag-color:#14532d">hallucination-guard</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 05 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">05</span>
+        <div class="spine-dot" style="background:var(--c5)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c5)">
+        <p class="step-tag">Step 05 · Identity</p>
+        <h2 class="step-name">Resolve</h2>
+        <p class="step-hook">Entity deduplication cascade</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">"GPT-4", "gpt4", "GPT-4-turbo" → one canonical entity</p>
+          <p class="detail">Rule-based normalization → fuzzy matching → alias tracking</p>
+          <p class="detail">All merges recorded and reversible — no silent overwrites</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#fefce8;--tag-border:#fde047;--tag-color:#854d0e">canonical</span>
+          <span class="tag" style="--tag-bg:#fefce8;--tag-border:#fde047;--tag-color:#854d0e">alias-map</span>
+          <span class="tag" style="--tag-bg:#fefce8;--tag-border:#fde047;--tag-color:#854d0e">fuzzy-match</span>
+          <span class="tag" style="--tag-bg:#fefce8;--tag-border:#fde047;--tag-color:#854d0e">reversible</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 06 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">06</span>
+        <div class="spine-dot" style="background:var(--c6)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c6)">
+        <p class="step-tag">Step 06 · Signal</p>
+        <h2 class="step-name">Score</h2>
+        <p class="step-hook">3 daily signals → composite trend</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">Velocity: mention frequency accelerating or decelerating? (7-day window ratio)</p>
+          <p class="detail">Novelty: exponential decay + corpus-normalized rarity</p>
+          <p class="detail">Activity: raw mention volume as baseline</p>
+          <p class="detail">Weights configurable per domain via domain.yaml</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#fff7ed;--tag-border:#fdba74;--tag-color:#9a3412">velocity</span>
+          <span class="tag" style="--tag-bg:#fff7ed;--tag-border:#fdba74;--tag-color:#9a3412">novelty</span>
+          <span class="tag" style="--tag-bg:#fff7ed;--tag-border:#fdba74;--tag-color:#9a3412">activity</span>
+          <span class="tag" style="--tag-bg:#fff7ed;--tag-border:#fdba74;--tag-color:#9a3412">domain.yaml</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 07 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">07</span>
+        <div class="spine-dot" style="background:var(--c7)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c7)">
+        <p class="step-tag">Step 07 · Output</p>
+        <h2 class="step-name">Export</h2>
+        <p class="step-hook">4-view Cytoscape.js-ready JSON</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">Mentions view: who talks about what</p>
+          <p class="detail">Claims view: who asserts what about whom</p>
+          <p class="detail">Dependencies view: what relies on what</p>
+          <p class="detail">Trending view: what's accelerating — full metadata on every export</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#fef2f2;--tag-border:#fca5a5;--tag-color:#991b1b">cytoscape-json</span>
+          <span class="tag" style="--tag-bg:#fef2f2;--tag-border:#fca5a5;--tag-color:#991b1b">4-views</span>
+          <span class="tag" style="--tag-bg:#fef2f2;--tag-border:#fca5a5;--tag-color:#991b1b">node-count</span>
+          <span class="tag" style="--tag-bg:#fef2f2;--tag-border:#fca5a5;--tag-color:#991b1b">edge-count</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 08 ── -->
+    <div class="step">
+      <div class="step-left">
+        <span class="ghost-num">08</span>
+        <div class="spine-dot" style="background:var(--c8)"></div>
+      </div>
+      <div class="step-card" style="--step-color:var(--c8)">
+        <p class="step-tag">Step 08 · Interface</p>
+        <h2 class="step-name">Visualize</h2>
+        <p class="step-hook">What's Hot — interactive graph client</p>
+        <div class="divider"></div>
+        <div class="step-details">
+          <p class="detail">Top trending entities with LLM-generated "why trending" narratives</p>
+          <p class="detail">Filter by entity type, search, zoom neighborhoods, switch domains</p>
+          <p class="detail">Stable node positions — emerging clusters visible over time</p>
+        </div>
+        <div class="tags">
+          <span class="tag" style="--tag-bg:#fdf2f8;--tag-border:#f0abfc;--tag-color:#86198f">graph-client</span>
+          <span class="tag" style="--tag-bg:#fdf2f8;--tag-border:#f0abfc;--tag-color:#86198f">LLM-narratives</span>
+          <span class="tag" style="--tag-bg:#fdf2f8;--tag-border:#f0abfc;--tag-color:#86198f">stable-layout</span>
+          <span class="tag" style="--tag-bg:#fdf2f8;--tag-border:#f0abfc;--tag-color:#86198f">multi-domain</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- calibration loop annotation -->
+    <div class="annotation" style="--ann-color:#f9a8d4;margin-top:4px">
+      <p class="annotation-label">↺ Calibration loop · step 08 → step 06</p>
+      <p class="annotation-text">Calibration report flags anomalies — velocity gate saturation, novelty score compression, trending list churn. No auto-correction. Flagged for human review and written to tuning_log.</p>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-line"></div>
+    <span class="footer-text">predictor_ingest · sprint 13</span>
+    <div class="footer-line"></div>
+  </footer>
+
+</div>
+</body>
+</html>
