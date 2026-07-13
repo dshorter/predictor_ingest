@@ -857,6 +857,7 @@ type stratification for film, tripwire disposition for sparse domains.
 | # | Item | What | Model |
 |---|------|------|-------|
 | 20.1 | Synthetic `trend_history` cleanup (D5) | Delete run dates 2026-05-19 / 2026-05-12 from **ai, film, biosafety** (NOT semiconductors). Verify with the zeroed-component fingerprint query in ADR-010 first. Blocks every honest Movers export | [Manual] |
+| 20.1b | Forensic dump + epoch tag (added 2026-07-12) | Before 20.1's delete: dump the synthetic rows to a dated tarball under `diagnostics/` (cheap insurance; they're fiction, but deletions get receipts). Then tag the genuine history: pre-restart `trend_history` rows are **epoch 1**, post-restart runs open **epoch 2** (column or view — implementer's call). Epoch boundary rule: velocity/persistence windows never span epochs — §2.7's mid-window artifact concern generalized, since source mix and budgets change at the restart | [Sonnet] |
 | 20.2 | Diagnose + clear the pipeline stall | Semiconductors: no runs since 2026-06-23 (9+ days, silent). Find why the daily run stopped (cron? error? never scheduled post-restart?), fix, resume under D1/D3 budgets | [Sonnet] |
 | 20.3 | Film full daily run resumes | Film is ingest-only since restart (docs through 2026-07-01, trending stuck at synthetic 05-19). Enable the full chain: extract → resolve → export → trending → movers, budget 35/day per D3 | [Sonnet] |
 | 20.4 | Pipeline staleness paging | If an active domain has no new `trend_history` row (or no new docs) in >48h, page via `notify-telegram PREDICTOR` (helper installed 2026-07-02, `[AGENT]`-prefix convention). The 9-day silent stall must be the last one. Timer or extension of the health script | [Sonnet] |
@@ -885,10 +886,23 @@ type stratification for film, tripwire disposition for sparse domains.
 | 20.17 | `domains/fusion/` from `_template` | Ontology (Company, Device, Facility, Approach, Milestone, Investor, Lab, Agency), prompts, `feeds.yaml`, optional inference rules. Passes `test_grep_audit.py` | [Sonnet] |
 | 20.18 | Fusion first run + dampening | First `make daily DOMAIN=fusion`; 14-day dampening window (D6) — output flagged provisional; daily snapshots collected from day 1 so the validation dataset starts clean | [Manual] |
 
+### Track D — Epoch 1 retrospective (added 2026-07-12; runs after 20.7–20.9 + 20.12–20.13 exist)
+
+The old data is not just re-analyzable under the new methodology — it is the
+only way to evaluate the new metrics without waiting months for fresh
+accumulation. All three Track B signals compute retroactively from what is
+already persisted; film's epoch-1 ground truth has already *happened*.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 20.19 | Retro-backfill Track B metrics over epoch 1 | CI-lower-bound velocity from stored window counts, `sustained` from consecutive `trend_history` windows, `bridge_delta` from the daily persisted `bridge_score`. Re-rank the genuine epoch-1 history under the new methodology and diff against the shipped rankings — did the CI bound suppress the small-N fake-number risers? Retrodiction, graded as such; never blended across the epoch boundary (20.1b) | [Opus] |
+| 20.20 | First validation cycle on known outcomes | Film's epoch-1 outcomes (festival lineups, acquisitions, March–June) are already on the record: run 20.13's instrument against the retro-scored history — precision@10/@20, lead time, graduation rate — before any new-data cycle completes. Pre-seeds the baselines 20.13 will grade epoch 2 against | [Opus] |
+
 **Output:** three domains (film, semiconductors, fusion) running daily
 with staleness paging; Movers ranked by uncertainty-aware, persistence-
 and structure-aware signals; a validation instrument producing its first
-report after the dampening window; fusion as a pre-registered experiment
+report after the dampening window — and a retro-validated epoch-1 baseline
+before that (Track D); fusion as a pre-registered experiment
 rather than a hobby domain.
 
 **Acceptance:** 20.1 verified before any Movers export ships. No silent
@@ -906,6 +920,9 @@ the pond-sizing criteria).
 **Dependency:** Track A items 20.1–20.3 block everything downstream.
 Track B 20.7–20.9 should land *with* the restart, not after (scoring
 changes mid-window create artifacts). Track C is parallel after 20.4.
+Track D reads epoch-1 data only (immutable once 20.1b tags it), so it
+needs Track B's scoring code + 20.12/20.13's instrument — but no new
+data; it can run while epoch 2 is still accumulating.
 
 ---
 
