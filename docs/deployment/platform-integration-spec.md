@@ -5,6 +5,17 @@ This document is a complete spec for a session connected to the
 pipeline as a container service alongside the existing n8n/postgres/nginx
 stack.
 
+> **Status (2026-07-14):** unimplemented spec; the containerization never
+> happened (the pipeline runs on the host, currently dormant per ADR-010).
+> The safe-reboot integration described in sections 3–4 was superseded: the
+> safe-reboot system now lives in the `server-maintenance` repo and was
+> rewritten 2026-07-14 (predictor data is checked on-host, no container
+> stops on reboot). The old bundle at
+> `docs/01-infrastructure/deployment/safe-reboot/` in the ai-agent-platform
+> repo was deleted the same day (git history retains it), so step 7 below no
+> longer applies. See
+> `/opt/server-maintenance/docs/deployment/ai-agent-platform-service-findings.md`.
+
 ---
 
 ## Overview
