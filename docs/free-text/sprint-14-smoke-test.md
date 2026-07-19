@@ -22,6 +22,14 @@ pip install -e .   # safe to re-run; no-op if already installed
 
 ## Phase 0 — Bootstrap stale domains (one-time, optional)
 
+> **CLOSED — do not rerun (2026-07-19, Sprint 20.1).** This bootstrap was
+> executed 2026-05-19 and its synthetic rows were deleted per ADR-010 D5
+> (receipts: `diagnostics/synthetic-trend-history-dump-20260719.tar.gz`).
+> Operator decision, Sprint 20: synthetic trend data will not be created
+> again, and if it ever were, it would never coexist with real data.
+> `trend_history` now carries an `epoch` column (1 = pre-restart, 2 = post);
+> windows never span epochs. The SQL below is preserved as history only.
+
 Skip if every domain already has recent `trend_history`. As of
 2026-05-19, three of four domains lack the data Movers needs to
 produce non-empty output:
