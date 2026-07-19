@@ -375,6 +375,16 @@ class TrendScorer:
             if s.get("mention_count_30d", 0) > 0
         ]
 
+        # An empty to_save is the OTHER silent-history failure mode (it is how
+        # ai's table stayed empty forever: persistence shipped 2026-03-20,
+        # four days after ai's last extraction, so mention_count_30d was 0
+        # for every entity on every later run). Say so out loud.
+        if not to_save:
+            print(
+                "  [trending] WARNING: trend_history persisted 0 rows — no "
+                "entity has mentions in the last 30 days (stale corpus?)"
+            )
+
         failed = 0
         first_error = None
         for scores in to_save:
