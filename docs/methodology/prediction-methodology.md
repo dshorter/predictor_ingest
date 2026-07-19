@@ -21,6 +21,28 @@ retrospectively.
 
 ---
 
+## 1b. Adopted amendments — 2026-07-03 methodology review
+
+The 2026-07-03 review (session findings encoded as Sprint 20 in
+`docs/project-plan.md`; see also `docs/free-text/movers-vs-current-landscape.md`)
+adopted decisions that **supersede** parts of this document. The body text
+below is kept for history; where it conflicts with this table, the table wins.
+Full body reconciliation is Sprint 20.6.
+
+| # | Decision | Supersedes / amends | Implementing task |
+|---|----------|---------------------|-------------------|
+| A1 | **Velocity ranks by its confidence-interval lower bound**, treating velocity as an estimate with uncertainty. Small-N entities render "NEW"/suppressed Δ instead of fake precision | §3.4 planned Bayesian pseudocounts + multi-window blend; §9 "Bootstrap CIs" row; two checklist items | 20.7 |
+| A2 | **Persistence-of-rise** (`sustained`: velocity > 1 across k≥2 consecutive windows, from `trend_history`) | §3.4/§9 planned spike-vs-sustained binary classifier | 20.8 |
+| A3 | **The composite's "bridge" weight is actually activity** (§3.4 admits this quietly: "via activity proxy"). The differentiated structural signal is **`bridge_delta`** from daily-persisted `bridge_score` — promoted from "planned improvement" to adopted | §3.4 Bridge Score framing | 20.9 |
+| A4 | **Corroboration breadth is a keystone, not a confidence modifier.** The §4.1 multiplier table understates it; single-source signals are a different epistemic class, not a discounted one. Blocked on a per-entity `source_count` (20.10 chatter tagger first); composite integration deferred to the sprint after 20 | §4.1 | post-20 (explicit deferral) |
+| A5 | **Validation is existential, not hygienic** — Movers fails invisibly (users hold no priors on unknown entities). Dated, operational ground-truth definitions per domain must exist *before* the validation script runs, else the proof-point grades itself | §5 (framework stands, stakes raised) | 20.12, 20.13 |
+| A6 | **Graduation rate** — conversion of Movers-flagged entities into Landscape top-50 — is a free internal precision proxy needing no external ground truth | §5.2 metrics table (adds a metric) | 20.13 |
+| A7 | **Weight tuning is double-gated**: no tuning until component-correlation analysis shows the composite has independent signals AND one validation cycle has completed. If velocity/novelty are as entangled as suspected, tuning three weights is theater | §8 prerequisites | 20.11 + 20.13 |
+| A8 | **Type stratification per domain**: film's movers are Person/Org/Fund; Productions are one-shot novelty noise. Domain fitness gains coverage-fraction and ground-truth-calendar axes, plus a third disposition — **tripwire** (detection, not ranking) for domains below the ranking volume floor (biosafety) | §2.1's volume-first framing; domain-fit docs | 20.14 |
+| A9 | **Epoch boundary rule**: `trend_history` rows are epoch-tagged (1 = pre-restart, 2 = post). Velocity/persistence windows never span epochs — §2.7's mid-window-artifact logic generalized to restarts, where source mix and budgets change at once | §2.7 (generalizes it) | 20.1b (shipped 2026-07-19) |
+
+---
+
 ## 2. Source Coverage
 
 ### 2.1 Minimum Viable Coverage
@@ -261,10 +283,11 @@ velocity = mentions(t-7d..t) / mentions(t-14d..t-7d)
 - Window size is fixed at 7 days; some trends develop over weeks
 - Does not distinguish sustained acceleration from a single spike
 
-**Planned improvements:**
-- Bayesian smoothing for low-count entities (add pseudocounts)
-- Multi-window velocity (7d, 14d, 30d) with weighted blend
-- Spike detection vs. sustained trend classification
+**Planned improvements:** *(SUPERSEDED 2026-07-03 — see §1b A1/A2: CI-lower-bound
+ranking replaces smoothing/multi-window; persistence-of-rise replaces the classifier)*
+- ~~Bayesian smoothing for low-count entities (add pseudocounts)~~
+- ~~Multi-window velocity (7d, 14d, 30d) with weighted blend~~
+- ~~Spike detection vs. sustained trend classification~~
 
 #### Novelty (weight: 0.30)
 
@@ -350,6 +373,10 @@ tuned based on validation results (Section 5).
 
 A trend signal gains confidence when it is **corroborated across sources**.
 Single-source signals should be flagged and downweighted.
+
+> **AMENDED 2026-07-03 (§1b A4):** corroboration is a keystone, not a modifier —
+> the table below understates it. Single-source signals are a different
+> epistemic class. Integration awaits per-entity `source_count` (Sprint 20.10).
 
 | Corroboration Level | Description | Confidence Modifier |
 |---------------------|-------------|---------------------|

@@ -862,7 +862,7 @@ type stratification for film, tripwire disposition for sparse domains.
 | 20.3 | Film full daily run resumes | Film is ingest-only since restart (docs through 2026-07-01, trending stuck at synthetic 05-19). Enable the full chain: extract → resolve → export → trending → movers, budget 35/day per D3 | [Sonnet] |
 | 20.4 | Pipeline staleness paging | If an active domain has no new `trend_history` row (or no new docs) in >48h, page via `notify-telegram PREDICTOR` (helper installed 2026-07-02, `[AGENT]`-prefix convention). The 9-day silent stall must be the last one. Timer or extension of the health script | [Sonnet] |
 | 20.5 | Doc budget → `domain.yaml` (D3 follow-up) | Promote `DEFAULT_BUDGET`/`DEFAULT_STRETCH_MAX` from framework constants to per-domain config (film 35, semis 20–25, fusion per 20.15) | [Sonnet] |
-| 20.6 | Doc reconciliation (D8) | Cost model actuals into `domain-fit-analysis.md`; methodology §3.4 updated to match Sprint-13 code; `source_policy.py` docstring corrected (or made true by 20.10) | [Sonnet] |
+| 20.6 | Doc reconciliation (D8) | Cost model actuals into `domain-fit-analysis.md`; methodology §3.4 updated to match Sprint-13 code; `source_policy.py` docstring corrected (or made true by 20.10). *Head start 2026-07-19: prediction-methodology.md now carries a §1b adopted-amendments table (A1–A9, the 2026-07-03 review decisions) with the superseded passages struck in place — body reconciliation still this item's job* | [Sonnet] |
 
 ### Track B — Methodology hardening (bundled at restart on purpose)
 
