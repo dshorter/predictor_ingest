@@ -37,11 +37,14 @@ diagnostics/
 !web/data/
 web/data/**/*.zip
 
-# Live graph data is populated at runtime by the pipeline — never commit
-web/data/graphs/live/
+# Live graph data is populated at runtime by the pipeline — never commit.
+# No trailing slash: in dev this is a real directory, in prod it is a
+# SYMLINK back to dev, and `foo/` patterns match only directories — the
+# slash form left prod's symlinks showing as untracked drift.
+web/data/graphs/live
 
 # Dashboard data is also generated at runtime (and is prod's symlink target)
-web/data/dashboard/
+web/data/dashboard
 
 # Generated operational artifacts at repo root (reports, calendar exports)
 /calendar.ics
