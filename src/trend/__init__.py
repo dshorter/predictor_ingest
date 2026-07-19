@@ -375,6 +375,8 @@ class TrendScorer:
             if s.get("mention_count_30d", 0) > 0
         ]
 
+        failed = 0
+        first_error = None
         for scores in to_save:
             try:
                 self.conn.execute(
@@ -395,13 +397,27 @@ class TrendScorer:
                      decay_lambda, min_vel, corpus_count,
                      scores.get("velocity_gated", 0)),
                 )
-            except Exception:
-                pass  # table may not exist in older DBs; don't block pipeline
+            except Exception as e:
+                # Don't block the pipeline — but never fail silently either:
+                # trend_history is the validation dataset, and a quiet insert
+                # failure means history stops accumulating with no symptom
+                # (the ai/biosafety emptiness that invited the Sprint-14
+                # synthetic bootstrap was exactly this failure mode's cousin).
+                failed += 1
+                if first_error is None:
+                    first_error = e
+
+        if failed:
+            print(
+                f"  [trending] WARNING: trend_history persisted "
+                f"{len(to_save) - failed}/{len(to_save)} rows "
+                f"({failed} inserts failed; first error: {first_error})"
+            )
 
         try:
             self.conn.commit()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  [trending] WARNING: trend_history commit failed: {e}")
 
     def export_trending(
         self,
