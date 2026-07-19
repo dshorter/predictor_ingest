@@ -21,8 +21,12 @@ reports) → candidates below in operator-priority order.
 detection (AmberBox, Shooter Detection Systems/Alarm.com, Databuoy), visual
 AI detection (ZeroEyes, Omnilert), walk-through screening (Evolv, Xtract One,
 CEIA) — all selling to the same buyers (transit agencies, schools, hospitals,
-venues). **Strategic lens:** transit/subway deployments (requester's
-interest), the film-Southeast pattern. **Outdoor exposure:** a deliberate
+venues). **No single-venue lens** — subway stations were the requester's
+illustrative example, not a focus; the buyer base spans transit, schools,
+hospitals, venues, and workplaces equally, and the source list should
+cover them all. (If a venue lens ever proves wanted, add it later the way
+film added the Southeast — lenses narrow well but un-narrow poorly.)
+**Outdoor exposure:** a deliberate
 tripwire sliver only — SoundThinking SEC filings (the `edgar` fetcher already
 works), watchdog aggregators (MacArthur Justice Center, EFF) who do the
 per-city collection, 2–3 flagship cities. NOT outdoor coverage.
