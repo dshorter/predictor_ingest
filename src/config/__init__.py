@@ -20,6 +20,24 @@ import yaml
 # Exposed as a config variable so it can be tuned as the dataset grows.
 DEFAULT_DATE_WINDOW_DAYS: int = 30
 
+# --------------------------------------------------------------------------- #
+# Methodology version (Sprint 20 prep, 2026-07-19)
+# --------------------------------------------------------------------------- #
+# Stamped on every trend_history row and every export's meta block so
+# scoring output is auditable back to the methodology that produced it.
+# Distinct from the epoch column: epoch marks DATA-continuity boundaries
+# (restarts), this marks SCORING-CODE boundaries — they can move
+# independently.
+#
+# Bump rule: increment in the SAME commit as any scoring-affecting change
+# (weights, formulas, filters, ranking). `git log -S METHODOLOGY_VERSION`
+# is then the complete audit trail of what changed and when.
+#
+#   "1" — Sprint-13-era scoring (pre-2026-07-03-review methodology)
+#   "2" — reserved: lands with Sprint 20.7-20.9 (CI-lower-bound velocity,
+#         persistence-of-rise, bridge_delta)
+METHODOLOGY_VERSION: str = "1"
+
 
 @dataclass
 class FeedConfig:

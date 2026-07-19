@@ -215,6 +215,10 @@ CREATE TABLE IF NOT EXISTS trend_history (
   -- artifacts). Fresh DBs start at 2; the 2026-07-19 migration stamped all
   -- then-existing rows 1.
   epoch             INTEGER NOT NULL DEFAULT 2,
+  -- Scoring-code provenance (config.METHODOLOGY_VERSION): which methodology
+  -- produced this row. Orthogonal to epoch (data boundary vs code boundary).
+  -- NULL = written before the stamp existed (pre-2026-07-19).
+  methodology_version TEXT,
   PRIMARY KEY (entity_id, run_date)
 );
 

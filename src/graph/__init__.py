@@ -17,6 +17,7 @@ import sqlite3
 
 import yaml
 
+from config import METHODOLOGY_VERSION
 from domain import get_active_profile
 
 _profile = get_active_profile()
@@ -719,6 +720,10 @@ class GraphExporter:
             "nodeCount": len(elements.get("nodes", [])),
             "edgeCount": len(elements.get("edges", [])),
             "exportedAt": now,
+            # Scoring-code provenance (see config.METHODOLOGY_VERSION):
+            # lets any archived export be traced to the methodology that
+            # produced it without filename archaeology.
+            "methodologyVersion": METHODOLOGY_VERSION,
             "dateRange": {
                 "start": start_date,
                 "end": end_date,

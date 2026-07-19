@@ -12,6 +12,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
+from config import METHODOLOGY_VERSION
 from domain import get_active_profile
 
 # Load trend configuration from active domain profile
@@ -354,6 +355,7 @@ class TrendScorer:
             ("corpus_entity_count", "INTEGER"),
             ("velocity_gated", "INTEGER DEFAULT 0"),
             ("epoch", "INTEGER NOT NULL DEFAULT 2"),
+            ("methodology_version", "TEXT"),
         ]:
             try:
                 self.conn.execute(
@@ -394,8 +396,8 @@ class TrendScorer:
                        (entity_id, run_date, mention_count_7d, mention_count_30d,
                         velocity, novelty, bridge_score, trend_score, in_trending_view,
                         novelty_decay_lambda, min_mentions_for_velocity,
-                        corpus_entity_count, velocity_gated)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        corpus_entity_count, velocity_gated, methodology_version)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (scores["entity_id"], run_date,
                      scores.get("mention_count_7d", 0),
                      scores.get("mention_count_30d", 0),
@@ -405,7 +407,8 @@ class TrendScorer:
                      scores.get("trend_score", 0),
                      1 if scores["entity_id"] in trending_ids else 0,
                      decay_lambda, min_vel, corpus_count,
-                     scores.get("velocity_gated", 0)),
+                     scores.get("velocity_gated", 0),
+                     METHODOLOGY_VERSION),
                 )
             except Exception as e:
                 # Don't block the pipeline — but never fail silently either:
