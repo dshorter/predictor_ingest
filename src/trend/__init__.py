@@ -345,11 +345,15 @@ class TrendScorer:
         trending_ids = {s["entity_id"] for s in trending}
 
         # Additive migration for Sprint 13 columns (safe to repeat)
+        # + Sprint 20.1b epoch tag: rows written from here on are epoch 2
+        # (post-restart); the one-shot 2026-07-19 migration stamped all
+        # pre-restart rows epoch 1. Windows never span epochs (ADR-010).
         for col, typedef in [
             ("novelty_decay_lambda", "REAL"),
             ("min_mentions_for_velocity", "INTEGER"),
             ("corpus_entity_count", "INTEGER"),
             ("velocity_gated", "INTEGER DEFAULT 0"),
+            ("epoch", "INTEGER NOT NULL DEFAULT 2"),
         ]:
             try:
                 self.conn.execute(

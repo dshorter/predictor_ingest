@@ -209,6 +209,12 @@ CREATE TABLE IF NOT EXISTS trend_history (
   min_mentions_for_velocity  INTEGER,
   corpus_entity_count        INTEGER,
   velocity_gated             INTEGER DEFAULT 0,  -- 1 if velocity forced to 1.0 by gate
+  -- Sprint 20.1b epoch tag: 1 = pre-restart history, 2 = post-restart (ADR-010).
+  -- Velocity/persistence windows must never span epochs (methodology §2.7:
+  -- source mix and budgets change at the restart, so cross-epoch deltas are
+  -- artifacts). Fresh DBs start at 2; the 2026-07-19 migration stamped all
+  -- then-existing rows 1.
+  epoch             INTEGER NOT NULL DEFAULT 2,
   PRIMARY KEY (entity_id, run_date)
 );
 
