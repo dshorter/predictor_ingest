@@ -234,7 +234,7 @@ Two clones of this repo live on the VPS:
 | Tree | URL | Branch | Updated by |
 |------|-----|--------|-----------|
 | `/opt/predictor_ingest` (**dev** — this one) | `https://uzelhub.com/apps/predictor/` | whatever's checked out | manual edits, live on save |
-| `/opt/predictor_prod` (**prod**) | `https://predictor.uzelhub.com/` | `main` (pinned) | GitHub Action on merge to main (`scripts/deploy.sh`) |
+| `/opt/predictor_prod` (**prod**) | `https://predictor.uzelhub.com/` | `main` (pinned) | manual pull after merge to main: `make deploy-prod` (or `scripts/deploy.sh`) — deploy Action retired 2026-07-19 |
 
 - The pipeline runs in the **dev** tree (databases live in `data/db/`). Prod serves
   the same generated JSON via symlinks (`/opt/predictor_prod/web/data/graphs/live`
