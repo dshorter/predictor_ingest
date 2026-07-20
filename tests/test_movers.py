@@ -22,6 +22,7 @@ from run_movers import (
     _most_recent_run_date,
     _prior_run_date,
     _ranks_for_run,
+    _velocity_ci_lower,
     build_movers_rows,
 )
 
@@ -76,6 +77,7 @@ def _make_db() -> sqlite3.Connection:
             bridge_score REAL,
             trend_score REAL,
             in_trending_view INTEGER DEFAULT 0,
+            epoch INTEGER NOT NULL DEFAULT 1,
             PRIMARY KEY (entity_id, run_date)
         );
     """)
@@ -89,13 +91,15 @@ def _add_entity(conn, eid, name, type_, first_seen="2026-01-01"):
     )
 
 
-def _add_th(conn, eid, run_date, trend_score, *, mc7=0, mc30=0, in_trending=0):
+def _add_th(conn, eid, run_date, trend_score, *, mc7=0, mc30=0, in_trending=0,
+            velocity=None, bridge=None, epoch=1):
     conn.execute(
         """INSERT INTO trend_history
            (entity_id, run_date, mention_count_7d, mention_count_30d,
-            trend_score, in_trending_view)
-           VALUES (?, ?, ?, ?, ?, ?)""",
-        (eid, run_date, mc7, mc30, trend_score, in_trending),
+            trend_score, in_trending_view, velocity, bridge_score, epoch)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (eid, run_date, mc7, mc30, trend_score, in_trending, velocity,
+         bridge, epoch),
     )
 
 
@@ -306,7 +310,7 @@ class TestBuildMoversRows:
         assert [r["entity_id"] for r in rows] == ["b", "c", "a"]
 
     def test_row_has_all_required_fields(self):
-        """Every row should have the 15 fields from schemas/movers.json."""
+        """Every row should have the 18 fields from schemas/movers.json."""
         conn = _make_db()
         _add_entity(conn, "a", "A", "Org", first_seen="2026-04-01")
         _add_th(conn, "a", "2026-05-10", trend_score=0.5, mc7=3, mc30=8,
@@ -316,8 +320,135 @@ class TestBuildMoversRows:
         required = {
             "entity_id", "label", "type",
             "current_rank", "rank_prior", "rank_delta", "is_new",
-            "velocity_raw", "mention_count_7d", "mention_count_30d",
+            "velocity_raw", "velocity_ci_lower", "sustained", "bridge_delta",
+            "mention_count_7d", "mention_count_30d",
             "first_seen", "days_since_first_seen",
             "distinct_sources_7d", "in_trending_view", "trend_score",
         }
         assert set(rows[0].keys()) == required
+
+
+# ---------------------------------------------------------------------------
+# _velocity_ci_lower (Sprint 20.7)
+# ---------------------------------------------------------------------------
+
+class TestVelocityCiLower:
+
+    def test_null_only_when_both_windows_empty(self):
+        assert _velocity_ci_lower(0, 0) is None
+        assert _velocity_ci_lower(4, 0) is not None
+        assert _velocity_ci_lower(0, 4) is not None
+
+    def test_lower_than_point_ratio(self):
+        """The bound is conservative: always below the observed ratio."""
+        for recent, previous in [(3, 1), (6, 2), (30, 10), (100, 50)]:
+            assert _velocity_ci_lower(recent, previous) < recent / previous
+
+    def test_more_evidence_tightens_the_bound(self):
+        """Same 3:1 ratio, more data → higher lower bound.
+
+        This is the whole point of 20.7: a 3/1 'tripled!' riser must rank
+        below a 30/10 riser even though the point ratios are identical.
+        """
+        small = _velocity_ci_lower(3, 1)
+        large = _velocity_ci_lower(30, 10)
+        assert small < large < 3.0
+
+    def test_zero_prior_surge_is_defined_and_humble(self):
+        """0→N surges get a finite, deflated bound instead of null/infinity."""
+        bound = _velocity_ci_lower(12, 0)
+        assert bound is not None
+        assert 1.0 < bound < 12.0
+
+    def test_single_mention_self_suppresses(self):
+        """1 mention from nothing is noise; the bound says so."""
+        assert _velocity_ci_lower(1, 0) < 1.0
+
+    def test_decline_stays_below_one(self):
+        assert _velocity_ci_lower(2, 10) < 1.0
+
+
+# ---------------------------------------------------------------------------
+# sustained (20.8), bridge_delta (20.9), epoch guard (20.1b)
+# ---------------------------------------------------------------------------
+
+class TestSustainedFlag:
+
+    def _two_run_db(self, prior_velocity, today_velocity):
+        conn = _make_db()
+        _add_entity(conn, "org:r", "Riser", "Org", first_seen="2026-01-01")
+        _add_th(conn, "org:r", "2026-05-03", trend_score=0.5,
+                velocity=prior_velocity)
+        _add_th(conn, "org:r", "2026-05-10", trend_score=0.5,
+                velocity=today_velocity)
+        return conn
+
+    def test_rising_in_both_windows(self):
+        rows, _ = build_movers_rows(self._two_run_db(1.5, 2.0), 7, "MENTIONS")
+        assert rows[0]["sustained"] is True
+
+    def test_prior_window_flat_or_falling(self):
+        rows, _ = build_movers_rows(self._two_run_db(0.8, 2.0), 7, "MENTIONS")
+        assert rows[0]["sustained"] is False
+
+    def test_gated_velocity_never_qualifies(self):
+        """Small-N runs store gated velocity 1.0 — not > 1, not sustained."""
+        rows, _ = build_movers_rows(self._two_run_db(1.0, 2.0), 7, "MENTIONS")
+        assert rows[0]["sustained"] is False
+
+    def test_no_prior_run(self):
+        conn = _make_db()
+        _add_entity(conn, "org:r", "Riser", "Org", first_seen="2026-05-01")
+        _add_th(conn, "org:r", "2026-05-10", trend_score=0.5, velocity=3.0)
+        rows, _ = build_movers_rows(conn, 7, "MENTIONS")
+        assert rows[0]["sustained"] is False
+
+
+class TestBridgeDelta:
+
+    def test_delta_vs_prior_run(self):
+        conn = _make_db()
+        _add_entity(conn, "org:b", "Bridge Co", "Org", first_seen="2026-01-01")
+        _add_th(conn, "org:b", "2026-05-03", trend_score=0.5, bridge=3.0)
+        _add_th(conn, "org:b", "2026-05-10", trend_score=0.5, bridge=5.5)
+        rows, _ = build_movers_rows(conn, 7, "MENTIONS")
+        assert rows[0]["bridge_delta"] == pytest.approx(2.5)
+
+    def test_null_without_prior_row(self):
+        conn = _make_db()
+        _add_entity(conn, "org:b", "Bridge Co", "Org", first_seen="2026-05-01")
+        _add_th(conn, "org:b", "2026-05-10", trend_score=0.5, bridge=5.5)
+        rows, _ = build_movers_rows(conn, 7, "MENTIONS")
+        assert rows[0]["bridge_delta"] is None
+
+
+class TestEpochGuard:
+
+    def test_prior_run_in_older_epoch_is_ignored(self):
+        """Windows never span epochs: an epoch-1 run 7d back must not be
+        the comparison baseline for an epoch-2 export (ADR-010 / 20.1b)."""
+        conn = _make_db()
+        _add_entity(conn, "org:x", "X", "Org", first_seen="2026-01-01")
+        _add_th(conn, "org:x", "2026-05-03", trend_score=0.9, velocity=2.0,
+                bridge=4.0, epoch=1)
+        _add_th(conn, "org:x", "2026-05-10", trend_score=0.5, velocity=2.0,
+                bridge=6.0, epoch=2)
+        rows, _ = build_movers_rows(conn, 7, "MENTIONS")
+        row = rows[0]
+        assert row["is_new"] is True
+        assert row["rank_prior"] is None
+        assert row["sustained"] is False
+        assert row["bridge_delta"] is None
+
+    def test_same_epoch_prior_run_is_used(self):
+        conn = _make_db()
+        _add_entity(conn, "org:x", "X", "Org", first_seen="2026-01-01")
+        _add_th(conn, "org:x", "2026-05-03", trend_score=0.9, velocity=2.0,
+                bridge=4.0, epoch=2)
+        _add_th(conn, "org:x", "2026-05-10", trend_score=0.5, velocity=2.0,
+                bridge=6.0, epoch=2)
+        rows, _ = build_movers_rows(conn, 7, "MENTIONS")
+        row = rows[0]
+        assert row["is_new"] is False
+        assert row["sustained"] is True
+        assert row["bridge_delta"] == pytest.approx(2.0)

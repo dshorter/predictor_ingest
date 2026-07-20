@@ -70,9 +70,16 @@ const PRESETS = [
   {
     slug: 'fastest-accelerators',
     label: 'Fastest accelerators',
-    description: 'Entities with the steepest mention growth (min 3 mentions to filter noise).',
-    sort: descBy('velocity_raw'),
-    filter: (row) => (row.mention_count_7d ?? 0) >= 3,
+    description: 'Steepest mention growth, ranked by the lower confidence bound — small samples sink until the evidence is real.',
+    sort: descBy('velocity_ci_lower'),
+    filter: (row) => (row.mention_count_7d ?? 0) >= 1,
+  },
+  {
+    slug: 'sustained-risers',
+    label: 'Sustained risers',
+    description: 'Rising across consecutive windows — persistence, not a one-day spike.',
+    sort: descBy('velocity_ci_lower'),
+    filter: (row) => row.sustained === true,
   },
   {
     slug: 'emerging-consensus',
@@ -330,6 +337,8 @@ function renderTable() {
         <div class="movers-cell movers-cell-rank">#</div>
         <div class="movers-cell movers-cell-entity">Entity</div>
         <div class="movers-cell movers-cell-delta">Δ rank</div>
+        <div class="movers-cell movers-cell-num" title="Velocity, lower confidence bound">vel⌄</div>
+        <div class="movers-cell movers-cell-num" title="Bridge score change (7d)">Δ br</div>
         <div class="movers-cell movers-cell-num">7d</div>
         <div class="movers-cell movers-cell-num">30d</div>
         <div class="movers-cell movers-cell-num">src 7d</div>
@@ -383,6 +392,8 @@ function renderRow(row) {
   const typeClass = `badge-type-${type.toLowerCase()}`;
   const rank = row.current_rank ?? '—';
   const delta = renderRankDelta(row);
+  const vel = renderVelocityCell(row);
+  const bridge = renderBridgeDelta(row);
   const m7 = row.mention_count_7d ?? 0;
   const m30 = row.mention_count_30d ?? 0;
   const src7 = row.distinct_sources_7d ?? 0;
@@ -396,6 +407,8 @@ function renderRow(row) {
         <span class="movers-entity-label">${escText(row.label || row.entity_id)}</span>
       </div>
       <div class="movers-cell movers-cell-delta">${delta}</div>
+      <div class="movers-cell movers-cell-num">${vel}</div>
+      <div class="movers-cell movers-cell-num">${bridge}</div>
       <div class="movers-cell movers-cell-num">${m7.toLocaleString()}</div>
       <div class="movers-cell movers-cell-num">${m30.toLocaleString()}</div>
       <div class="movers-cell movers-cell-num">${src7.toLocaleString()}</div>
@@ -414,6 +427,29 @@ function renderRankDelta(row) {
   if (d > 0) return `<span class="movers-delta-up">▲ ${d}</span>`;
   if (d < 0) return `<span class="movers-delta-down">▼ ${Math.abs(d)}</span>`;
   return '<span class="movers-delta-zero">—</span>';
+}
+
+/** Velocity cell: CI lower bound (the ranking key, 20.7), with the
+ *  sustained-riser marker (20.8). Suppressed — never a fake number — for
+ *  NEW rows and no-signal rows. */
+function renderVelocityCell(row) {
+  if (row.is_new) return `<span class="movers-vel-suppressed">NEW</span>`;
+  const v = row.velocity_ci_lower;
+  if (v == null) return '<span class="movers-delta-zero">—</span>';
+  const sustained = row.sustained
+    ? '<span class="movers-sustained-marker" title="Sustained riser: rising across consecutive windows">▲▲</span>'
+    : '';
+  const cls = v > 1 ? 'movers-vel-rising' : 'movers-vel-flat';
+  return `<span class="${cls}">${Number(v).toFixed(1)}×</span>${sustained}`;
+}
+
+/** Bridge delta cell (20.9): structural emergence, 7d change. */
+function renderBridgeDelta(row) {
+  const d = row.bridge_delta;
+  if (d == null) return '<span class="movers-delta-zero">—</span>';
+  if (d > 0.05) return `<span class="movers-delta-up">+${Number(d).toFixed(1)}</span>`;
+  if (d < -0.05) return `<span class="movers-delta-down">−${Math.abs(Number(d)).toFixed(1)}</span>`;
+  return '<span class="movers-delta-zero">0</span>';
 }
 
 function renderFirstSeen(row) {
@@ -520,6 +556,9 @@ function renderDetailPanelContent(row) {
         <div class="movers-detail-row"><span>Last 7 days</span><span>${row.mention_count_7d ?? 0}</span></div>
         <div class="movers-detail-row"><span>Last 30 days</span><span>${row.mention_count_30d ?? 0}</span></div>
         <div class="movers-detail-row"><span>Velocity (7d ÷ prior 7d)</span><span>${velocity}</span></div>
+        <div class="movers-detail-row"><span>Velocity, lower confidence bound</span><span>${formatVelocityValue(row.velocity_ci_lower)}</span></div>
+        <div class="movers-detail-row"><span>Sustained riser</span><span>${row.sustained ? 'Yes ▲▲' : 'No'}</span></div>
+        <div class="movers-detail-row"><span>Δ bridge (7d)</span><span>${renderBridgeDelta(row)}</span></div>
       </div>
     </section>
 

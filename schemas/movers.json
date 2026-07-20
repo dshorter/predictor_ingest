@@ -78,6 +78,20 @@
             "min_mentions_for_velocity": {
               "type": "integer",
               "description": "Config snapshot from domain.yaml"
+            },
+            "velocity_ci": {
+              "type": "object",
+              "description": "Parameters of the velocity_ci_lower bound (Sprint 20.7)",
+              "properties": {
+                "method": { "type": "string" },
+                "z": { "type": "number" },
+                "one_sided": { "type": "boolean" },
+                "continuity_correction": { "type": "number" }
+              }
+            },
+            "sustained_windows": {
+              "type": "integer",
+              "description": "Consecutive windows with velocity > 1 required for the sustained flag (Sprint 20.8)"
             }
           }
         }
@@ -94,6 +108,9 @@
         "rank_delta",
         "is_new",
         "velocity_raw",
+        "velocity_ci_lower",
+        "sustained",
+        "bridge_delta",
         "mention_count_7d",
         "mention_count_30d",
         "first_seen",
@@ -131,6 +148,19 @@
         "velocity_raw": {
           "type": ["number", "null"],
           "description": "Uncapped 7d / prior-7d mention ratio. Null when undefined (no prior-window mentions)."
+        },
+        "velocity_ci_lower": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "One-sided lower confidence bound on the mention rate ratio (Sprint 20.7; Katz log method, continuity-corrected — see meta.scoring.velocity_ci). The uncertainty-aware ranking key for risers. Null only when both windows have zero mentions."
+        },
+        "sustained": {
+          "type": "boolean",
+          "description": "Persistence-of-rise (Sprint 20.8): stored velocity > 1 in this run's window AND the prior run's — two consecutive non-overlapping windows, never spanning epochs."
+        },
+        "bridge_delta": {
+          "type": ["number", "null"],
+          "description": "Change in bridge_score vs the prior run rank_window_days back (Sprint 20.9). Null when the entity has no prior-run row."
         },
         "mention_count_7d": {
           "type": "integer",

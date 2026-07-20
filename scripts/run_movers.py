@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sqlite3
 import sys
@@ -65,6 +66,10 @@ from util import utc_now_iso
 
 DEFAULT_WINDOW_DAYS: int = 7
 
+# One-sided 95% lower bound (Sprint 20.7). The z, not the method, is the
+# tunable — recorded in meta.scoring so exports are self-describing.
+VELOCITY_CI_Z: float = 1.645
+
 
 def _most_recent_run_date(conn: sqlite3.Connection) -> str | None:
     """Return the most recent run_date in trend_history, or None if empty."""
@@ -74,21 +79,45 @@ def _most_recent_run_date(conn: sqlite3.Connection) -> str | None:
     return row[0] if row and row[0] else None
 
 
+def _epoch_for_run(conn: sqlite3.Connection, run_date: str) -> int | None:
+    """Epoch of a given run's rows; None when the column doesn't exist yet."""
+    try:
+        row = conn.execute(
+            "SELECT MAX(epoch) FROM trend_history WHERE run_date = ?",
+            (run_date,),
+        ).fetchone()
+    except sqlite3.OperationalError:
+        return None
+    return int(row[0]) if row and row[0] is not None else None
+
+
 def _prior_run_date(
     conn: sqlite3.Connection,
     today_run_date: str,
     window_days: int,
+    epoch: int | None = None,
 ) -> str | None:
     """Most recent run_date that is at least `window_days` before today.
 
     If no qualifying row exists (e.g. fresh install), returns None and
     every entity is treated as just-appeared.
+
+    When `epoch` is given, only runs from that epoch qualify — velocity /
+    persistence windows never span epochs (ADR-010 / Sprint 20.1b), so the
+    first post-restart exports treat everything as just-appeared rather
+    than diffing against a differently-scored past.
     """
     target = (date.fromisoformat(today_run_date) - timedelta(days=window_days)).isoformat()
-    row = conn.execute(
-        "SELECT MAX(run_date) FROM trend_history WHERE run_date <= ?",
-        (target,),
-    ).fetchone()
+    if epoch is None:
+        row = conn.execute(
+            "SELECT MAX(run_date) FROM trend_history WHERE run_date <= ?",
+            (target,),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            "SELECT MAX(run_date) FROM trend_history WHERE run_date <= ? AND epoch = ?",
+            (target, epoch),
+        ).fetchone()
     return row[0] if row and row[0] else None
 
 
@@ -106,6 +135,8 @@ def _ranks_for_run(
                mention_count_7d,
                mention_count_30d,
                in_trending_view,
+               velocity,
+               bridge_score,
                ROW_NUMBER() OVER (ORDER BY trend_score DESC, entity_id ASC) AS rank
         FROM trend_history
         WHERE run_date = ?
@@ -118,7 +149,9 @@ def _ranks_for_run(
             "mention_count_7d": r[2] or 0,
             "mention_count_30d": r[3] or 0,
             "in_trending_view": bool(r[4]),
-            "rank": int(r[5]),
+            "velocity": r[5],
+            "bridge_score": r[6],
+            "rank": int(r[7]),
         }
         for r in rows
     }
@@ -203,6 +236,34 @@ def _compute_velocity_raw(
     return recent / previous
 
 
+def _velocity_ci_lower(
+    recent: int, previous: int, z: float = VELOCITY_CI_Z
+) -> float | None:
+    """One-sided lower confidence bound on the mention rate ratio (20.7).
+
+    Velocity is an estimate from two small Poisson counts, and the point
+    ratio rewards exactly the rows with the least evidence (3/1 "300%"
+    risers). Ranking by the lower bound of the ratio's confidence interval
+    makes uncertainty self-penalizing: small samples get wide intervals
+    and sink; a rise that clears the bound is real at the stated
+    confidence. Supersedes the planned Bayesian pseudocounts and
+    multi-window blend — one mechanism, no tuning knobs beyond z.
+
+    Katz log-ratio interval with a +0.5 continuity correction on both
+    counts, so the bound is defined even for 0→N surges (where the point
+    ratio is undefined/infinite) and stays honest about them:
+        lower = RR_c × exp(−z · √(1/(recent+½) + 1/(previous+½)))
+    Null only when both windows are empty (no signal at all).
+    """
+    if recent == 0 and previous == 0:
+        return None
+    r = recent + 0.5
+    p = previous + 0.5
+    ratio = r / p
+    se = ((1.0 / r) + (1.0 / p)) ** 0.5
+    return ratio * math.exp(-z * se)
+
+
 def build_movers_rows(
     conn: sqlite3.Connection,
     window_days: int,
@@ -218,7 +279,9 @@ def build_movers_rows(
     if not today_run_date:
         return [], {"start": None, "end": date.today().isoformat()}
 
-    prior_run_date = _prior_run_date(conn, today_run_date, window_days)
+    today_epoch = _epoch_for_run(conn, today_run_date)
+    prior_run_date = _prior_run_date(conn, today_run_date, window_days,
+                                     epoch=today_epoch)
 
     today = _ranks_for_run(conn, today_run_date)
     prior = _ranks_for_run(conn, prior_run_date) if prior_run_date else {}
@@ -258,6 +321,27 @@ def build_movers_rows(
         recent = recent_counts.get(entity_id, 0)
         earlier = earlier_counts.get(entity_id, 0)
         velocity_raw = _compute_velocity_raw(recent, earlier)
+        velocity_ci_lower = _velocity_ci_lower(recent, earlier)
+
+        # Persistence-of-rise (20.8): stored velocity above 1 in both this
+        # run's window and the prior run's — two consecutive non-overlapping
+        # windows. Small-N runs store gated velocity 1.0 and never qualify.
+        today_velocity = today_data.get("velocity")
+        prior_velocity = prior_data.get("velocity") if prior_data else None
+        sustained = bool(
+            today_velocity is not None and today_velocity > 1
+            and prior_velocity is not None and prior_velocity > 1
+        )
+
+        # Structural emergence (20.9): 7d change in the daily-persisted
+        # bridge_score, same prior-run pattern as rank_delta.
+        today_bridge = today_data.get("bridge_score")
+        prior_bridge = prior_data.get("bridge_score") if prior_data else None
+        bridge_delta: float | None = (
+            today_bridge - prior_bridge
+            if today_bridge is not None and prior_bridge is not None
+            else None
+        )
 
         try:
             days_since = (today_dt - date.fromisoformat(first_seen[:10])).days
@@ -274,6 +358,9 @@ def build_movers_rows(
             "rank_delta": rank_delta,
             "is_new": is_new,
             "velocity_raw": velocity_raw,
+            "velocity_ci_lower": velocity_ci_lower,
+            "sustained": sustained,
+            "bridge_delta": bridge_delta,
             "mention_count_7d": today_data["mention_count_7d"],
             "mention_count_30d": today_data["mention_count_30d"],
             "first_seen": first_seen[:10],
@@ -327,6 +414,13 @@ def export_movers(
                 "min_mentions_for_velocity": int(
                     trend_weights.get("min_mentions_for_velocity", 3)
                 ),
+                "velocity_ci": {
+                    "method": "katz-log",
+                    "z": VELOCITY_CI_Z,
+                    "one_sided": True,
+                    "continuity_correction": 0.5,
+                },
+                "sustained_windows": 2,
             },
         },
         "rows": rows,

@@ -404,7 +404,7 @@ body {
 .movers-table-header,
 .movers-row {
   display: grid;
-  grid-template-columns: 48px 1fr 80px 60px 60px 60px 80px;
+  grid-template-columns: 48px 1fr 80px 68px 56px 52px 52px 56px 80px;
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-3);
@@ -505,6 +505,17 @@ body {
 .movers-delta-up    { color: var(--color-success); font-weight: var(--weight-semibold); }
 .movers-delta-down  { color: var(--color-error);   font-weight: var(--weight-semibold); }
 .movers-delta-zero  { color: var(--color-text-tertiary); }
+
+/* Velocity (CI lower bound) + sustained marker — Sprint 20.7/20.8 */
+.movers-vel-rising      { color: var(--color-success); font-weight: var(--weight-semibold); }
+.movers-vel-flat        { color: var(--color-text-secondary); }
+.movers-vel-suppressed  { color: var(--color-text-tertiary); font-size: var(--text-xs); letter-spacing: 0.04em; }
+.movers-sustained-marker {
+  color: var(--color-success);
+  font-size: var(--text-xs);
+  margin-left: 2px;
+  letter-spacing: -0.15em;   /* tighten the double-triangle */
+}
 
 /* NEW badge — flame-orange per signoff record */
 .movers-new-badge {
