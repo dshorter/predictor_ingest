@@ -150,6 +150,8 @@ def main(argv: list[str] | None = None) -> int:
                     delay=args.delay,
                     feed_index=idx + 1,
                     feed_total=n_feeds,
+                    include_keywords=feed.extra.get("include_keywords"),
+                    exclude_keywords=feed.extra.get("exclude_keywords"),
                 )
             except Exception as exc:
                 print(f"    Feed CRASHED: {type(exc).__name__}: {exc}",

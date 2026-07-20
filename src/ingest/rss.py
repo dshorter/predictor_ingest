@@ -124,6 +124,29 @@ def fetch_once(
     return resp
 
 
+def entry_matches_keywords(
+    entry: dict,
+    include_keywords: Optional[list[str]],
+    exclude_keywords: Optional[list[str]],
+) -> bool:
+    """Case-insensitive keyword filter over an entry's title + summary.
+
+    include_keywords: keep only entries matching at least one term
+    (empty/None = keep everything). exclude_keywords: drop entries
+    matching any term. Exclude wins over include. Runs before the
+    article fetch, so scoped feeds cost no page requests for the
+    off-topic majority (e.g. a citywide paper's non-film coverage).
+    """
+    text = " ".join(
+        str(entry.get(f) or "") for f in ("title", "summary")
+    ).lower()
+    if exclude_keywords and any(k.lower() in text for k in exclude_keywords):
+        return False
+    if include_keywords:
+        return any(k.lower() in text for k in include_keywords)
+    return True
+
+
 def ingest_feed(
     feed_url: str,
     session: requests.Session,
@@ -138,6 +161,8 @@ def ingest_feed(
     delay: float = DEFAULT_DELAY,
     feed_index: int = 0,
     feed_total: int = 0,
+    include_keywords: Optional[list[str]] = None,
+    exclude_keywords: Optional[list[str]] = None,
 ) -> tuple[int, int, int, bool]:
     """Ingest a single RSS/Atom feed.
 
@@ -193,6 +218,7 @@ def ingest_feed(
     fetched = 0
     skipped = 0
     errors = 0
+    filtered = 0
 
     for i, entry in enumerate(entries):
         url = entry.get("link")
@@ -200,6 +226,11 @@ def ingest_feed(
             errors += 1
             print(f"    {feed_label} [{i+1}/{n_total}] SKIP: missing link",
                   file=sys.stderr, flush=True)
+            continue
+
+        if not entry_matches_keywords(entry, include_keywords, exclude_keywords):
+            filtered += 1
+            skipped += 1
             continue
 
         title = entry.get("title") or ""
@@ -295,8 +326,9 @@ def ingest_feed(
         conn.commit()
 
     feed_sec = time.monotonic() - t0
+    filter_info = f" ({filtered} of the skips keyword-filtered)" if filtered else ""
     print(f"    {feed_label} Done: {fetched} fetched, {skipped} skipped, "
-          f"{errors} errors ({feed_sec:.1f}s total)", flush=True)
+          f"{errors} errors ({feed_sec:.1f}s total){filter_info}", flush=True)
 
     return fetched, skipped, errors, reachable
 
@@ -392,8 +424,10 @@ def validate_args(args: argparse.Namespace) -> None:
             raise SystemExit(1)
 
 
-def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[str], int]]:
-    """Get list of (feed_url, source_name, per_feed_limit) for RSS/Atom feeds only.
+def get_feeds_from_args(
+    args: argparse.Namespace,
+) -> list[tuple[str, Optional[str], int, dict]]:
+    """Get list of (feed_url, source_name, per_feed_limit, extra) for RSS/Atom feeds only.
 
     Non-URL feed types (bluesky, reddit) are excluded here; they are handled
     by ingest.run_all which dispatches to their dedicated ingest modules.
@@ -402,11 +436,12 @@ def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[st
         args: Parsed arguments
 
     Returns:
-        List of (url, source_name, limit) tuples.
-        source_name is None for CLI feeds. limit is 0 (unlimited) for CLI feeds.
+        List of (url, source_name, limit, extra) tuples. extra carries
+        per-feed config beyond the core keys (include_keywords, …).
+        source_name is None and limit 0 (unlimited) for CLI feeds.
     """
     RSS_TYPES = {"rss", "atom"}
-    feeds: list[tuple[str, Optional[str], int]] = []
+    feeds: list[tuple[str, Optional[str], int, dict]] = []
 
     # Load from config file — only rss/atom types
     if args.config:
@@ -414,12 +449,12 @@ def get_feeds_from_args(args: argparse.Namespace) -> list[tuple[str, Optional[st
         config_feeds = load_feeds(config_path)
         for feed in config_feeds:
             if feed.type.lower() in RSS_TYPES and feed.url:
-                feeds.append((feed.url, feed.name, feed.limit))
+                feeds.append((feed.url, feed.name, feed.limit, feed.extra))
 
     # Add CLI feeds (no per-feed limit; assumed rss/atom)
     if args.feed:
         for url in args.feed:
-            feeds.append((url, None, 0))
+            feeds.append((url, None, 0, {}))
 
     return feeds
 
@@ -488,7 +523,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     total_errors = 0
     total_reachable = 0
 
-    for feed_idx, (feed_url, feed_name, feed_limit) in enumerate(feeds):
+    for feed_idx, (feed_url, feed_name, feed_limit, feed_extra) in enumerate(feeds):
         # Use feed name from config, or CLI --source override, or let ingest_feed detect
         source = args.source or feed_name
 
@@ -518,6 +553,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                 delay=args.delay,
                 feed_index=feed_idx + 1,
                 feed_total=n_feeds,
+                include_keywords=feed_extra.get("include_keywords"),
+                exclude_keywords=feed_extra.get("exclude_keywords"),
             )
         except Exception as exc:
             print(f"    Feed CRASHED: {type(exc).__name__}: {exc}", file=sys.stderr,

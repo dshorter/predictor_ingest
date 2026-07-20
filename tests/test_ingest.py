@@ -245,3 +245,60 @@ class TestNetworkErrorHandling:
         # Should not crash, may have errors
         assert isinstance(fetched, int)
         assert isinstance(errors, int)
+
+
+class TestEntryKeywordFilter:
+    """Per-feed keyword scoping (Sprint 20 feed batch; audit 2026-07-19).
+
+    Pure function, no network: filters feed entries on title+summary
+    before any article fetch.
+    """
+
+    def _match(self, entry, include=None, exclude=None):
+        from ingest import rss
+        return rss.entry_matches_keywords(entry, include, exclude)
+
+    def test_no_keywords_keeps_everything(self):
+        assert self._match({"title": "Anything at all"}) is True
+
+    def test_include_matches_title_case_insensitive(self):
+        entry = {"title": "New SOUNDSTAGE breaks ground in Atlanta"}
+        assert self._match(entry, include=["soundstage"]) is True
+
+    def test_include_matches_summary(self):
+        entry = {"title": "City council roundup",
+                 "summary": "…also approved the film studio rezoning…"}
+        assert self._match(entry, include=["film studio"]) is True
+
+    def test_include_rejects_off_topic(self):
+        entry = {"title": "School board election results",
+                 "summary": "County votes tallied"}
+        assert self._match(entry, include=["film", "studio", "production"]) is False
+
+    def test_exclude_wins_over_include(self):
+        entry = {"title": "GeForce NOW: new games this week"}
+        assert self._match(entry, include=["GeForce"],
+                           exclude=["GeForce NOW"]) is False
+
+    def test_missing_fields_tolerated(self):
+        assert self._match({}, include=["chip"]) is False
+        assert self._match({"title": None, "summary": None}, include=["chip"]) is False
+
+
+class TestFeedExtraPassthrough:
+    """include/exclude keyword lists ride feeds.yaml → FeedConfig.extra."""
+
+    def test_extra_keys_flow_through(self, tmp_path):
+        config_file = tmp_path / "feeds.yaml"
+        config_file.write_text("""
+feeds:
+  - name: "Scoped Feed"
+    url: "https://example.com/feed.xml"
+    type: rss
+    enabled: true
+    include_keywords: ["film", "studio"]
+    exclude_keywords: ["obituary"]
+""")
+        feeds = load_feeds(config_file)
+        assert feeds[0].extra["include_keywords"] == ["film", "studio"]
+        assert feeds[0].extra["exclude_keywords"] == ["obituary"]
