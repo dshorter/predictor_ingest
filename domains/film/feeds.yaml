@@ -22,7 +22,10 @@ feeds:
   - name: "Variety Film"
     url: "https://variety.com/v/film/feed"
     type: rss
-    enabled: true
+    enabled: false  # disabled 2026-07-19 (audit): PMC same-story overlap with
+                    # Deadline — three PMC-adjacent wires is volume, not
+                    # coverage. Re-enable keyword-scoped if festival/deal
+                    # recall drops in epoch 2.
     limit: 15
     tier: 1
     signal: primary
@@ -31,7 +34,8 @@ feeds:
   - name: "The Hollywood Reporter"
     url: "https://www.hollywoodreporter.com/feed"
     type: rss
-    enabled: true
+    enabled: false  # disabled 2026-07-19 (audit): same PMC-overlap rationale
+                    # as Variety. Deadline stays as the single PMC wire.
     limit: 15
     tier: 1
     signal: primary
@@ -68,9 +72,10 @@ feeds:
   # --- Tier 1: Festival / institutional ---
 
   - name: "Sundance Institute"
-    url: "https://sundance.org/feed"
+    url: "https://www.sundance.org/feed/"
     type: rss
-    enabled: false  # disabled 2026-03-18: 403 Forbidden
+    enabled: true  # re-enabled 2026-07-19: bare-domain URL 403s, www works
+                   # (verified fresh from pipeline UA; stalled since 03-17)
     tier: 1
     signal: primary
     # Festival selections, lab announcements, grants, artist resources.
@@ -171,7 +176,9 @@ feeds:
   - name: "SC Film Commission"
     url: "https://filmsc.com/news/rss/default.aspx"
     type: rss
-    enabled: true
+    enabled: false  # disabled 2026-07-19 (audit): enabled since 03-18, zero
+                    # docs ever delivered (silent-zero feed; the text/html
+                    # Content-Type note below was prophetic)
     tier: 2
     signal: primary
     # Official SC production news, grants, festivals. ~2-4/month.
@@ -184,6 +191,9 @@ feeds:
     tier: 2
     signal: community
     # Alt-weekly; culture, arts, entertainment. ~2-4/month entertainment.
+    # 2026-07-19 (audit): 245 docs but q 0.59 — worst in domain. Citywide
+    # volume without film relevance; hard-scoped to the film slice.
+    include_keywords: ["film", "movie", "festival", "cinema", "screening"]
 
   - name: "Nashville Scene"
     url: "https://nashvillescene.com/search/?f=rss&t=article&l=25&s=start_time&sd=desc"
@@ -238,36 +248,87 @@ feeds:
       - "Georgia film tax credit"
     # Regional film chatter. Keywords target SE production corridor.
 
-  # --- Reddit: Subreddit polling (added Sprint 7) ---
-  # See ADR-006 for chatter source rationale.
-  # Uses public JSON API — no auth required (10 req/min).
+  # --- Reddit: REMOVED 2026-07-19 (audit + operator decision) ---
+  # r/Atlanta, r/Filmmakers, r/indiefilm sat here from 2026-03-18 without
+  # ever delivering a doc (credentials never provisioned). Dropped so the
+  # list stops overstating chatter coverage; Bluesky is the chatter leg.
+  # Re-add via source_changelog.yaml if credentials ever materialize.
 
-  - name: "Reddit r/Atlanta"
-    type: reddit
-    enabled: false  # disabled 2026-03-18: pending REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET credentials
-    tier: 2
-    signal: community
-    subreddit: "Atlanta"
-    listing: new
-    limit: 25
-    # Atlanta community — film/TV production sightings, industry chatter.
+  # --- Audit batch 2026-07-19: adopted blind-inference additions ---
+  # Three-way source audit (docs/audits/source-audit-2026-07-19.md),
+  # operator-approved as written. All feeds verified fresh from the
+  # pipeline UA on 2026-07-19. Logged in config/source_changelog.yaml.
 
-  - name: "Reddit r/Filmmakers"
-    type: reddit
-    enabled: false  # disabled 2026-03-18: pending credentials
+  - name: "SaportaReport"
+    url: "https://saportareport.com/feed/"
+    type: rss
+    enabled: true
+    limit: 15
     tier: 2
-    signal: community
-    subreddit: "Filmmakers"
-    listing: new
-    limit: 25
-    # Practitioner community — gear, craft, career, indie production.
+    signal: commentary
+    # Atlanta civic/business journalism. The real-estate/civic-money side
+    # of the studio build-out (Invest Atlanta bonds, rezonings) that
+    # entertainment trades never cover. ~10-20% film-relevant — scoped.
+    include_keywords: ["film", "studio", "soundstage", "production", "festival"]
 
-  - name: "Reddit r/indiefilm"
-    type: reddit
-    enabled: false  # disabled 2026-03-18: pending credentials
+  - name: "GPB News"
+    url: "https://www.gpb.org/rss.xml"
+    type: rss
+    enabled: true
+    limit: 15
     tier: 2
-    signal: community
-    subreddit: "indiefilm"
-    listing: new
-    limit: 25
-    # Independent film discussion, festival experiences, distribution.
+    signal: commentary
+    # Georgia Public Broadcasting, site-wide feed (no film-topic feed
+    # exists) — scoped to the film slice. Covers the *politics* of the GA
+    # incentive with original reporting; deliberate bias-check on Georgia
+    # Entertainment's boosterism.
+    include_keywords: ["film", "movie", "studio", "production", "tax credit",
+                       "incentive", "entertainment industry"]
+
+  - name: "MovieMaker"
+    url: "https://www.moviemaker.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    # Regional/sub-A24 festival tier and working-class filmmaking the
+    # prestige trades ignore. "50 Festivals Worth the Entry Fee."
+
+  - name: "Hammer to Nail"
+    url: "https://www.hammertonail.com/feed/"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Micro-budget/truly-indie reviews + regional festival reports. The
+    # no-distribution tier where genre/aesthetic trends incubate. ~3-4/wk.
+
+  - name: "The Film Stage"
+    url: "https://thefilmstage.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # Festival lineups + specialty distribution (Criterion, arthouse
+    # releases). PMC-independent. ~4-6/day.
+
+  - name: "Stephen Follows"
+    url: "https://stephenfollows.com/feed/"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Quantitative film-industry analysis — original data, never
+    # syndicated. Novelty-signal gold. ~2-3/wk.
+
+  - name: "CineD"
+    url: "https://www.cined.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    # Camera/production-tech hands-on depth; EU-based counterweight to US
+    # gear blogs. ~3-4/day.

@@ -72,26 +72,30 @@ feeds:
   - name: "EE Times"
     url: "https://www.eetimes.com/feed/"
     type: rss
-    enabled: false  # DISABLED 2026-04-15: feed unreachable per metrics gist
+    enabled: true  # re-enabled 2026-07-19 (audit): retry from pipeline UA
+                   # returned 200 with fresh items (was unreachable 04-07..15)
     limit: 15
     tier: 2
     signal: primary
     # Design and tooling coverage. EDA, FPGA, embedded, automotive chips.
     # Fills gaps that deep-analysis newsletters skip. Good on Cadence/Synopsys
     # news and design methodology trends.
-    # STATUS: unreachable since at least 2026-04-07. Re-evaluate if URL changes.
 
-  - name: "The Register Hardware"
-    url: "https://www.theregister.com/hardware/semiconductors/headlines.atom"
+  - name: "The Register"
+    url: "https://www.theregister.com/headlines.atom"
     type: atom
-    enabled: false  # DISABLED 2026-04-15: feed unreachable per metrics gist
-    limit: 15
+    enabled: true  # re-enabled 2026-07-19 (audit): the /hardware/semiconductors
+                   # section feed 404s; sitewide headlines.atom verified fresh —
+                   # keyword-scoped to the chip slice (~3-4/day of ~25).
+    limit: 10
     tier: 2
     signal: echo
     # Good on supply chain, geopolitics, and export control news.
     # Different editorial angle from US trade press — catches UK/EU policy
     # angles and ASML/TSMC stories from a non-US perspective.
-    # STATUS: unreachable since at least 2026-04-07. Re-evaluate URL path.
+    include_keywords: ["semiconductor", "chip", "TSMC", "Intel", "AMD",
+                       "Nvidia", "GPU", "fab", "foundry", "ASML", "wafer",
+                       "export control", "lithography", "HBM", "Arm"]
 
   - name: "SemiWiki"
     url: "https://semiwiki.com/feed/"
@@ -112,7 +116,7 @@ feeds:
     url: "https://www.tomshardware.com/feeds/all"
     type: rss
     enabled: true
-    limit: 3
+    limit: 8  # raised 3 → 8 on 2026-07-19 with keyword scoping (see below)
     tier: 2
     signal: echo
     # Consumer-facing but high volume on GPU benchmarks, product launches.
@@ -126,132 +130,30 @@ feeds:
     # a second doc, inflating the denominator of the overlap metric while
     # contributing nothing to persistence. See
     # docs/methodology/semiconductor-experiment-10day-findings.md.
+    #
+    # 2026-07-19 (audit): 98% extraction yield says the docs are usable —
+    # the problem was volume/mix, not quality. Keyword-scoped to the
+    # industry slice (filters run pre-limit, so the cap now fills with
+    # relevant entries) and limit raised 3 → 8.
+    include_keywords: ["semiconductor", "TSMC", "Intel", "AMD", "Nvidia",
+                       "foundry", "fab", "process node", "wafer", "HBM",
+                       "EUV", "lithography", "chiplet", "export", "CHIPS Act",
+                       "Samsung", "SK hynix", "Micron", "Qualcomm", "Arm"]
 
-  # --- Tier 2: Policy & geopolitics ---
-  # Export controls and CHIPS Act are slow-moving but high-persistence
-  # signals. Low volume, high entity permanence.
+  # Real World Tech: REMOVED 2026-07-19 (audit) — dormant for years, zero
+  # docs ever delivered; incumbent and blind inference agreed once the
+  # data spoke. See config/source_changelog.yaml.
 
-  - name: "Real World Tech"
-    url: "https://www.realworldtech.com/feed/"
-    type: rss
-    enabled: true  # Enabled 2026-04-15: phase 2 source. Low volume, high signal.
-    limit: 5
-    tier: 2
-    signal: commentary
-    # David Kanter. Extremely deep technical analysis of CPU/GPU architecture.
-    # Low volume but authoritative. If feed returns errors, disable and revisit.
-
-  # --- Tier 1: Primary-source filings & earnings (HIGH-PERSISTENCE PLACEHOLDER) ---
-  # Motivation: after 10 days the corpus plateaued at ~20% entity overlap
-  # (target 30%). Diagnosis: the current stack is news-weighted — trade press
-  # churns through product SKUs but rarely re-names the underlying corporate
-  # and supply-chain entities. Earnings calls and 10-K filings re-assert the
-  # SAME company / fab / customer relationships quarter after quarter, giving
-  # the graph a persistence layer it currently lacks. None of these are
-  # plain RSS — each needs a connector. See:
-  #   - docs/methodology/semiconductor-experiment-10day-findings.md
-  #   - docs/methodology/deep-research-report.md (EDGAR notes)
-  #
-  # Status: DISABLED placeholders. Keep in the file so the ingestion-strategy
-  # discussion is visible in one place; wire up the connectors in a later sprint.
-  #
-  # Connector types needed (none exist yet):
-  #   type: edgar       — SEC EDGAR RSS per-CIK (10-K, 10-Q, 8-K filings)
-  #   type: earnings    — earnings call transcript aggregator
-  #   type: ir_rss      — company investor-relations news RSS
-
-  - name: "SEC EDGAR — NVIDIA filings"
-    type: edgar
-    enabled: false
-    tier: 1
-    signal: primary
-    cik: "0001045810"
-    forms: ["10-K", "10-Q", "8-K"]
-    limit: 10
-    # NVIDIA's 10-Ks name TSMC fab nodes, HBM suppliers (Micron/SK Hynix/Samsung),
-    # and CoWoS packaging capacity. These are the "slow-moving" entities that
-    # anchor the supply chain — exactly the persistence layer the corpus lacks.
-
-  - name: "SEC EDGAR — Intel filings"
-    type: edgar
-    enabled: false
-    tier: 1
-    signal: primary
-    cik: "0000050863"
-    forms: ["10-K", "10-Q", "8-K"]
-    limit: 10
-    # Intel Foundry roadmap, process node milestones (18A, 14A), customer wins.
-
-  - name: "SEC EDGAR — AMD filings"
-    type: edgar
-    enabled: false
-    tier: 1
-    signal: primary
-    cik: "0000002488"
-    forms: ["10-K", "10-Q", "8-K"]
-    limit: 10
-
-  - name: "SEC EDGAR — TSMC filings (20-F)"
-    type: edgar
-    enabled: false
-    tier: 1
-    signal: primary
-    cik: "0001046179"
-    forms: ["20-F", "6-K"]
-    limit: 10
-    # TSMC is a foreign private issuer — 20-F annual, 6-K interim.
-    # Names every customer segment, capacity by node, Arizona fab progress.
-
-  - name: "SEC EDGAR — ASML filings (20-F)"
-    type: edgar
-    enabled: false
-    tier: 1
-    signal: primary
-    cik: "0000937966"
-    forms: ["20-F", "6-K"]
-    limit: 10
-    # EUV/High-NA tool shipments, customer concentration, China export impact.
-
-  - name: "NVIDIA IR News"
-    type: ir_rss
-    enabled: false
-    tier: 1
-    signal: primary
-    url: "https://investor.nvidia.com/rss/news-releases.xml"
-    limit: 10
-    # [VERIFY] URL. Press-release feed — product launches, partnerships,
-    # earnings guidance. Higher cadence than 8-K, broader content.
-
-  - name: "Intel IR News"
-    type: ir_rss
-    enabled: false
-    tier: 1
-    signal: primary
-    url: "https://www.intc.com/rss/news-releases.xml"
-    limit: 10
-    # [VERIFY] URL.
-
-  - name: "AMD IR News"
-    type: ir_rss
-    enabled: false
-    tier: 1
-    signal: primary
-    url: "https://ir.amd.com/rss/news-releases.xml"
-    limit: 10
-    # [VERIFY] URL.
-
-  - name: "Seeking Alpha — Semiconductor Transcripts"
-    type: earnings
-    enabled: false
-    tier: 1
-    signal: primary
-    tickers: ["NVDA", "INTC", "AMD", "TSM", "ASML", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC"]
-    limit: 15
-    # Quarterly transcripts. Highest entity-density documents in the entire
-    # stack — one TSMC call names dozens of customers, nodes, and partners.
-    # Seeking Alpha transcripts are paywalled but headlines + summaries are
-    # free. Full text requires alternative sources (company IR pages host
-    # their own transcripts ~1 week after the call).
+  # --- Primary-source filings: see "SEC EDGAR Semiconductors" below ---
+  # 2026-07-19 (audit): the tier-1 placeholder layer that lived here was
+  # dead weight — five per-CIK edgar entries duplicating the CIKs already
+  # covered by the enabled generic EDGAR feed (which works: 26 docs), plus
+  # ir_rss/earnings stubs whose fetcher types were never built. All
+  # removed so the list stops overstating itself; the ingestion-strategy
+  # rationale lives in
+  # docs/methodology/semiconductor-experiment-10day-findings.md and the
+  # removals are logged in config/source_changelog.yaml. If ir_rss or
+  # earnings fetchers are ever written, re-add entries then.
 
   # --- Bluesky: Keyword search ---
   # Semiconductor practitioners are active on Bluesky post-Twitter migration.
@@ -273,32 +175,12 @@ feeds:
     # Practitioner and analyst chatter. Keywords target the technical layer,
     # not consumer GPU discussions.
 
-  # --- Reddit ---
-  # r/semiconductors has genuine engineer participation. Requires Reddit
-  # credentials (REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET).
-
-  - name: "Reddit r/semiconductors"
-    type: reddit
-    enabled: true  # Enabled 2026-04-15: phase 2. Falls back to unauth JSON if no creds.
-    tier: 2
-    signal: community
-    subreddit: "semiconductors"
-    listing: top
-    limit: 15
-    # Engineer and analyst community. Top posts surface real technical
-    # discussions — yield issues, process node comparisons, ASML news.
-    # Better signal quality than general tech subreddits.
-
-  - name: "Reddit r/chipdesign"
-    type: reddit
-    enabled: true  # Enabled 2026-04-15: phase 2. Falls back to unauth JSON if no creds.
-    tier: 2
-    signal: community
-    subreddit: "chipdesign"
-    listing: new
-    limit: 10
-    # Practitioners: RTL designers, layout engineers, verification engineers.
-    # Catches EDA toolchain trends and design methodology shifts early.
+  # --- Reddit: REMOVED 2026-07-19 (audit + operator decision) ---
+  # r/semiconductors and r/chipdesign were enabled 2026-04-15 with an
+  # unauth-JSON fallback that demonstrably never worked: zero docs ever.
+  # Dropped so the list stops overstating chatter coverage; Bluesky is
+  # the chatter leg. Re-add via source_changelog.yaml if credentials
+  # ever materialize.
 
   # --- Phase 2: Structured signals (multi-signal fusion) ---
   # Non-RSS sources that provide commercialization, governance, and IP signals.
@@ -329,7 +211,10 @@ feeds:
 
   - name: "USPTO Semiconductor Patents"
     type: patents
-    enabled: true
+    enabled: false  # disabled 2026-07-19 (audit): enabled since April yet
+                    # zero docs ever delivered — a silent-zero feed. The
+                    # fetcher exists (src/ingest/patents.py); diagnose before
+                    # re-enabling (backlog SRC-6).
     tier: 2
     signal: primary
     limit: 25
@@ -355,3 +240,120 @@ feeds:
     # EUV lithography IP, chiplet interconnect designs.
     # Captures IP filings 12-18 months before product announcements.
     # Rate limit: 45 req/min. Env: USPTO_API_KEY (optional, higher limits).
+
+  # --- Audit batch 2026-07-19: adopted blind-inference additions ---
+  # Three-way source audit (docs/audits/source-audit-2026-07-19.md),
+  # operator-approved as written. All feeds verified fresh from the
+  # pipeline UA on 2026-07-19. Logged in config/source_changelog.yaml.
+  # Fills the two structural gaps: policy/geopolitics (the incumbent had
+  # ZERO live policy sources in an export-controls domain) and analyst/
+  # data (nothing incumbent).
+
+  - name: "Federal Register Semiconductors"
+    url: "https://www.federalregister.gov/api/v1/documents.rss?conditions%5Bterm%5D=semiconductor"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # BIS export rules and CHIPS notices as published law — hours-to-days
+    # ahead of (and independent of) press interpretation. The single
+    # highest-value add of the audit. NOTE: the /documents/search.rss URL
+    # bot-challenges; the api/v1 RSS endpoint is the one that works.
+
+  - name: "ChinaTalk"
+    url: "https://www.chinatalk.media/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Jordan Schneider. The working policy community's venue for the
+    # export-control debate; interviews actual BIS/industry people. ~2-3/wk.
+
+  - name: "TrendForce Semiconductors"
+    url: "https://www.trendforce.com/feed/Semiconductors.html"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # Taiwan analyst wire: HBM/memory pricing, CoWoS capacity estimates —
+    # supply-chain quantification from the supply chain's home turf.
+    # Category feed discovered on /presscenter/rss.html.
+
+  - name: "More Than Moore"
+    url: "https://morethanmoore.substack.com/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Ian Cutress (ex-AnandTech). Attends IEDM/VLSI/process-technology
+    # conferences and reports them properly. ~1-2/wk.
+
+  - name: "The Next Platform"
+    url: "https://www.nextplatform.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    # Accelerator/datacenter compute economics — the AI-workload-demand
+    # leg of the domain's central tension. ~1-2/day.
+
+  - name: "IEEE Spectrum Semiconductors"
+    url: "https://spectrum.ieee.org/feeds/topic/semiconductors.rss"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Research bridge: ISSCC/IEDM results as accessible reporting.
+    # Topic-scoped feed keeps volume clean. ~3-5/wk.
+
+  - name: "Fabricated Knowledge"
+    url: "https://www.fabricatedknowledge.com/feed"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Doug O'Laughlin. Financial-analyst lens on equipment/memory cycles;
+    # complements the engineering sources. ~1/wk, partially paywalled.
+
+  - name: "ServeTheHome"
+    url: "https://www.servethehome.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 2
+    signal: commentary
+    # Hands-on accelerator/server hardware at trade shows — catches SKUs
+    # and platform details before official launches. ~2-4/day.
+
+  - name: "NVIDIA Blog"
+    url: "https://blogs.nvidia.com/feed/"
+    type: rss
+    enabled: true
+    limit: 8
+    tier: 1
+    signal: primary
+    # First-party announcements from the dominant AI-compute vendor.
+    # Marketing-heavy — gaming/consumer fluff excluded.
+    exclude_keywords: ["GeForce NOW", "game pass", "DLSS in", "gaming laptop"]
+
+  - name: "Bits & Chips"
+    url: "https://bits-chips.com/feed/"
+    type: rss
+    enabled: true
+    tier: 2
+    signal: primary
+    # Dutch/European trade — reports from ASML/imec's backyard with
+    # sources US outlets lack. The equipment/litho leg's non-US voice.
+
+  - name: "Semiconductor Digest"
+    url: "https://www.semiconductordigest.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 2
+    signal: primary
+    # Low-prestige manufacturing trade: fab construction, equipment
+    # orders, materials news that consumer-tech outlets skip.

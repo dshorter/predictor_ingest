@@ -362,15 +362,32 @@ Feed URL may be dead, restructured, or blocking our User-Agent.
 remove from `domains/film/feeds.yaml` or replace with an alternative screenwriting
 blog.
 
-### SRC-4: SC Film Commission — unreachable since 2026-03-17
+**Update 2026-07-19 (source audit):** the fetch problem self-resolved — 80
+docs ingested through 07-01, feed verified live from the pipeline UA. The
+real problem moved downstream: **0 of 80 docs extracted**. Investigate
+selection/extraction yield during the epoch-2 dampening window (ADR-010's
+"known dead" claim about this feed was wrong).
 
-**Observed:** 2026-03-27 (gist metrics review) | **Priority:** Medium
+### ~~SRC-4: SC Film Commission — unreachable since 2026-03-17~~ — DONE
 
-`feed_stats` shows `unreachable` error every day for 10+ days. Zero docs fetched.
-The calibration report will flag this as a feed error streak (CRITICAL at 7+ days).
+**Resolved 2026-07-19 (source audit):** zero docs ever delivered since the
+03-18 enable. Disabled in `domains/film/feeds.yaml` with a dated reason;
+logged in `config/source_changelog.yaml`.
 
-**Action:** Check if the site is down or if the RSS URL changed. If dead, remove
-from `domains/film/feeds.yaml`.
+### SRC-6: USPTO patents feed — enabled, silent, zero docs ever
+
+**Observed:** 2026-07-19 (source audit) | **Priority:** Medium
+
+The USPTO Semiconductor Patents feed (type `patents`,
+`src/ingest/patents.py`) was enabled since April and never delivered a
+single document — the worst class of feed failure (enabled + silent).
+Disabled 2026-07-19 at the audit batch.
+
+**Action:** Diagnose the fetcher (API key? CPC query shape? rate limit
+swallowed?) and re-enable only with a verified first delivery. The
+feed-level zero-docs alerting that would have caught this now exists
+(`scripts/check_staleness.py`), but only for feeds that have delivered
+before — never-delivered feeds still need a post-enable check.
 
 ### SRC-5: Bluesky SE Film — very low extraction yield
 

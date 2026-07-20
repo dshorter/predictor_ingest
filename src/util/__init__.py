@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from typing import Optional
 
@@ -53,23 +53,37 @@ def parse_entry_date(entry: dict) -> Optional[str]:
 
     Tries parsed tuples first, then string formats.
     Returns ISO date string (YYYY-MM-DD) or None.
+
+    Future-dated stamps (beyond a 2-day timezone tolerance) return None:
+    misconfigured feeds publish years-ahead dates (ArtsATL shipped a doc
+    stamped 2029 — audit 2026-07-19), and a false future date poisons
+    every published_at-windowed metric downstream. None falls back to
+    fetched_at, which is at least honest.
     """
+    result: Optional[str] = None
     for key in ("published_parsed", "updated_parsed"):
         value = entry.get(key)
         if value:
             dt = datetime(*value[:6], tzinfo=timezone.utc)
-            return dt.date().isoformat()
-    for key in ("published", "updated"):
-        value = entry.get(key)
-        if value:
-            try:
-                dt = parsedate_to_datetime(value)
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                return dt.date().isoformat()
-            except (TypeError, ValueError):
-                return None
-    return None
+            result = dt.date().isoformat()
+            break
+    if result is None:
+        for key in ("published", "updated"):
+            value = entry.get(key)
+            if value:
+                try:
+                    dt = parsedate_to_datetime(value)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    result = dt.date().isoformat()
+                except (TypeError, ValueError):
+                    return None
+                break
+    if result is not None:
+        max_plausible = (datetime.now(timezone.utc) + timedelta(days=2)).date()
+        if result > max_plausible.isoformat():
+            return None
+    return result
 
 
 def clean_html(html: str) -> str:

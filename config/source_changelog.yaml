@@ -1,0 +1,139 @@
+# Source change log — methodology §2.8
+#
+# Every source addition, removal, substitution, or scoping change, dated,
+# so historical trend data stays interpretable: a velocity spike the day a
+# source was added is an artifact, not a trend. Machine-readable so the
+# scoring pipeline can detect recent changes and apply transition
+# dampening (§2.7) automatically when that lands.
+#
+# actions: added | removed | disabled | enabled | url_fixed | scoped
+# Every entry below applies at the epoch-2 restart (ADR-010): changes are
+# batched at the window boundary precisely so no window spans them.
+#
+# Provenance for the 2026-07-19 batch: three-way source audit
+# (docs/audits/source-audit-2026-07-19.md + blind companion), operator
+# sign-off 2026-07-19; feeds verified from the pipeline UA the same day.
+
+changes:
+  # ---------------------------------------------------------------- film
+  - {date: 2026-07-19, domain: film, action: disabled, source: "Variety Film",
+     reason: "PMC same-story overlap with Deadline; volume not coverage (audit)",
+     coverage: "deal/festival wire redundancy removed; Deadline remains"}
+  - {date: 2026-07-19, domain: film, action: disabled, source: "The Hollywood Reporter",
+     reason: "same PMC-overlap rationale as Variety",
+     coverage: "awards/executive coverage now via Deadline + The Film Stage"}
+  - {date: 2026-07-19, domain: film, action: url_fixed, source: "Sundance Institute",
+     reason: "bare-domain feed URL 403s; www.sundance.org/feed/ verified fresh (stalled since 03-17)",
+     coverage: "festival/lab primary source restored"}
+  - {date: 2026-07-19, domain: film, action: scoped, source: "Charleston City Paper",
+     reason: "245 docs at q 0.59, worst in domain — citywide volume without film relevance",
+     coverage: "film slice kept via include_keywords"}
+  - {date: 2026-07-19, domain: film, action: disabled, source: "SC Film Commission",
+     reason: "zero docs ever delivered since 03-18 enable (silent-zero feed)",
+     coverage: "SC production news lost; regional lens keeps GA sources"}
+  - {date: 2026-07-19, domain: film, action: removed, source: "Reddit r/Atlanta",
+     reason: "operator decision: drop Reddit everywhere — creds never provisioned, zero docs ever",
+     coverage: "chatter = Bluesky only"}
+  - {date: 2026-07-19, domain: film, action: removed, source: "Reddit r/Filmmakers",
+     reason: "operator decision: drop Reddit everywhere",
+     coverage: "chatter = Bluesky only"}
+  - {date: 2026-07-19, domain: film, action: removed, source: "Reddit r/indiefilm",
+     reason: "operator decision: drop Reddit everywhere",
+     coverage: "chatter = Bluesky only"}
+  - {date: 2026-07-19, domain: film, action: added, source: "SaportaReport",
+     reason: "blind add #1: civic/real-estate side of the Atlanta studio build-out; keyword-scoped",
+     coverage: "Invest Atlanta bonds, rezonings, soundstage deals"}
+  - {date: 2026-07-19, domain: film, action: added, source: "GPB News",
+     reason: "blind add #2: politics of the GA incentive; bias-check on Georgia Entertainment; keyword-scoped sitewide feed (no topic feed exists)",
+     coverage: "GA legislature incentive fights, original reporting"}
+  - {date: 2026-07-19, domain: film, action: added, source: "MovieMaker",
+     reason: "blind add #3: regional/sub-A24 festival tier",
+     coverage: "working-class filmmaking, regional festivals"}
+  - {date: 2026-07-19, domain: film, action: added, source: "Hammer to Nail",
+     reason: "blind add #4: micro-budget tier, pure anti-consensus",
+     coverage: "no-distribution American indie, regional/genre fests"}
+  - {date: 2026-07-19, domain: film, action: added, source: "The Film Stage",
+     reason: "blind add #5: festival/specialty-distribution, PMC-independent",
+     coverage: "festival lineups, Criterion/arthouse distribution"}
+  - {date: 2026-07-19, domain: film, action: added, source: "Stephen Follows",
+     reason: "blind add #6: original quantitative analysis, high novelty",
+     coverage: "film-industry data analysis, never syndicated"}
+  - {date: 2026-07-19, domain: film, action: added, source: "CineD",
+     reason: "blind add #7: EU production-tech counterweight",
+     coverage: "camera/production tech hands-on"}
+  # Not adopted, for the record: The Ankler (paywalled previews; below the
+  # operator-approved cut line), Cineuropa (403s the pipeline UA — the
+  # sales/markets gap flagged by both lists REMAINS OPEN), Screen Daily
+  # (feed returns an empty skeleton), theASC (works from pipeline UA but
+  # below the cut line; bank for later), institutional scrape targets
+  # (SAGindie, GA.org, guild newsrooms — scraper cost, bank as future work).
+
+  # ------------------------------------------------------- semiconductors
+  - {date: 2026-07-19, domain: semiconductors, action: removed, source: "Real World Tech",
+     reason: "dormant for years, zero docs ever; incumbent and blind agreed once data spoke",
+     coverage: "deep CPU/GPU analysis via Chips and Cheese"}
+  - {date: 2026-07-19, domain: semiconductors, action: enabled, source: "EE Times",
+     reason: "audit retry from pipeline UA: 200 with fresh items (disabled 04-15 as unreachable)",
+     coverage: "EDA/design-tooling trade coverage restored"}
+  - {date: 2026-07-19, domain: semiconductors, action: url_fixed, source: "The Register",
+     reason: "section feed 404s; sitewide headlines.atom verified fresh, keyword-scoped to chip slice",
+     coverage: "UK/EU angle on supply chain + export controls restored"}
+  - {date: 2026-07-19, domain: semiconductors, action: scoped, source: "Tom's Hardware",
+     reason: "98% extraction yield says docs usable; blind's noise concern answered by scoping, not removal; limit 3→8",
+     coverage: "volume backbone kept, consumer noise filtered"}
+  - {date: 2026-07-19, domain: semiconductors, action: disabled, source: "USPTO Semiconductor Patents",
+     reason: "enabled since April, zero docs ever (silent-zero); diagnose before re-enable (backlog SRC-3)",
+     coverage: "patent early-warning signal was never real — none lost"}
+  - {date: 2026-07-19, domain: semiconductors, action: removed, source: "Reddit r/semiconductors",
+     reason: "operator decision: drop Reddit everywhere — unauth fallback demonstrably never worked",
+     coverage: "chatter = Bluesky only"}
+  - {date: 2026-07-19, domain: semiconductors, action: removed, source: "Reddit r/chipdesign",
+     reason: "operator decision: drop Reddit everywhere",
+     coverage: "chatter = Bluesky only"}
+  - {date: 2026-07-19, domain: semiconductors, action: removed, source: "per-CIK EDGAR placeholders (NVIDIA/Intel/AMD/TSMC/ASML)",
+     reason: "duplicated CIKs already covered by the enabled generic 'SEC EDGAR Semiconductors' feed (which works: 26 docs)",
+     coverage: "none — coverage unchanged via the generic feed"}
+  - {date: 2026-07-19, domain: semiconductors, action: removed, source: "ir_rss/earnings config stubs (NVIDIA IR, Intel IR, AMD IR, Seeking Alpha transcripts)",
+     reason: "fetcher types were never built; config stubs overstated the list",
+     coverage: "IR/earnings layer remains future work — re-add when fetchers exist"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "Federal Register Semiconductors",
+     reason: "structural gap #1: ZERO live policy sources in an export-controls domain; highest-value add of the audit",
+     coverage: "BIS rules + CHIPS notices as published law"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "ChinaTalk",
+     reason: "structural gap #1: export-control policy debate venue",
+     coverage: "BIS/industry interviews, China policy"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "TrendForce Semiconductors",
+     reason: "structural gap #2: analyst/data category was empty",
+     coverage: "HBM/memory pricing, CoWoS capacity, Taiwan vantage"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "More Than Moore",
+     reason: "blind add: process-conference reporting (IEDM/VLSI)",
+     coverage: "High-NA EUV, CFET, node-race depth"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "The Next Platform",
+     reason: "blind add: accelerator/datacenter economics leg",
+     coverage: "AI-workload demand side of the central tension"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "IEEE Spectrum Semiconductors",
+     reason: "blind add: research bridge, topic-scoped feed",
+     coverage: "ISSCC/IEDM results as reporting"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "Fabricated Knowledge",
+     reason: "blind add: equipment/memory cycle analysis",
+     coverage: "financial-analyst lens on capex cycles"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "ServeTheHome",
+     reason: "blind add: hands-on accelerator/server coverage",
+     coverage: "SKU/platform details pre-launch"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "NVIDIA Blog",
+     reason: "blind add: first-party from dominant AI-compute vendor; marketing excluded by keywords",
+     coverage: "vendor announcements at the source"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "Bits & Chips",
+     reason: "blind add #10 (verified fresh): EU-litho neighborhood reporting",
+     coverage: "ASML/imec backyard, non-US equipment voice"}
+  - {date: 2026-07-19, domain: semiconductors, action: added, source: "Semiconductor Digest",
+     reason: "blind add #10 (verified fresh): manufacturing-ops trade",
+     coverage: "fab construction, equipment orders, materials"}
+  # Not adopted, for the record: SIA (no feed found — 404s on WP paths),
+  # CSIS + Interconnected (below the approved cut line; policy cluster
+  # opens with FR + ChinaTalk), HPCwire / Counterpoint / TSMC-Intel-ASML
+  # newsrooms (unconfirmed feeds, bank), AnandTech (dead 2024-08),
+  # WikiChip Fuse (server down), Asianometry (stale since 2025-01),
+  # DigiTimes (hard paywall). SemiAnalysis kept UNCHANGED: the incumbent
+  # already pointed at the fresh Substack feed; the blind's 10-month-lag
+  # flag was the site's own /feed, not ours.

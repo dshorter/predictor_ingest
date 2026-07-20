@@ -209,7 +209,19 @@ def ingest_feed(
         reachable = False
 
     source = source_override or feed.feed.get("title") or feed_url
-    entries = feed.entries[:limit] if limit > 0 else feed.entries
+
+    # Keyword scoping runs BEFORE the limit slice: a scoped feed scans the
+    # whole feed for its relevant slice, then caps. (Slicing first would
+    # give a broad feed limit slots mostly spent on off-topic entries.)
+    entries = feed.entries
+    filtered = 0
+    if include_keywords or exclude_keywords:
+        kept = [e for e in entries
+                if entry_matches_keywords(e, include_keywords, exclude_keywords)]
+        filtered = len(entries) - len(kept)
+        entries = kept
+
+    entries = entries[:limit] if limit > 0 else entries
     n_total = len(entries)
 
     print(f"    {feed_label} {n_total} entries to process (parse took {parse_sec:.1f}s)",
@@ -218,7 +230,6 @@ def ingest_feed(
     fetched = 0
     skipped = 0
     errors = 0
-    filtered = 0
 
     for i, entry in enumerate(entries):
         url = entry.get("link")
@@ -226,11 +237,6 @@ def ingest_feed(
             errors += 1
             print(f"    {feed_label} [{i+1}/{n_total}] SKIP: missing link",
                   file=sys.stderr, flush=True)
-            continue
-
-        if not entry_matches_keywords(entry, include_keywords, exclude_keywords):
-            filtered += 1
-            skipped += 1
             continue
 
         title = entry.get("title") or ""
@@ -326,7 +332,7 @@ def ingest_feed(
         conn.commit()
 
     feed_sec = time.monotonic() - t0
-    filter_info = f" ({filtered} of the skips keyword-filtered)" if filtered else ""
+    filter_info = f" ({filtered} entries keyword-filtered pre-fetch)" if filtered else ""
     print(f"    {feed_label} Done: {fetched} fetched, {skipped} skipped, "
           f"{errors} errors ({feed_sec:.1f}s total){filter_info}", flush=True)
 
