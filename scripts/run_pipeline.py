@@ -920,7 +920,8 @@ def main() -> int:
         "--budget", type=int, default=None,
         help="Extraction budget: target number of docs to extract per run. "
              "Enables quality-based selection in docpack stage. "
-             "Goal: 10-20, stretch up to budget+5 for high-quality docs.",
+             "Default: the domain profile's doc_selection.budget "
+             "(ADR-010 D3), falling back to the framework default.",
     )
     parser.add_argument(
         "--copy-to-live", action="store_true", default=True,
@@ -947,7 +948,18 @@ def main() -> int:
     # Set active domain before any module imports that read the profile
     from domain import set_active_domain
     os.environ["PREDICTOR_DOMAIN"] = args.domain
-    set_active_domain(args.domain)
+    profile = set_active_domain(args.domain)
+
+    # Per-domain doc budget (ADR-010 D3 / Sprint 20.5): explicit --budget
+    # wins; otherwise the profile's doc_selection section, then framework
+    # defaults. Stretch always follows the same resolution.
+    from doc_select import budget_from_profile
+    profile_budget, profile_stretch = budget_from_profile(profile)
+    if args.budget is None:
+        args.budget = profile_budget
+        args.stretch_max = profile_stretch
+    else:
+        args.stretch_max = args.budget + 5
 
     # Derive domain-scoped paths if not explicitly provided
     from util.paths import get_db_path, get_docpacks_dir, get_extractions_dir, get_graphs_dir, get_logs_dir
@@ -1096,7 +1108,8 @@ def main() -> int:
                 "--db", db_path,
                 "--date", run_date,
                 "--label", docpack_label,
-            ] + (["--budget", str(args.budget)] if args.budget else []),
+            ] + (["--budget", str(args.budget), "--stretch-max", str(args.stretch_max)]
+                 if args.budget else []),
             "parse": parse_docpack_output,
             "fatal": False,
         },

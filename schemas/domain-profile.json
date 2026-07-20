@@ -176,6 +176,24 @@
       }
     },
 
+    "doc_selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Per-domain daily extraction budget (ADR-010 D3, Sprint 20.5). Optional; framework defaults apply when absent. Change at window boundaries only (methodology 2.7).",
+      "properties": {
+        "budget": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Base number of docs selected for extraction per run"
+        },
+        "stretch_max": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Max docs when stretching for high-quality candidates (default: budget + 5)"
+        }
+      }
+    },
+
     "trend_weights": {
       "type": "object",
       "required": ["velocity", "novelty", "activity"],

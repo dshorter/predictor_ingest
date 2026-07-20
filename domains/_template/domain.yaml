@@ -113,6 +113,13 @@ scoring_weights:
   diversity: 0.25
   tech_terms: 0.15
 
+# --- Doc Selection Budget (ADR-010 D3) ---
+# Daily extraction budget for this domain. Omit to use framework defaults
+# (20 / 25). Change at window boundaries only (methodology §2.7).
+# doc_selection:
+#   budget: 20
+#   stretch_max: 25
+
 # --- Trend Weights (velocity + novelty + activity must sum to 1.0) ---
 trend_weights:
   velocity: 0.4

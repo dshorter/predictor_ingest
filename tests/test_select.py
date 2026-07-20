@@ -27,6 +27,7 @@ from doc_select import (
     WORDS_LOW,
     ScoredDoc,
     _recency_score,
+    budget_from_profile,
     clear_bench_doc,
     expire_bench,
     load_bench,
@@ -783,3 +784,34 @@ class TestSelectionIntegration:
 
         assert len(selected) == 8
         assert len(overflow) == 0
+
+
+class TestBudgetFromProfile:
+    """Per-domain budget resolution from domain.yaml (ADR-010 D3 / 20.5)."""
+
+    def test_no_profile_falls_back_to_defaults(self):
+        assert budget_from_profile(None) == (DEFAULT_BUDGET, DEFAULT_STRETCH_MAX)
+        assert budget_from_profile({}) == (DEFAULT_BUDGET, DEFAULT_STRETCH_MAX)
+
+    def test_missing_section_falls_back_to_defaults(self):
+        profile = {"domain": {"slug": "ai"}}
+        assert budget_from_profile(profile) == (DEFAULT_BUDGET, DEFAULT_STRETCH_MAX)
+
+    def test_full_section(self):
+        profile = {"doc_selection": {"budget": 35, "stretch_max": 40}}
+        assert budget_from_profile(profile) == (35, 40)
+
+    def test_budget_without_stretch_defaults_to_plus_five(self):
+        profile = {"doc_selection": {"budget": 30}}
+        assert budget_from_profile(profile) == (30, 35)
+
+    def test_empty_section_falls_back_to_defaults(self):
+        profile = {"doc_selection": None}
+        assert budget_from_profile(profile) == (DEFAULT_BUDGET, DEFAULT_STRETCH_MAX)
+
+    def test_active_domain_profiles_carry_d3_budgets(self):
+        """Film 35/40, semiconductors 20/25 — the ADR-010 D3 decision."""
+        from domain import load_domain_profile
+
+        assert budget_from_profile(load_domain_profile("film")) == (35, 40)
+        assert budget_from_profile(load_domain_profile("semiconductors")) == (20, 25)

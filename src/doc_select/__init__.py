@@ -27,6 +27,29 @@ from typing import Any, Optional
 
 DEFAULT_BUDGET: int = 20
 DEFAULT_STRETCH_MAX: int = 25
+
+
+def budget_from_profile(profile: dict[str, Any] | None) -> tuple[int, int]:
+    """Resolve (budget, stretch_max) from a domain profile.
+
+    Per-domain budgets live in domain.yaml under `doc_selection`
+    (ADR-010 D3 / Sprint 20.5). Budgets change at window boundaries
+    only (methodology §2.7) — set them in the profile, not at the
+    call site, so every invocation of a domain agrees on its volume.
+
+    Falls back to the framework defaults when the section is absent
+    (dormant domains predating the key). When `budget` is set without
+    `stretch_max`, stretch defaults to budget + 5, mirroring
+    build_docpack's convention.
+    """
+    section = (profile or {}).get("doc_selection") or {}
+    if "budget" in section:
+        budget = int(section["budget"])
+        stretch = int(section.get("stretch_max", budget + 5))
+    else:
+        budget = DEFAULT_BUDGET
+        stretch = int(section.get("stretch_max", DEFAULT_STRETCH_MAX))
+    return budget, stretch
 STRETCH_QUALITY_THRESHOLD: float = 0.55
 MIN_QUALITY_THRESHOLD: float = 0.20
 

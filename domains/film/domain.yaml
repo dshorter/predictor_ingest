@@ -395,6 +395,15 @@ gate_thresholds:
   zero_value_min_doc_chars: 500
   high_confidence_threshold: 0.8 # Gate D: confidence ≥0.8 + snippet not in source = flagged
 
+# --- Doc Selection Budget ---
+# Daily extraction budget (ADR-010 D3, Sprint 20.5). Film runs a denser
+# graph + Movers breadth, hence the higher budget. Change at window
+# boundaries only — mid-window volume changes create velocity artifacts
+# (methodology §2.7).
+doc_selection:
+  budget: 35
+  stretch_max: 40
+
 # --- Trend Weights ---
 trend_weights:
   velocity: 0.4

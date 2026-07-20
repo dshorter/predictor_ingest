@@ -11,7 +11,9 @@ GRAPHS_DIR ?= data/graphs/$(DOMAIN)
 DOCPACK_DIR ?= data/docpacks/$(DOMAIN)
 DOCPACK ?= $(DOCPACK_DIR)/daily_bundle_$(DATE).jsonl
 EXTRACTIONS_DIR ?= data/extractions/$(DOMAIN)
-BUDGET ?= 20
+# Doc budget: per-domain defaults live in domains/<slug>/domain.yaml
+# (doc_selection, ADR-010 D3). Set BUDGET=<n> to override one invocation.
+BUDGET ?=
 BUDGET_FLAG = $(if $(BUDGET),--budget $(BUDGET),)
 
 # ── Setup ──────────────────────────────────────────────────────────────
