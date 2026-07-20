@@ -174,7 +174,19 @@ def ingest_feed(
 
     t0 = time.monotonic()
     print(f"    {feed_label} Parsing feed XML: {feed_url}", flush=True)
-    feed = feedparser.parse(feed_url)
+    # Fetch the feed XML through the session, not feedparser's own urllib
+    # fetcher: some hosts (EE Times, first observed at the 2026-07-19
+    # restart) 403 the urllib client fingerprint regardless of UA while
+    # serving the same UA fine over requests — and the session is what the
+    # audit's UA verification actually tested.
+    try:
+        feed_resp = session.get(feed_url, timeout=timeout)
+        feed = feedparser.parse(feed_resp.content)
+        feed["status"] = feed_resp.status_code
+    except requests.RequestException as exc:
+        print(f"    {feed_label} Feed unreachable: {type(exc).__name__}: {exc}",
+              file=sys.stderr, flush=True)
+        return 0, 0, 1, False
     parse_sec = time.monotonic() - t0
 
     # Diagnostic info — only emit when something is worth flagging
