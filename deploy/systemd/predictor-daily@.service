@@ -1,0 +1,16 @@
+[Unit]
+Description=Predictor daily pipeline run (%i)
+# One instance per domain: predictor-daily@film, predictor-daily@semiconductors.
+# A failed run pages [SYSTEM] via the shared channel; the staleness pager
+# (predictor-staleness.timer) independently catches silent no-data stalls.
+OnFailure=notify-telegram@%n.service
+
+[Service]
+Type=oneshot
+User=claude
+WorkingDirectory=/opt/predictor_ingest
+# venv python first on PATH — the Makefile invokes bare `python`.
+Environment=PATH=/opt/predictor_ingest/venv/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/opt/predictor_ingest/.env
+ExecStart=/usr/bin/make daily DOMAIN=%i
+TimeoutStartSec=2h

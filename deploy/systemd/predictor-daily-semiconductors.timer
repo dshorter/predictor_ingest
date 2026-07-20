@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily semiconductors pipeline run at 06:45
+# Staggered 45min after film: no API/batch contention, and a film-run
+# failure is visible before semis fires.
+
+[Timer]
+OnCalendar=*-*-* 06:45:00
+Persistent=true
+Unit=predictor-daily@semiconductors.service
+
+[Install]
+WantedBy=timers.target
