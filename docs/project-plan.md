@@ -926,6 +926,26 @@ data; it can run while epoch 2 is still accumulating.
 
 ---
 
+## Sprint 21 (queued 2026-07-19, not yet designed) — Unified app shell
+
+Operator intent, captured while fresh: **the knowledge graph explorer and
+the Movers table must become tabs in one application**, not separate pages.
+Absorbs/supersedes the pending Sprint 16 (universal Movers deep-link) and
+Sprint 17 (cross-page navigation) — both exist only because the views are
+separate pages today.
+
+| # | Item | What |
+|---|------|------|
+| 21.1 | Tab shell | One page, one domain switcher, one URL scheme: `?domain=<slug>&tab=graph\|movers&entity=<id>`. Graph (Cytoscape) and Movers (table) as tabs sharing entity selection — click an entity in either tab, the other tab knows about it (this is Sprint 16's deep-link, solved structurally) |
+| 21.2 | Third tab: **Tripwire ledger** | Per-domain third view for tripwire-disposition domains (A8/20.14). NOT a graph and NOT a ranked table — nothing to rank below the volume floor. Shape: a dated event log ("what fired, when, from which source, against which watch condition"), empty by design most days. Tab appears only for domains whose fitness disposition (20.14) includes tripwire; ranking domains show graph+movers only |
+| 21.3 | Disposition-driven tab set | The two-axis fitness model (20.14) becomes the runtime authority on which tabs a domain gets — Landscape score → graph tab, Movers score → movers tab, tripwire flag → ledger tab |
+
+Design constraint from the wireframes era: Movers is virtual-scroll over
+thousands of rows; the graph is a heavy Cytoscape canvas. Tabs must
+lazy-init (don't pay for the canvas when landing on Movers, and vice versa).
+
+---
+
 ## Backend Track (parallel, data-dependent)
 
 These items run independently of the UI work. Most are waiting on pipeline data.
@@ -992,6 +1012,7 @@ Not scheduled. Documented so they're not forgotten.
 | 17 — Cross-page navigation | Pending — surfaced by Sprint 15 QA | — |
 | 18 — Predictor production URL | ✓ Complete (18.1–18.5, 18.9 shipped 2026-05-31; 18.6/18.7/18.8/18.10 housekeeping done 2026-06-03) | 2026-06-03 |
 | 19 — Backup restore drill + gap fixes | Pending — surfaced 2026-05-31 ("classic IT story" — backup designed, restore never tested) | — |
+| 20 — Restart execution + methodology hardening + fusion onboarding | In flight — 20.1/20.1b (07-19), 20.2 (scheduler units; diagnosis: never scheduled), 20.4, 20.5, 20.7–20.9, feed batch + source_changelog + UA verification done; epoch-2 first runs 07-19; open: timer install (operator sudo), 20.3 verify, 20.6, 20.10–20.14, Track C, Track D | — |
 
 ---
 
