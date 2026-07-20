@@ -26,8 +26,8 @@ feeds:
     # skeleton (same failure mode as film's Screen Daily) — use the
     # general feed instead.
     include_keywords: ["weapons detection", "gun detection", "gunshot",
-                       "metal detection", "walk-through", "AI detection",
-                       "ShotSpotter", "SoundThinking", "Evolv", "ZeroEyes",
+                       "metal detection", "walk-through",
+                       "ShotSpotter", "SoundThinking", "Evolv Technologies", "Evolv Express", "ZeroEyes",
                        "Xtract One", "screening", "active shooter"]
 
   - name: "Security Sales & Integration"
@@ -39,15 +39,34 @@ feeds:
     signal: primary
     # Security-integrator trade press — the installer/reseller angle on
     # vendor product launches and deployments.
+    # 2026-07-20 first-run finding: left unscoped on the (wrong)
+    # assumption its whole output skewed weapons-adjacent — first ten
+    # items were video-analytics/access-control/fire-safety trade news,
+    # zero weapons-detection specific. Scoped after the fact.
+    include_keywords: ["weapons detection", "gun detection", "gunshot",
+                       "metal detection", "walk-through screening",
+                       "ShotSpotter", "SoundThinking", "Evolv Technologies",
+                       "Evolv Express", "ZeroEyes", "Xtract One", "CEIA",
+                       "Omnilert", "AmberBox", "active shooter"]
 
   - name: "Security Industry Association"
     url: "https://www.securityindustry.org/feed/"
     type: rss
     enabled: true
+    limit: 10
     tier: 1
     signal: primary
     # SIA: the sector's trade group — policy positions, standards work,
     # member-vendor announcements.
+    # 2026-07-20 first-run finding: left unscoped and unlimited on the
+    # same wrong assumption — delivered 100 docs, all member-profile/
+    # career-advice trade-association content, zero weapons-detection
+    # specific. Scoped + limited after the fact.
+    include_keywords: ["weapons detection", "gun detection", "gunshot",
+                       "metal detection", "walk-through screening",
+                       "ShotSpotter", "SoundThinking", "Evolv Technologies",
+                       "Evolv Express", "ZeroEyes", "Xtract One", "CEIA",
+                       "Omnilert", "AmberBox", "active shooter"]
 
   # --- Tier 1: Buyer-side trade press (procurement angle) ---
 
@@ -62,7 +81,7 @@ feeds:
     # awards, pilot programs from the buyer's own trade press.
     include_keywords: ["weapons detection", "gun detection", "gunshot",
                        "metal detection", "screening", "ShotSpotter",
-                       "SoundThinking", "Evolv", "ZeroEyes", "school safety",
+                       "SoundThinking", "Evolv Technologies", "Evolv Express", "ZeroEyes", "school safety",
                        "active shooter", "security screening"]
 
   - name: "K-12 Dive"
@@ -77,7 +96,7 @@ feeds:
     # decisions here first.
     include_keywords: ["weapons detection", "gun detection", "metal detection",
                        "walk-through", "screening", "ShotSpotter", "SoundThinking",
-                       "Evolv", "ZeroEyes", "Xtract One", "active shooter",
+                       "Evolv Technologies", "Evolv Express", "ZeroEyes", "Xtract One", "active shooter",
                        "school safety technology", "security vestibule"]
 
   # --- Tier 1: Watchdog / civil-liberties (the controversy axis) ---
@@ -91,10 +110,14 @@ feeds:
     limit: 10
     tier: 1
     signal: commentary
+    # "surveillance"/"facial recognition" dropped 2026-07-20: same
+    # generic-collision risk class as the "Evolv"/"evolve" bug found in
+    # EFF's feed this run — ACLU's beat is broad enough that bare
+    # surveillance terms would let through unrelated stories.
     include_keywords: ["weapons detection", "gun detection", "gunshot",
-                       "metal detection", "screening", "surveillance",
-                       "ShotSpotter", "SoundThinking", "Evolv", "ZeroEyes",
-                       "facial recognition", "school security"]
+                       "metal detection", "walk-through screening",
+                       "ShotSpotter", "SoundThinking", "Evolv Technologies",
+                       "Evolv Express", "ZeroEyes", "school security screening"]
 
   - name: "EFF Deeplinks"
     url: "https://www.eff.org/rss/updates.xml"
@@ -106,19 +129,27 @@ feeds:
     # EFF covers surveillance broadly — scoped to the weapons-detection
     # slice of that broader beat.
     include_keywords: ["weapons detection", "gun detection", "gunshot",
-                       "ShotSpotter", "SoundThinking", "Evolv", "ZeroEyes",
-                       "metal detection", "AI detection", "school surveillance"]
+                       "ShotSpotter", "SoundThinking", "Evolv Technologies", "Evolv Express", "ZeroEyes",
+                       "metal detection", "school surveillance"]
 
   - name: "MacArthur Justice Center"
     url: "https://www.macarthurjustice.org/feed/"
     type: rss
     enabled: true
+    limit: 10
     tier: 1
     signal: commentary
-    # Named explicitly in the domain-candidates.md scoring: their
-    # ShotSpotter accuracy litigation/studies are primary watchdog
-    # material for this domain specifically (not scoped — low volume,
-    # every item is plausibly relevant).
+    # Named explicitly in the domain-candidates.md scoring for their
+    # ShotSpotter accuracy litigation/studies. 2026-07-20 first-run
+    # finding: left unscoped on the assumption "every item is plausibly
+    # relevant" — WRONG. Their general feed is broad civil-rights
+    # litigation (ICE detention, prison conditions, electronic
+    # monitoring); ShotSpotter work is a minority of their docket, not
+    # the majority. Scoped narrowly to what the registry actually named.
+    include_keywords: ["ShotSpotter", "SoundThinking", "gunshot detection",
+                       "acoustic gunshot", "gunshot detection technology",
+                       "Evolv Technologies", "Evolv Express", "ZeroEyes",
+                       "weapons detection"]
 
   # --- Tier 2: Monitor only (verified live but stale) ---
 

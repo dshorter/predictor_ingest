@@ -182,3 +182,19 @@ changes:
   # sliver, out of this domain's indoor scope). Bluesky/Reddit
   # deliberately NOT added — the domain's own pond-sizing scoring found
   # no chatter worth a slot; honored rather than default-added.
+
+  # First-run correction (same day, before any real accumulation) — see
+  # docs/methodology/hypotheses/weapons-detection-indoor.md for the
+  # honest account of what the first live ingest actually found.
+  - {date: 2026-07-20, domain: weapons_detection, action: scoped, source: "Security Sales & Integration",
+     reason: "first-run finding: left unscoped on a wrong assumption; delivered video-analytics/access-control/fire-safety trade news, zero weapons-detection specific",
+     coverage: "keyword-scoped after the fact; genuine on-topic item (ZeroEyes funding) confirmed post-fix"}
+  - {date: 2026-07-20, domain: weapons_detection, action: scoped, source: "Security Industry Association",
+     reason: "first-run finding: left unscoped+unlimited on the same wrong assumption; delivered 100 member-profile/career-advice docs, zero weapons-detection specific",
+     coverage: "keyword-scoped + limit:10 added; genuine on-topic item (ALERRT active-shooter research) confirmed post-fix. Feed XML also mildly malformed (bozo, recoverable) — noted, not yet fixed upstream"}
+  - {date: 2026-07-20, domain: weapons_detection, action: scoped, source: "MacArthur Justice Center",
+     reason: "first-run finding: 'every item is plausibly relevant' was wrong — their general feed is broad civil-rights litigation (ICE, prison conditions), ShotSpotter work is a minority of their docket",
+     coverage: "scoped narrowly to ShotSpotter/SoundThinking/gunshot-detection terms only"}
+  - {date: 2026-07-20, domain: weapons_detection, action: scoped, source: "EFF Deeplinks / StateScoop / K-12 Dive / ACLU Press Releases",
+     reason: "first-run finding: bare 'Evolv' as a keyword collided with the English word stem 'evolve/evolving' — 6 of 7 EFF matches were false positives (Watch Dogs game review, automated moderation, EU tech policy, police drones, malware, OPSEC training) before the fix",
+     coverage: "'Evolv' replaced with 'Evolv Technologies'/'Evolv Express' everywhere; also dropped generic 'AI detection'/'surveillance'/'facial recognition' terms as the same collision-risk class"}

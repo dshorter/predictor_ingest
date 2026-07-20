@@ -61,6 +61,56 @@ numbers to check against once data exists:
 | Velocity behavior | Bursty, incident-correlated — `sustained` (20.8) more informative than raw velocity | If velocity instead tracks procurement cycles cleanly with little incident noise, the domain is better-behaved than predicted (a good problem) |
 | Graduation rate (Movers → Landscape, per 20.13) | Low — most Movers entries should be one-off new entities that never "graduate," because the buyer set churns slowly | If graduation rate is comparable to film's, this domain isn't as sparse as scored and belongs on the ranking track after all |
 
+## First-run correction (2026-07-20, same day, before any real accumulation)
+
+The first live ingest — run to prove the config actually worked, not just
+that curl could reach the URLs — surfaced two real curation mistakes
+worth recording rather than quietly fixing and moving on:
+
+1. **Two sources delivered entirely off-topic volume.** Security
+   Industry Association (unscoped, unlimited) returned 100 documents —
+   member profiles, career advice, tariff filings — zero about weapons
+   detection specifically. Security Sales & Integration (unscoped)
+   returned 10 documents of general video-analytics/access-control/
+   fire-safety trade news, same result. Both had been left unscoped on
+   the assumption that a niche-enough trade source would skew relevant
+   by default; that assumption was wrong for a general security-industry
+   trade group and a general security-integrator trade press outlet.
+   Fixed by keyword-scoping both (and adding `limit: 10` to SIA, which
+   had none).
+2. **MacArthur Justice Center was wrongly assumed unscoped-safe.** The
+   registry named them specifically for ShotSpotter accuracy litigation,
+   and that got read as "their whole feed is on-topic." Their actual
+   general feed is broad civil-rights litigation — ICE detention,
+   prison conditions, electronic monitoring — and ShotSpotter work is a
+   minority of their output, not the majority. Scoped narrowly to the
+   terms the registry actually named.
+3. **A keyword-collision bug**: bare `"Evolv"` (the vendor) matched the
+   English word stem *evolve/evolving* — 6 of 7 items that passed EFF's
+   filter were false positives (a video-game retrospective, an
+   automated-moderation piece, EU tech policy, police drones, malware,
+   OPSEC training) with only 1 genuinely on-topic. Fixed by requiring
+   `"Evolv Technologies"` or `"Evolv Express"` everywhere instead of the
+   bare company name. Also dropped `"AI detection"`, `"surveillance"`,
+   and `"facial recognition"` as bare keywords across every scoped feed
+   — same collision-risk class, just not caught red-handed yet.
+
+The domain was wiped (`scripts/wipe_domain_data.py --domain
+weapons_detection --confirm`) and re-ingested clean rather than let 117
+off-topic documents sit in a fresh domain's very first batch. Second run:
+**3 documents, all genuinely on-topic** (ZeroEyes funding announcement,
+an ALERRT active-shooter research release, and EFF's Flock/ShotSpotter
+distress-detection story) — verified individually before trusting the
+count. Minor unrelated finding: SIA's feed XML is mildly malformed
+(recoverable `bozo` parse, not blocking) — noted, not yet fixed upstream.
+
+This is exactly the finding 20.13-style validation exists to catch, just
+compressed into hours instead of a dampening window: a keyword filter
+returning *some* matches is not proof those matches are the right ones —
+every scoped feed's actual hits should be spot-checked against real
+content at least once, the same discipline the 2026-07-19 audit applied
+to film and semiconductors.
+
 ## Budget and window
 
 Registry estimate: 5–12 docs/day. `domain.yaml` sets `doc_selection.budget: 10,
