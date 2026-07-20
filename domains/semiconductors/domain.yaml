@@ -283,9 +283,14 @@ gate_thresholds:
 # Daily extraction budget (ADR-010 D3, Sprint 20.5). Selectivity benefits
 # the Landscape lens here — keep the budget tight. Change at window
 # boundaries only (methodology §2.7).
+#
+# TEMPORARY 2x (2026-07-20 -> 2026-08-15): Anthropic rate reduction
+# through mid-August. Normal values: budget 20 / stretch_max 25. See
+# docs/backend/operational-state.md for the full note + revert
+# instructions; a VTODO on the ops calendar is the revert reminder.
 doc_selection:
-  budget: 20
-  stretch_max: 25
+  budget: 40
+  stretch_max: 50
 
 # --- Trend Weights ---
 # Semiconductor trends move on longer cycles than film but spike hard

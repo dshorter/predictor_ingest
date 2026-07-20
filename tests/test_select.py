@@ -810,8 +810,12 @@ class TestBudgetFromProfile:
         assert budget_from_profile(profile) == (DEFAULT_BUDGET, DEFAULT_STRETCH_MAX)
 
     def test_active_domain_profiles_carry_d3_budgets(self):
-        """Film 35/40, semiconductors 20/25 — the ADR-010 D3 decision."""
+        """ADR-010 D3 decision, TEMPORARILY 2x (2026-07-20 -> 2026-08-15,
+        Anthropic rate reduction — see docs/backend/operational-state.md).
+        Normal values: film 35/40, semiconductors 20/25, weapons_detection
+        10/15. Revert this test alongside the domain.yaml revert."""
         from domain import load_domain_profile
 
-        assert budget_from_profile(load_domain_profile("film")) == (35, 40)
-        assert budget_from_profile(load_domain_profile("semiconductors")) == (20, 25)
+        assert budget_from_profile(load_domain_profile("film")) == (70, 80)
+        assert budget_from_profile(load_domain_profile("semiconductors")) == (40, 50)
+        assert budget_from_profile(load_domain_profile("weapons_detection")) == (20, 30)

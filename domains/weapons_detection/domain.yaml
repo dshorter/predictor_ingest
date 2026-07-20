@@ -328,9 +328,16 @@ gate_thresholds:
 # Registry's steady-state estimate: 5-12 docs/day (pond-sized, smaller
 # than fusion's 10-15 — this is the tripwire/detection-disposition
 # domain, not a ranking-volume domain).
+#
+# TEMPORARY 2x (2026-07-20 -> 2026-08-15): Anthropic rate reduction
+# through mid-August. Normal values: budget 10 / stretch_max 15. See
+# docs/backend/operational-state.md for the full note + revert
+# instructions; a VTODO on the ops calendar is the revert reminder.
+# Also lands on this domain's very first day (minimizes the ADR-010 D3
+# mid-window-change concern — there's no window yet to disrupt).
 doc_selection:
-  budget: 10
-  stretch_max: 15
+  budget: 20
+  stretch_max: 30
 
 # --- Trend Weights ---
 # Mixed cadence: procurement/regulatory cycles are slow (semis-like,

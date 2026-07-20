@@ -5,7 +5,36 @@ run. Update this file whenever a domain's extraction mode, gate config, or model
 changes — even temporarily. This prevents forensic reconstruction across git logs
 and session notes.
 
-**Last updated:** 2026-06-10
+**Last updated:** 2026-07-20
+
+---
+
+## ⚠️ TEMPORARY: 2x doc budgets during Anthropic's rate reduction (2026-07-20 → 2026-08-15)
+
+Operator directive 2026-07-20: Anthropic is running a 50% rate reduction
+through mid-August. Doubled `doc_selection.budget`/`stretch_max` in all
+three active domains' `domain.yaml` to take advantage of it while it lasts.
+
+| Domain | Normal (budget/stretch) | Temporary (budget/stretch) |
+|---|---|---|
+| film | 35 / 40 | **70 / 80** |
+| semiconductors | 20 / 25 | **40 / 50** |
+| weapons_detection | 10 / 15 | **20 / 30** |
+
+**Revert date: 2026-08-15.** A VTODO is on the ops calendar
+(`ops/calendar-add`) as the durable reminder — this doc entry is the
+paper trail for *why*, not the trigger. Revert by restoring the "Normal"
+column values in each domain's `domain.yaml` `doc_selection` section and
+deleting this section (or marking it closed with the actual revert date).
+
+Note the ADR-010 D3 framing this technically violates on purpose: budget
+changes are supposed to happen at window boundaries only, because
+volume changes create velocity artifacts the same way source swaps do
+(methodology §2.7). This bump lands two days into film/semiconductors'
+epoch 2 and on weapons_detection's first day — deliberately as early as
+possible in each domain's history to minimize the artifact window, but
+it is still a mid-window change and Movers/velocity readings across
+2026-07-20 → 2026-08-15 should be read with that in mind.
 
 ---
 

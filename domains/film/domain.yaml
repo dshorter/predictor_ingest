@@ -400,9 +400,14 @@ gate_thresholds:
 # graph + Movers breadth, hence the higher budget. Change at window
 # boundaries only — mid-window volume changes create velocity artifacts
 # (methodology §2.7).
+#
+# TEMPORARY 2x (2026-07-20 -> 2026-08-15): Anthropic rate reduction
+# through mid-August. Normal values: budget 35 / stretch_max 40. See
+# docs/backend/operational-state.md for the full note + revert
+# instructions; a VTODO on the ops calendar is the revert reminder.
 doc_selection:
-  budget: 35
-  stretch_max: 40
+  budget: 70
+  stretch_max: 80
 
 # --- Trend Weights ---
 trend_weights:
