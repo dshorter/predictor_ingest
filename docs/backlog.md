@@ -290,6 +290,22 @@ accumulates disproportionate degree in practice.
 
 ## Pipeline & Infrastructure
 
+### PIPE-4: Test suite assumes AI domain; no push CI runs it anyway
+
+**Observed:** 2026-07-19 (Sprint 20.4 session) | **Priority:** Medium
+
+`make test` fails 22 tests under the current `DOMAIN ?= film` default:
+~20 in test_extract/test_schema/test_resolve/test_integration/test_llm_eval
+assume the AI domain's relation taxonomy (pass with `PREDICTOR_DOMAIN=ai`),
+and 2 in test_source_type expect bluesky/reddit ImportErrors but the deps
+are installed. Nothing catches this: the only workflow is release.yml
+(tag-triggered); push CI was retired with deploy.yml on 2026-07-19.
+
+**Action:** Pin taxonomy-dependent tests to their domain explicitly
+(fixture setting PREDICTOR_DOMAIN=ai, not ambient default), fix or drop
+the two import-error tests, then decide whether a push-triggered
+verify.yml is wanted (uzelhub-web precedent).
+
 ### PIPE-3: Cross-document synthesis dropped to zero on 2026-03-27
 
 **Observed:** 2026-03-27 (gist metrics review) | **Priority:** Medium

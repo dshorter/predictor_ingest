@@ -1,0 +1,12 @@
+[Unit]
+Description=Predictor pipeline staleness pager (Sprint 20.4)
+# Pages [PREDICTOR] on the shared operator channel when an active domain
+# has no new docs / no trend_history row in >48h, or an enabled feed has
+# gone silent >14d. A crash of the check itself pages via OnFailure.
+OnFailure=notify-telegram@%n.service
+
+[Service]
+Type=oneshot
+User=claude
+WorkingDirectory=/opt/predictor_ingest
+ExecStart=/opt/predictor_ingest/venv/bin/python scripts/check_staleness.py --notify
