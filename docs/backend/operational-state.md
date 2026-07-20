@@ -9,6 +9,36 @@ and session notes.
 
 ---
 
+## Extraction model: PRIMARY_MODEL is now claude-sonnet-5 (2026-07-20)
+
+Pipeline-wide (all domains — `PRIMARY_MODEL` is a single env var, not
+per-domain). Was `claude-sonnet-4-6`. Motivated by Sonnet 5's intro
+pricing (~33% off through 2026-08-31 — verified against both the
+project's own `pricing.py` analog research and the claude-api skill's
+cached rate table; earlier "50% off" framing was a misremember).
+**Unlike the doc-budget bump above, this is not meant to revert** —
+once intro pricing ends 2026-09-01, Sonnet 5 costs the same as Sonnet
+4.6 already did, and it's a real quality upgrade, so there's no reason
+to go back. No calendar VTODO for this one.
+
+Every Anthropic call site PRIMARY_MODEL feeds (`scripts/submit_batch.py`,
+`submit_backlog.py`, `run_extract.py`, `collect_batch.py`,
+`src/synthesize/__init__.py`) was checked for Sonnet-5 breaking changes
+first — none pass sampling params, `budget_tokens`, or assistant
+prefill, so nothing needed fixing there. One default *did* need an
+explicit override: Sonnet 5 runs adaptive thinking when `thinking` is
+omitted (4.6 defaulted to off), so all five call sites now pass
+`thinking: {"type": "disabled"}` explicitly to keep cost and output
+budget behavior unchanged.
+
+**Follow-up:** watch quality-gate pass rates for the next couple of
+weeks and recalibrate `gate_thresholds` per-domain if Sonnet 5's output
+shape differs enough to need it (the domains' own gate comments already
+say "re-calibrate after 2 weeks of Sonnet-only runs if needed" — this
+is that moment, one model-generation early).
+
+---
+
 ## ⚠️ TEMPORARY: 2x doc budgets during Anthropic's rate reduction (2026-07-20 → 2026-08-15)
 
 Operator directive 2026-07-20: Anthropic is running a 50% rate reduction
