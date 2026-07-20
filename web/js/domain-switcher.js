@@ -21,6 +21,7 @@ const KNOWN_DOMAINS = [
   { slug: 'biosafety',     label: 'Biosafety',      title: 'Biosafety Trend Graph' },
   { slug: 'film',          label: 'Film',           title: 'Film & Indie Cinema Trend Graph' },
   { slug: 'semiconductors', label: 'Semiconductors', title: 'Semiconductor Trend Graph' },
+  { slug: 'weapons_detection', label: 'Weapons Detection', title: 'Weapons Detection Systems Trend Graph' },
 ];
 
 // ---------------------------------------------------------------------------

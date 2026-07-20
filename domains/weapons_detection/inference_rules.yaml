@@ -1,0 +1,47 @@
+# Inference rules for Weapons Detection Systems (Indoor)
+# Schema: two-antecedent rules require the shared middle entity to match
+# (antecedent[0].target == antecedent[1].source) — see src/infer/__init__.py.
+
+inference_rules:
+  - name: "vendor_buyer_via_product"
+    description: >
+      If a Vendor manufactures a Product and that Product is deployed to
+      a Buyer, infer the Vendor contracts with the Buyer directly. The
+      commercial-relationship equivalent of film's director/studio rule.
+    antecedents:
+      - {source_type: Vendor, rel: MANUFACTURES, target_type: Product}
+      - {source_type: Product, rel: DEPLOYED_TO, target_type: Buyer}
+    consequent:
+      rel: CONTRACTS_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.8
+
+  - name: "report_topic_via_product"
+    description: >
+      If a Report evaluates a Product and that Product is associated with
+      a controversy Topic, infer the Report addresses that Topic too —
+      surfaces which evaluations bear on which disputes even when the
+      report text doesn't name the topic explicitly.
+    antecedents:
+      - {source_type: Report, rel: EVALUATES, target_type: Product}
+      - {source_type: Product, rel: ASSOCIATED_WITH, target_type: Topic}
+    consequent:
+      rel: ASSOCIATED_WITH
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.6
+
+  - name: "regulation_product_via_buyer"
+    description: >
+      If a Regulation mandates a Buyer and that Buyer procures a Product,
+      infer the Regulation effectively requires that product category —
+      the primary-source trail from law to purchased technology.
+    antecedents:
+      - {source_type: Regulation, rel: MANDATES, target_type: Buyer}
+      - {source_type: Buyer, rel: PROCURES, target_type: Product}
+    consequent:
+      rel: REQUIRES
+      source: "antecedent[0].source"
+      target: "antecedent[1].target"
+    confidence_discount: 0.7

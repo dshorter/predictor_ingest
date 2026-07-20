@@ -1,0 +1,31 @@
+# Graph view configuration for Weapons Detection Systems (Indoor)
+#
+# Defines which relation types belong to each Cytoscape export view.
+
+# Document-level relations (used for the "mentions" view)
+document_relations:
+  - MENTIONS
+  - CITES
+  - ANNOUNCES
+  - REPORTED_BY
+
+# Dependency-style relations (used for the "dependencies" view)
+# Here: the commercial + regulatory + controversy chain — who deploys to
+# whom, who mandates what, who disputes whose claims.
+dependency_relations:
+  - MANUFACTURES
+  - DEPLOYED_TO
+  - PROCURES
+  - PILOTS
+  - CONTRACTS_WITH
+  - ACQUIRES
+  - PARTNERS_WITH
+  - MANDATES
+  - REQUIRES
+  - GOVERNED_BY
+  - REGULATES
+  - EVALUATES
+  - DISPUTES
+  - ASSOCIATED_WITH
+  - INVESTIGATES
+  - RESPONDS_TO

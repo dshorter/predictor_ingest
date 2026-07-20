@@ -137,3 +137,48 @@ changes:
   # DigiTimes (hard paywall). SemiAnalysis kept UNCHANGED: the incumbent
   # already pointed at the fresh Substack feed; the blind's 10-month-lag
   # flag was the site's own /feed, not ours.
+
+  # -------------------------------------------------- weapons_detection
+  # New-domain onboarding (2026-07-20), not a change to an existing
+  # domain — logged here anyway per §2.8's spirit: every source's first
+  # appearance should be dated and reasoned, not just discoverable by
+  # diffing feeds.yaml.
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "Security Magazine",
+     reason: "trade press anchor; topic-specific feed is empty-but-valid, general feed keyword-scoped instead",
+     coverage: "broad security trade, scoped to weapons-detection slice"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "Security Sales & Integration",
+     reason: "installer/reseller trade press",
+     coverage: "product launches and deployments from the integrator angle"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "Security Industry Association",
+     reason: "sector trade group — policy positions, standards, member announcements",
+     coverage: "industry-official voice"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "StateScoop",
+     reason: "gov-tech procurement trade press, keyword-scoped",
+     coverage: "RFPs, contract awards, pilots from the buyer's own trade press"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "K-12 Dive",
+     reason: "largest single buyer category (school districts) covers its own procurement first",
+     coverage: "school-district weapons-detection procurement"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "ACLU Press Releases",
+     reason: "watchdog/controversy axis, keyword-scoped",
+     coverage: "civil-liberties challenges to deployments"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "EFF Deeplinks",
+     reason: "watchdog/controversy axis, keyword-scoped (EFF's beat is broader surveillance)",
+     coverage: "digital-rights angle on AI/acoustic detection"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "MacArthur Justice Center",
+     reason: "named explicitly in the domain scoring — ShotSpotter accuracy litigation/studies",
+     coverage: "the specific watchdog work the domain was chosen partly to capture"}
+  - {date: 2026-07-20, domain: weapons_detection, action: added, source: "SEC EDGAR Weapons Detection",
+     reason: "the two pure-play public tickers (Evolv EVLV, SoundThinking SSTI) — fusion-grade calendar ground truth per the domain scoring",
+     coverage: "quarterly/annual filings, material events; CIKs verified via SEC company_tickers.json"}
+  - {date: 2026-07-20, domain: weapons_detection, action: disabled, source: "Campus Safety Magazine",
+     reason: "feed 200s and parses clean but newest item was ~5.5 months stale at verification — stale-but-valid, not trusted on a 200 status alone",
+     coverage: "would be a strong buyer-side (campus/hospital) source if current — recheck before restart"}
+  # Not adopted, for the record: SecurityInfoWatch, Mass Transit Magazine,
+  # SDM Magazine, Security Systems News, GovTech, PoliceOne, HSToday,
+  # Route Fifty, EdWeek, American City & County (all 403/404'd multiple
+  # feed-URL guesses — genuine transit-safety/general-security-integrator
+  # gap, open). IPVM (paywalled, no public RSS found — manual/scrape
+  # candidate, banked). Gun Violence Archive (no RSS; outdoor tripwire
+  # sliver, out of this domain's indoor scope). Bluesky/Reddit
+  # deliberately NOT added — the domain's own pond-sizing scoring found
+  # no chatter worth a slot; honored rather than default-added.

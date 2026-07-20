@@ -12,8 +12,11 @@
 // everywhere (ontology page today, main app + dashboard later).
 // ---------------------------------------------------------------------------
 const KNOWN_DOMAINS = [
-  { slug: 'ai',        label: 'AI / ML' },
-  { slug: 'biosafety', label: 'Biosafety' },
+  { slug: 'ai',                label: 'AI / ML' },
+  { slug: 'biosafety',         label: 'Biosafety' },
+  { slug: 'film',              label: 'Film' },
+  { slug: 'semiconductors',    label: 'Semiconductors' },
+  { slug: 'weapons_detection', label: 'Weapons Detection' },
 ];
 
 // ---------------------------------------------------------------------------

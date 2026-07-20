@@ -1,0 +1,169 @@
+# RSS feeds for Weapons Detection Systems (Indoor)
+# Runtime configuration — parsed by src/ingest/rss.py
+#
+# All feeds below verified fresh from the pipeline UA (predictor-ingest/0.1)
+# on 2026-07-20, same methodology as the 2026-07-19 film/semis source
+# audit. No chatter feeds (Bluesky/Reddit): the domain-candidates.md
+# scoring explicitly found "near-zero practitioner chatter (no Reddit/
+# Bluesky worth a slot)" — honored here rather than default-adding one.
+#
+# tier: 1 = primary/original source, 2 = secondary/analysis, 3 = echo
+# signal: primary | commentary | echo | community
+
+feeds:
+  # --- Tier 1: Trade press ---
+
+  - name: "Security Magazine"
+    url: "https://www.securitymagazine.com/rss/topic/2236-security-blog"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # General security trade — broad, keyword-scoped to the weapons-
+    # detection slice. The domain-specific topic feed
+    # (/rss/topic/2637-weapons-detection) returns a valid-but-empty
+    # skeleton (same failure mode as film's Screen Daily) — use the
+    # general feed instead.
+    include_keywords: ["weapons detection", "gun detection", "gunshot",
+                       "metal detection", "walk-through", "AI detection",
+                       "ShotSpotter", "SoundThinking", "Evolv", "ZeroEyes",
+                       "Xtract One", "screening", "active shooter"]
+
+  - name: "Security Sales & Integration"
+    url: "https://www.securitysales.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # Security-integrator trade press — the installer/reseller angle on
+    # vendor product launches and deployments.
+
+  - name: "Security Industry Association"
+    url: "https://www.securityindustry.org/feed/"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: primary
+    # SIA: the sector's trade group — policy positions, standards work,
+    # member-vendor announcements.
+
+  # --- Tier 1: Buyer-side trade press (procurement angle) ---
+
+  - name: "StateScoop"
+    url: "https://statescoop.com/feed/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # State/local government technology procurement — RFPs, contract
+    # awards, pilot programs from the buyer's own trade press.
+    include_keywords: ["weapons detection", "gun detection", "gunshot",
+                       "metal detection", "screening", "ShotSpotter",
+                       "SoundThinking", "Evolv", "ZeroEyes", "school safety",
+                       "active shooter", "security screening"]
+
+  - name: "K-12 Dive"
+    url: "https://www.k12dive.com/feeds/news/"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: primary
+    # School-district trade press — the single largest buyer category
+    # for visual-AI and walk-through vendors covers its own procurement
+    # decisions here first.
+    include_keywords: ["weapons detection", "gun detection", "metal detection",
+                       "walk-through", "screening", "ShotSpotter", "SoundThinking",
+                       "Evolv", "ZeroEyes", "Xtract One", "active shooter",
+                       "school safety technology", "security vestibule"]
+
+  # --- Tier 1: Watchdog / civil-liberties (the controversy axis) ---
+  # Per the registry: "skeptic sources are the anti-consensus layer built
+  # in" — these are named sources, not a generic catch-all.
+
+  - name: "ACLU Press Releases"
+    url: "https://www.aclu.org/press-releases/feed"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    include_keywords: ["weapons detection", "gun detection", "gunshot",
+                       "metal detection", "screening", "surveillance",
+                       "ShotSpotter", "SoundThinking", "Evolv", "ZeroEyes",
+                       "facial recognition", "school security"]
+
+  - name: "EFF Deeplinks"
+    url: "https://www.eff.org/rss/updates.xml"
+    type: rss
+    enabled: true
+    limit: 10
+    tier: 1
+    signal: commentary
+    # EFF covers surveillance broadly — scoped to the weapons-detection
+    # slice of that broader beat.
+    include_keywords: ["weapons detection", "gun detection", "gunshot",
+                       "ShotSpotter", "SoundThinking", "Evolv", "ZeroEyes",
+                       "metal detection", "AI detection", "school surveillance"]
+
+  - name: "MacArthur Justice Center"
+    url: "https://www.macarthurjustice.org/feed/"
+    type: rss
+    enabled: true
+    tier: 1
+    signal: commentary
+    # Named explicitly in the domain-candidates.md scoring: their
+    # ShotSpotter accuracy litigation/studies are primary watchdog
+    # material for this domain specifically (not scoped — low volume,
+    # every item is plausibly relevant).
+
+  # --- Tier 2: Monitor only (verified live but stale) ---
+
+  - name: "Campus Safety Magazine"
+    url: "https://www.campussafetymagazine.com/feed/"
+    type: rss
+    enabled: false  # disabled 2026-07-20: feed 200s and parses clean, but
+                    # newest item at verification was ~5.5 months old
+                    # (Feb 2026) — a stale-but-valid feed, the freshness
+                    # cousin of the audit's "empty-but-valid" finding.
+                    # Re-check before the domain's first restart if it's
+                    # still this stale, drop for good.
+    limit: 10
+    tier: 2
+    signal: primary
+    # Campus/hospital security trade — would be a strong buyer-side
+    # source if the feed were current.
+
+  # --- Primary sources / financial filings ---
+  # The registry's "fusion-grade" calendar ground truth: TWO pure-play
+  # public tickers reporting quarterly. CIKs verified against SEC's
+  # company_tickers.json 2026-07-20 (not guessed).
+
+  - name: "SEC EDGAR Weapons Detection"
+    type: edgar
+    enabled: true
+    tier: 1
+    signal: primary
+    limit: 15
+    companies:
+      - {name: "Evolv Technologies Holdings (EVLV)", cik: "0001805385"}
+      - {name: "SoundThinking, Inc. (SSTI, formerly ShotSpotter)", cik: "0001351636"}
+    filing_types: ["10-K", "10-Q", "8-K"]
+    # Quarterly/annual reports + material events from the two pure-play
+    # public companies in this ecosystem. Rate limit: 10 req/sec.
+    # Requires User-Agent with contact email — env: SEC_EDGAR_EMAIL.
+
+  # --- Not adopted (documented, per audit convention) ---
+  # SecurityInfoWatch, Mass Transit Magazine, SDM Magazine, Security
+  # Systems News, GovTech, PoliceOne, HSToday, Route Fifty, EdWeek,
+  # American City & County — all 403/404'd multiple feed-URL guesses on
+  # 2026-07-20. Genuine gap on transit-safety and general-security-
+  # integrator trade press; revisit with a scrape approach if the
+  # verified sources above prove thin on the transit-specific angle.
+  # IPVM — paywalled "crown jewel" per the registry, no public RSS found;
+  # manual/scrape candidate, banked. Gun Violence Archive — no RSS;
+  # relevant to the outdoor tripwire sliver, not this indoor scope,
+  # so not chased further.

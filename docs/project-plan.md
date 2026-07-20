@@ -898,6 +898,24 @@ already persisted; film's epoch-1 ground truth has already *happened*.
 | 20.19 | Retro-backfill Track B metrics over epoch 1 | CI-lower-bound velocity from stored window counts, `sustained` from consecutive `trend_history` windows, `bridge_delta` from the daily persisted `bridge_score`. Re-rank the genuine epoch-1 history under the new methodology and diff against the shipped rankings — did the CI bound suppress the small-N fake-number risers? Retrodiction, graded as such; never blended across the epoch boundary (20.1b) | [Opus] |
 | 20.20 | First validation cycle on known outcomes | Film's epoch-1 outcomes (festival lineups, acquisitions, March–June) are already on the record: run 20.13's instrument against the retro-scored history — precision@10/@20, lead time, graduation rate — before any new-data cycle completes. Pre-seeds the baselines 20.13 will grade epoch 2 against | [Opus] |
 
+### Track E — Weapons Detection onboarding (added 2026-07-20, queue-jumped ahead of Track C)
+
+Not part of the original Sprint 20 plan. Onboarded by explicit operator
+directive on 2026-07-20, ahead of fusion (Track C) in the pond-sizing
+queue recorded in `docs/methodology/domain-candidates.md` — a deliberate
+reorder, not a change to the underlying sequencing rule. Followed the
+same discipline Track C is designed for: score first (done 2026-07-19),
+pre-register a named hypothesis before first data, onboard from
+`domains/_template/`.
+
+| # | Item | What | Model |
+|---|------|------|-------|
+| 20.21 | Domain scaffold | `domains/weapons_detection/` from `_template`: 12 entity types (Vendor, Product, Buyer, Regulation, Report, …), 25-relation taxonomy incl. an explicit controversy axis (DISPUTES/RESPONDS_TO/EVALUATES), 3 inference rules, budget 10/15/day. Passes `test_grep_audit.py` + `test_domain_profile.py` | [Sonnet] |
+| 20.22 | Source discovery + UA verification | ~10 feeds verified fresh from the pipeline UA 2026-07-20 (Security Magazine, Security Sales & Integration, SIA, StateScoop, K-12 Dive, ACLU, EFF, MacArthur Justice Center) + SEC EDGAR for the two pure-play tickers (EVLV CIK 1805385, SSTI CIK 1351636, verified against SEC's `company_tickers.json`, not guessed). Campus Safety Magazine found live but stale (~5.5mo) — disabled, not silently trusted. Deliberately no Bluesky/Reddit — the registry's own scoring found no chatter worth a slot, honored rather than default-added. Open gap, documented not chased: SecurityInfoWatch/Mass Transit/general security-integrator trade press all 403/404'd | [Manual + Sonnet] |
+| 20.23 | Pre-registered hypothesis | `docs/methodology/hypotheses/weapons-detection-indoor.md` — what this domain is expected to prove (buyer-side trade press surfaces deployments before trend pieces; controversy axis stays non-empty; tripwire disposition confirmed by a thin Movers population), each claim stated as falsifiable, graded no earlier than 2026-08-03 (14-day dampening from first ingest) | [Manual] |
+| 20.24 | First ingest | Fired 2026-07-20. Output provisional through the dampening window; daily snapshots collect from day 1 | [Manual] |
+| 20.25 | Ground-truth definitions + validation cycle | Same pattern as 20.12/20.13 but for this domain: dated outcome definitions (contract awards, evaluation report publication dates), then a validation cycle grading the 20.23 hypothesis. Blocked on the dampening window closing | [Manual + Opus] |
+
 **Output:** three domains (film, semiconductors, fusion) running daily
 with staleness paging; Movers ranked by uncertainty-aware, persistence-
 and structure-aware signals; a validation instrument producing its first

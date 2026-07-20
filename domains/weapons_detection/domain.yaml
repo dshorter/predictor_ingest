@@ -1,0 +1,426 @@
+# ==========================================================================
+# Domain Profile: Weapons Detection Systems (Indoor)
+# ==========================================================================
+# Onboarded 2026-07-20, out of sequence relative to the pond-sizing queue
+# (fusion → biopharma → this) recorded in
+# docs/methodology/domain-candidates.md — operator directive to jump the
+# queue. Scoring, disposition, and known weaknesses were pre-registered
+# there on 2026-07-19 before this file existed; see
+# docs/methodology/hypotheses/weapons-detection-indoor.md for the named
+# prediction this domain is expected to prove or break (Sprint 20.15
+# pattern, methodology §2 pre-registration discipline).
+#
+# Scope: one ecosystem selling into the same buyers (transit agencies,
+# schools, hospitals, venues, workplaces) — acoustic gunshot detection
+# (AmberBox, SoundThinking/ShotSpotter, Databuoy), visual AI detection
+# (ZeroEyes, Omnilert), and walk-through weapons screening (Evolv, Xtract
+# One, CEIA). Deliberately NOT scoped to a single venue type (subway
+# stations were an illustrative example in the original request, not a
+# lens — see the registry entry's rationale).
+#
+# Framework: predictor_ingest (domain-agnostic pipeline)
+# Schema:    schemas/domain-profile.json
+# ==========================================================================
+
+domain:
+  name: "Weapons Detection Systems (Indoor)"
+  slug: "weapons_detection"
+  description: >
+    Indoor weapons detection as one commercial ecosystem: acoustic gunshot
+    detection, visual AI detection, and walk-through screening vendors
+    selling into transit, school, hospital, venue, and workplace buyers.
+    Tracks vendor-buyer deployments, procurement cycles, regulatory
+    mandates, and the accuracy/surveillance controversy that runs through
+    every product category.
+
+# --- Entity Types ---
+entity_types:
+  - Vendor          # AmberBox, SoundThinking, ZeroEyes, Evolv, Xtract One, CEIA, Omnilert
+  - Product          # Named systems/platforms (Evolv Express, ZeroEyes Z6, ShotSpotter)
+  - Buyer            # Transit agency, school district, hospital system, venue operator, employer
+  - Person           # Executives, researchers, advocates, officials
+  - Regulation       # Laws, mandates, procurement policies, RFPs, evaluation requirements
+  - Report           # Evaluation reports, watchdog studies, accuracy audits, pilot findings
+  - Event            # Contract awards, pilot launches, incidents, trade shows (ISC West, GSX)
+  - Location         # Cities, transit systems, school districts, venues, states
+  - Topic            # False-positive rate, algorithmic bias, privacy/surveillance, cost-per-scan
+  - Org              # Watchdogs (ACLU, EFF, MacArthur Justice Center), trade groups (SIA), agencies
+  - Document         # Pipeline-internal source documents
+  - Other            # Catch-all
+
+# --- Relation Taxonomy ---
+relation_taxonomy:
+  canonical:
+    # Document-level (base layer)
+    - MENTIONS
+    - CITES
+    - ANNOUNCES
+    - REPORTED_BY
+
+    # Commercial / deployment
+    - MANUFACTURES     # Vendor -> Product
+    - DEPLOYED_TO       # Product -> Buyer (installed/live)
+    - PROCURES          # Buyer -> Product (purchase/RFP award)
+    - PILOTS            # Buyer -> Product (trial program, not yet full deployment)
+    - CONTRACTS_WITH     # Buyer <-> Vendor (direct commercial relationship)
+    - ACQUIRES          # Vendor -> Vendor (company acquisitions, e.g. Alarm.com/SDS)
+    - PARTNERS_WITH      # Vendor <-> Vendor, Vendor <-> Buyer (integrations, resale deals)
+
+    # Regulatory / governance
+    - MANDATES          # Regulation -> Buyer (law requires adoption)
+    - REQUIRES           # Regulation -> Product (inferred: regulation drives a product category)
+    - GOVERNED_BY        # Buyer -> Regulation
+    - REGULATES          # Org -> Vendor/Product (oversight body)
+
+    # Evaluation / controversy (the axis the registry calls out explicitly)
+    - EVALUATES          # Report -> Product (study/audit)
+    - DISPUTES           # Org -> Vendor/Product (watchdog challenges accuracy/marketing claims)
+    - ASSOCIATED_WITH     # Product/Report -> Topic
+    - INVESTIGATES        # Org -> Vendor/Product
+    - RESPONDS_TO         # Vendor -> Report/Org (vendor rebuttal)
+
+    # Personnel
+    - FOUNDED            # Person -> Vendor/Org
+    - HIRED              # Vendor/Org -> Person
+    - LEADS              # Person -> Vendor/Org
+
+    # Events
+    - PRESENTS_AT         # Vendor -> Event
+    - OCCURS_AT           # Event -> Location
+
+  groups:
+    document:
+      - MENTIONS
+      - CITES
+      - ANNOUNCES
+      - REPORTED_BY
+    commercial:
+      - MANUFACTURES
+      - DEPLOYED_TO
+      - PROCURES
+      - PILOTS
+      - CONTRACTS_WITH
+      - ACQUIRES
+      - PARTNERS_WITH
+    regulatory:
+      - MANDATES
+      - REQUIRES
+      - GOVERNED_BY
+      - REGULATES
+    evaluation:
+      - EVALUATES
+      - DISPUTES
+      - ASSOCIATED_WITH
+      - INVESTIGATES
+      - RESPONDS_TO
+    personnel:
+      - FOUNDED
+      - HIRED
+      - LEADS
+    event:
+      - PRESENTS_AT
+      - OCCURS_AT
+
+  # Semantic synonyms (domain judgment). Tense variants are auto-generated
+  # below the marker line via generate_normalization.py --apply.
+  normalization:
+    DEPLOYS: DEPLOYED_TO
+    INSTALLS: DEPLOYED_TO
+    INSTALLED: DEPLOYED_TO
+    INSTALLED_AT: DEPLOYED_TO
+    ROLLED_OUT: DEPLOYED_TO
+    ROLLS_OUT: DEPLOYED_TO
+    PURCHASED: PROCURES
+    PURCHASES: PROCURES
+    BOUGHT: PROCURES
+    BUYS: PROCURES
+    AWARDED_CONTRACT: CONTRACTS_WITH
+    AWARDED_CONTRACT_TO: CONTRACTS_WITH
+    CONTRACTED_WITH: CONTRACTS_WITH
+    SIGNED_CONTRACT_WITH: CONTRACTS_WITH
+    PILOTED: PILOTS
+    TRIALS: PILOTS
+    TRIALED: PILOTS
+    TESTED: PILOTS
+    TESTING: PILOTS
+    CRITICIZED: DISPUTES
+    CRITICIZES: DISPUTES
+    CHALLENGED: DISPUTES
+    CHALLENGES: DISPUTES
+    QUESTIONED: DISPUTES
+    QUESTIONS: DISPUTES
+    OPPOSES: DISPUTES
+    OPPOSED: DISPUTES
+    MANDATED: MANDATES
+    REQUIRED: REQUIRES
+    REGULATED: REGULATES
+    ACQUIRED: ACQUIRES
+    BOUGHT_OUT: ACQUIRES
+    PARTNERED: PARTNERS_WITH
+    PARTNERED_WITH: PARTNERS_WITH
+    TEAMED_UP_WITH: PARTNERS_WITH
+    COLLABORATES_WITH: PARTNERS_WITH
+    EVALUATED: EVALUATES
+    STUDIED: EVALUATES
+    AUDITED: EVALUATES
+    ASSESSED: EVALUATES
+    REVIEWED: EVALUATES
+    ASSOCIATED: ASSOCIATED_WITH
+    LINKED_TO: ASSOCIATED_WITH
+    TIED_TO: ASSOCIATED_WITH
+    RELATED_TO: ASSOCIATED_WITH
+    GOVERNED: GOVERNED_BY
+    INVESTIGATED: INVESTIGATES
+    PROBED: INVESTIGATES
+    PROBES: INVESTIGATES
+    RESPONDED_TO: RESPONDS_TO
+    RESPONDED: RESPONDS_TO
+    DEFENDED: RESPONDS_TO
+    DEFENDS: RESPONDS_TO
+    FOUNDED_BY: FOUNDED
+    CO_FOUNDED: FOUNDED
+    ESTABLISHED: FOUNDED
+    HIRED_BY: HIRED
+    APPOINTED: HIRED
+    NAMED: HIRED
+    JOINED: HIRED
+    LED_BY: LEADS
+    HEADS: LEADS
+    RUNS: LEADS
+    PRESENTED_AT: PRESENTS_AT
+    EXHIBITED_AT: PRESENTS_AT
+    SPOKE_AT: PRESENTS_AT
+    SHOWCASED_AT: PRESENTS_AT
+    OCCURRED_AT: OCCURS_AT
+    HELD_AT: OCCURS_AT
+    TOOK_PLACE_AT: OCCURS_AT
+    HAPPENED_AT: OCCURS_AT
+    ANNOUNCED: ANNOUNCES
+    ANNOUNCING: ANNOUNCES
+    MENTIONED: MENTIONS
+    CITED: CITES
+    REPORTED: REPORTED_BY
+    REPORTS: REPORTED_BY
+
+    # --- Auto-generated tense variants (generate_normalization.py) ---
+    # Review these entries. Remove any that collide with domain-specific
+    # meanings (e.g., if CONTAINED means something different from CONTAINS).
+    ACQUIRE: ACQUIRES
+    ACQUIRES_BY: ACQUIRES
+    ACQUIRING: ACQUIRES
+    ANNOUNCE: ANNOUNCES
+    ANNOUNCES_BY: ANNOUNCES
+    ASSOCIATES_WITH: ASSOCIATED_WITH
+    ASSOCIATE_WITH: ASSOCIATED_WITH
+    ASSOCIATING_WITH: ASSOCIATED_WITH
+    CITE: CITES
+    CITES_BY: CITES
+    CITING: CITES
+    CONTRACTING_WITH: CONTRACTS_WITH
+    CONTRACT_WITH: CONTRACTS_WITH
+    DEPLOYES_TO: DEPLOYED_TO
+    DEPLOYE_TO: DEPLOYED_TO
+    DEPLOYING_TO: DEPLOYED_TO
+    DISPUTE: DISPUTES
+    DISPUTED: DISPUTES
+    DISPUTES_BY: DISPUTES
+    DISPUTING: DISPUTES
+    EVALUATE: EVALUATES
+    EVALUATES_BY: EVALUATES
+    EVALUATING: EVALUATES
+    FOUNDE: FOUNDED
+    FOUNDES: FOUNDED
+    FOUNDING: FOUNDED
+    GOVERNING_BY: GOVERNED_BY
+    GOVERNS_BY: GOVERNED_BY
+    GOVERN_BY: GOVERNED_BY
+    HIRE: HIRED
+    HIRES: HIRED
+    HIRING: HIRED
+    INVESTIGATE: INVESTIGATES
+    INVESTIGATES_BY: INVESTIGATES
+    INVESTIGATING: INVESTIGATES
+    LEAD: LEADS
+    LEADING: LEADS
+    LEADS_BY: LEADS
+    LED: LEADS
+    MANDATE: MANDATES
+    MANDATES_BY: MANDATES
+    MANDATING: MANDATES
+    MANUFACTURE: MANUFACTURES
+    MANUFACTURED: MANUFACTURES
+    MANUFACTURES_BY: MANUFACTURES
+    MANUFACTURING: MANUFACTURES
+    MENTION: MENTIONS
+    MENTIONING: MENTIONS
+    MENTIONS_BY: MENTIONS
+    OCCURRING_AT: OCCURS_AT
+    OCCUR_AT: OCCURS_AT
+    PARTNERING_WITH: PARTNERS_WITH
+    PARTNER_WITH: PARTNERS_WITH
+    PILOT: PILOTS
+    PILOTS_BY: PILOTS
+    PILOTTED: PILOTS
+    PILOTTING: PILOTS
+    PRESENTING_AT: PRESENTS_AT
+    PRESENT_AT: PRESENTS_AT
+    PROCURE: PROCURES
+    PROCURED: PROCURES
+    PROCURES_BY: PROCURES
+    PROCURING: PROCURES
+    REGULATE: REGULATES
+    REGULATES_BY: REGULATES
+    REGULATING: REGULATES
+    REPORTING_BY: REPORTED_BY
+    REPORTS_BY: REPORTED_BY
+    REPORT_BY: REPORTED_BY
+    REQUIRE: REQUIRES
+    REQUIRES_BY: REQUIRES
+    REQUIRING: REQUIRES
+    RESPONDING_TO: RESPONDS_TO
+    RESPOND_TO: RESPONDS_TO
+
+# --- Relation metadata enums ---
+relation_kinds:
+  - asserted
+  - inferred
+  - hypothesis
+
+polarity_values:
+  - pos
+  - neg
+  - unclear
+
+modality_values:
+  - observed
+  - planned
+  - speculative
+
+# --- ID Prefixes ---
+id_prefixes:
+  Vendor: vendor
+  Product: product
+  Buyer: buyer
+  Person: person
+  Regulation: regulation
+  Report: report
+  Event: event
+  Location: location
+  Topic: topic
+  Org: org
+  Document: doc
+  Other: other
+
+# --- Base Relation ---
+base_relation: MENTIONS
+
+# --- Gate Thresholds ---
+# Trade press + regulatory filings are clear prose like film/semis — no
+# reason to deviate from the standard thresholds pre-calibration.
+gate_thresholds:
+  evidence_fidelity_min: 0.70
+  orphan_max: 0.0
+  zero_value_min_entities: 1
+  zero_value_min_doc_chars: 500
+  high_confidence_threshold: 0.8
+
+# --- Doc Selection Budget (ADR-010 D3 pattern) ---
+# Registry's steady-state estimate: 5-12 docs/day (pond-sized, smaller
+# than fusion's 10-15 — this is the tripwire/detection-disposition
+# domain, not a ranking-volume domain).
+doc_selection:
+  budget: 10
+  stretch_max: 15
+
+# --- Trend Weights ---
+# Mixed cadence: procurement/regulatory cycles are slow (semis-like,
+# hence the longer max_age_days and slow decay) but incident-driven
+# volume spikes happen (the registry's known weakness: velocity will
+# partly track news cycles of tragedies, so 20.8's `sustained` flag
+# matters more than raw velocity here). min_mentions_for_velocity is
+# lowered from the framework default (3 -> 2) so genuine risers aren't
+# gated away in a domain this sparse.
+trend_weights:
+  velocity: 0.4
+  novelty: 0.3
+  activity: 0.3
+  velocity_cap: 5.0
+  activity_cap: 10
+  max_age_days: 540
+  novelty_age_weight: 0.6
+  novelty_rarity_weight: 0.4
+  novelty_decay_lambda: 0.03  # ~23-day half-life
+  min_mentions_for_velocity: 2
+
+# --- Suppressed Entities ---
+# Too generic for this graph — every vendor's marketing copy uses these.
+suppressed_entities:
+  - weapon
+  - gun
+  - firearm
+  - detection
+  - system
+  - systems
+  - technology
+  - security
+  - screening
+  - device
+  - platform
+  - sensor
+  - software
+  - company
+  - agency
+  - school
+  - hospital
+  - venue
+  - transit
+  - station
+  - campus
+  - industry
+  - solution
+  - product
+
+# --- LLM Leverage Features ---
+features:
+  llm_disambiguation:
+    enabled: true
+    similarity_lower_bound: 0.40
+    similarity_upper_bound: 0.85
+    max_pairs_per_run: 200
+    batch_size: 15
+    entity_types_to_disambiguate: [Vendor, Product, Buyer, Org, Person]
+    # Vendor/product naming churns (ShotSpotter -> SoundThinking is the
+    # canonical example this domain will hit on day one).
+
+  relation_inference:
+    enabled: true
+    confidence_discount: 0.7
+    max_inferences_per_run: 200
+    rules_file: "inference_rules.yaml"
+
+  cross_document_synthesis:
+    enabled: true
+    batch_size: 5
+    min_shared_entities: 1
+    max_batches_per_run: 5
+    synthesis_patterns:
+      - "corroboration"
+      - "implicit_relations"
+      # Controversy stories (accuracy disputes, watchdog reports) are
+      # exactly the multi-outlet-coverage case synthesis exists for.
+
+  trend_narratives:
+    enabled: true
+    top_n: 10
+    max_tokens_per_narrative: 200
+    style: "regulatory"
+    # Sparse, dated, and often adversarial (vendor claim vs watchdog
+    # finding) — closer to biosafety's register than film's trade-press
+    # breeziness.
+
+# --- Prompts ---
+prompts:
+  dir: prompts
+  system_prompt: system.txt
+  user_prompt: user.txt
+  single_message_prompt: single_message.txt

@@ -350,6 +350,19 @@ articles remain in `status='error'` and are never retried on subsequent runs.
 
 ## Sources & Ingestion
 
+### ~~GEV-11: ontology.js KNOWN_DOMAINS out of sync with domain-switcher.js~~ — DONE
+
+**Observed & resolved 2026-07-20** (found while onboarding the weapons_detection
+domain): `web/js/ontology.js` carried its own `KNOWN_DOMAINS` list, listing
+only `ai` and `biosafety` — film and semiconductors had been missing from the
+ontology page's domain tabs since their launch, silently, because the "single
+source of truth" doctrine documented in `web/js/domain-switcher.js` was never
+actually enforced (two independent lists, only one kept current). Fixed by
+syncing ontology.js's list to match domain-switcher.js's five domains.
+**Still open:** the duplication itself — a real single-source-of-truth fix
+would have ontology.js import `KNOWN_DOMAINS` from domain-switcher.js instead
+of maintaining a second copy, so this can't recur.
+
 ### SRC-3: Go Into The Story — 10 fetch errors per day
 
 **Observed:** 2026-03-27 (gist metrics review) | **Priority:** High

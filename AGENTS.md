@@ -25,12 +25,22 @@ The end product is a growing knowledge graph that can reveal **emerging trends e
 - **Semiconductors** (`domains/semiconductors/`) — fab process, chip architecture,
   GPU/accelerator compute, supply chain, and policy. Entity types include `Fab`,
   `Chip`, `Architecture`, `ProcessNode`, `Packaging`, `Material`, `Policy`.
+- **Weapons Detection** (`domains/weapons_detection/`) — added 2026-07-20, out of
+  the pond-sizing queue order by operator directive (see
+  [docs/methodology/domain-candidates.md](docs/methodology/domain-candidates.md)).
+  Indoor weapons detection as one commercial ecosystem: acoustic gunshot
+  detection, visual AI detection, and walk-through screening vendors selling
+  into transit/school/hospital/venue/workplace buyers. Entity types include
+  `Vendor`, `Product`, `Buyer`, `Regulation`, `Report`. Tripwire/detection
+  disposition (not a high-volume ranking domain) — pre-registered hypothesis:
+  [docs/methodology/hypotheses/weapons-detection-indoor.md](docs/methodology/hypotheses/weapons-detection-indoor.md).
 
-**Operational status (2026-06-10):** the pipeline is **dormant in all four
-domains**. [ADR-010](docs/architecture/adr-010-two-domain-restart.md) plans a
-two-domain restart (film + semiconductors); AI and biosafety stay paused. See
-[docs/backend/operational-state.md](docs/backend/operational-state.md) for
-per-domain state and the pre-restart cleanup steps.
+**Operational status:** film and semiconductors restarted under epoch 2 as of
+2026-07-19 (Sprint 20; see [docs/project-plan.md](docs/project-plan.md)); AI
+and biosafety remain paused (ADR-010). Weapons Detection is a fresh domain in
+its first 14-day dampening window from 2026-07-20 — output is provisional.
+See [docs/backend/operational-state.md](docs/backend/operational-state.md)
+for per-domain state.
 
 ### Multi-Domain Architecture (completed Sprint 6 + 6B)
 - Each domain is a directory under `domains/` with `domain.yaml`, `feeds.yaml`,

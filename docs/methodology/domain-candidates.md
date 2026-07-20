@@ -13,9 +13,18 @@ Queue as of 2026-07-19: **fusion** (chosen 2026-07-03, Sprint 20 Track C,
 pre-registration = 20.15) → **biopharma** (ADR-010 D11, deferred until fusion
 reports) → candidates below in operator-priority order.
 
+**2026-07-20 — queue jumped by operator directive:** weapons-detection-indoor
+was onboarded (`domains/weapons_detection/`) before fusion has run its own
+pre-registration (20.15) or produced a validation cycle. This is a
+deliberate reorder, not a change to the standing rule — the rule still
+holds for whatever comes after this. Pre-registered hypothesis:
+[docs/methodology/hypotheses/weapons-detection-indoor.md](hypotheses/weapons-detection-indoor.md)
+(read: full). First ingest fired 2026-07-20; 14-day dampening window
+applies (graded no earlier than 2026-08-03).
+
 ---
 
-## weapons-detection-indoor (scored 2026-07-19, operator + external requester)
+## weapons-detection-indoor — ONBOARDED 2026-07-20 (scored 2026-07-19, operator + external requester)
 
 **Scope:** indoor weapons detection as one ecosystem — acoustic gunshot
 detection (AmberBox, Shooter Detection Systems/Alarm.com, Databuoy), visual
