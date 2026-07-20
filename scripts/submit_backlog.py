@@ -41,7 +41,7 @@ load_dotenv()
 
 
 def get_model() -> str:
-    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-4-6"
+    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-5"
 
 
 def fetch_backlog_docs(conn: sqlite3.Connection, chunk_size: int) -> list[dict]:
@@ -157,6 +157,10 @@ def main() -> int:
             "params": {
                 "model": model,
                 "max_tokens": 8192,
+                # See submit_batch.py: Sonnet 5 defaults to adaptive thinking
+                # when this is omitted; disabled explicitly for cost/behavior
+                # parity with the prior model.
+                "thinking": {"type": "disabled"},
                 "messages": [{"role": "user", "content": build_extraction_prompt(doc, EXTRACTOR_VERSION)}],
                 "output_config": {
                     "format": {

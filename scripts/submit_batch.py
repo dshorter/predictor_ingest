@@ -40,7 +40,7 @@ load_dotenv()
 
 
 def get_model() -> str:
-    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-4-6"
+    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-5"
 
 
 def load_docpack(path: Path) -> list[dict]:
@@ -142,6 +142,11 @@ def submit(
             "params": {
                 "model": model,
                 "max_tokens": 16384,
+                # Sonnet 5 runs adaptive thinking by default when this is
+                # omitted (unlike 4.6, which defaulted to off) -- disabled
+                # explicitly so thinking tokens don't eat into the extraction
+                # budget or add cost beyond the per-token rate change.
+                "thinking": {"type": "disabled"},
                 "messages": [{"role": "user", "content": build_extraction_prompt(doc, EXTRACTOR_VERSION)}],
                 "output_config": {
                     "format": {

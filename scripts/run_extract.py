@@ -51,7 +51,7 @@ from extract import (
 
 def get_model() -> str:
     model = os.environ.get("PRIMARY_MODEL", "").strip()
-    return model if model else "claude-sonnet-4-6"
+    return model if model else "claude-sonnet-5"
 
 
 def load_docpack(path: Path) -> list[dict[str, Any]]:
@@ -83,6 +83,9 @@ def extract_with_anthropic(doc: dict[str, Any], model: str, max_tokens: int = 81
     response = client.messages.create(
         model=model,
         max_tokens=max_tokens,
+        # See submit_batch.py: Sonnet 5 defaults to adaptive thinking when
+        # this is omitted; disabled explicitly for cost/behavior parity.
+        thinking={"type": "disabled"},
         messages=[{"role": "user", "content": prompt}],
         output_config={
             "format": {

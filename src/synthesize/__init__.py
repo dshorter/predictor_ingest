@@ -411,6 +411,10 @@ def _call_llm(
         response = client.messages.create(
             model=model,
             max_tokens=8192,
+            # See scripts/submit_batch.py: Sonnet 5 defaults to adaptive
+            # thinking when this is omitted; disabled explicitly for
+            # cost/behavior parity with the prior model.
+            thinking={"type": "disabled"},
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}],
         )
@@ -463,7 +467,7 @@ def run_synthesis(
 
     # Default model: PRIMARY_MODEL env var (specialist tier for cross-doc reasoning)
     if model is None:
-        model = os.environ.get("PRIMARY_MODEL", "claude-sonnet-4-6")
+        model = os.environ.get("PRIMARY_MODEL", "claude-sonnet-5")
 
     config = SynthesisConfig.from_profile(profile)
     if not config.enabled:
