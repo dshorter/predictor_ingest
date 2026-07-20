@@ -401,13 +401,18 @@ gate_thresholds:
 # boundaries only — mid-window volume changes create velocity artifacts
 # (methodology §2.7).
 #
-# TEMPORARY 2x (2026-07-20 -> 2026-08-15): Anthropic rate reduction
-# through mid-August. Normal values: budget 35 / stretch_max 40. See
-# docs/backend/operational-state.md for the full note + revert
-# instructions; a VTODO on the ops calendar is the revert reminder.
+# Anthropic rate reduction (2026-07-20 -> 2026-08-15) makes a temporary
+# 2x bump worth taking, BUT reconsidered 2026-07-20 same day: no run had
+# yet consumed the higher budget, so it was reverted here to normal and
+# deliberately delayed until the epoch-2 dampening window closes
+# (2026-08-02) — the ADR-010-correct place to change volume, not a
+# random mid-window day. Values here go 35/40 -> 70/80 on 2026-08-02,
+# then back to 35/40 on 2026-08-15. See docs/backend/operational-state.md
+# and the two VTODOs on the ops calendar (apply due 2026-08-02, revert
+# due 2026-08-15).
 doc_selection:
-  budget: 70
-  stretch_max: 80
+  budget: 35
+  stretch_max: 40
 
 # --- Trend Weights ---
 trend_weights:

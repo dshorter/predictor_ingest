@@ -810,12 +810,15 @@ class TestBudgetFromProfile:
         assert budget_from_profile(profile) == (DEFAULT_BUDGET, DEFAULT_STRETCH_MAX)
 
     def test_active_domain_profiles_carry_d3_budgets(self):
-        """ADR-010 D3 decision, TEMPORARILY 2x (2026-07-20 -> 2026-08-15,
-        Anthropic rate reduction — see docs/backend/operational-state.md).
-        Normal values: film 35/40, semiconductors 20/25, weapons_detection
-        10/15. Revert this test alongside the domain.yaml revert."""
+        """ADR-010 D3 decision. film/semiconductors normal now — their
+        Anthropic-rate-reduction 2x bump is delayed to 2026-08-02 (the
+        epoch-2 dampening boundary) rather than applied mid-window.
+        weapons_detection is TEMPORARILY 2x from day one (2026-07-20 ->
+        2026-08-15) since it has no prior baseline to distort. See
+        docs/backend/operational-state.md. Update this test alongside
+        each domain.yaml change on 08-02 and 08-15."""
         from domain import load_domain_profile
 
-        assert budget_from_profile(load_domain_profile("film")) == (70, 80)
-        assert budget_from_profile(load_domain_profile("semiconductors")) == (40, 50)
+        assert budget_from_profile(load_domain_profile("film")) == (35, 40)
+        assert budget_from_profile(load_domain_profile("semiconductors")) == (20, 25)
         assert budget_from_profile(load_domain_profile("weapons_detection")) == (20, 30)

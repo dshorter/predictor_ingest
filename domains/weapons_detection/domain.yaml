@@ -330,11 +330,13 @@ gate_thresholds:
 # domain, not a ranking-volume domain).
 #
 # TEMPORARY 2x (2026-07-20 -> 2026-08-15): Anthropic rate reduction
-# through mid-August. Normal values: budget 10 / stretch_max 15. See
-# docs/backend/operational-state.md for the full note + revert
-# instructions; a VTODO on the ops calendar is the revert reminder.
-# Also lands on this domain's very first day (minimizes the ADR-010 D3
-# mid-window-change concern — there's no window yet to disrupt).
+# through mid-August. Normal values: budget 10 / stretch_max 15. Kept
+# active from day one (unlike film/semiconductors, which delayed their
+# bump to 2026-08-02) — this domain's first-ever run was already at 2x,
+# so there's no prior-budget baseline to create a mid-window
+# discontinuity against. Zero artifact risk. See
+# docs/backend/operational-state.md; a VTODO on the ops calendar is the
+# revert reminder.
 doc_selection:
   budget: 20
   stretch_max: 30

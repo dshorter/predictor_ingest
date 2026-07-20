@@ -12,29 +12,46 @@ and session notes.
 ## ⚠️ TEMPORARY: 2x doc budgets during Anthropic's rate reduction (2026-07-20 → 2026-08-15)
 
 Operator directive 2026-07-20: Anthropic is running a 50% rate reduction
-through mid-August. Doubled `doc_selection.budget`/`stretch_max` in all
-three active domains' `domain.yaml` to take advantage of it while it lasts.
+through mid-August. Original plan doubled `doc_selection.budget`/
+`stretch_max` in all three active domains immediately — **reconsidered
+same day** once the ADR-010 D3 artifact risk was raised: mid-window
+volume changes distort velocity for every entity simultaneously (a
+corpus-wide step, not entity-specific signal) until both comparison
+windows sit on the new budget, ~1-2 weeks. No run had yet consumed the
+higher budget for any domain, so this was still a free decision at the
+time, not a fix.
 
-| Domain | Normal (budget/stretch) | Temporary (budget/stretch) |
-|---|---|---|
-| film | 35 / 40 | **70 / 80** |
-| semiconductors | 20 / 25 | **40 / 50** |
-| weapons_detection | 10 / 15 | **20 / 30** |
+**Resolution:** stagger the activation by domain, per whether a
+pre-change baseline actually exists to distort.
 
-**Revert date: 2026-08-15.** A VTODO is on the ops calendar
-(`ops/calendar-add`) as the durable reminder — this doc entry is the
-paper trail for *why*, not the trigger. Revert by restoring the "Normal"
-column values in each domain's `domain.yaml` `doc_selection` section and
-deleting this section (or marking it closed with the actual revert date).
+| Domain | Normal | Active now | Effective 2026-08-02 | Reverts 2026-08-15 |
+|---|---|---|---|---|
+| film | 35 / 40 | 35 / 40 (unchanged) | **70 / 80** | back to 35 / 40 |
+| semiconductors | 20 / 25 | 20 / 25 (unchanged) | **40 / 50** | back to 20 / 25 |
+| weapons_detection | 10 / 15 | **20 / 30** | (already active) | back to 10 / 15 |
 
-Note the ADR-010 D3 framing this technically violates on purpose: budget
-changes are supposed to happen at window boundaries only, because
-volume changes create velocity artifacts the same way source swaps do
-(methodology §2.7). This bump lands two days into film/semiconductors'
-epoch 2 and on weapons_detection's first day — deliberately as early as
-possible in each domain's history to minimize the artifact window, but
-it is still a mid-window change and Movers/velocity readings across
-2026-07-20 → 2026-08-15 should be read with that in mind.
+- **film/semiconductors:** the bump is delayed until 2026-08-02, when
+  the epoch-2 dampening window (D6, 14 days from the 2026-07-19 restart)
+  closes — a deliberate ADR-010-correct boundary, not a random mid-window
+  day. Captures 2026-08-02 → 2026-08-15 of the discount at zero avoidable
+  artifact risk.
+- **weapons_detection:** kept at 2x from its very first run. There is no
+  prior-budget baseline for this domain — its first-ever extraction was
+  already at the higher budget, so there's nothing for a later window to
+  discontinuously jump against. Zero artifact risk regardless of timing.
+
+**Ops calendar VTODOs** (`/opt/ai-agent-platform/ops/calendar-add`) are
+the durable reminders, not this doc:
+- `predictor-apply-2x-budget-film-semis-2026@ai-agent-platform` — due
+  2026-08-02, bump film/semiconductors' `domain.yaml` to 70/80 and 40/50.
+- `predictor-revert-2x-budget-2026@ai-agent-platform` — due 2026-08-15,
+  restore all three domains' `domain.yaml` to their Normal column above
+  (weapons_detection's 2x window is shorter than the other two's delayed
+  one, but all three end on the same date).
+
+Revert `tests/test_select.py::TestBudgetFromProfile::
+test_active_domain_profiles_carry_d3_budgets` alongside each domain.yaml
+change (it currently asserts the "Active now" column).
 
 ---
 
