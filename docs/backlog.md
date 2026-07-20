@@ -127,24 +127,6 @@ cheap model invented it rather than mapping to an existing type or omitting.
 
 **Waiting on:** Monitor whether this recurs. If it's a one-off, no action needed.
 
-### EXT-6: Biosafety specialist prompt missing required relation field specs
-
-**Observed:** 2026-03-08 | **Priority:** High | **Status:** Fixed (prompt updated)
-
-All 5 biosafety specialist (claude-sonnet-4-5) escalation attempts failed
-schema validation with missing `rel` or `source` properties. Root cause:
-the biosafety `system.txt` and `single_message.txt` prompts did not
-explicitly list required relation fields (`source`, `rel`, `target`, `kind`,
-`confidence`, `evidence`), unlike the AI domain prompt which specifies each
-field with descriptions.
-
-**Fix applied:** Updated both biosafety prompt files to match the AI domain's
-explicit field-by-field specification structure. Added entity specificity
-guidance and critical rules section.
-
-**Verify:** Next biosafety pipeline run should show specialist validation
-pass rate > 0% (was 0/5 before fix).
-
 ### EXT-7: Publishers extracted as `Org` entities (Tom's Hardware, Future US)
 
 **Observed:** 2026-05-19 (Sprint 14 smoke test) | **Priority:** Medium
@@ -468,9 +450,12 @@ Alternatively, store canonical direction in the edge data during export.
 
 **Files likely affected:** `web/js/panels.js` (`renderRelationshipList`)
 
+**Checked 2026-07-11:** No `PASSIVE_RELATIONS` set or canonical-direction
+field found in `panels.js` — still unimplemented, no target date set.
+
 ### GEV-6: Entity spotlight card (top-drop, forward/backward navigation)
 
-**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22
+**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22 (missed — still unbuilt as of 2026-07-11)
 
 A second presentation mode for trending entities: a single-entity card
 that drops from the top of the screen with a subtle bounce animation.
@@ -490,71 +475,6 @@ exploration of one entity at a time.
 **Files likely affected:** New `web/js/spotlight.js`, new CSS in
 `web/css/components/spotlight.css`, toolbar button or keyboard trigger in
 `web/js/app.js`
-
-### GEV-7: Panel text contrast — hardcoded grays in detail/evidence panels
-
-**Observed:** 2026-03-21 | **Priority:** High | **Target:** 2026-03-22
-
-The detail panel (`panels.js`) and evidence panel use hardcoded Tailwind-style
-utility classes (`text-gray-500`, `text-gray-400`, `bg-gray-50`) that reference
-raw gray tokens instead of semantic tokens (`--color-text-secondary`,
-`--color-bg-secondary`). Same issue that was fixed in toolbar.css and button.css
-during Sprint 8 — needs the same treatment in panel HTML templates.
-
-**Scope:** ~30 minutes. Swap utility classes in `openNodeDetailPanel()`,
-`openEvidencePanel()`, and `renderRelationshipsSection()` to use semantic tokens.
-
-**Files likely affected:** `web/js/panels.js`, `web/css/utilities.css`
-
-### GEV-8: Node tap handler fires during flyToHotNode
-
-**Observed:** 2026-03-21 | **Priority:** High | **Target:** 2026-03-22
-
-When clicking a What's Hot item, `flyToHotNode()` calls `node.select()` which
-triggers the `cy.on('tap', 'node')` handler in `app.js`. This causes a double
-panel-open (both the hot panel's `openNodeDetailPanel` via setTimeout AND the
-tap handler's `openNodeDetailPanel`), plus `highlightNeighborhood()` fires
-unexpectedly.
-
-**Fix options:**
-- Set a flag (`AppState._flyingToNode = true`) before `node.select()`, check
-  in tap handler and skip if set
-- Skip `.select()` in `flyToHotNode` and call `highlightNeighborhood()` +
-  `openNodeDetailPanel()` directly
-
-**Files likely affected:** `web/js/whats-hot.js`, `web/js/app.js`
-
-### GEV-9: Node visibility when panel overlaps graph
-
-**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22
-
-Panels overlay the graph (no resize) — a node in the left 280px can be hidden
-behind the hot/detail panel. When `flyToHotNode` or `zoomToNode` centers on a
-node, it doesn't account for panel width.
-
-**Recommended approach (A+C hybrid):**
-- A: Offset `zoomToNode` target rightward by half the panel width when a
-  left panel is open
-- C: After opening a panel over an already-selected node, do a gentle re-fit
-  to ensure the node is in the visible area
-
-**Files likely affected:** `web/js/panels.js` (`zoomToNode`), `web/js/whats-hot.js`
-
-### GEV-10: Minimap (navigator) jumps when panels open/close
-
-**Observed:** 2026-03-21 | **Priority:** Medium | **Target:** 2026-03-22
-
-The Cytoscape navigator minimap repositions via CSS sibling selectors when
-panels open (`#cy.panel-right-open ~ .navigator-container`). The position
-change is instant, causing a visual jump.
-
-**Fix options:**
-- Add `transition: right 0.3s, bottom 0.3s` to `.navigator-container` for
-  smooth repositioning
-- Or remove repositioning rules entirely (minimap stays bottom-right; panels
-  are left-side so they rarely overlap)
-
-**Files likely affected:** `web/css/graph/cytoscape.css`
 
 ### GEV-11: Toolbar right-side overflow — reorganize mixed-function controls
 
@@ -615,3 +535,35 @@ own `docs/` for domain-specific operational content.
 
 **Resolved:** 2026-03-13. SelectAgent nodes now use red (#F43F5E) in biosafety
 domain config. See `web/data/domains/biosafety.json`.
+
+### ~~EXT-6: Biosafety specialist prompt missing required relation field specs~~ — DONE
+
+**Resolved:** 2026-03-08. `system.txt`/`single_message.txt` prompts updated to
+explicitly list required relation fields, matching the AI domain's structure.
+Fixed the 0/5 specialist validation pass rate.
+
+### ~~GEV-7: Panel text contrast — hardcoded grays~~ — DONE
+
+**Resolved (found 2026-07-11, undated in code):** `panels.js` now uses semantic
+utility classes (`text-secondary`, `bg-secondary`, etc.) mapped to
+`--color-text-secondary` / `--color-bg-secondary` in `utilities.css`. No raw
+`text-gray-*`/`bg-gray-*` classes remain.
+
+### ~~GEV-8: Node tap handler fires during flyToHotNode~~ — DONE
+
+**Resolved (found 2026-07-11, undated in code):** Both the tap handler and
+`flyToHotNode` now route through a single shared `navigateToNode()` in
+`panels.js` (select → highlight → zoom → panel), eliminating the double
+panel-open race by construction rather than a guard flag.
+
+### ~~GEV-9: Node visibility when panel overlaps graph~~ — DONE
+
+**Resolved (found 2026-07-11, undated in code):** `zoomToNode()` in `panels.js`
+now offsets the camera target via `getPanelOffset(targetZoom)` — the "A" fix
+option from the original writeup.
+
+### ~~GEV-10: Minimap jumps when panels open/close~~ — DONE
+
+**Resolved (found 2026-07-11, undated in code):** `.navigator-container` in
+`cytoscape.css` now has `transition: ... right var(--duration-slow) ease,
+bottom var(--duration-slow) ease` — smooth repositioning instead of a jump.

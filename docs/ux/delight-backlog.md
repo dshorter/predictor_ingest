@@ -14,77 +14,13 @@ must never be compromised for mobile parity.
 
 ## DL-1: "What's Hot and WHY" Quick-Access View — SHIPPED
 
-**Priority:** High — this is the single highest-delight feature because it gives users
-a reason to come back daily.
-
-**Status (2026-03-21):** SHIPPED. Backend (PR #186/#188) + frontend (PR #190/#191/#193)
-all merged. Flame toolbar button, `h` keyboard shortcut, ranked list with velocity
-indicators and LLM narratives, fly-to-node on click, bounce slide-in animation,
-animated flame gradient border, full narrative drill-through in detail panel.
-
-**Problem:** The trending view exists but it's buried in a dropdown alongside three other
-views. There's no sense of "what changed since yesterday?" Users have to explore the
-full graph and notice differences themselves.
-
-**Backend status (2026-03-21):** COMPLETE. The LLM Leverage Features work (PR #186,
-#188, ADR-007) shipped all backend data requirements ahead of Sprint 8. Each trending
-entity in `trending.json` now carries velocity, trend score, mention counts, AND an
-LLM-generated narrative explaining WHY it's trending. Example from first production run:
-
-> *"The Hollywood Reporter is trending due to its coverage of Rosanna Arquette's
-> open letter in response to Harvey Weinstein's prison interview claims."*
-
-Narratives are generated per-domain with domain-appropriate tone (film: trade-press
-concise, AI: technical, biosafety: regulatory). Sprint 8 is now **frontend-only**.
-
-**Feature:**
-
-A persistent, easy-to-reach "What's Hot" entry point (button or small drawer) that shows
-a ranked list of entities with the **largest recent increase** in relevant metrics:
-
-- Primary signal: velocity delta (change in velocity over last 7 days)
-- Secondary signals: mention count spike (7d vs 30d ratio), new entity appearance
-  (firstSeen within 3 days), bridge score increase (new cross-cluster connections)
-- **WHY context:** LLM-generated narrative subtitle explaining the trend driver
-
-**Behavior:**
-1. Button in toolbar (or prominent position) opens a compact ranked list
-2. Each item shows: entity name, type badge, spark indicator (e.g., arrow + delta value)
-3. **Below the entity name: narrative subtitle** (1-2 sentences explaining WHY)
-4. Click an item → graph flies to that node's neighborhood, highlights it, opens detail panel
-5. List updates on each data load; no persistence needed for V1
-6. Max 10 items — this is a highlight reel, not a leaderboard
-
-**Desktop interaction:**
-- Drawer slides in from left or appears as a popover near the button
-- Keyboard shortcut: `h` (for hot) or similar
-- Clicking an item does a smooth `cy.animate({ center, zoom })` to the neighborhood
-
-**Mobile adaptation:**
-- Bottom sheet peek state shows top 3 items (name + narrative only, no spark indicator)
-- Swipe up for full list
-
-**What makes this delightful:**
-- It answers the most natural question: "What should I look at today?"
-- The narrative subtitle answers the follow-up: "Why should I care?"
-- The fly-to-neighborhood animation creates a sense of guided exploration
-- Seeing velocity *change* (not just absolute values) surfaces genuinely surprising signals
-
-**Data available in `trending.json` per node** (all populated today):
-- `velocity` — 7d-vs-prior ratio (primary sort signal)
-- `trend_score` — composite score (velocity + novelty + activity)
-- `mention_count_7d` / `mention_count_30d` — raw mention counts
-- `novelty` — how new/rare the entity is
-- `narrative` — LLM-generated WHY explanation (present when available)
-- `type` — entity type for badge display
-- `firstSeen` / `lastSeen` — for "new entity" indicators
-
-**Files affected:**
-- New: `web/js/whats-hot.js`
-- Modified: `web/js/app.js` (toolbar button, keyboard shortcut), `web/css/components/panel.css`
-  (drawer styles)
-- ~~Modified: `src/graph/__init__.py` or export script (velocity delta computation)~~
-  **No longer needed — backend is complete**
+**Resolved 2026-03-21.** Backend (PR #186/#188) + frontend (PR #190/#191/#193) all
+merged: flame toolbar button, `h` keyboard shortcut, ranked list (max 10) with
+velocity indicators and LLM-generated per-entity narratives, fly-to-node on click,
+bounce slide-in animation, animated flame gradient border, full narrative
+drill-through in the detail panel. Mobile: bottom-sheet peek of top 3.
+Implementation: `web/js/whats-hot.js`, `web/js/app.js` (toolbar + shortcut),
+`web/css/components/panel.css` (drawer styles).
 
 ---
 
