@@ -881,8 +881,8 @@ type stratification for film, tripwire disposition for sparse domains.
 
 | # | Item | What | Model |
 |---|------|------|-------|
-| 20.15 | Pre-registered hypothesis | Before any data: one page stating what fusion is expected to prove — at high coverage fraction with calendar ground truth (milestone announcements, funding rounds, DOE/regulatory events), lead time vs consensus outlets is measurable and positive. Predict its L/M/coverage-fraction scores now; 20.13 grades the prediction later. Budget ~10–15 docs/day | [Manual] |
-| 20.16 | Source discovery, adversarially supplemented | Company blogs (CFS, Helion, TAE, Tokamak Energy, First Light, Zap, …), Fusion Industry Association, ITER/DOE/national labs, arXiv plasma physics, specialist newsletters. Per ADR-010 finding 7: model-proposed lists skew consensus — deliberately add low-prestige/practitioner sources. Coverage profile (§2.6) per source | [Manual + Sonnet] |
+| 20.15 | Pre-registered hypothesis | Before any data: one page stating what fusion is expected to prove — at high coverage fraction with calendar ground truth (milestone announcements, funding rounds, DOE/regulatory events), lead time vs consensus outlets is measurable and positive. Predict its L/M/coverage-fraction scores now; 20.13 grades the prediction later. Budget ~10–15 docs/day. *Retag 2026-07-21: agent drafts the page (same as weapons_detection's hypothesis doc, which the agent wrote and the operator accepted), operator amends/approves — the prediction stays the operator's, the drafting doesn't have to be* | [Agent-draft + operator sign-off] |
+| 20.16 | Source discovery, adversarially supplemented | Company blogs (CFS, Helion, TAE, Tokamak Energy, First Light, Zap, …), Fusion Industry Association, ITER/DOE/national labs, arXiv plasma physics, specialist newsletters. Per ADR-010 finding 7: model-proposed lists skew consensus — deliberately add low-prestige/practitioner sources. Coverage profile (§2.6) per source. **Retag 2026-07-21 — "Manual" dropped, no longer an operator-time blocker.** Two operator-approved methods make this autonomous (both proven this cycle): (1) a **blind-inference discovery subagent** — briefed on the domain + §2.5/2.6 criteria, barred from the repo/incumbent list, explicitly told to counter consensus bias by adding practitioner/low-prestige sources (the exact method behind the 2026-07-19 film/semis blind list); (2) **direct discovery + real-time validation** — verify every candidate feed fresh from the pipeline UA and let the first live ingest catch curation errors (the method used for weapons_detection 2026-07-20, which self-corrected the Evolv/evolve collision + SIA over-scoping before they mattered). Operator role = the same sign-off given the film/semis batch (approve / adjust / walk line-by-line), logged in `config/source_changelog.yaml` | [Sonnet, blind-inference subagent pass optional] |
 | 20.17 | `domains/fusion/` from `_template` | Ontology (Company, Device, Facility, Approach, Milestone, Investor, Lab, Agency), prompts, `feeds.yaml`, optional inference rules. Passes `test_grep_audit.py` | [Sonnet] |
 | 20.18 | Fusion first run + dampening | First `make daily DOMAIN=fusion`; 14-day dampening window (D6) — output flagged provisional; daily snapshots collected from day 1 so the validation dataset starts clean | [Manual] |
 
@@ -941,6 +941,19 @@ changes mid-window create artifacts). Track C is parallel after 20.4.
 Track D reads epoch-1 data only (immutable once 20.1b tags it), so it
 needs Track B's scoring code + 20.12/20.13's instrument — but no new
 data; it can run while epoch 2 is still accumulating.
+
+**2026-07-21 — Track C is no longer operator-time-blocked.** After
+retagging 20.15 (agent-draft + sign-off) and 20.16 (autonomous
+discovery via blind-inference subagent and/or direct-discovery +
+real-time validation), the whole of fusion onboarding (20.15–20.18)
+can proceed on agent time with the operator only signing off the
+source batch and the hypothesis prediction — the same two touch-points
+the film/semis restart and the weapons_detection onboarding already
+used. The restart gate (20.1–20.3) is cleared, so fusion is
+startable now; what remains genuinely operator-owned across all of
+Sprint 20 is narrow: the *content* of the ground-truth definitions
+(20.12) and the hypothesis *prediction* (20.15), plus the sudo timer
+install and API-credit top-up — not source curation.
 
 ---
 
@@ -1030,7 +1043,7 @@ Not scheduled. Documented so they're not forgotten.
 | 17 — Cross-page navigation | Pending — surfaced by Sprint 15 QA | — |
 | 18 — Predictor production URL | ✓ Complete (18.1–18.5, 18.9 shipped 2026-05-31; 18.6/18.7/18.8/18.10 housekeeping done 2026-06-03) | 2026-06-03 |
 | 19 — Backup restore drill + gap fixes | Pending — surfaced 2026-05-31 ("classic IT story" — backup designed, restore never tested) | — |
-| 20 — Restart execution + methodology hardening + fusion onboarding | In flight — 20.1/20.1b (07-19), 20.2 (scheduler units; diagnosis: never scheduled), 20.4, 20.5, 20.7–20.9, feed batch + source_changelog + UA verification done; epoch-2 first runs 07-19; open: timer install (operator sudo), 20.3 verify, 20.6, 20.10–20.14, Track C, Track D | — |
+| 20 — Restart execution + methodology hardening + fusion onboarding | In flight — 20.1/20.1b (07-19), 20.2 (scheduler units; diagnosis: never scheduled), 20.4, 20.5, 20.7–20.9, feed batch + source_changelog + UA verification done; epoch-2 first runs 07-19; PRIMARY_MODEL→sonnet-5 (07-20); Track E (weapons_detection) onboarded 07-20; open: timer install (operator sudo) + weapons_detection timer, API-credit top-up, 20.3 verify, 20.6, 20.10–20.14, Track C (fusion — retagged 07-21 autonomous, needs only 20.15 prediction + source sign-off), Track D | — |
 
 ---
 
