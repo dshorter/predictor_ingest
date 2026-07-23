@@ -1,0 +1,30 @@
+{
+  "domain": "weapons_detection",
+  "title": "Weapons Detection Systems Trend Graph",
+  "titleShort": "Detection Trends",
+  "entityTypes": [
+    "Vendor", "Product", "Buyer", "Person", "Regulation", "Report",
+    "Event", "Location", "Topic", "Org", "Document", "Other"
+  ],
+  "typeGroups": [
+    { "label": "Vendors", "types": ["Vendor", "Org"] },
+    { "label": "Products", "types": ["Product"] },
+    { "label": "Buyers", "types": ["Buyer"] },
+    { "label": "Governance & Scrutiny", "types": ["Regulation", "Report", "Document"] },
+    { "label": "Context", "types": ["Person", "Event", "Location", "Topic", "Other"] }
+  ],
+  "typeColors": {
+    "Vendor":     "#4A90D9",
+    "Product":    "#7C3AED",
+    "Buyer":      "#0D9488",
+    "Person":     "#50B4A8",
+    "Regulation": "#F43F5E",
+    "Report":     "#F59E0B",
+    "Event":      "#F97316",
+    "Location":   "#6366F1",
+    "Topic":      "#64748B",
+    "Org":        "#0EA5E9",
+    "Document":   "#D97706",
+    "Other":      "#A1A1AA"
+  }
+}

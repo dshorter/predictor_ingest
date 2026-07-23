@@ -1,0 +1,568 @@
+{
+  "domain": {
+    "name": "Semiconductors & Chips",
+    "slug": "semiconductors",
+    "description": "Semiconductor process nodes, chip architecture, GPU/accelerator compute, supply chain, and policy"
+  },
+  "baseRelation": "MENTIONS",
+  "entityTypes": [
+    {
+      "name": "Company",
+      "prefix": "co",
+      "canonicalIdPattern": "co:{slug}",
+      "color": "#4A90D9"
+    },
+    {
+      "name": "Fab",
+      "prefix": "fab",
+      "canonicalIdPattern": "fab:{slug}",
+      "color": "#0D9488"
+    },
+    {
+      "name": "Chip",
+      "prefix": "chip",
+      "canonicalIdPattern": "chip:{slug}",
+      "color": "#7C3AED"
+    },
+    {
+      "name": "Architecture",
+      "prefix": "arch",
+      "canonicalIdPattern": "arch:{slug}",
+      "color": "#6366F1"
+    },
+    {
+      "name": "ProcessNode",
+      "prefix": "node",
+      "canonicalIdPattern": "node:{slug}",
+      "color": "#8B5CF6"
+    },
+    {
+      "name": "Packaging",
+      "prefix": "pkg",
+      "canonicalIdPattern": "pkg:{slug}",
+      "color": "#F59E0B"
+    },
+    {
+      "name": "Material",
+      "prefix": "mat",
+      "canonicalIdPattern": "mat:{slug}",
+      "color": "#D97706"
+    },
+    {
+      "name": "Tool",
+      "prefix": "tool",
+      "canonicalIdPattern": "tool:{slug}",
+      "color": "#EAB308"
+    },
+    {
+      "name": "Policy",
+      "prefix": "policy",
+      "canonicalIdPattern": "policy:{slug}",
+      "color": "#F43F5E"
+    },
+    {
+      "name": "Org",
+      "prefix": "org",
+      "canonicalIdPattern": "org:{slug}",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "Person",
+      "prefix": "person",
+      "canonicalIdPattern": "person:{slug}",
+      "color": "#50B4A8"
+    },
+    {
+      "name": "Event",
+      "prefix": "event",
+      "canonicalIdPattern": "event:{slug}",
+      "color": "#F97316"
+    },
+    {
+      "name": "Location",
+      "prefix": "location",
+      "canonicalIdPattern": "location:{slug}",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "Topic",
+      "prefix": "topic",
+      "canonicalIdPattern": "topic:{slug}",
+      "color": "#64748B"
+    },
+    {
+      "name": "Other",
+      "prefix": "other",
+      "canonicalIdPattern": "other:{slug}",
+      "color": "#A1A1AA"
+    }
+  ],
+  "typeGroups": [
+    {
+      "label": "Industry",
+      "types": [
+        "Company",
+        "Fab",
+        "Org"
+      ]
+    },
+    {
+      "label": "Silicon",
+      "types": [
+        "Chip",
+        "Architecture",
+        "ProcessNode"
+      ]
+    },
+    {
+      "label": "Materials & Packaging",
+      "types": [
+        "Packaging",
+        "Material",
+        "Tool"
+      ]
+    },
+    {
+      "label": "Context",
+      "types": [
+        "Policy",
+        "Person",
+        "Event",
+        "Location",
+        "Topic",
+        "Other"
+      ]
+    }
+  ],
+  "relationGroups": [
+    {
+      "key": "document",
+      "label": "Document",
+      "relations": [
+        {
+          "rel": "MENTIONS",
+          "isBase": true,
+          "aliases": [
+            "MENTIONED"
+          ]
+        },
+        {
+          "rel": "CITES",
+          "isBase": false,
+          "aliases": [
+            "CITED"
+          ]
+        },
+        {
+          "rel": "ANNOUNCES",
+          "isBase": false,
+          "aliases": [
+            "ANNOUNCED",
+            "REVEALED",
+            "UNVEILED"
+          ]
+        },
+        {
+          "rel": "REPORTED_BY",
+          "isBase": false,
+          "aliases": [
+            "REPORTED",
+            "REPORTS"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "design_manufacturing",
+      "label": "Design Manufacturing",
+      "relations": [
+        {
+          "rel": "DESIGNS",
+          "isBase": false,
+          "aliases": [
+            "DESIGNED",
+            "DESIGNED_BY",
+            "DEVELOPED",
+            "DEVELOPED_BY"
+          ]
+        },
+        {
+          "rel": "MANUFACTURES",
+          "isBase": false,
+          "aliases": [
+            "MADE",
+            "MADE_BY",
+            "MANUFACTURED",
+            "MANUFACTURED_BY",
+            "PRODUCED",
+            "PRODUCED_BY"
+          ]
+        },
+        {
+          "rel": "FABRICATES",
+          "isBase": false,
+          "aliases": [
+            "FABBED",
+            "FABBED_BY",
+            "TAPED_OUT"
+          ]
+        },
+        {
+          "rel": "LICENSES",
+          "isBase": false,
+          "aliases": [
+            "LICENSED",
+            "LICENSED_BY"
+          ]
+        },
+        {
+          "rel": "BUILT_ON",
+          "isBase": false,
+          "aliases": [
+            "BASED_ON",
+            "BUILT",
+            "USES_ARCH"
+          ]
+        },
+        {
+          "rel": "USES_PROCESS",
+          "isBase": false,
+          "aliases": [
+            "USES"
+          ]
+        },
+        {
+          "rel": "USES_PACKAGING",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "USES_MATERIAL",
+          "isBase": false,
+          "aliases": []
+        },
+        {
+          "rel": "INTEGRATES",
+          "isBase": false,
+          "aliases": [
+            "INTEGRATED",
+            "INTEGRATING",
+            "STACKS"
+          ]
+        },
+        {
+          "rel": "POWERS",
+          "isBase": false,
+          "aliases": []
+        }
+      ]
+    },
+    {
+      "key": "supply_chain",
+      "label": "Supply Chain",
+      "relations": [
+        {
+          "rel": "SUPPLIES",
+          "isBase": false,
+          "aliases": [
+            "PROVIDES",
+            "PROVIDES_TO",
+            "SELLS_TO",
+            "SUPPLIED",
+            "SUPPLIED_BY"
+          ]
+        },
+        {
+          "rel": "DEPENDS_ON",
+          "isBase": false,
+          "aliases": [
+            "DEPENDS",
+            "RELIANT_ON"
+          ]
+        },
+        {
+          "rel": "SOURCES_FROM",
+          "isBase": false,
+          "aliases": [
+            "PURCHASES_FROM",
+            "SOURCED",
+            "SOURCED_FROM"
+          ]
+        },
+        {
+          "rel": "COMPETES_WITH",
+          "isBase": false,
+          "aliases": [
+            "COMPETES",
+            "COMPETING_WITH",
+            "RIVAL"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "business",
+      "label": "Business",
+      "relations": [
+        {
+          "rel": "ACQUIRES",
+          "isBase": false,
+          "aliases": [
+            "ACQUIRED",
+            "ACQUIRED_BY",
+            "BOUGHT",
+            "BOUGHT_BY",
+            "MERGED_WITH"
+          ]
+        },
+        {
+          "rel": "INVESTS_IN",
+          "isBase": false,
+          "aliases": [
+            "BACKED",
+            "BACKED_BY",
+            "INVESTED",
+            "INVESTED_IN"
+          ]
+        },
+        {
+          "rel": "PARTNERS_WITH",
+          "isBase": false,
+          "aliases": [
+            "COLLABORATED",
+            "COLLABORATED_WITH",
+            "PARTNERED",
+            "PARTNERED_WITH"
+          ]
+        },
+        {
+          "rel": "SPINS_OUT",
+          "isBase": false,
+          "aliases": [
+            "SPUN_OFF",
+            "SPUN_OUT"
+          ]
+        },
+        {
+          "rel": "FOUNDED",
+          "isBase": false,
+          "aliases": [
+            "FOUNDED_BY"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "people",
+      "label": "People",
+      "relations": [
+        {
+          "rel": "WORKS_AT",
+          "isBase": false,
+          "aliases": [
+            "EMPLOYED_BY",
+            "HIRED_BY",
+            "JOINED"
+          ]
+        },
+        {
+          "rel": "LEADS",
+          "isBase": false,
+          "aliases": [
+            "HEADING",
+            "HEADING_UP",
+            "LED",
+            "RUNNING"
+          ]
+        },
+        {
+          "rel": "PRESENTS",
+          "isBase": false,
+          "aliases": [
+            "PRESENTED"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "policy",
+      "label": "Policy",
+      "relations": [
+        {
+          "rel": "RESTRICTS",
+          "isBase": false,
+          "aliases": [
+            "BANNED",
+            "BLOCKED",
+            "RESTRICTED",
+            "RESTRICTED_BY",
+            "SANCTIONED"
+          ]
+        },
+        {
+          "rel": "GOVERNS",
+          "isBase": false,
+          "aliases": [
+            "REGULATED",
+            "REGULATED_BY",
+            "REGULATES"
+          ]
+        },
+        {
+          "rel": "COMPLIES_WITH",
+          "isBase": false,
+          "aliases": [
+            "ADHERES_TO",
+            "COMPLIED"
+          ]
+        },
+        {
+          "rel": "EXEMPTS",
+          "isBase": false,
+          "aliases": [
+            "EXEMPT",
+            "EXEMPTED",
+            "EXEMPTED_FROM"
+          ]
+        },
+        {
+          "rel": "TARGETS",
+          "isBase": false,
+          "aliases": [
+            "TARGETED",
+            "TARGETED_BY"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "evaluation",
+      "label": "Evaluation",
+      "relations": [
+        {
+          "rel": "BENCHMARKS",
+          "isBase": false,
+          "aliases": [
+            "BENCHMARKED",
+            "COMPARED",
+            "TESTED"
+          ]
+        },
+        {
+          "rel": "OUTPERFORMS",
+          "isBase": false,
+          "aliases": [
+            "BEATS",
+            "FASTER_THAN",
+            "OUTPERFORMED"
+          ]
+        },
+        {
+          "rel": "PRESENTED_AT",
+          "isBase": false,
+          "aliases": []
+        }
+      ]
+    }
+  ],
+  "ungroupedRelations": [],
+  "normalization": {
+    "DESIGNED": "DESIGNS",
+    "DESIGNED_BY": "DESIGNS",
+    "DEVELOPED": "DESIGNS",
+    "DEVELOPED_BY": "DESIGNS",
+    "MANUFACTURED": "MANUFACTURES",
+    "MANUFACTURED_BY": "MANUFACTURES",
+    "PRODUCED": "MANUFACTURES",
+    "PRODUCED_BY": "MANUFACTURES",
+    "MADE": "MANUFACTURES",
+    "MADE_BY": "MANUFACTURES",
+    "FABBED": "FABRICATES",
+    "FABBED_BY": "FABRICATES",
+    "TAPED_OUT": "FABRICATES",
+    "BUILT": "BUILT_ON",
+    "BASED_ON": "BUILT_ON",
+    "USES": "USES_PROCESS",
+    "USES_ARCH": "BUILT_ON",
+    "STACKS": "INTEGRATES",
+    "INTEGRATING": "INTEGRATES",
+    "INTEGRATED": "INTEGRATES",
+    "LICENSED": "LICENSES",
+    "LICENSED_BY": "LICENSES",
+    "SUPPLIED": "SUPPLIES",
+    "SUPPLIED_BY": "SUPPLIES",
+    "PROVIDES": "SUPPLIES",
+    "PROVIDES_TO": "SUPPLIES",
+    "SELLS_TO": "SUPPLIES",
+    "DEPENDS": "DEPENDS_ON",
+    "RELIANT_ON": "DEPENDS_ON",
+    "SOURCED": "SOURCES_FROM",
+    "SOURCED_FROM": "SOURCES_FROM",
+    "PURCHASES_FROM": "SOURCES_FROM",
+    "COMPETES": "COMPETES_WITH",
+    "COMPETING_WITH": "COMPETES_WITH",
+    "RIVAL": "COMPETES_WITH",
+    "ACQUIRED": "ACQUIRES",
+    "ACQUIRED_BY": "ACQUIRES",
+    "BOUGHT": "ACQUIRES",
+    "BOUGHT_BY": "ACQUIRES",
+    "MERGED_WITH": "ACQUIRES",
+    "INVESTED": "INVESTS_IN",
+    "INVESTED_IN": "INVESTS_IN",
+    "BACKED": "INVESTS_IN",
+    "BACKED_BY": "INVESTS_IN",
+    "PARTNERED": "PARTNERS_WITH",
+    "PARTNERED_WITH": "PARTNERS_WITH",
+    "COLLABORATED": "PARTNERS_WITH",
+    "COLLABORATED_WITH": "PARTNERS_WITH",
+    "SPUN_OUT": "SPINS_OUT",
+    "SPUN_OFF": "SPINS_OUT",
+    "FOUNDED_BY": "FOUNDED",
+    "EMPLOYED_BY": "WORKS_AT",
+    "JOINED": "WORKS_AT",
+    "HIRED_BY": "WORKS_AT",
+    "LED": "LEADS",
+    "HEADING": "LEADS",
+    "HEADING_UP": "LEADS",
+    "RUNNING": "LEADS",
+    "PRESENTED": "PRESENTS",
+    "UNVEILED": "ANNOUNCES",
+    "REVEALED": "ANNOUNCES",
+    "RESTRICTED": "RESTRICTS",
+    "RESTRICTED_BY": "RESTRICTS",
+    "BANNED": "RESTRICTS",
+    "BLOCKED": "RESTRICTS",
+    "SANCTIONED": "RESTRICTS",
+    "REGULATES": "GOVERNS",
+    "REGULATED": "GOVERNS",
+    "REGULATED_BY": "GOVERNS",
+    "COMPLIED": "COMPLIES_WITH",
+    "ADHERES_TO": "COMPLIES_WITH",
+    "EXEMPT": "EXEMPTS",
+    "EXEMPTED": "EXEMPTS",
+    "EXEMPTED_FROM": "EXEMPTS",
+    "TARGETED": "TARGETS",
+    "TARGETED_BY": "TARGETS",
+    "BENCHMARKED": "BENCHMARKS",
+    "TESTED": "BENCHMARKS",
+    "COMPARED": "BENCHMARKS",
+    "OUTPERFORMED": "OUTPERFORMS",
+    "FASTER_THAN": "OUTPERFORMS",
+    "BEATS": "OUTPERFORMS",
+    "ANNOUNCED": "ANNOUNCES",
+    "MENTIONED": "MENTIONS",
+    "CITED": "CITES",
+    "REPORTED": "REPORTED_BY",
+    "REPORTS": "REPORTED_BY"
+  },
+  "qualityThresholds": {},
+  "gateThresholds": {
+    "evidence_fidelity_min": 0.7,
+    "orphan_max": 0.0,
+    "zero_value_min_entities": 1,
+    "zero_value_min_doc_chars": 500,
+    "high_confidence_threshold": 0.8
+  },
+  "scoringWeights": {},
+  "escalationThreshold": 0.6
+}

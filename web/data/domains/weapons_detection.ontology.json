@@ -1,0 +1,624 @@
+{
+  "domain": {
+    "name": "Weapons Detection Systems (Indoor)",
+    "slug": "weapons_detection",
+    "description": "Indoor weapons detection as one commercial ecosystem: acoustic gunshot detection, visual AI detection, and walk-through screening vendors selling into transit, school, hospital, venue, and workplace buyers. Tracks vendor-buyer deployments, procurement cycles, regulatory mandates, and the accuracy/surveillance controversy that runs through every product category.\n"
+  },
+  "baseRelation": "MENTIONS",
+  "entityTypes": [
+    {
+      "name": "Vendor",
+      "prefix": "vendor",
+      "canonicalIdPattern": "vendor:{slug}",
+      "color": "#4A90D9"
+    },
+    {
+      "name": "Product",
+      "prefix": "product",
+      "canonicalIdPattern": "product:{slug}",
+      "color": "#7C3AED"
+    },
+    {
+      "name": "Buyer",
+      "prefix": "buyer",
+      "canonicalIdPattern": "buyer:{slug}",
+      "color": "#0D9488"
+    },
+    {
+      "name": "Person",
+      "prefix": "person",
+      "canonicalIdPattern": "person:{slug}",
+      "color": "#50B4A8"
+    },
+    {
+      "name": "Regulation",
+      "prefix": "regulation",
+      "canonicalIdPattern": "regulation:{slug}",
+      "color": "#F43F5E"
+    },
+    {
+      "name": "Report",
+      "prefix": "report",
+      "canonicalIdPattern": "report:{slug}",
+      "color": "#F59E0B"
+    },
+    {
+      "name": "Event",
+      "prefix": "event",
+      "canonicalIdPattern": "event:{slug}",
+      "color": "#F97316"
+    },
+    {
+      "name": "Location",
+      "prefix": "location",
+      "canonicalIdPattern": "location:{slug}",
+      "color": "#6366F1"
+    },
+    {
+      "name": "Topic",
+      "prefix": "topic",
+      "canonicalIdPattern": "topic:{slug}",
+      "color": "#64748B"
+    },
+    {
+      "name": "Org",
+      "prefix": "org",
+      "canonicalIdPattern": "org:{slug}",
+      "color": "#0EA5E9"
+    },
+    {
+      "name": "Document",
+      "prefix": "doc",
+      "canonicalIdPattern": "doc:{slug}",
+      "color": "#D97706"
+    },
+    {
+      "name": "Other",
+      "prefix": "other",
+      "canonicalIdPattern": "other:{slug}",
+      "color": "#A1A1AA"
+    }
+  ],
+  "typeGroups": [
+    {
+      "label": "Vendors",
+      "types": [
+        "Vendor",
+        "Org"
+      ]
+    },
+    {
+      "label": "Products",
+      "types": [
+        "Product"
+      ]
+    },
+    {
+      "label": "Buyers",
+      "types": [
+        "Buyer"
+      ]
+    },
+    {
+      "label": "Governance & Scrutiny",
+      "types": [
+        "Regulation",
+        "Report",
+        "Document"
+      ]
+    },
+    {
+      "label": "Context",
+      "types": [
+        "Person",
+        "Event",
+        "Location",
+        "Topic",
+        "Other"
+      ]
+    }
+  ],
+  "relationGroups": [
+    {
+      "key": "document",
+      "label": "Document",
+      "relations": [
+        {
+          "rel": "MENTIONS",
+          "isBase": true,
+          "aliases": [
+            "MENTION",
+            "MENTIONED",
+            "MENTIONING",
+            "MENTIONS_BY"
+          ]
+        },
+        {
+          "rel": "CITES",
+          "isBase": false,
+          "aliases": [
+            "CITE",
+            "CITED",
+            "CITES_BY",
+            "CITING"
+          ]
+        },
+        {
+          "rel": "ANNOUNCES",
+          "isBase": false,
+          "aliases": [
+            "ANNOUNCE",
+            "ANNOUNCED",
+            "ANNOUNCES_BY",
+            "ANNOUNCING"
+          ]
+        },
+        {
+          "rel": "REPORTED_BY",
+          "isBase": false,
+          "aliases": [
+            "REPORTED",
+            "REPORTING_BY",
+            "REPORTS",
+            "REPORTS_BY",
+            "REPORT_BY"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "commercial",
+      "label": "Commercial",
+      "relations": [
+        {
+          "rel": "MANUFACTURES",
+          "isBase": false,
+          "aliases": [
+            "MANUFACTURE",
+            "MANUFACTURED",
+            "MANUFACTURES_BY",
+            "MANUFACTURING"
+          ]
+        },
+        {
+          "rel": "DEPLOYED_TO",
+          "isBase": false,
+          "aliases": [
+            "DEPLOYES_TO",
+            "DEPLOYE_TO",
+            "DEPLOYING_TO",
+            "DEPLOYS",
+            "INSTALLED",
+            "INSTALLED_AT",
+            "INSTALLS",
+            "ROLLED_OUT",
+            "ROLLS_OUT"
+          ]
+        },
+        {
+          "rel": "PROCURES",
+          "isBase": false,
+          "aliases": [
+            "BOUGHT",
+            "BUYS",
+            "PROCURE",
+            "PROCURED",
+            "PROCURES_BY",
+            "PROCURING",
+            "PURCHASED",
+            "PURCHASES"
+          ]
+        },
+        {
+          "rel": "PILOTS",
+          "isBase": false,
+          "aliases": [
+            "PILOT",
+            "PILOTED",
+            "PILOTS_BY",
+            "PILOTTED",
+            "PILOTTING",
+            "TESTED",
+            "TESTING",
+            "TRIALED",
+            "TRIALS"
+          ]
+        },
+        {
+          "rel": "CONTRACTS_WITH",
+          "isBase": false,
+          "aliases": [
+            "AWARDED_CONTRACT",
+            "AWARDED_CONTRACT_TO",
+            "CONTRACTED_WITH",
+            "CONTRACTING_WITH",
+            "CONTRACT_WITH",
+            "SIGNED_CONTRACT_WITH"
+          ]
+        },
+        {
+          "rel": "ACQUIRES",
+          "isBase": false,
+          "aliases": [
+            "ACQUIRE",
+            "ACQUIRED",
+            "ACQUIRES_BY",
+            "ACQUIRING",
+            "BOUGHT_OUT"
+          ]
+        },
+        {
+          "rel": "PARTNERS_WITH",
+          "isBase": false,
+          "aliases": [
+            "COLLABORATES_WITH",
+            "PARTNERED",
+            "PARTNERED_WITH",
+            "PARTNERING_WITH",
+            "PARTNER_WITH",
+            "TEAMED_UP_WITH"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "regulatory",
+      "label": "Regulatory & Governance",
+      "relations": [
+        {
+          "rel": "MANDATES",
+          "isBase": false,
+          "aliases": [
+            "MANDATE",
+            "MANDATED",
+            "MANDATES_BY",
+            "MANDATING"
+          ]
+        },
+        {
+          "rel": "REQUIRES",
+          "isBase": false,
+          "aliases": [
+            "REQUIRE",
+            "REQUIRED",
+            "REQUIRES_BY",
+            "REQUIRING"
+          ]
+        },
+        {
+          "rel": "GOVERNED_BY",
+          "isBase": false,
+          "aliases": [
+            "GOVERNED",
+            "GOVERNING_BY",
+            "GOVERNS_BY",
+            "GOVERN_BY"
+          ]
+        },
+        {
+          "rel": "REGULATES",
+          "isBase": false,
+          "aliases": [
+            "REGULATE",
+            "REGULATED",
+            "REGULATES_BY",
+            "REGULATING"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "evaluation",
+      "label": "Evaluation",
+      "relations": [
+        {
+          "rel": "EVALUATES",
+          "isBase": false,
+          "aliases": [
+            "ASSESSED",
+            "AUDITED",
+            "EVALUATE",
+            "EVALUATED",
+            "EVALUATES_BY",
+            "EVALUATING",
+            "REVIEWED",
+            "STUDIED"
+          ]
+        },
+        {
+          "rel": "DISPUTES",
+          "isBase": false,
+          "aliases": [
+            "CHALLENGED",
+            "CHALLENGES",
+            "CRITICIZED",
+            "CRITICIZES",
+            "DISPUTE",
+            "DISPUTED",
+            "DISPUTES_BY",
+            "DISPUTING",
+            "OPPOSED",
+            "OPPOSES",
+            "QUESTIONED",
+            "QUESTIONS"
+          ]
+        },
+        {
+          "rel": "ASSOCIATED_WITH",
+          "isBase": false,
+          "aliases": [
+            "ASSOCIATED",
+            "ASSOCIATES_WITH",
+            "ASSOCIATE_WITH",
+            "ASSOCIATING_WITH",
+            "LINKED_TO",
+            "RELATED_TO",
+            "TIED_TO"
+          ]
+        },
+        {
+          "rel": "INVESTIGATES",
+          "isBase": false,
+          "aliases": [
+            "INVESTIGATE",
+            "INVESTIGATED",
+            "INVESTIGATES_BY",
+            "INVESTIGATING",
+            "PROBED",
+            "PROBES"
+          ]
+        },
+        {
+          "rel": "RESPONDS_TO",
+          "isBase": false,
+          "aliases": [
+            "DEFENDED",
+            "DEFENDS",
+            "RESPONDED",
+            "RESPONDED_TO",
+            "RESPONDING_TO",
+            "RESPOND_TO"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "personnel",
+      "label": "Personnel",
+      "relations": [
+        {
+          "rel": "FOUNDED",
+          "isBase": false,
+          "aliases": [
+            "CO_FOUNDED",
+            "ESTABLISHED",
+            "FOUNDE",
+            "FOUNDED_BY",
+            "FOUNDES",
+            "FOUNDING"
+          ]
+        },
+        {
+          "rel": "HIRED",
+          "isBase": false,
+          "aliases": [
+            "APPOINTED",
+            "HIRE",
+            "HIRED_BY",
+            "HIRES",
+            "HIRING",
+            "JOINED",
+            "NAMED"
+          ]
+        },
+        {
+          "rel": "LEADS",
+          "isBase": false,
+          "aliases": [
+            "HEADS",
+            "LEAD",
+            "LEADING",
+            "LEADS_BY",
+            "LED",
+            "LED_BY",
+            "RUNS"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "event",
+      "label": "Event",
+      "relations": [
+        {
+          "rel": "PRESENTS_AT",
+          "isBase": false,
+          "aliases": [
+            "EXHIBITED_AT",
+            "PRESENTED_AT",
+            "PRESENTING_AT",
+            "PRESENT_AT",
+            "SHOWCASED_AT",
+            "SPOKE_AT"
+          ]
+        },
+        {
+          "rel": "OCCURS_AT",
+          "isBase": false,
+          "aliases": [
+            "HAPPENED_AT",
+            "HELD_AT",
+            "OCCURRED_AT",
+            "OCCURRING_AT",
+            "OCCUR_AT",
+            "TOOK_PLACE_AT"
+          ]
+        }
+      ]
+    }
+  ],
+  "ungroupedRelations": [],
+  "normalization": {
+    "DEPLOYS": "DEPLOYED_TO",
+    "INSTALLS": "DEPLOYED_TO",
+    "INSTALLED": "DEPLOYED_TO",
+    "INSTALLED_AT": "DEPLOYED_TO",
+    "ROLLED_OUT": "DEPLOYED_TO",
+    "ROLLS_OUT": "DEPLOYED_TO",
+    "PURCHASED": "PROCURES",
+    "PURCHASES": "PROCURES",
+    "BOUGHT": "PROCURES",
+    "BUYS": "PROCURES",
+    "AWARDED_CONTRACT": "CONTRACTS_WITH",
+    "AWARDED_CONTRACT_TO": "CONTRACTS_WITH",
+    "CONTRACTED_WITH": "CONTRACTS_WITH",
+    "SIGNED_CONTRACT_WITH": "CONTRACTS_WITH",
+    "PILOTED": "PILOTS",
+    "TRIALS": "PILOTS",
+    "TRIALED": "PILOTS",
+    "TESTED": "PILOTS",
+    "TESTING": "PILOTS",
+    "CRITICIZED": "DISPUTES",
+    "CRITICIZES": "DISPUTES",
+    "CHALLENGED": "DISPUTES",
+    "CHALLENGES": "DISPUTES",
+    "QUESTIONED": "DISPUTES",
+    "QUESTIONS": "DISPUTES",
+    "OPPOSES": "DISPUTES",
+    "OPPOSED": "DISPUTES",
+    "MANDATED": "MANDATES",
+    "REQUIRED": "REQUIRES",
+    "REGULATED": "REGULATES",
+    "ACQUIRED": "ACQUIRES",
+    "BOUGHT_OUT": "ACQUIRES",
+    "PARTNERED": "PARTNERS_WITH",
+    "PARTNERED_WITH": "PARTNERS_WITH",
+    "TEAMED_UP_WITH": "PARTNERS_WITH",
+    "COLLABORATES_WITH": "PARTNERS_WITH",
+    "EVALUATED": "EVALUATES",
+    "STUDIED": "EVALUATES",
+    "AUDITED": "EVALUATES",
+    "ASSESSED": "EVALUATES",
+    "REVIEWED": "EVALUATES",
+    "ASSOCIATED": "ASSOCIATED_WITH",
+    "LINKED_TO": "ASSOCIATED_WITH",
+    "TIED_TO": "ASSOCIATED_WITH",
+    "RELATED_TO": "ASSOCIATED_WITH",
+    "GOVERNED": "GOVERNED_BY",
+    "INVESTIGATED": "INVESTIGATES",
+    "PROBED": "INVESTIGATES",
+    "PROBES": "INVESTIGATES",
+    "RESPONDED_TO": "RESPONDS_TO",
+    "RESPONDED": "RESPONDS_TO",
+    "DEFENDED": "RESPONDS_TO",
+    "DEFENDS": "RESPONDS_TO",
+    "FOUNDED_BY": "FOUNDED",
+    "CO_FOUNDED": "FOUNDED",
+    "ESTABLISHED": "FOUNDED",
+    "HIRED_BY": "HIRED",
+    "APPOINTED": "HIRED",
+    "NAMED": "HIRED",
+    "JOINED": "HIRED",
+    "LED_BY": "LEADS",
+    "HEADS": "LEADS",
+    "RUNS": "LEADS",
+    "PRESENTED_AT": "PRESENTS_AT",
+    "EXHIBITED_AT": "PRESENTS_AT",
+    "SPOKE_AT": "PRESENTS_AT",
+    "SHOWCASED_AT": "PRESENTS_AT",
+    "OCCURRED_AT": "OCCURS_AT",
+    "HELD_AT": "OCCURS_AT",
+    "TOOK_PLACE_AT": "OCCURS_AT",
+    "HAPPENED_AT": "OCCURS_AT",
+    "ANNOUNCED": "ANNOUNCES",
+    "ANNOUNCING": "ANNOUNCES",
+    "MENTIONED": "MENTIONS",
+    "CITED": "CITES",
+    "REPORTED": "REPORTED_BY",
+    "REPORTS": "REPORTED_BY",
+    "ACQUIRE": "ACQUIRES",
+    "ACQUIRES_BY": "ACQUIRES",
+    "ACQUIRING": "ACQUIRES",
+    "ANNOUNCE": "ANNOUNCES",
+    "ANNOUNCES_BY": "ANNOUNCES",
+    "ASSOCIATES_WITH": "ASSOCIATED_WITH",
+    "ASSOCIATE_WITH": "ASSOCIATED_WITH",
+    "ASSOCIATING_WITH": "ASSOCIATED_WITH",
+    "CITE": "CITES",
+    "CITES_BY": "CITES",
+    "CITING": "CITES",
+    "CONTRACTING_WITH": "CONTRACTS_WITH",
+    "CONTRACT_WITH": "CONTRACTS_WITH",
+    "DEPLOYES_TO": "DEPLOYED_TO",
+    "DEPLOYE_TO": "DEPLOYED_TO",
+    "DEPLOYING_TO": "DEPLOYED_TO",
+    "DISPUTE": "DISPUTES",
+    "DISPUTED": "DISPUTES",
+    "DISPUTES_BY": "DISPUTES",
+    "DISPUTING": "DISPUTES",
+    "EVALUATE": "EVALUATES",
+    "EVALUATES_BY": "EVALUATES",
+    "EVALUATING": "EVALUATES",
+    "FOUNDE": "FOUNDED",
+    "FOUNDES": "FOUNDED",
+    "FOUNDING": "FOUNDED",
+    "GOVERNING_BY": "GOVERNED_BY",
+    "GOVERNS_BY": "GOVERNED_BY",
+    "GOVERN_BY": "GOVERNED_BY",
+    "HIRE": "HIRED",
+    "HIRES": "HIRED",
+    "HIRING": "HIRED",
+    "INVESTIGATE": "INVESTIGATES",
+    "INVESTIGATES_BY": "INVESTIGATES",
+    "INVESTIGATING": "INVESTIGATES",
+    "LEAD": "LEADS",
+    "LEADING": "LEADS",
+    "LEADS_BY": "LEADS",
+    "LED": "LEADS",
+    "MANDATE": "MANDATES",
+    "MANDATES_BY": "MANDATES",
+    "MANDATING": "MANDATES",
+    "MANUFACTURE": "MANUFACTURES",
+    "MANUFACTURED": "MANUFACTURES",
+    "MANUFACTURES_BY": "MANUFACTURES",
+    "MANUFACTURING": "MANUFACTURES",
+    "MENTION": "MENTIONS",
+    "MENTIONING": "MENTIONS",
+    "MENTIONS_BY": "MENTIONS",
+    "OCCURRING_AT": "OCCURS_AT",
+    "OCCUR_AT": "OCCURS_AT",
+    "PARTNERING_WITH": "PARTNERS_WITH",
+    "PARTNER_WITH": "PARTNERS_WITH",
+    "PILOT": "PILOTS",
+    "PILOTS_BY": "PILOTS",
+    "PILOTTED": "PILOTS",
+    "PILOTTING": "PILOTS",
+    "PRESENTING_AT": "PRESENTS_AT",
+    "PRESENT_AT": "PRESENTS_AT",
+    "PROCURE": "PROCURES",
+    "PROCURED": "PROCURES",
+    "PROCURES_BY": "PROCURES",
+    "PROCURING": "PROCURES",
+    "REGULATE": "REGULATES",
+    "REGULATES_BY": "REGULATES",
+    "REGULATING": "REGULATES",
+    "REPORTING_BY": "REPORTED_BY",
+    "REPORTS_BY": "REPORTED_BY",
+    "REPORT_BY": "REPORTED_BY",
+    "REQUIRE": "REQUIRES",
+    "REQUIRES_BY": "REQUIRES",
+    "REQUIRING": "REQUIRES",
+    "RESPONDING_TO": "RESPONDS_TO",
+    "RESPOND_TO": "RESPONDS_TO"
+  },
+  "qualityThresholds": {},
+  "gateThresholds": {
+    "evidence_fidelity_min": 0.7,
+    "orphan_max": 0.0,
+    "zero_value_min_entities": 1,
+    "zero_value_min_doc_chars": 500,
+    "high_confidence_threshold": 0.8
+  },
+  "scoringWeights": {},
+  "escalationThreshold": 0.6
+}
