@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 # Domains the pager watches. Fusion joins at 20.18.
-DEFAULT_DOMAINS = "film,semiconductors"
+DEFAULT_DOMAINS = "film,semiconductors,weapons_detection"
 
 # Domain-level: no new docs or no new trend_history row for this long.
 DEFAULT_MAX_AGE_HOURS = 48

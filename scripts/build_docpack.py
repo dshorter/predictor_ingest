@@ -7,6 +7,10 @@ Outputs:
 When --budget is set, applies quality-based selection to control
 extraction costs while ensuring feed representation. See src/doc_select/
 for the scoring algorithm.
+
+Only docs with status='cleaned' are candidates. Docs marked 'shelved'
+(intentionally deferred deep backlog — see schemas/sqlite.sql) are skipped
+by construction and never enter a pack.
 """
 
 from __future__ import annotations
@@ -22,6 +26,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from db import init_db
 from ingest.source_policy import extracting_source_types
+
+# How many days before the run date the backlog fallback may reach to top up
+# a run to budget. Kept tight (was 180): the fallback exists to catch fresh
+# docs whose published_at is a day or two off the run date (e.g. yesterday's
+# news fetched today), NOT to perpetually drain months of accumulated
+# un-extracted docs — that spends credits on stale content and mixes it into
+# today's graph. "Today forward" policy, operator directive 2026-07-22.
+BACKLOG_LOOKBACK_DAYS = 2
 
 
 def _log_selection_decisions(
@@ -172,14 +184,17 @@ def build_docpack(
     rows = [dict(row) for row in cursor.fetchall()]
 
     # Backlog fallback: if the date filter found nothing (or we already got
-    # today's docs), also pick up any cleaned docs from other dates that
-    # have never been extracted.  This prevents docs from being stranded
-    # when their published_at doesn't match the daily run date.
-    # Skip anything older than 6 months — stale content isn't worth extracting.
+    # today's docs), also pick up any cleaned docs from the last few days that
+    # have never been extracted. This catches docs stranded when their
+    # published_at is a day or two off the run date — NOT the months-deep
+    # accumulated pile (see BACKLOG_LOOKBACK_DAYS). The window is bounded on
+    # BOTH sides: no older than the lookback floor, and never *after* the run
+    # date, so future-dated docs (bad published_at parses) can't be pulled in.
     if not all_docs:
         already_ids = {r["doc_id"] for r in rows}
         remaining = max_docs - len(rows)
-        cutoff_date = (date.fromisoformat(target_date) - timedelta(days=180)).isoformat()
+        cutoff_date = (date.fromisoformat(target_date)
+                       - timedelta(days=BACKLOG_LOOKBACK_DAYS)).isoformat()
         if remaining > 0:
             backlog_cursor = conn.execute(
                 f"""
@@ -190,17 +205,19 @@ def build_docpack(
                   AND (published_at IS NULL OR substr(published_at, 1, 10) != ?)
                   AND COALESCE(substr(published_at, 1, 10),
                                substr(fetched_at, 1, 10)) >= ?
+                  AND COALESCE(substr(published_at, 1, 10),
+                               substr(fetched_at, 1, 10)) <= ?
                   AND source_type IN ({type_placeholders})
                 ORDER BY fetched_at DESC
                 LIMIT ?
                 """,
-                (target_date, cutoff_date, *extract_types, remaining),
+                (target_date, cutoff_date, target_date, *extract_types, remaining),
             )
             backlog_rows = [dict(r) for r in backlog_cursor.fetchall()
                            if r["doc_id"] not in already_ids]
             if backlog_rows:
-                print(f"Backlog: adding {len(backlog_rows)} cleaned docs from other dates "
-                      f"(cutoff: {cutoff_date})")
+                print(f"Backlog: adding {len(backlog_rows)} cleaned docs from the last "
+                      f"{BACKLOG_LOOKBACK_DAYS}d (window: {cutoff_date}..{target_date})")
                 rows.extend(backlog_rows)
 
     if not rows:

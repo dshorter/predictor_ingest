@@ -1,0 +1,14 @@
+[Unit]
+Description=Daily weapons_detection pipeline run at 07:30
+# Staggered 45min after semiconductors: no API/batch contention, and both
+# film and semis runs are visible before this fires. Thin tripwire domain
+# (budget 10/15) still in its 14-day dampening window from 2026-07-20 —
+# daily snapshots must land from day 1 for a clean validation dataset.
+
+[Timer]
+OnCalendar=*-*-* 07:30:00
+Persistent=true
+Unit=predictor-daily@weapons_detection.service
+
+[Install]
+WantedBy=timers.target

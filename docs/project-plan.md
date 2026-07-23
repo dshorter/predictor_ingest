@@ -916,18 +916,26 @@ pre-register a named hypothesis before first data, onboard from
 | 20.24 | First ingest | Fired 2026-07-20. Output provisional through the dampening window; daily snapshots collect from day 1 | [Manual] |
 | 20.25 | Ground-truth definitions + validation cycle | Same pattern as 20.12/20.13 but for this domain: dated outcome definitions (contract awards, evaluation report publication dates), then a validation cycle grading the 20.23 hypothesis. Blocked on the dampening window closing | [Manual + Opus] |
 
-**Output:** three domains (film, semiconductors, fusion) running daily
-with staleness paging; Movers ranked by uncertainty-aware, persistence-
+**Output:** three domains running daily with staleness paging — film,
+semiconductors, and **weapons_detection** (Track E, queue-jumped ahead of
+fusion by operator directive 2026-07-20). **Fusion (Track C) is deferred and
+not yet scaffolded**; its onboarding steps (20.15–20.18) are unchanged and
+startable when next prioritized — weapons_detection took the third live-domain
+slot, not fusion's methodological role (fusion is still the first domain the
+pond-sizing criteria will *select*; weapons was interest-selected, then run
+through the same discipline). Movers ranked by uncertainty-aware, persistence-
 and structure-aware signals; a validation instrument producing its first
 report after the dampening window — and a retro-validated epoch-1 baseline
-before that (Track D); fusion as a pre-registered experiment
-rather than a hobby domain.
+before that (Track D); each new domain onboarded as a pre-registered
+experiment rather than a hobby domain.
 
 **Acceptance:** 20.1 verified before any Movers export ships. No silent
 stall >48h possible without a Telegram page. `movers.json` ranks by CI
 lower bound with NEW-badge small-N handling. A dated ground-truth doc
-exists for all three active domains *before* 20.13 runs. Fusion's
-hypothesis page is committed before its first extraction batch.
+exists for all three active domains (film, semiconductors, weapons_detection)
+*before* 20.13 runs. Each active domain's pre-registered hypothesis page is
+committed before its first extraction batch (weapons_detection's landed
+2026-07-20; fusion's is required when it onboards).
 
 **Explicitly deferred:** corroboration weighting inside the Landscape
 composite (needs per-entity `source_count` metric — next sprint, on top
@@ -954,6 +962,25 @@ startable now; what remains genuinely operator-owned across all of
 Sprint 20 is narrow: the *content* of the ground-truth definitions
 (20.12) and the hypothesis *prediction* (20.15), plus the sudo timer
 install and API-credit top-up — not source curation.
+
+**2026-07-22 — "today-forward" launch policy + the shelved backlog.** When the
+three daily timers went live, the operator directed that runs process today
+forward only, not the months-deep pile of un-extracted docs (film ~2.2k,
+semis ~0.9k, back to 2018/2023 + some future-dated parse errors) — that
+backlog is too big a cost bite. Two mechanisms enforce this: (1) `build_docpack.py`'s
+backlog fallback was tightened from a 180-day reach to **2 days**, with an
+upper bound so future-dated docs can't be pulled; (2) the existing deep pile
+was moved `cleaned → shelved` (a new, non-destructive `documents.status`
+value — content preserved, excluded from docpack/backlog/bench since all three
+query `'cleaned'`, reversible, queryable as `WHERE status='shelved'`).
+weapons_detection was left untouched (fresh domain, 3 docs). **Open follow-up
+(deferred, low priority): the recurring tidy routine.** Shelving cleaned the
+*existing* pile, but going forward, docs that age past the 2-day window without
+being extracted will sit as `cleaned` and slowly re-form an ambiguous pile.
+A small scheduled step — "shelve `cleaned` docs older than N days" (mirror of
+`expire_bench`, or a stage appended to the daily run / a weekly timer) — would
+keep the active `cleaned` set tight without operator attention. Not needed for
+launch; parked here so the pile doesn't quietly regrow unnoticed.
 
 ---
 

@@ -10,6 +10,10 @@ CREATE TABLE IF NOT EXISTS documents (
   raw_path TEXT,
   text_path TEXT,
   content_hash TEXT,
+  -- Lifecycle: cleaned -> extracted (via import) | error (extraction failed).
+  -- 'shelved' = un-extracted but intentionally set aside (deep backlog the
+  -- pipeline should skip): content preserved, excluded from extraction because
+  -- docpack/backlog/bench all query status='cleaned'. Reversible to 'cleaned'.
   status TEXT,
   error TEXT
 );
