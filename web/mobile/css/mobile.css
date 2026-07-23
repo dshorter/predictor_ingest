@@ -241,7 +241,11 @@ html, body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   flex: 1;
-  min-width: 80px;
+  /* Floor the shrink at the label's own width so a long label (e.g.
+     "Semiconductors", "Weapons Detection", "Dependencies") can never be
+     squeezed narrower than its text — it wraps to a new row instead of
+     overflowing its box. flex:1 still grows buttons to fill each row. */
+  min-width: max-content;
   text-align: center;
 }
 
