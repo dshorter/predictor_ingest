@@ -272,3 +272,59 @@ sqlite3 data/db/<slug>.db "SELECT entity_id, narrative FROM trend_narratives ORD
 # 6. Check synthesis
 sqlite3 data/db/<slug>.db "SELECT COUNT(*) FROM synthesis_runs"
 ```
+
+---
+
+## Section 7: Web Client Hooks
+
+The pipeline config above makes the domain *run*; this section makes it *show
+up correctly in the web client* (`web/`). A domain that skips these renders as
+flat gray nodes with an empty "About this domain" modal — the pipeline looks
+fine, the UI looks broken.
+
+### Q12: Is the domain listed in ALL THREE registries?
+
+The domain enumeration is duplicated in three places — miss one and that
+surface silently drifts (this is exactly how the dashboard fallback went stale
+at ai+biosafety while the real switcher had all five):
+
+| File | Shape | Purpose |
+|------|-------|---------|
+| `web/js/domain-switcher.js` (`KNOWN_DOMAINS`) | `{slug, label, title}` | Canonical — the switcher dropdown on every graph page |
+| `web/js/ontology.js` (`KNOWN_DOMAINS`) | `{slug, label}` | The ontology page's own switcher |
+| `web/dashboard.html` (inline `KNOWN_DOMAINS` fallback) | `{slug, label, title}` | Used only if `domain-switcher.js` fails to load — keep it synced anyway |
+
+### Q13: Do the two per-domain data files exist?
+
+| File | How to create | Without it |
+|------|---------------|-----------|
+| `web/data/domains/<slug>.json` | **Hand-authored.** Config the client reads for node colors + legend grouping: `title`, `titleShort`, `entityTypes`, `typeGroups`, `typeColors` (one hex per entity type). Copy an existing one (e.g. `semiconductors.json`) and adapt. | All entity types default to gray `#9CA3AF`; the client falls back to an empty config (generic title, no legend groups). |
+| `web/data/domains/<slug>.ontology.json` | **Generated:** `python scripts/export_ontology.py --domain <slug>` (or `make export_ontology DOMAIN=<slug>`). Reads `<slug>.json` for colors, so author that FIRST. | The "About this domain" modal has no description and the ontology page is empty. |
+
+The live graph views (`web/data/graphs/live/<slug>/{claims,dependencies,mentions,movers,trending}.json`)
+are produced by the pipeline's `copy-to-live` stage — no manual step. They're
+gitignored and reach prod via a symlink, so they need no commit.
+
+### Q14: Will it reach prod?
+
+`web/data/domains/*.json` and `*.ontology.json` are **git-tracked** → they
+reach `predictor.uzelhub.com` on the next `main` pull + `make deploy-prod`.
+Live graph data is symlinked from dev, so it's served on prod the moment the
+pipeline writes it — nothing to deploy.
+
+### Web verification
+
+```bash
+# All three registries include the slug
+grep -c "<slug>" web/js/domain-switcher.js web/js/ontology.js web/dashboard.html
+
+# Both per-domain data files exist and are valid JSON
+for f in web/data/domains/<slug>.json web/data/domains/<slug>.ontology.json; do
+  python3 -c "import json; json.load(open('$f')); print('OK', '$f')"
+done
+
+# No entity type defaulted to gray (means <slug>.json was missing/incomplete)
+python3 -c "import json; \
+  ets=json.load(open('web/data/domains/<slug>.ontology.json'))['entityTypes']; \
+  print('gray-defaulted:', [e['name'] for e in ets if e['color']=='#9CA3AF'] or 'none')"
+```
