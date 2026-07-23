@@ -1,9 +1,12 @@
 [Unit]
 Description=Predictor daily pipeline run (%i)
-# One instance per domain: predictor-daily@film, predictor-daily@semiconductors.
-# A failed run pages [SYSTEM] via the shared channel; the staleness pager
-# (predictor-staleness.timer) independently catches silent no-data stalls.
-OnFailure=notify-telegram@%n.service
+# One instance per domain: predictor-daily@film, predictor-daily@semiconductors,
+# predictor-daily@weapons_detection.
+# Notifications: run_pipeline.py pages [PREDICTOR] with a rich summary on EVERY
+# outcome (success/partial/failed, incl. which stage failed) — so no generic
+# OnFailure= here, which would only double-page. A hard crash that never reaches
+# that ping (OOM/SIGKILL/2h-timeout) is still caught by the staleness pager
+# (predictor-staleness.timer) within hours — silent no-data stalls are its job.
 
 [Service]
 Type=oneshot

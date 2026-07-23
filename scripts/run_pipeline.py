@@ -1404,6 +1404,25 @@ def main() -> int:
 
     print(f"Log: {log_path}")
 
+    # Completion ping to the operator's Telegram, on EVERY outcome — the unit
+    # deliberately has no OnFailure=, so this is the single notification for the
+    # run (success/partial/failed, with the failed stage names on a bad run).
+    # Gated to systemd runs (INVOCATION_ID set) so manual dev runs stay quiet and
+    # don't burn notify-telegram's daily cap. A hard crash that never reaches
+    # here is backstopped by the staleness pager. notify-telegram is a no-op when
+    # unconfigured and must never affect the run's exit.
+    if os.environ.get("INVOCATION_ID"):
+        msg = f"{args.domain} daily — {summary}"
+        if overall_status != "success" and failed_stages:
+            msg += f" | failed: {', '.join(failed_stages)}"
+        try:
+            subprocess.run(
+                ["/usr/local/sbin/notify-telegram", "PREDICTOR", msg],
+                check=False, timeout=30,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
     return 0 if overall_status == "success" else 1
 
 
