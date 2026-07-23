@@ -982,6 +982,22 @@ A small scheduled step — "shelve `cleaned` docs older than N days" (mirror of
 keep the active `cleaned` set tight without operator attention. Not needed for
 launch; parked here so the pile doesn't quietly regrow unnoticed.
 
+**2026-07-23 — correction: the fallback keys on ingest date, not publish
+date.** The 2-day *published_at* window (above) silently starved
+weapons_detection: its first scheduled run selected **0 of 14** freshly-ingested
+docs because its content — SEC filings (8-K/10-Q/10-K), weekly trade press,
+advocacy orgs — is published days-to-months before we ingest it, so nothing
+fell in a 2-day *published* window (film/semis were fine; their news is
+same-day). Fixed by keying the fallback on **`fetched_at`** (ingestion
+recency, `INGEST_LOOKBACK_DAYS = 7`) instead of `published_at`: "process what
+recently entered the pipeline," which is the correct signal for new work
+regardless of publish date. The deep pile stays excluded because it's *shelved*
+(that's now the sole mechanism for the cost guard, and it's sufficient) and was
+fetched long ago. Verified on DB copies: weapons 0→17 selected, film unchanged
+(today's ingest only, no shelved-pile leak). The deferred tidy-routine note
+above still stands, reworded: shelve `cleaned` docs whose `fetched_at` is older
+than N days.
+
 ---
 
 ## Sprint 21 (queued 2026-07-19, not yet designed) — Unified app shell

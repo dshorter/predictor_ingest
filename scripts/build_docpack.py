@@ -27,13 +27,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from db import init_db
 from ingest.source_policy import extracting_source_types
 
-# How many days before the run date the backlog fallback may reach to top up
-# a run to budget. Kept tight (was 180): the fallback exists to catch fresh
-# docs whose published_at is a day or two off the run date (e.g. yesterday's
-# news fetched today), NOT to perpetually drain months of accumulated
-# un-extracted docs — that spends credits on stale content and mixes it into
-# today's graph. "Today forward" policy, operator directive 2026-07-22.
-BACKLOG_LOOKBACK_DAYS = 2
+# The backlog fallback tops a run up to budget with un-extracted cleaned docs,
+# keyed on how recently they were INGESTED (fetched_at), not when the article
+# was published. Publish-date keying (the original) starves domains whose
+# content is published well before we ingest it — SEC filings, weekly trade
+# press, advocacy orgs (weapons_detection: nothing published in the last 2 days
+# even though 14 docs were freshly ingested). Ingest-date keying means "process
+# what recently entered the pipeline," which is the correct signal for new
+# work. The months-deep accumulated pile is excluded because it's shelved
+# (status='shelved') AND fetched long ago; this window is the secondary guard.
+# "Ingest-forward" policy — supersedes the 2026-07-22 published-date window.
+INGEST_LOOKBACK_DAYS = 7
 
 
 def _log_selection_decisions(
@@ -183,18 +187,17 @@ def build_docpack(
         bundle_label = label or target_date
     rows = [dict(row) for row in cursor.fetchall()]
 
-    # Backlog fallback: if the date filter found nothing (or we already got
-    # today's docs), also pick up any cleaned docs from the last few days that
-    # have never been extracted. This catches docs stranded when their
-    # published_at is a day or two off the run date — NOT the months-deep
-    # accumulated pile (see BACKLOG_LOOKBACK_DAYS). The window is bounded on
-    # BOTH sides: no older than the lookback floor, and never *after* the run
-    # date, so future-dated docs (bad published_at parses) can't be pulled in.
+    # Backlog fallback: top the run up to budget with un-extracted cleaned docs
+    # that were INGESTED recently (fetched_at within INGEST_LOOKBACK_DAYS),
+    # newest-ingested first — regardless of publish date, so domains that
+    # ingest older-published content (SEC filings, slower press) aren't starved.
+    # The deep pile is excluded because it's shelved and was fetched long ago.
+    # Dedup against the primary (today's-published) rows happens in Python.
     if not all_docs:
         already_ids = {r["doc_id"] for r in rows}
         remaining = max_docs - len(rows)
-        cutoff_date = (date.fromisoformat(target_date)
-                       - timedelta(days=BACKLOG_LOOKBACK_DAYS)).isoformat()
+        ingest_cutoff = (date.fromisoformat(target_date)
+                         - timedelta(days=INGEST_LOOKBACK_DAYS)).isoformat()
         if remaining > 0:
             backlog_cursor = conn.execute(
                 f"""
@@ -202,22 +205,18 @@ def build_docpack(
                 FROM documents
                 WHERE status = 'cleaned'
                   AND text_path IS NOT NULL
-                  AND (published_at IS NULL OR substr(published_at, 1, 10) != ?)
-                  AND COALESCE(substr(published_at, 1, 10),
-                               substr(fetched_at, 1, 10)) >= ?
-                  AND COALESCE(substr(published_at, 1, 10),
-                               substr(fetched_at, 1, 10)) <= ?
+                  AND substr(fetched_at, 1, 10) >= ?
                   AND source_type IN ({type_placeholders})
                 ORDER BY fetched_at DESC
                 LIMIT ?
                 """,
-                (target_date, cutoff_date, target_date, *extract_types, remaining),
+                (ingest_cutoff, *extract_types, remaining),
             )
             backlog_rows = [dict(r) for r in backlog_cursor.fetchall()
                            if r["doc_id"] not in already_ids]
             if backlog_rows:
-                print(f"Backlog: adding {len(backlog_rows)} cleaned docs from the last "
-                      f"{BACKLOG_LOOKBACK_DAYS}d (window: {cutoff_date}..{target_date})")
+                print(f"Backlog: adding {len(backlog_rows)} cleaned docs ingested since "
+                      f"{ingest_cutoff} (newest first)")
                 rows.extend(backlog_rows)
 
     if not rows:
