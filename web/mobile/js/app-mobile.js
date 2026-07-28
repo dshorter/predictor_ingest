@@ -602,6 +602,14 @@ async function initializeApp() {
       desktopLink.href = '../index.html?desktop=1&domain=' + AppState.domain;
     }
 
+    // Movers link — always pass the domain explicitly. Movers defaults to
+    // film, not ai, so omitting it here would silently land on the wrong
+    // domain whenever this client is on its own 'ai' default.
+    var moversLink = document.getElementById('movers-link');
+    if (moversLink && AppState.domain) {
+      moversLink.href = '../movers.html?domain=' + encodeURIComponent(AppState.domain);
+    }
+
     // Update graph container aria-label with actual domain title
     var cyEl = document.getElementById('cy');
     if (cyEl) {

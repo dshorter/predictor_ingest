@@ -580,6 +580,13 @@ function initializeToolbar(cy) {
     toggleHotPanel();
   });
 
+  // Movers — new window, so returning here never re-runs the layout and
+  // the graph keeps its viewport, selection, and filters.
+  document.getElementById('btn-movers')?.addEventListener('click', () => {
+    const url = `movers.html?domain=${encodeURIComponent(AppState.domain)}`;
+    window.open(url, '_blank', 'noopener');
+  });
+
   // View selector
   document.getElementById('view-selector')?.addEventListener('change', async (e) => {
     await switchView(e.target.value);

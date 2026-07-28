@@ -183,10 +183,23 @@ The page URL is the canonical state. Reload should be lossless.
 
 ## Navigation entry point
 
-Add a Movers button to the existing `index.html` toolbar between the
-**What's Hot** flame icon and the zoom controls. Lucide icon:
-`trending-up`. Tooltip: `Movers`. Clicking opens `/movers.html?domain={current_domain}`
-in the same tab.
+**Shipped.** A Movers button sits in the `index.html` toolbar between the
+**What's Hot** flame icon and the zoom controls, using the Lucide
+`trending-up` icon. It opens `/movers.html?domain={current_domain}` in a
+**new window** — not the same tab as originally specced.
+
+The change from same-tab is deliberate. Node positions are not persisted
+(still a backlog item), so a same-tab round trip re-runs fcose on return
+and the graph loses its viewport, selection, filters, and focus set.
+A separate window sidesteps that entirely and was far cheaper than the
+alternatives considered (a Movers tab in `index.html`, or a Movers modal
+over the graph).
+
+The mobile client carries the same entry point as a **Movers** item at the
+top of the hamburger menu's *Actions* section, also opening a new window.
+Its `?domain=` is always written explicitly, because the mobile client
+defaults to `ai` while Movers defaults to `film` — omitting the param
+would silently land on the wrong domain.
 
 Add a return-link from the Movers toolbar back to the graph view:
 `<- Graph` button on the left side of the Movers toolbar.

@@ -415,7 +415,8 @@ for the boundary definition and enforcement rules.
 | Page / Script | Purpose |
 |---------------|---------|
 | `web/index.html` | Main desktop graph explorer |
-| `web/mobile.html` | Mobile-adapted graph explorer |
+| `web/mobile/index.html` | Mobile-adapted graph explorer |
+| `web/movers.html` | Movers table: rank/velocity movement per entity. Reached from the `trending-up` toolbar button (desktop) or the hamburger *Actions* menu (mobile); both open it in a new window |
 | `web/dashboard.html` | Pipeline health monitoring dashboard |
 | `web/ontology.html` | Specialist-facing taxonomy/ontology reference |
 | `web/js/domain-switcher.js` | Domain dropdown + "About this Domain" modal; `KNOWN_DOMAINS` registry is single source of truth for domain enumeration |
