@@ -24,6 +24,37 @@ your `domains/<slug>/domain.yaml` file.
 
 ---
 
+## Section 0: Entity Types — the Definitions Are the Contract
+
+Before any feature tuning, get the entity taxonomy right. Two rules learned
+the hard way (2026-08-02; semis accumulated `chip:claude` and 313
+multi-node entity names before they were codified):
+
+1. **Every type needs an entry in `entity_type_definitions`** in
+   `domain.yaml`. YAML comments next to `entity_types` are for humans —
+   the parser discards them, so **only the definitions map reaches the
+   extraction model**. A model shown bare type names cannot tell a
+   catch-all like `Other` from a real domain type, and will shoehorn
+   entities into whatever sounds domain-plausible.
+2. **Always define `Other` explicitly**, telling the model to prefer an
+   honest `Other` over forcing a wrong specific type. Extraction prompts
+   push hard toward specificity; without this counterweight the model
+   will not use the catch-all at all.
+
+Design the types themselves around a question: *is this a kind of thing,
+or a role a thing plays?* Roles (Distributor vs Studio vs Network) belong
+in the **relation taxonomy** — entity resolution merges same-named
+entities across types (name-first, see `src/resolve/`), so role-flavored
+types are tolerated but the roles that survive are the ones on edges.
+Make sure every recurring "thing" in the domain has a correct type home
+(semis lacked `Model`, so AI models became chips).
+
+Periodic hygiene once a domain is live: `python scripts/audit_aliases.py
+--domain <slug>` flags alias rows that misroute resolution (the alias
+table is consulted first, before all name matching).
+
+---
+
 ## Section 1: Feature Flags — What to Enable
 
 ### Q1: Entity Disambiguation
@@ -254,6 +285,13 @@ domain-profile placeholders.  See `domains/film/prompts/` for examples.
 Run these checks after adding features to a new domain:
 
 ```bash
+# 0. Entity type definitions actually reach the extraction prompt
+#    (multi-line "- Type — definition" output; a bare comma list means
+#    entity_type_definitions is missing from domain.yaml)
+PREDICTOR_DOMAIN=<slug> python3 -c "
+import sys; sys.path.insert(0, 'src')
+from extract.prompts import _ENTITY_TYPES_PROMPT; print(_ENTITY_TYPES_PROMPT)"
+
 # 1. Dry-run pipeline to verify config loads
 python3 scripts/run_pipeline.py --domain <slug> --dry-run
 
@@ -300,6 +338,12 @@ at ai+biosafety while the real switcher had all five):
 |------|---------------|-----------|
 | `web/data/domains/<slug>.json` | **Hand-authored.** Config the client reads for node colors + legend grouping: `title`, `titleShort`, `entityTypes`, `typeGroups`, `typeColors` (one hex per entity type). Copy an existing one (e.g. `semiconductors.json`) and adapt. | All entity types default to gray `#9CA3AF`; the client falls back to an empty config (generic title, no legend groups). |
 | `web/data/domains/<slug>.ontology.json` | **Generated:** `python scripts/export_ontology.py --domain <slug>` (or `make export_ontology DOMAIN=<slug>`). Reads `<slug>.json` for colors, so author that FIRST. | The "About this domain" modal has no description and the ontology page is empty. |
+
+`tests/test_web_domain_config.py` enforces that `entityTypes` in
+`<slug>.json` and the ontology JSON stay in lockstep with the profile's
+`entity_types` — so whenever you add a type to `domain.yaml` later, update
+the web config and regenerate the ontology in the same change or the suite
+fails.
 
 The live graph views (`web/data/graphs/live/<slug>/{claims,dependencies,mentions,movers,trending}.json`)
 are produced by the pipeline's `copy-to-live` stage — no manual step. They're
