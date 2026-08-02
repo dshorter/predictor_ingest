@@ -29,6 +29,26 @@ entity_types:
   - Location
   - Other
 
+# --- Entity Type Definitions ---
+# Interpolated into the extraction prompt (one "- Type — definition" line
+# per type); these reach the model.
+entity_type_definitions:
+  Org: "Companies, labs, universities, agencies: Anthropic, OpenAI, Google DeepMind, MIT"
+  Person: "Individual people: researchers, executives, engineers"
+  Program: "Named initiatives, projects, or funding programs"
+  Tool: "Developer tools, products, and applications: Claude Code, Cursor, IDEs, CLIs"
+  Model: "AI models and model families: Claude, GPT-5, Gemini, Llama, Stable Diffusion"
+  Dataset: "Named training or evaluation datasets"
+  Benchmark: "Named evaluation benchmarks: MMLU, SWE-bench, HumanEval"
+  Paper: "Research publications and preprints"
+  Repo: "Code repositories and open-source projects"
+  Document: "Pipeline-internal source documents — do not extract these yourself"
+  Tech: "Techniques and technologies: transformers, RLHF, RAG, quantization"
+  Topic: "Recurring themes: AI safety, regulation, compute scaling, agents"
+  Event: "Conferences, launches, announcements: NeurIPS, dev days"
+  Location: "Places: cities, regions, countries"
+  Other: "Anything that fits no type above. Prefer an honest Other over forcing a wrong specific type"
+
 # --- Relation Taxonomy ---
 relation_taxonomy:
   canonical:

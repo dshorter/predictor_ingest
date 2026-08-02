@@ -91,6 +91,18 @@
       "color": "#64748B"
     },
     {
+      "name": "Model",
+      "prefix": "model",
+      "canonicalIdPattern": "model:{slug}",
+      "color": "#10B981"
+    },
+    {
+      "name": "Software",
+      "prefix": "software",
+      "canonicalIdPattern": "software:{slug}",
+      "color": "#14B8A6"
+    },
+    {
       "name": "Other",
       "prefix": "other",
       "canonicalIdPattern": "other:{slug}",
@@ -130,6 +142,8 @@
         "Event",
         "Location",
         "Topic",
+        "Model",
+        "Software",
         "Other"
       ]
     }

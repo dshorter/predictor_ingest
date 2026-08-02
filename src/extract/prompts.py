@@ -26,6 +26,21 @@ _profile = get_active_profile()
 _ENTITY_TYPES_LIST: list[str] = sorted(ENTITY_TYPES)
 _RELATION_TYPES_LIST: list[str] = sorted(RELATION_TYPES)
 
+# Entity types rendered for the prompt. When the domain profile carries
+# entity_type_definitions, emit one "- Type — definition" line per type in
+# the author's declared order (entity_types order is display priority);
+# a bare comma-joined list gives the model no way to tell a catch-all
+# like "Other" from a real domain type, which is how AI models ended up
+# typed as chips. Falls back to the bare list when no definitions exist.
+_ENTITY_TYPE_DEFS: dict[str, str] = _profile.get("entity_type_definitions") or {}
+if _ENTITY_TYPE_DEFS:
+    _ENTITY_TYPES_PROMPT = "\n".join(
+        f"- {t} — {_ENTITY_TYPE_DEFS[t]}" if t in _ENTITY_TYPE_DEFS else f"- {t}"
+        for t in _profile["entity_types"]
+    )
+else:
+    _ENTITY_TYPES_PROMPT = ", ".join(_ENTITY_TYPES_LIST)
+
 SUPPRESSED_ENTITIES: list[str] = list(_profile.get("suppressed_entities", []))
 _SUPPRESSED_STR = ", ".join(f'"{t}"' for t in SUPPRESSED_ENTITIES[:15])
 
@@ -73,7 +88,7 @@ def _template_vars(
     """
     vars_ = {
         "extractor_version": extractor_version,
-        "entity_types": ", ".join(_ENTITY_TYPES_LIST),
+        "entity_types": _ENTITY_TYPES_PROMPT,
         "relation_types": ", ".join(_RELATION_TYPES_LIST),
         "suppressed_entities_sample": _SUPPRESSED_STR,
         "base_relation": _BASE_RELATION,

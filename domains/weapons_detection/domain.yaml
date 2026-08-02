@@ -48,6 +48,24 @@ entity_types:
   - Document         # Pipeline-internal source documents
   - Other            # Catch-all
 
+# --- Entity Type Definitions ---
+# Interpolated into the extraction prompt (one "- Type — definition" line
+# per type). The comments above are for humans reading this file; THESE
+# reach the model. Keep the two in sync.
+entity_type_definitions:
+  Vendor: "Companies selling detection systems: AmberBox, SoundThinking, ZeroEyes, Evolv, Xtract One, CEIA, Omnilert"
+  Product: "Named systems and platforms: Evolv Express, ZeroEyes Z6, ShotSpotter"
+  Buyer: "Organizations purchasing or deploying systems: transit agencies, school districts, hospital systems, venue operators, employers"
+  Person: "Individual people: executives, researchers, advocates, officials"
+  Regulation: "Laws, mandates, procurement policies, RFPs, evaluation requirements"
+  Report: "Evaluation reports, watchdog studies, accuracy audits, pilot findings"
+  Event: "Contract awards, pilot launches, incidents, trade shows (ISC West, GSX)"
+  Location: "Places: cities, transit systems, school districts, venues, states"
+  Topic: "Recurring themes: false-positive rates, algorithmic bias, privacy/surveillance, cost-per-scan"
+  Org: "Organizations that are neither vendor nor buyer: watchdogs (ACLU, EFF), trade groups (SIA), government agencies"
+  Document: "Pipeline-internal source documents — do not extract these yourself"
+  Other: "Anything that fits no type above. Prefer an honest Other over forcing a wrong specific type. Note: the same organization may appear as Vendor in one article and Org in another — pick what this article shows; the pipeline merges by name"
+
 # --- Relation Taxonomy ---
 relation_taxonomy:
   canonical:

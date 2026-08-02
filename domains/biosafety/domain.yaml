@@ -37,6 +37,26 @@ entity_types:
   - Document        # Source documents (pipeline-internal)
   - Other           # Catch-all
 
+# --- Entity Type Definitions ---
+# Interpolated into the extraction prompt (one "- Type — definition" line
+# per type). The comments above are for humans reading this file; THESE
+# reach the model. Keep the two in sync.
+entity_type_definitions:
+  Org: "Organizations: CDC, APHIS, WHO, USAMRIID, universities, companies"
+  Person: "Individual people: researchers, officials, policy advisors"
+  SelectAgent: "Biological agents/toxins on the FSAP select agent list"
+  Facility: "High-containment laboratories and registered entities: BSL-3/4 labs"
+  Regulation: "Laws, rules, executive orders, guidance documents"
+  Program: "Named programs and frameworks: FSAP, GHSA, BWC, research programs"
+  Tech: "Techniques and platforms: CRISPR, synthetic biology, sequencing"
+  Location: "Countries, cities, regions with BSL infrastructure"
+  Event: "Outbreaks, incidents, inspections, conferences"
+  Paper: "Research publications and preprints"
+  Dataset: "Registries, surveillance datasets, genomic databases"
+  Topic: "Recurring themes: dual-use research, gain-of-function, biosurveillance, biodefense"
+  Document: "Pipeline-internal source documents — do not extract these yourself"
+  Other: "Anything that fits no type above. Prefer an honest Other over forcing a wrong specific type"
+
 # --- Relation Taxonomy ---
 relation_taxonomy:
   # Canonical relation types for this domain

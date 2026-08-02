@@ -21,6 +21,16 @@ entity_types:
   # - ...
   # - Other            # Catch-all (recommended)
 
+# --- Entity Type Definitions ---
+# One entry per entity type. These are interpolated into the extraction
+# prompt ("- Type — definition"), so the model sees them — YAML comments
+# on entity_types above do NOT reach the model. Always define Other
+# explicitly so the model knows it may use it instead of forcing a
+# wrong specific type.
+entity_type_definitions: {}
+  # Org: "Companies, agencies, universities relevant to this domain"
+  # Other: "Anything that fits no type above. Prefer an honest Other over forcing a wrong specific type"
+
 # --- Relation Taxonomy ---
 relation_taxonomy:
   # Canonical relation type names. UPPER_SNAKE_CASE.

@@ -139,10 +139,14 @@ def find_similar_entities(
 ) -> list[dict[str, Any]]:
     """Find similar entities in the database.
 
+    Lookup order: alias table (exact, any type) → entity name (exact,
+    any type) → fuzzy match scoped to *entity_type*. Exact name matches
+    resolve across types deliberately — see the inline comment below.
+
     Args:
         conn: Database connection
         name: Name to search for
-        entity_type: Entity type to match
+        entity_type: Entity type; scopes only the fuzzy fallback
         threshold: Minimum similarity score
 
     Returns:
@@ -169,6 +173,38 @@ def find_similar_entities(
             entity["similarity"] = 1.0
             matches.append(entity)
             return matches
+
+    # Exact-name match across ALL types. Type is a per-document judgment
+    # (Netflix is a Network in one article, a Distributor in the next), so
+    # scoping this lookup by type mints a new entity every time two
+    # documents disagree — one thing fractures into many nodes. Names that
+    # already exist resolve to the established node regardless of claimed
+    # type; role semantics live on relations, not in entity identity.
+    # Among already-fractured candidates, prefer the node with the most
+    # relations (earliest first_seen as tiebreak) so future mentions
+    # concentrate on one node and the others decay out of the trend window.
+    cursor = conn.execute(
+        """
+        SELECT e.*,
+               (SELECT COUNT(*) FROM relations r
+                WHERE r.source_id = e.entity_id
+                   OR r.target_id = e.entity_id) AS degree
+        FROM entities e
+        WHERE e.name = ? COLLATE NOCASE
+        ORDER BY degree DESC, e.first_seen ASC
+        """,
+        (name,),
+    )
+    exact_rows = cursor.fetchall()
+    if exact_rows:
+        for row in exact_rows:
+            entity = dict(row)
+            entity.pop("degree", None)
+            if entity.get("aliases"):
+                entity["aliases"] = json.loads(entity["aliases"])
+            entity["similarity"] = 1.0
+            matches.append(entity)
+        return matches
 
     # Search entities of matching type
     cursor = conn.execute(

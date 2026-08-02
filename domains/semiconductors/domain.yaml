@@ -33,7 +33,32 @@ entity_types:
   - Event         # Hot Chips, ISSCC, SC conference, Computex, earnings calls
   - Location      # Fabs, R&D centers, HQ cities (Hsinchu, Eindhoven, Santa Clara)
   - Topic         # Supply chain resilience, AI accelerators, power efficiency, yield
+  - Model         # AI models driving chip demand: Claude, GPT, Gemini, Llama — software, NOT silicon
+  - Software      # Software products/frameworks: CUDA, ROCm, PyTorch, compilers, drivers
   - Other         # Catch-all
+
+# --- Entity Type Definitions ---
+# Interpolated into the extraction prompt (one "- Type — definition" line
+# per type). The comments above are for humans reading this file; THESE
+# reach the model. Keep the two in sync.
+entity_type_definitions:
+  Company: "Commercial companies: NVIDIA, AMD, Intel, TSMC, ASML, Qualcomm, ARM, Synopsys, SK Hynix"
+  Fab: "Semiconductor fabrication operations in their manufacturing role: TSMC, Samsung Foundry, Intel Foundry, SMIC"
+  Chip: "Specific named silicon products ONLY: H100, MI300X, A17 Pro, Gaudi 3, Blackwell B200. An AI model (Claude, GPT) is never a Chip"
+  Architecture: "Microarchitectures and ISAs: Hopper, Ada Lovelace, Zen 5, RISC-V, ARM Cortex-X"
+  ProcessNode: "Fab process generations: 3nm, N3E, 2nm, Intel 18A, GAA, FinFET"
+  Packaging: "Advanced packaging technologies: CoWoS, HBM3e, 3DIC, EMIB, UCIe, chiplets"
+  Material: "Materials and manufacturing equipment: EUV, ASML NXE, LPDDR5X, SiC, GaN"
+  Tool: "EDA and design tools: Synopsys VCS, Cadence Virtuoso; lithography toolchains"
+  Policy: "Government policy: CHIPS Act, export controls, entity list additions, BIS rules"
+  Org: "Non-commercial organizations: standards bodies (JEDEC, IEEE, SEMI, OCP), research labs, government agencies. Commercial companies go under Company"
+  Person: "Individual people: CEOs, chip architects, researchers, analysts"
+  Event: "Conferences and industry events: Hot Chips, ISSCC, Computex, earnings calls"
+  Location: "Places: fab sites, R&D centers, HQ cities (Hsinchu, Eindhoven, Santa Clara)"
+  Topic: "Recurring industry themes: supply chain resilience, AI accelerators, power efficiency, yield"
+  Model: "AI models and model families that drive chip demand: Claude, GPT-5, Gemini, Llama. These are software workloads, never Chip or Architecture"
+  Software: "Software products, frameworks, and stacks: CUDA, ROCm, PyTorch, compilers, drivers"
+  Other: "Anything that fits no type above. Prefer an honest Other over forcing a wrong specific type"
 
 # --- Relation Taxonomy ---
 relation_taxonomy:
@@ -263,6 +288,8 @@ id_prefixes:
   Event: event
   Location: location
   Topic: topic
+  Model: model
+  Software: software
   Other: other
 
 # --- Base Relation ---
