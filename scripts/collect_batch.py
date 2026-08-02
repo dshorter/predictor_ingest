@@ -36,6 +36,14 @@ EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_PENDING = 2  # signal to caller: skip graph stages today
 
+# Matches submit_batch.py. The old 16384 was sized for claude-sonnet-4-6;
+# Sonnet 5's tokenizer produces ~30% more tokens for the same text, so
+# extractions that fit then truncate now. Reaching this ceiling requires the
+# streaming call below -- non-streaming requests risk SDK HTTP timeouts much
+# above ~16k. Model ceiling is 128k; billing is on tokens generated, not the
+# cap, so headroom is free for docs that do not need it.
+FALLBACK_MAX_TOKENS = 32000
+
 
 def load_dotenv() -> None:
     env_path = Path(__file__).resolve().parents[1] / ".env"
@@ -56,6 +64,23 @@ load_dotenv()
 
 def get_model() -> str:
     return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-5"
+
+
+def response_text(message) -> str:
+    """The first text block of a response, skipping any thinking blocks.
+
+    Sonnet 5 runs adaptive thinking by default, so content[0] is not reliably
+    the text block. Indexing it blind raised `'ThinkingBlock' object has no
+    attribute 'text'` on every sync fallback from 2026-07-23 onward, which
+    meant the fallback never recovered a single doc and failed parses retried
+    forever. Requests here disable thinking explicitly, so this is the second
+    line of defence rather than the fix.
+    """
+    for block in message.content:
+        if getattr(block, "type", None) == "text":
+            return block.text
+    kinds = ", ".join(getattr(b, "type", "?") for b in message.content) or "none"
+    raise ValueError(f"no text block in response (blocks: {kinds})")
 
 
 def _sync_fallback(
@@ -114,8 +139,9 @@ def _sync_fallback(
 
         text = Path(text_path).read_text(encoding="utf-8")
         # Truncate very long articles to keep output within token budget.
-        # At ~3 chars/token, 12000 chars ≈ 4000 input tokens, leaving
-        # ample headroom for a 16384-token output.
+        # At ~3 chars/token, 12000 chars ≈ 4000 input tokens, leaving ample
+        # headroom for a FALLBACK_MAX_TOKENS output. Note this makes fallback
+        # extractions partial by design -- they see only the first 12k chars.
         MAX_INPUT_CHARS = 12000
         if len(text) > MAX_INPUT_CHARS:
             text = text[:MAX_INPUT_CHARS]
@@ -130,9 +156,17 @@ def _sync_fallback(
 
         print(f"  [{doc_id}] fallback sync extraction...", end=" ", flush=True)
         try:
-            response = client.messages.create(
+            # Streamed, not a plain create(): the SDK refuses (or times out on)
+            # non-streaming requests much above ~16k max_tokens, and 16k is the
+            # ceiling we need to clear -- see FALLBACK_MAX_TOKENS.
+            with client.messages.stream(
                 model=model,
-                max_tokens=16384,
+                max_tokens=FALLBACK_MAX_TOKENS,
+                # Mirrors submit_batch.py: Sonnet 5 runs adaptive thinking by
+                # default, which both eats the extraction budget and puts a
+                # ThinkingBlock at content[0]. The batch path disabled this at
+                # the sonnet-5 migration; this path was missed.
+                thinking={"type": "disabled"},
                 messages=[{"role": "user", "content": build_extraction_prompt(doc, EXTRACTOR_VERSION)}],
                 output_config={
                     "format": {
@@ -140,8 +174,15 @@ def _sync_fallback(
                         "schema": ANTHROPIC_EXTRACTION_SCHEMA,
                     }
                 },
-            )
-            extraction = parse_extraction_response(response.content[0].text, doc_id)
+            ) as stream:
+                response = stream.get_final_message()
+            if response.stop_reason == "max_tokens":
+                # Truncated output parses as malformed JSON further down, which
+                # reads as a mysterious parse error. Name the real cause.
+                raise ExtractionError(
+                    f"hit max_tokens ({FALLBACK_MAX_TOKENS}) -- output truncated"
+                )
+            extraction = parse_extraction_response(response_text(response), doc_id)
             save_extraction(extraction, extractions_dir)
             n_e = len(extraction.get("entities", []))
             n_r = len(extraction.get("relations", []))
@@ -228,7 +269,6 @@ def collect(
 
             if result_type == "succeeded":
                 msg = result.result.message
-                response_text = msg.content[0].text
                 # Capture per-doc token usage from batch result
                 if hasattr(msg, "usage") and msg.usage:
                     log_token_usage(
@@ -237,13 +277,13 @@ def collect(
                         doc_id=doc_id,
                     )
                 try:
-                    extraction = parse_extraction_response(response_text, doc_id)
+                    extraction = parse_extraction_response(response_text(msg), doc_id)
                     save_extraction(extraction, extractions_dir)
                     n_e = len(extraction.get("entities", []))
                     n_r = len(extraction.get("relations", []))
                     print(f"  [{doc_id}] OK ({n_e}e, {n_r}r)")
                     collected += 1
-                except ExtractionError as e:
+                except (ExtractionError, ValueError) as e:
                     print(f"  [{doc_id}] parse error: {e} — queuing fallback")
                     fallback_needed.append(doc_id)
                     errors += 1

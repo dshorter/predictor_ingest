@@ -1006,7 +1006,14 @@ def main() -> int:
             "parse": parse_extract_output,
             "fatal": False,
             "skip": args.skip_collect,
-            "timeout": 300,
+            # 300s was sized when a failing sync fallback died instantly on a
+            # ThinkingBlock AttributeError -- effectively free. Now that the
+            # fallback works, each one streams a real extraction and costs
+            # ~98s measured. 300s fit ~3; the 2026-08-02 06:00 film run blew
+            # it with 4. At 1200s ~12 fit, which covers a 2x-budget day at the
+            # observed ~8% fallback rate. Unit allows TimeoutStartSec=2h for
+            # all stages combined, so there is room.
+            "timeout": 1200,
             "stream": True,
         },
         {
@@ -1017,6 +1024,13 @@ def main() -> int:
             ],
             "parse": parse_import_output,
             "fatal": False,
+            # Was unset, so it inherited the 600s default -- fine for a normal
+            # day's ~40 extractions, not for a backlog. The 2026-08-02 06:00
+            # film run timed out here with ~270 unimported files on disk from
+            # the 07-31 collect recovery, and a stage that cannot finish its
+            # queue never shrinks it: it re-times-out every run. Explicit and
+            # generous so a backlog drains instead of wedging.
+            "timeout": 1800,
         },
         {
             "name": "synthesize",

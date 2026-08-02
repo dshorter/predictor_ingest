@@ -141,7 +141,15 @@ def submit(
             "custom_id": doc["docId"],
             "params": {
                 "model": model,
-                "max_tokens": 16384,
+                # 16384 was sized for claude-sonnet-4-6. Sonnet 5's tokenizer
+                # produces ~30% more tokens for the same text, so extraction
+                # JSON that fit then truncates now -- every failure since the
+                # eabdc89 migration is an Unterminated string at ~33k chars,
+                # which is exactly where 16384 tokens lands. Batches are async,
+                # so there is no HTTP-timeout ceiling here, and billing is on
+                # tokens generated rather than the cap: raising this costs
+                # nothing for docs that already fit. Model ceiling is 128k.
+                "max_tokens": 32000,
                 # Sonnet 5 runs adaptive thinking by default when this is
                 # omitted (unlike 4.6, which defaulted to off) -- disabled
                 # explicitly so thinking tokens don't eat into the extraction
