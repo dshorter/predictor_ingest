@@ -582,8 +582,9 @@ _TOKEN_PRICES: dict[str, tuple[float, float]] = {
     # sept1_cost_boundary.py bumps this to (3.00, 15.00) on the boundary.
     "claude-sonnet-5":          (2.00, 10.00),
     "claude-sonnet-4-6":        (3.00, 15.00),
-    "claude-haiku-4-5":         (0.25,  1.25),
-    "claude-haiku-4-5-20251001":(0.25,  1.25),
+    # Corrected 2026-08-29: (0.25, 1.25) is Haiku 3.5's rate. Haiku 4.5 is $1/$5.
+    "claude-haiku-4-5":         (1.00,  5.00),
+    "claude-haiku-4-5-20251001":(1.00,  5.00),
     "gpt-5-nano":               (0.15,  0.60),
     "gpt-4.1-nano":             (0.15,  0.60),
     "gpt-4.1-mini":             (0.40,  1.60),
