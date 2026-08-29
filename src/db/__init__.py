@@ -6,6 +6,8 @@ Provides CRUD operations for the knowledge graph storage.
 from __future__ import annotations
 
 import json
+import logging
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any, Optional
@@ -569,7 +571,16 @@ def resolve_alias(conn: sqlite3.Connection, alias: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 # Pricing per million tokens (input, output) — update when Anthropic changes rates.
+logger = logging.getLogger("predictor.db")
+
+_UNPRICED_WARNED: set[str] = set()
+
 _TOKEN_PRICES: dict[str, tuple[float, float]] = {
+    # Added 2026-08-29. Absent since PRIMARY_MODEL switched on 2026-07-20, so
+    # _compute_cost returned None and every Sonnet 5 call logged a NULL cost --
+    # 2,139 rows in film alone. Intro rate until 2026-08-31; scripts/
+    # sept1_cost_boundary.py bumps this to (3.00, 15.00) on the boundary.
+    "claude-sonnet-5":          (2.00, 10.00),
     "claude-sonnet-4-6":        (3.00, 15.00),
     "claude-haiku-4-5":         (0.25,  1.25),
     "claude-haiku-4-5-20251001":(0.25,  1.25),
@@ -586,6 +597,16 @@ def _compute_cost(model: str, input_tokens: int, output_tokens: int) -> Optional
     for key, (in_rate, out_rate) in _TOKEN_PRICES.items():
         if model.startswith(key) or key.startswith(model):
             return (input_tokens * in_rate + output_tokens * out_rate) / 1_000_000
+    # An unpriced model blinds the cost ceiling below -- a NULL cost cannot
+    # breach a budget. Say so once per model per process rather than returning
+    # None quietly, which is how five weeks of Sonnet 5 spend went unmetered.
+    if model not in _UNPRICED_WARNED:
+        _UNPRICED_WARNED.add(model)
+        logger.warning(
+            "no rate for model %r -- cost logged as NULL and this call is "
+            "invisible to PREDICTOR_MAX_COST_USD. Add it to _TOKEN_PRICES.",
+            model,
+        )
     return None
 
 
@@ -639,5 +660,43 @@ def log_token_usage(
         (run_date, stage, model, doc_id, input_tokens, output_tokens, cost),
     )
     conn.commit()
+    _enforce_cost_ceiling(conn, run_date)
+
+
+class CostCeilingExceeded(RuntimeError):
+    """Raised when a run_date's spend passes PREDICTOR_MAX_COST_USD."""
+
+
+def _enforce_cost_ceiling(conn: sqlite3.Connection, run_date: str) -> None:
+    """Halt the run when one date's spend passes the ceiling.
+
+    Every agent in the crew carries a per-run cost ceiling (SCOUT_MAX_COST_USD,
+    DIRECTOR_MAX_COST_USD, SYSADMIN_MAX_COST_USD). The predictor never did,
+    because governance was scoped to things called "agents" and this is a
+    pipeline -- but it spends more than all of them combined against the same
+    paid API, which is the property that actually matters.
+
+    What it would have caught: 2026-07-23, when film's 40-document batch ran
+    nine times and cost $31.28 in a day against a ~$5 norm. Nobody noticed for
+    five weeks.
+
+    Checked here rather than between stages because that day's overrun happened
+    inside a single stage; this is the one point every billable call passes.
+    Set PREDICTOR_MAX_COST_USD=0 to disable.
+    """
+    ceiling = float(os.environ.get("PREDICTOR_MAX_COST_USD", "15") or 0)
+    if ceiling <= 0:
+        return
+    row = conn.execute(
+        "SELECT COALESCE(SUM(cost_usd), 0) FROM token_usage WHERE run_date = ?",
+        (run_date,),
+    ).fetchone()
+    spent = float(row[0] or 0)
+    if spent > ceiling:
+        raise CostCeilingExceeded(
+            f"{run_date}: spend ${spent:.2f} passed PREDICTOR_MAX_COST_USD "
+            f"${ceiling:.2f} -- halting. Raise the ceiling deliberately or "
+            f"investigate; see token_usage for this date."
+        )
 
 
