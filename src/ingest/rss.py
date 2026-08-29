@@ -33,6 +33,15 @@ DEFAULT_DELAY = 5.0
 # is never stored in the first place.
 MAX_ENTRY_AGE_DAYS = 180
 
+# Cap on the CLEANED article text kept per document. Extraction bills by token,
+# so one very long page costs what a normal day of a feed costs: SemiWiki posts
+# (community blog, full comment threads) were landing at ~115K input tokens
+# against a ~11K median, 31 calls taking 11.5% of the semiconductors spend.
+# Mirrors _fetch_filing_text's max_chars in edgar.py, which already caps 10-Ks
+# for the same reason — this generalises that guard to the feed path.
+# Per-feed override: `max_chars:` in feeds.yaml.
+MAX_TEXT_CHARS = 50000
+
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -163,6 +172,7 @@ def ingest_feed(
     feed_total: int = 0,
     include_keywords: Optional[list[str]] = None,
     exclude_keywords: Optional[list[str]] = None,
+    max_chars: int = MAX_TEXT_CHARS,
 ) -> tuple[int, int, int, bool]:
     """Ingest a single RSS/Atom feed.
 
@@ -294,6 +304,12 @@ def ingest_feed(
             raw_path.write_bytes(resp.content)
 
             text = clean_html(resp.text)
+            if max_chars > 0 and len(text) > max_chars:
+                # Loud on purpose: a silent truncation would look like a short
+                # article to every stage downstream.
+                print(f"    {feed_label} [{i+1}/{n_total}] TRUNCATED "
+                      f"{len(text)} -> {max_chars} chars", flush=True)
+                text = text[:max_chars]
             text_path.write_text(text + "\n", encoding="utf-8")
             content_hash = sha256_text(text)
             status = "cleaned"
@@ -573,6 +589,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 feed_total=n_feeds,
                 include_keywords=feed_extra.get("include_keywords"),
                 exclude_keywords=feed_extra.get("exclude_keywords"),
+                max_chars=feed_extra.get("max_chars", MAX_TEXT_CHARS),
             )
         except Exception as exc:
             print(f"    Feed CRASHED: {type(exc).__name__}: {exc}", file=sys.stderr,
