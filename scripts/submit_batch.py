@@ -40,7 +40,16 @@ load_dotenv()
 
 
 def get_model() -> str:
-    return os.environ.get("PRIMARY_MODEL", "").strip() or "claude-sonnet-5"
+    """Extraction model for the active domain.
+
+    domain.yaml `models.extraction` first, then PRIMARY_MODEL, then the
+    framework default — see domain.model_from_profile. Imported lazily
+    and resolved at call time, not import time, because the active
+    domain is set in main() before this runs.
+    """
+    from domain import model_for_stage
+
+    return model_for_stage("extraction")
 
 
 def load_docpack(path: Path) -> list[dict]:

@@ -17,6 +17,10 @@ Usage:
     profile["entity_types"]         # ["Org", "Person", ...]
     profile["base_relation"]        # "MENTIONS"
     profile["gate_thresholds"]      # {evidence_fidelity_min: 0.70, ...}
+
+    # Per-domain calibration accessors
+    model_from_profile(profile, "extraction")     # domain.yaml -> env -> default
+    feature_enabled(profile, "relation_extraction")
 """
 
 from __future__ import annotations
@@ -29,6 +33,16 @@ import yaml
 
 # Environment variable for domain override (used by subprocess pipelines)
 _ENV_DOMAIN = "PREDICTOR_DOMAIN"
+
+# Pipeline-wide model default, used when neither the domain profile nor the
+# environment names one. Kept here rather than duplicated at each call site:
+# before this existed the five readers of PRIMARY_MODEL had drifted into three
+# behaviours, one of which could resolve to the empty string.
+DEFAULT_MODEL = "claude-sonnet-5"
+_ENV_MODEL = "PRIMARY_MODEL"
+
+# Stages that may carry a per-domain model override.
+MODEL_STAGES = ("extraction", "synthesis", "narratives")
 
 
 # Root of the repository (two levels up from src/domain/)
@@ -208,3 +222,82 @@ def get_active_domain() -> str:
     if _active_domain is None:
         get_active_profile()  # triggers default load
     return _active_domain
+
+
+def model_from_profile(
+    profile: dict[str, Any] | None,
+    stage: str = "extraction",
+) -> str:
+    """Resolve the model for one pipeline stage.
+
+    Per-domain models live in domain.yaml under `models`, the same shape
+    doc_selection uses for per-domain budgets (ADR-010 D3 / Sprint 20.5).
+    Resolution order:
+
+        1. profile["models"][stage]  — this domain asked for a specific model
+        2. PRIMARY_MODEL env var     — the pipeline-wide default
+        3. DEFAULT_MODEL             — framework floor
+
+    A domain that omits the block inherits the pipeline default, so naming a
+    model for one domain cannot move any other domain. That property is the
+    point: the predictor is domain-agnostic, and a per-domain model belongs in
+    the domain's own config rather than in a sidecar env file keyed on a
+    systemd instance name, which would be an exception hidden outside the
+    config system entirely.
+
+    Why a domain would differ: the model requirement follows the domain's
+    lens, not the pipeline's convenience. Film runs the Movers lens, which is
+    built from base-relation mentions rather than relation quality, so it does
+    not need the tier a Landscape domain does.
+
+    Args:
+        profile: A loaded domain profile, or None to fall through to env.
+        stage:   One of MODEL_STAGES.
+
+    Returns:
+        A model id. Never empty — an empty or whitespace-only env var falls
+        through to DEFAULT_MODEL rather than propagating "" to an API call.
+    """
+    if stage not in MODEL_STAGES:
+        raise ValueError(
+            f"unknown model stage {stage!r} — known: {', '.join(MODEL_STAGES)}"
+        )
+
+    section = (profile or {}).get("models") or {}
+    configured = str(section.get(stage, "") or "").strip()
+    if configured:
+        return configured
+
+    return os.environ.get(_ENV_MODEL, "").strip() or DEFAULT_MODEL
+
+
+def model_for_stage(stage: str = "extraction") -> str:
+    """model_from_profile against the active domain profile.
+
+    The drop-in for call sites that previously read PRIMARY_MODEL directly.
+    """
+    return model_from_profile(get_active_profile(), stage)
+
+
+def feature_enabled(
+    profile: dict[str, Any] | None,
+    feature: str,
+    default: bool = True,
+) -> bool:
+    """Whether a per-domain feature is switched on.
+
+    Centralises the `profile.get("features", {})` read that llm_disambiguation
+    and relation_inference already do by hand in five modules, so every
+    consumer agrees on what an absent block means: absent → `default`.
+
+    `default=True` suits capability flags a domain switches OFF as the
+    exception (relation_extraction); pass default=False for a capability a
+    domain must opt IN to.
+    """
+    features = (profile or {}).get("features") or {}
+    block = features.get(feature)
+    if block is None:
+        return default
+    if isinstance(block, bool):
+        return block
+    return bool(block.get("enabled", default))

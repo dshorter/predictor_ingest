@@ -25,7 +25,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Optional
 
-from domain import get_active_profile
+from domain import get_active_profile, model_from_profile
 
 
 # ---------------------------------------------------------------------------
@@ -465,9 +465,12 @@ def run_synthesis(
     if profile is None:
         profile = get_active_profile()
 
-    # Default model: PRIMARY_MODEL env var (specialist tier for cross-doc reasoning)
+    # Specialist tier for cross-doc reasoning. The profile is already loaded
+    # here, so resolve through it — domain.yaml `models.synthesis` wins over
+    # PRIMARY_MODEL. This site also used to skip .strip(), so a padded env var
+    # reached the API verbatim.
     if model is None:
-        model = os.environ.get("PRIMARY_MODEL", "claude-sonnet-5")
+        model = model_from_profile(profile, "synthesis")
 
     config = SynthesisConfig.from_profile(profile)
     if not config.enabled:

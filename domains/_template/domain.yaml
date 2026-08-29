@@ -130,6 +130,21 @@ scoring_weights:
 #   budget: 20
 #   stretch_max: 25
 
+# --- Models ---
+# Per-domain model, resolved AHEAD of the PRIMARY_MODEL env var. Omit the whole
+# block to inherit the pipeline default — most domains should. Naming a model
+# here cannot move any other domain.
+#
+# Set a stage only where this domain's requirements genuinely differ. The
+# requirement follows the domain's LENS, not the pipeline's convenience: a
+# Movers domain scores base-relation mentions and does not need the tier a
+# Landscape domain does for relation quality.
+#
+# Stages: extraction | synthesis | narratives
+# models:
+#   extraction: claude-haiku-4-5-20251001
+#   synthesis: claude-sonnet-5
+
 # --- Trend Weights (velocity + novelty + activity must sum to 1.0) ---
 trend_weights:
   velocity: 0.4
@@ -164,6 +179,17 @@ suppressed_entities: []
 #   Synthesis      → enable if your sources cover overlapping topics (trade press, news)
 #   Narratives     → enable if the UI shows a trending view
 features:
+  # Extract the full relation taxonomy, or only `base_relation` (MENTIONS).
+  # Omit to inherit `enabled: true`.
+  #
+  # Turning this OFF makes the domain Movers-only: the walk still produces the
+  # mention edges every quantitative Movers column is built from, and stops
+  # producing the relation payload that dominates extraction output tokens.
+  # Only useful for a domain whose lens is Movers rather than Landscape —
+  # a Landscape domain without relations has no graph.
+  # relation_extraction:
+  #   enabled: false
+
   llm_disambiguation:
     enabled: false
     similarity_lower_bound: 0.40     # pairs below this are auto-skipped (clearly different)
