@@ -72,7 +72,7 @@ is that moment, one model-generation early).
 >    The item's *other* figure was exactly right: flat-vs-intro-period was
 >    given as 0.67x and measures 0.667.
 >
-> 4. **Film's budget does not move.** Decided 2026-08-29. Film is 65% of spend,
+> 4. **Film's budget does not move.** [ADR-011](../architecture/adr-011-movers-only-film-and-cost-governance.md) D1, amending ADR-010 D3. Film is 65% of spend,
 >    so cutting it is the obvious lever and the wrong one: Movers is built from
 >    mention counts over a 7-day window, so cutting documents cuts the signal —
 >    the volume *is* the measurement. Film's cheap lever is per-document cost

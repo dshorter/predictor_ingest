@@ -66,7 +66,7 @@ MODES = {
     # mode: {domain: (budget, stretch_max)}. A domain absent from a mode is
     # left exactly as it is.
     #
-    # DEFAULT. Film's budget must NOT move under the Movers-only plan: Movers
+    # DEFAULT. ADR-011 D1 (docs/architecture/). Film's budget must NOT move: Movers
     # is built from mention counts over a 7-day window, so cutting documents
     # cuts the signal. A cut now would also have to be undone when the Haiku
     # mentions path lands -- two mid-window volume changes, two velocity
