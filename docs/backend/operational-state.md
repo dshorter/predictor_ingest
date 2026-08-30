@@ -72,9 +72,25 @@ is that moment, one model-generation early).
 >    The item's *other* figure was exactly right: flat-vs-intro-period was
 >    given as 0.67x and measures 0.667.
 >
-> Execution lives in `scripts/sept1_cost_boundary.py` (dry-runnable), which
-> also bumps both rate tables. The table below is kept as the historical
-> record of what was planned.
+> 4. **Film's budget does not move.** Decided 2026-08-29. Film is 65% of spend,
+>    so cutting it is the obvious lever and the wrong one: Movers is built from
+>    mention counts over a 7-day window, so cutting documents cuts the signal —
+>    the volume *is* the measurement. Film's cheap lever is per-document cost
+>    (79% of its cost is output tokens; a Movers-only pass on Haiku drops the
+>    relation payload and the rate together), not document count. Cutting now
+>    would also need undoing when that lands: two mid-window volume changes,
+>    two velocity artifacts, in the domain under evaluation. Until Haiku lands,
+>    spend sits near 1.4x rather than 1.0x — a few tens of dollars against
+>    corrupting the measurement that decides whether film is worth keeping.
+>
+> Execution lives in `scripts/sept1_cost_boundary.py` (dry-runnable), default
+> mode `film-untouched`: semiconductors 17/21, weapons_detection 10/15, film
+> unchanged at 35/40. `uniform` and `film-weighted` remain in that script for
+> the case where Movers-only is abandoned. The rate-table half is split behind
+> `--only rates` and must not run before the evening of 08-31 — bumping the
+> tables early logs real spend 50% above what is charged, and the cost ceiling
+> reads them. The table below is kept as the historical record of what was
+> planned.
 
 Operator directive 2026-07-20: Anthropic is running a 50% rate reduction
 through mid-August. Original plan doubled `doc_selection.budget`/

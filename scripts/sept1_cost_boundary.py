@@ -2,7 +2,7 @@
 """Sept 1 cost boundary — the timed edits that must land before the 06:00 run.
 
     venv/bin/python scripts/sept1_cost_boundary.py --dry-run
-    venv/bin/python scripts/sept1_cost_boundary.py --mode film-weighted
+    venv/bin/python scripts/sept1_cost_boundary.py --only budgets
 
 RUN ON THE EVENING OF 2026-08-31. Not earlier: every day through Aug 31 bills
 at Sonnet 5 introductory rates ($2/$10), so cutting sooner discards cheap
@@ -26,14 +26,31 @@ The todo's OTHER number checks out exactly: flat-vs-intro-period was given as
 
 MODES
 -----
-uniform        film 22/25, semis 13/16   -- both cut to 0.63x, as the todo reads
-film-weighted  film 18/20, semis 17/21   -- same total spend, semis keeps 85%
-               of its coverage instead of 63%
+film-untouched  semis 17/21, weapons 10/15, FILM UNCHANGED   <-- default
+uniform         film 22/25, semis 13/16    -- both to 0.63x, as the todo reads
+film-weighted   film 18/20, semis 17/21    -- same spend, semis keeps more
 
-film-weighted is the default. Film is 65% of all Sonnet 5 spend ($153.25 of
-$234.56) and 79% of its cost is OUTPUT tokens, which scale with document count.
-Semiconductors is already the lean one. Cutting them equally spends
-semiconductors' coverage to save money that is mostly not there.
+WHY THE DEFAULT DOES NOT CUT FILM
+---------------------------------
+Film is 65% of Sonnet 5 spend, so cutting it is the obvious lever and it is the
+wrong one. Movers is built from mention counts over a 7-day window
+(activity_factor = min(mention_count_7d, 20) / 20), so halving film's documents
+halves its mention counts and moves the rankings. The volume IS the signal.
+
+The cheap lever for film is per-document cost, not document count: 79% of
+film's cost is output tokens, and a Movers-only pass on Haiku drops the
+relation payload and the rate together -- roughly an order of magnitude,
+without touching the mention stream.
+
+So the flat-cost target is met by making film cheap, not smaller. Until that
+lands, spend sits near 1.4x rather than 1.0x -- a few tens of dollars, against
+corrupting the measurement that decides whether film is worth keeping.
+
+Cutting now would also need undoing later: two mid-window volume changes, two
+velocity artifacts (methodology 2.7), in the domain under evaluation.
+
+`uniform` and `film-weighted` remain for the case where Movers-only is
+abandoned.
 """
 from __future__ import annotations
 
@@ -46,9 +63,21 @@ REPO = Path(__file__).resolve().parents[1]
 PLATFORM_PRICING = Path("/opt/ai-agent-platform/pipelines/blog_pipeline/pricing.py")
 
 MODES = {
-    # mode: {domain: (budget, stretch_max)}
-    "uniform":       {"film": (22, 25), "semiconductors": (13, 16)},
-    "film-weighted": {"film": (18, 20), "semiconductors": (17, 21)},
+    # mode: {domain: (budget, stretch_max)}. A domain absent from a mode is
+    # left exactly as it is.
+    #
+    # DEFAULT. Film's budget must NOT move under the Movers-only plan: Movers
+    # is built from mention counts over a 7-day window, so cutting documents
+    # cuts the signal. A cut now would also have to be undone when the Haiku
+    # mentions path lands -- two mid-window volume changes, two velocity
+    # artifacts, in the one domain whose signal is being evaluated. Decided
+    # 2026-08-29; this table is where that decision lives.
+    "film-untouched": {"semiconductors": (17, 21)},
+
+    # Only if Movers-only is abandoned and film goes back to earning its
+    # Landscape keep on relation quality. Both reach ~0.63x by cutting volume.
+    "uniform":        {"film": (22, 25), "semiconductors": (13, 16)},
+    "film-weighted":  {"film": (18, 20), "semiconductors": (17, 21)},
 }
 # weapons_detection returns to its documented normal either way. It is NOT part
 # of the flat-cost math: it has no pre-migration baseline (its first-ever run
@@ -74,7 +103,7 @@ def edit(path: Path, old: str, new: str, dry: bool, label: str) -> bool:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=sorted(MODES), default="film-weighted")
+    ap.add_argument("--mode", choices=sorted(MODES), default="film-untouched")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument(
         "--only",
