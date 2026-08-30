@@ -33,9 +33,10 @@ pricing (~33% off through 2026-08-31 — verified against both the
 project's own `pricing.py` analog research and the claude-api skill's
 cached rate table; earlier "50% off" framing was a misremember).
 **Unlike the doc-budget bump above, this is not meant to revert** —
-once intro pricing ends 2026-09-01, Sonnet 5 costs the same as Sonnet
-4.6 already did, and it's a real quality upgrade, so there's no reason
-to go back. No calendar VTODO for this one.
+and it aged well: on 2026-08-30 Anthropic cancelled the scheduled Sept 1
+rise, making $2/$10 Sonnet 5's standard price, so the upgrade is
+permanently ~33% cheaper than Sonnet 4.6 rather than merely no more
+expensive. No calendar VTODO for this one.
 
 Every Anthropic call site PRIMARY_MODEL feeds (`scripts/submit_batch.py`,
 `submit_backlog.py`, `run_extract.py`, `collect_batch.py`,
@@ -91,6 +92,14 @@ is that moment, one model-generation early).
 > tables early logs real spend 50% above what is charged, and the cost ceiling
 > reads them. The table below is kept as the historical record of what was
 > planned.
+>
+> **2026-08-30 — STOOD DOWN.** Anthropic cancelled the scheduled Sept 1 rise;
+> $2/$10 is now Sonnet 5's standard price (pricing page, note id
+> `claude-sonnet-5-introductory-pricing`). Flat spend therefore holds at
+> current volumes (index 1.06) with no cut. `sept1_cost_boundary.py` now makes
+> no budget edit without an explicit `--mode`, and its rates half verifies
+> $2/$10 instead of bumping. The `predictor-sept1-hold-net-cost` VTODO is
+> cancelled. Details: ADR-011, Addendum 2026-08-30.
 
 Operator directive 2026-07-20: Anthropic is running a 50% rate reduction
 through mid-August. Original plan doubled `doc_selection.budget`/

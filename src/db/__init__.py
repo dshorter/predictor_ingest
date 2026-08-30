@@ -578,8 +578,10 @@ _UNPRICED_WARNED: set[str] = set()
 _TOKEN_PRICES: dict[str, tuple[float, float]] = {
     # Added 2026-08-29. Absent since PRIMARY_MODEL switched on 2026-07-20, so
     # _compute_cost returned None and every Sonnet 5 call logged a NULL cost --
-    # 2,139 rows in film alone. Intro rate until 2026-08-31; scripts/
-    # sept1_cost_boundary.py bumps this to (3.00, 15.00) on the boundary.
+    # 2,139 rows in film alone. Announced at launch as intro pricing through
+    # 2026-08-31, made the STANDARD price on 2026-08-30: the scheduled Sept 1
+    # rise to (3.00, 15.00) was cancelled (pricing page; ADR-011 addendum).
+    # scripts/sept1_cost_boundary.py now verifies this rate, never bumps it.
     "claude-sonnet-5":          (2.00, 10.00),
     "claude-sonnet-4-6":        (3.00, 15.00),
     # Corrected 2026-08-29: (0.25, 1.25) is Haiku 3.5's rate. Haiku 4.5 is $1/$5.

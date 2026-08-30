@@ -171,3 +171,33 @@ greenlight announcements) have never been specified.
 D1 was decided on 2026-08-29, recorded in a retrospective, and then contradicted
 a day later by a script whose default still cut film — because a narrative
 document is not where this project stores decisions. It is stored here now.
+
+## Addendum — 2026-08-30: the Sept 1 rate rise was cancelled
+
+Verified against the live pricing page
+(platform.claude.com/docs/en/about-claude/pricing, note id
+`claude-sonnet-5-introductory-pricing`): *"The $2/$10 per million input/output
+token pricing for Claude Sonnet 5, announced at launch as introductory pricing
+through August 31, 2026, is now the standard price. The previously scheduled
+increase to $3/$15 per million input/output tokens on September 1, 2026 will
+not occur."*
+
+What changes:
+
+- **The flat-spend consequence is achieved by doing nothing.** At unchanged
+  rates the current volumes measure index 1.06 against the pre-migration
+  baseline. The Sept 1 budget cuts (semiconductors 17/21, weapons_detection
+  10/15) are no longer needed for flat cost; `sept1_cost_boundary.py` is stood
+  down — it makes no budget edit without an explicit `--mode`, and its rates
+  half now verifies $2/$10 rather than bumping. The ops-calendar item
+  `predictor-sept1-hold-net-cost` is cancelled.
+- **D1's cost of holding shrinks** from ~1.4x to the measured ~1.06x. Film's
+  budget still does not move — the reason was never price.
+- **D2's arithmetic tightens but the lever holds.** Haiku 4.5's rate advantage
+  over Sonnet 5 is now 2x ($1/$5 vs $2/$10), not the 3x a Sept 1 Sonnet rate
+  implied. The dominant term was always the relation payload (79% of film's
+  cost is output tokens), so Movers-only on Haiku still cuts film's
+  per-document cost by roughly 5–6x — but D2 is now a cost improvement, not
+  the mechanism by which flat spend is reached, which lowers its urgency
+  relative to `score_all` (D5's prerequisite).
+- **D3, D4, D5, D6 are unaffected.**

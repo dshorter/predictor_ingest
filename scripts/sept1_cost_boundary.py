@@ -1,12 +1,30 @@
 #!/usr/bin/env python3
-"""Sept 1 cost boundary — the timed edits that must land before the 06:00 run.
+"""Sept 1 cost boundary — STOOD DOWN 2026-08-30. The rise it timed never comes.
 
-    venv/bin/python scripts/sept1_cost_boundary.py --dry-run
-    venv/bin/python scripts/sept1_cost_boundary.py --only budgets
+    venv/bin/python scripts/sept1_cost_boundary.py            # status, no edits
+    venv/bin/python scripts/sept1_cost_boundary.py --mode film-untouched --dry-run
 
-RUN ON THE EVENING OF 2026-08-31. Not earlier: every day through Aug 31 bills
-at Sonnet 5 introductory rates ($2/$10), so cutting sooner discards cheap
-capacity for no saving (ops calendar: predictor-sept1-hold-net-cost).
+STAND-DOWN (2026-08-30, verified against the live pricing page,
+platform.claude.com/docs/en/about-claude/pricing, note id
+"claude-sonnet-5-introductory-pricing"): "The $2/$10 ... pricing for Claude
+Sonnet 5, announced at launch as introductory pricing through August 31, 2026,
+is now the standard price. The previously scheduled increase to $3/$15 ... on
+September 1, 2026 will not occur."
+
+So there is no boundary. At unchanged rates the current volumes already measure
+index 1.06 against the pre-migration baseline — the flat-spend goal (ops
+calendar: predictor-sept1-hold-net-cost, now CANCELLED) is met by doing
+nothing. Consequently:
+
+  * The rates half NEVER bumps to (3.00, 15.00). It now verifies the tables
+    still carry $2/$10 and repairs a missing row at that rate. Bumping would
+    log spend 50% above what is charged — the silent-instrument failure class
+    ADR-011 D4 exists to prevent.
+  * The budgets half runs ONLY with an explicit --mode. The cuts below were
+    sized to offset a +50% rate jump; without one they just shed capacity.
+    They remain available as a deliberate capacity decision.
+
+Decision record: ADR-011 (docs/architecture/), Addendum 2026-08-30.
 
 WHY 0.63x AND NOT THE 0.75x IN THE TODO
 ---------------------------------------
@@ -66,7 +84,7 @@ MODES = {
     # mode: {domain: (budget, stretch_max)}. A domain absent from a mode is
     # left exactly as it is.
     #
-    # DEFAULT. ADR-011 D1 (docs/architecture/). Film's budget must NOT move: Movers
+    # ADR-011 D1 (docs/architecture/). Film's budget must NOT move: Movers
     # is built from mention counts over a 7-day window, so cutting documents
     # cuts the signal. A cut now would also have to be undone when the Haiku
     # mentions path lands -- two mid-window volume changes, two velocity
@@ -103,32 +121,47 @@ def edit(path: Path, old: str, new: str, dry: bool, label: str) -> bool:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=sorted(MODES), default="film-untouched")
+    ap.add_argument(
+        "--mode",
+        choices=sorted(MODES),
+        default=None,
+        help=(
+            "Budget cuts run ONLY when a mode is named explicitly. The Sept 1 "
+            "rate rise was cancelled (see module docstring), so no cut is "
+            "needed for flat spend; naming a mode is a capacity decision."
+        ),
+    )
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument(
         "--only",
         choices=("all", "budgets", "rates"),
         default="all",
         help=(
-            "Split the two halves. Budgets MAY run early -- a day of it forfeits "
-            "about $2 of cheap capacity. Rates MUST NOT: intro pricing runs "
-            "through 2026-08-31, so bumping the tables before Sept 1 logs real "
-            "spend 50%% above what is actually charged, and PREDICTOR_MAX_COST_USD "
-            "reads those tables."
+            "Split the two halves. The rates half is verify/repair-only since "
+            "the 2026-08-30 stand-down -- it never bumps to standard-rate "
+            "figures that are no longer scheduled to take effect."
         ),
     )
     args = ap.parse_args()
-    do_budgets = args.only in ("all", "budgets")
+    do_budgets = args.only in ("all", "budgets") and args.mode is not None
     do_rates = args.only in ("all", "rates")
     dry, ok = args.dry_run, True
 
-    budgets = dict(MODES[args.mode])
-    budgets["weapons_detection"] = WEAPONS
-    print(f"=== Sept 1 cost boundary — mode: {args.mode} ===")
+    print(f"=== Sept 1 cost boundary — mode: {args.mode or 'none (stood down)'} ===")
     if dry:
         print("*** DRY RUN ***")
+    if args.mode is None:
+        print(
+            "\nSTOOD DOWN: the scheduled Sonnet 5 rise to $3/$15 was cancelled\n"
+            "(pricing page, 2026-08-30) -- $2/$10 is now the standard price.\n"
+            "Flat spend holds at current volumes (index 1.06); no budget edit\n"
+            "will be made. Pass --mode explicitly to cut capacity anyway.\n"
+            "Rate tables will be verified below."
+        )
 
     if do_budgets:
+        budgets = dict(MODES[args.mode])
+        budgets["weapons_detection"] = WEAPONS
         print("\n-- domain budgets --")
         for dom, (b, s) in budgets.items():
             y = REPO / "domains" / dom / "domain.yaml"
@@ -161,31 +194,45 @@ def main() -> int:
 
     if not do_rates:
         print("\n-- rate tables: SKIPPED (--only budgets) --")
-        print("   Intro pricing runs through 2026-08-31. Run --only rates on the")
-        print("   evening of the 31st, before the 06:00 ET run on Sept 1.")
         print("\n=== done ===" if ok else "\n=== INCOMPLETE ===")
         return 0 if ok else 1
 
-    print("\n-- rate tables: Sonnet 5 intro ends, $2/$10 -> $3/$15 --")
+    print("\n-- rate tables: verify $2/$10 (standard since 2026-08-30; no bump) --")
     dbf = REPO / "src" / "db" / "__init__.py"
     dbtext = dbf.read_text()
-    if '"claude-sonnet-5"' in dbtext:
-        ok &= edit(dbf, '"claude-sonnet-5":          (2.00, 10.00),',
-                   '"claude-sonnet-5":          (3.00, 15.00),',
-                   dry, "predictor _TOKEN_PRICES (bump)")
-    else:
-        # No sonnet-5 row has ever existed here, so _compute_cost has returned
-        # None for every call since PRIMARY_MODEL switched on 2026-07-20 --
-        # 2,139 rows in film alone with a NULL cost_usd. Insert, do not bump.
+    if '"claude-sonnet-5":          (2.00, 10.00),' in dbtext:
+        print("  = predictor _TOKEN_PRICES: (2.00, 10.00) — correct, standard rate")
+    elif '"claude-sonnet-5":          (3.00, 15.00),' in dbtext:
+        # The pre-stand-down version of this script bumped the table. Undo it:
+        # $3/$15 logs spend 50% above what is charged, and the cost ceiling
+        # reads these tables.
+        ok &= edit(dbf, '"claude-sonnet-5":          (3.00, 15.00),',
+                   '"claude-sonnet-5":          (2.00, 10.00),',
+                   dry, "predictor _TOKEN_PRICES (REVERT stale bump)")
+    elif '"claude-sonnet-5"' not in dbtext:
+        # No sonnet-5 row means _compute_cost returns None for every call --
+        # the NULL-cost blindness of 2026-07-20..08-29. Insert at standard.
         anchor = '    "claude-sonnet-4-6":        (3.00, 15.00),'
         ok &= edit(dbf, anchor,
-                   '    "claude-sonnet-5":          (3.00, 15.00),\n' + anchor,
+                   '    "claude-sonnet-5":          (2.00, 10.00),\n' + anchor,
                    dry, "predictor _TOKEN_PRICES (INSERT — fixes NULL cost logging)")
+    else:
+        print("  ! predictor _TOKEN_PRICES: sonnet-5 row at an unexpected rate"
+              " -- inspect by hand", file=sys.stderr)
+        ok = False
     if PLATFORM_PRICING.exists():
-        ok &= edit(PLATFORM_PRICING,
-                   '"claude-sonnet-5": (2.00, 10.00),',
-                   '"claude-sonnet-5": (3.00, 15.00),',
-                   dry, "ai-agent-platform pricing.py (CROSS-REPO)")
+        ptext = PLATFORM_PRICING.read_text()
+        if '"claude-sonnet-5": (2.00, 10.00),' in ptext:
+            print("  = ai-agent-platform pricing.py: (2.00, 10.00) — correct")
+        elif '"claude-sonnet-5": (3.00, 15.00),' in ptext:
+            ok &= edit(PLATFORM_PRICING,
+                       '"claude-sonnet-5": (3.00, 15.00),',
+                       '"claude-sonnet-5": (2.00, 10.00),',
+                       dry, "ai-agent-platform pricing.py (CROSS-REPO revert)")
+        else:
+            print("  ! ai-agent-platform pricing.py: no recognizable sonnet-5"
+                  " row -- inspect by hand", file=sys.stderr)
+            ok = False
 
     print("\n-- verify --")
     print("  venv/bin/python -m pytest tests/test_select.py -q")
