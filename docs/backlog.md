@@ -294,6 +294,14 @@ accumulates disproportionate degree in practice.
 
 **Observed:** 2026-07-19 (Sprint 20.4 session) | **Priority:** Medium
 
+> **2026-08-29 — measured, and it confirms the diagnosis.** Same nine files,
+> same run: **30 failed under the `film` default, 12 under `PREDICTOR_DOMAIN=ai`.**
+> So 18 of the 30 are the taxonomy artifact described below and only **12 are
+> real**. Worth correcting wherever "26 failing tests" is quoted — the
+> ops-calendar item `diagnose-predictor-failing-tests` inherits that number and
+> overstates the problem by half. Verified unchanged across this session's
+> commits by reverting them and re-running: 30 before, 30 after.
+
 `make test` fails 22 tests under the current `DOMAIN ?= film` default:
 ~20 in test_extract/test_schema/test_resolve/test_integration/test_llm_eval
 assume the AI domain's relation taxonomy (pass with `PREDICTOR_DOMAIN=ai`),
@@ -305,6 +313,30 @@ are installed. Nothing catches this: the only workflow is release.yml
 (fixture setting PREDICTOR_DOMAIN=ai, not ambient default), fix or drop
 the two import-error tests, then decide whether a push-triggered
 verify.yml is wanted (uzelhub-web precedent).
+
+### PIPE-5: Cost anomaly detection — the ceiling catches runaways, not drift
+
+**Observed:** 2026-08-29 | **Priority:** Medium
+
+`PREDICTOR_MAX_COST_USD` (default 15) now halts a run when one `run_date`'s
+spend passes it — added after 2026-07-23, when film's 40-document batch ran
+nine times for $31.28 against a ~$5 norm and went unnoticed for five weeks.
+See [operational-state.md](../backend/operational-state.md) § Cost governance.
+
+**What it does not catch:** a slow drift. A domain creeping from $5/day to
+$13/day never trips a $15 ceiling, and nothing else would notice — the same
+blind spot that let 07-23 hide, just slower. Wanted: a day-over-day check on
+**cost per document** against a trailing median, paged through
+`notify-telegram` like the staleness check.
+
+Cost per document is the right unit rather than daily total, because it is
+invariant to how many documents the budget lets through. Measured baselines to
+compare against: film **$0.1063**, semiconductors **$0.0849**.
+
+**Prerequisite, now met:** this is only possible because `cost_usd` is no
+longer NULL. From 2026-07-20 to 2026-08-29 it was, for every Sonnet 5 call.
+
+---
 
 ### PIPE-3: Cross-document synthesis dropped to zero on 2026-03-27
 

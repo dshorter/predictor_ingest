@@ -11,8 +11,24 @@ and session notes.
 
 ## Extraction model: PRIMARY_MODEL is now claude-sonnet-5 (2026-07-20)
 
-Pipeline-wide (all domains — `PRIMARY_MODEL` is a single env var, not
-per-domain). Was `claude-sonnet-4-6`. Motivated by Sonnet 5's intro
+> **Updated 2026-08-29 — model selection is no longer env-only.** Resolution
+> order is now `domain.yaml` → `PRIMARY_MODEL` → framework default, via
+> `domain.model_from_profile(profile, stage)`. A domain that omits the block
+> inherits, so naming a model for one domain cannot move another. Stages:
+> `extraction`, `synthesis`, `narratives`.
+>
+> ```yaml
+> # domains/<slug>/domain.yaml
+> models:
+>   extraction: claude-haiku-4-5-20251001
+> ```
+>
+> Same shape `doc_selection` uses for per-domain budgets, and it closes
+> ADR-010 D3's follow-up for models the way Sprint 20.5 closed it for budgets.
+> Declared in `schemas/domain-profile.json`. **No live domain pins a model
+> today** — record it here when one does.
+
+Pipeline-wide default (all domains — `PRIMARY_MODEL` is a single env var). Was `claude-sonnet-4-6`. Motivated by Sonnet 5's intro
 pricing (~33% off through 2026-08-31 — verified against both the
 project's own `pricing.py` analog research and the claude-api skill's
 cached rate table; earlier "50% off" framing was a misremember).
@@ -39,7 +55,26 @@ is that moment, one model-generation early).
 
 ---
 
-## ⚠️ TEMPORARY: 2x doc budgets during Anthropic's rate reduction (2026-07-20 → 2026-08-15)
+## ⚠️ SUPERSEDED: 2x doc budgets (2026-07-20 → 2026-08-15)
+
+> **Corrected 2026-08-29, from measurement rather than plan.**
+>
+> 1. **The film/semiconductors bump never happened.** It was scheduled for
+>    2026-08-02 and the VTODO was never actioned; `domain.yaml` still reads
+>    35/40 and 20/25. Only `weapons_detection` ever ran at 2x, and it billed
+>    $1.89 across the whole period.
+> 2. **The end date was wrong.** Both the table below and the VTODOs say
+>    2026-08-15, inherited from an early "50% off through mid-August" reading
+>    that the section above already corrects to ~33% through **2026-08-31**.
+> 3. **The Sept 1 target is 0.63x, not 0.75x.** The ops-calendar item assumed
+>    the intro period ran at 0.87 of the pre-migration baseline; reconstructed
+>    from `token_usage`, it runs at **1.06**. Flat-vs-pre-migration is 0.63x.
+>    The item's *other* figure was exactly right: flat-vs-intro-period was
+>    given as 0.67x and measures 0.667.
+>
+> Execution lives in `scripts/sept1_cost_boundary.py` (dry-runnable), which
+> also bumps both rate tables. The table below is kept as the historical
+> record of what was planned.
 
 Operator directive 2026-07-20: Anthropic is running a 50% rate reduction
 through mid-August. Original plan doubled `doc_selection.budget`/
@@ -82,6 +117,31 @@ the durable reminders, not this doc:
 Revert `tests/test_select.py::TestBudgetFromProfile::
 test_active_domain_profiles_carry_d3_budgets` alongside each domain.yaml
 change (it currently asserts the "Active now" column).
+
+---
+
+## Cost governance (added 2026-08-29)
+
+**`PREDICTOR_MAX_COST_USD`** (default **15**) halts a run when one `run_date`'s
+spend passes it. Enforced in `log_token_usage`, not between stages, because the
+overrun it exists for happened *inside* a single stage: on 2026-07-23 film's
+40-document batch ran nine times, $31.28 in a day against a ~$5 norm. Set to
+`0` to disable.
+
+Every other agent on the box already had a ceiling (`SCOUT_MAX_COST_USD` and
+friends). The predictor did not, because governance had been scoped to things
+called "agents" — the predictor is a pipeline, so it was excluded by category
+rather than by decision, while outspending all of them combined.
+
+**A ceiling is only as good as the rate table.** `claude-sonnet-5` was missing
+from `_TOKEN_PRICES` from 2026-07-20, so `_compute_cost` returned `None` and
+2,139 calls in film alone logged a NULL cost — five weeks unmetered, and a null
+cost cannot breach a budget. Fixed, and an unpriced model now emits a warning
+once per process instead of failing open. **Add every new model to
+`_TOKEN_PRICES` in the same commit that starts using it.**
+
+`claude-haiku-4-5` was also corrected from (0.25, 1.25) — Haiku 3.5's rate — to
+**(1.00, 5.00)**, a 4x understatement.
 
 ---
 
@@ -232,25 +292,46 @@ daily pipeline follows a staggered handoff:
 
 Batches typically complete within 1–21 hours (Anthropic SLA: 24h).
 
-**Scheduling:** No cron job is currently installed. The cron line (per-domain)
-is documented in [automated-setup.md](automated-setup.md); installing it is
-part of the ADR-010 restart work.
+**Scheduling:** LIVE since 2026-07-22 as **systemd timers**, not cron —
+`predictor-daily@{film,semiconductors,weapons_detection}` at 06:00 / 06:45 /
+07:30 ET, plus `predictor-staleness.timer`. The unit deliberately carries no
+`OnFailure=`: `run_pipeline.py` pages `[PREDICTOR]` on every outcome with a
+richer summary, and the staleness pager backstops a hard crash. Units live in
+`/etc/systemd/system/`, outside this repo.
 
 **Narratives:** Generated by `claude-haiku-4-5-20251001` via the Anthropic API.
-Token usage is logged per call. Cost: ~$0.008/day for 10 narratives.
+Token usage is logged per call. Cost: **~$0.032/day** for 10 narratives —
+corrected 2026-08-29, the old ~$0.008 figure derived from the 4x-low Haiku rate.
 
 **Calibration report:** Runs automatically as the last pipeline stage. Logs
 suggestions to `tuning_log` table. See `docs/backend/calibration-report.md`.
 
-**Budget:** still a hardcoded framework constant
-(`src/doc_select/__init__.py: DEFAULT_BUDGET` = 25/day). ADR-010 D3 sets
-film ~35/day and semiconductors 20–25/day **at restart only** (mid-window
-volume changes create velocity artifacts), and flags promoting the budget to
-a `domain.yaml` key as a follow-up.
+**Budget:** per-domain in `domain.yaml` under `doc_selection` since Sprint 20.5
+— ADR-010 D3's follow-up is closed. `src/doc_select/__init__.py:
+DEFAULT_BUDGET` (25/day) is now only the fallback for a domain that omits the
+key. Live: film 35/40, semiconductors 20/25, weapons_detection 20/30. Change at
+window boundaries only — mid-window volume changes create velocity artifacts.
 
-**Cost basis:** ~$0.012/doc at Sonnet 4.6 batch rates (ADR-010 D2 — the
-$0.074/doc figure in `domain-fit-analysis.md` is superseded; first-30-day
-plan for both restart domains is ~$35–45 total).
+**Cost basis: measured, 2026-08-29.** ADR-010 D2's ~$0.012/doc was a Sonnet 4.6
+batch-rate estimate and is an order of magnitude low for the restart domains.
+Reconstructed from `token_usage` (extraction only, Sonnet 5 intro rates):
+
+| Domain | Docs | $/doc | Period total |
+|---|---|---|---|
+| film | 1,415 | **$0.1063** | $153.25 |
+| semiconductors | 914 | **$0.0849** | $79.42 |
+| weapons_detection | — | — | $1.89 |
+
+Total since the 07-20 migration: **~$234 in five weeks**, against a
+first-30-day plan of $35–45. Film is ~65% of it, and **79% of film's cost is
+output tokens** — extraction emits entities *and* relations, and relations
+dominate. That is why the cheap lever for a Movers-only domain is per-document
+output, not document volume.
+
+**Article text is capped at 50,000 characters** (`src/ingest/rss.py:
+MAX_TEXT_CHARS`, per-feed `max_chars:` override), mirroring the EDGAR guard.
+Uncapped SemiWiki posts were arriving at ~115K input tokens against an ~11K
+median — 2.8% of semiconductors' calls, 11.5% of its spend.
 
 **Env required (all domains):** `ANTHROPIC_API_KEY` only. `OPENAI_API_KEY` is no
 longer needed for extraction or narratives (still works if set — narrative model
