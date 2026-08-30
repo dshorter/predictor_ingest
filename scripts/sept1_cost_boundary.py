@@ -76,7 +76,21 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=sorted(MODES), default="film-weighted")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--only",
+        choices=("all", "budgets", "rates"),
+        default="all",
+        help=(
+            "Split the two halves. Budgets MAY run early -- a day of it forfeits "
+            "about $2 of cheap capacity. Rates MUST NOT: intro pricing runs "
+            "through 2026-08-31, so bumping the tables before Sept 1 logs real "
+            "spend 50%% above what is actually charged, and PREDICTOR_MAX_COST_USD "
+            "reads those tables."
+        ),
+    )
     args = ap.parse_args()
+    do_budgets = args.only in ("all", "budgets")
+    do_rates = args.only in ("all", "rates")
     dry, ok = args.dry_run, True
 
     budgets = dict(MODES[args.mode])
@@ -85,35 +99,43 @@ def main() -> int:
     if dry:
         print("*** DRY RUN ***")
 
-    print("\n-- domain budgets --")
-    for dom, (b, s) in budgets.items():
-        y = REPO / "domains" / dom / "domain.yaml"
-        cur = re.search(r"doc_selection:\s*\n\s*budget:\s*(\d+)\s*\n\s*stretch_max:\s*(\d+)",
-                        y.read_text())
-        if not cur:
-            print(f"  ! {dom}: doc_selection block not found", file=sys.stderr)
-            ok = False
-            continue
-        print(f"  {dom}: {cur.group(1)}/{cur.group(2)} -> {b}/{s}")
-        ok &= edit(y, cur.group(0),
-                   f"doc_selection:\n  budget: {b}\n  stretch_max: {s}",
-                   dry, f"{dom}/domain.yaml")
+    if do_budgets:
+        print("\n-- domain budgets --")
+        for dom, (b, s) in budgets.items():
+            y = REPO / "domains" / dom / "domain.yaml"
+            cur = re.search(r"doc_selection:\s*\n\s*budget:\s*(\d+)\s*\n\s*stretch_max:\s*(\d+)",
+                            y.read_text())
+            if not cur:
+                print(f"  ! {dom}: doc_selection block not found", file=sys.stderr)
+                ok = False
+                continue
+            print(f"  {dom}: {cur.group(1)}/{cur.group(2)} -> {b}/{s}")
+            ok &= edit(y, cur.group(0),
+                       f"doc_selection:\n  budget: {b}\n  stretch_max: {s}",
+                       dry, f"{dom}/domain.yaml")
 
-    print("\n-- test assertion --")
-    t = REPO / "tests" / "test_select.py"
-    ttext = t.read_text()
-    for dom, (b, s) in budgets.items():
-        m = re.search(
-            r'budget_from_profile\(load_domain_profile\("' + dom + r'"\)\) == \(\d+, \d+\)',
-            ttext)
-        if not m:
-            print(f"  ! test_select.py::{dom}: assertion not found", file=sys.stderr)
-            ok = False
-            continue
-        new = f'budget_from_profile(load_domain_profile("{dom}")) == ({b}, {s})'
-        ok &= edit(t, m.group(0), new, dry, f"test_select.py::{dom}")
-        if not dry:
-            ttext = t.read_text()
+        print("\n-- test assertion --")
+        t = REPO / "tests" / "test_select.py"
+        ttext = t.read_text()
+        for dom, (b, s) in budgets.items():
+            m = re.search(
+                r'budget_from_profile\(load_domain_profile\("' + dom + r'"\)\) == \(\d+, \d+\)',
+                ttext)
+            if not m:
+                print(f"  ! test_select.py::{dom}: assertion not found", file=sys.stderr)
+                ok = False
+                continue
+            new = f'budget_from_profile(load_domain_profile("{dom}")) == ({b}, {s})'
+            ok &= edit(t, m.group(0), new, dry, f"test_select.py::{dom}")
+            if not dry:
+                ttext = t.read_text()
+
+    if not do_rates:
+        print("\n-- rate tables: SKIPPED (--only budgets) --")
+        print("   Intro pricing runs through 2026-08-31. Run --only rates on the")
+        print("   evening of the 31st, before the 06:00 ET run on Sept 1.")
+        print("\n=== done ===" if ok else "\n=== INCOMPLETE ===")
+        return 0 if ok else 1
 
     print("\n-- rate tables: Sonnet 5 intro ends, $2/$10 -> $3/$15 --")
     dbf = REPO / "src" / "db" / "__init__.py"
