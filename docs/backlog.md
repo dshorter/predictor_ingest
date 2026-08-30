@@ -179,6 +179,24 @@ attempt, then post-filter if the prompt-only fix doesn't stick.
 > **[adr-010-two-domain-restart.md](../architecture/adr-010-two-domain-restart.md)** —
 > read that first. Each item below maps to a finding or follow-up in that ADR.
 
+### TREND-0: `score_all` per-entity queries time out `trending` — film frozen since 2026-08-06
+
+**Observed:** 2026-08-29 | **Priority:** High (top engineering item) | **Ref:** ADR-011 D5 (prerequisite), D2, D6
+
+`score_all()` issues one query per entity — 27,846 for film, 14,594 for
+semiconductors — and film crossed the 600s stage timeout as its graph grew.
+`run_movers.py` reads `trend_history` with `run_date <= ?`, so it silently
+re-serves the last good snapshot and exits 0: film's Movers output has been
+frozen since 2026-08-06 while every downstream page looks alive. ADR-011
+names fixing this a *prerequisite*, not a cleanup — it blocks D2's shadow-run
+observability, D5's evidence accumulation, and film's contribution to D6.
+Likely shape: batch the per-entity reads into set-based queries (one pass
+over `mentions`/`trend_history` grouped by entity) rather than raising the
+timeout, which just schedules the next freeze at a bigger graph.
+
+**Where:** `src/trend/__init__.py` (`score_all`), stage timeout in the daily
+runner units.
+
 ### TREND-1: Bridge score is computed and stored but unused
 
 **Observed:** 2026-06-10 | **Priority:** Medium | **Ref:** ADR-010 review finding (bridge)

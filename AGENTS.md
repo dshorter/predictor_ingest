@@ -191,8 +191,9 @@ came from the batch API or manual workflow.
 After extraction, `run_synthesize.py` runs per-domain synthesis (summarization /
 cross-doc reasoning), and `run_trending.py --narratives` generates trending
 narratives. These use the cheaper `NARRATIVE_MODEL` (default
-`claude-haiku-4-5-20251001`); the primary extraction model is `PRIMARY_MODEL`
-(default `claude-sonnet-4-6`).
+`claude-haiku-4-5-20251001`); the primary extraction model resolves
+`domain.yaml` `models:` → `PRIMARY_MODEL` → framework default
+(`claude-sonnet-5` since 2026-07-20).
 
 ---
 
@@ -306,7 +307,7 @@ See **[docs/backend/operational-state.md](docs/backend/operational-state.md)** f
 | Variable | Purpose |
 |----------|---------|
 | `ANTHROPIC_API_KEY` | Required for Mode A (batch API extraction + synthesis + narratives) |
-| `PRIMARY_MODEL` | Primary extraction / synthesis model (default: `claude-sonnet-4-6`) |
+| `PRIMARY_MODEL` | Primary extraction / synthesis model (default: `claude-sonnet-5`; per-domain override via `domain.yaml` `models:`) |
 | `NARRATIVE_MODEL` | Trending-narrative model (default: `claude-haiku-4-5-20251001`) |
 | `UNDERSTUDY_MODEL` | Shadow-mode comparison model (default: `gpt-5-nano`) |
 | `OPENAI_API_KEY` | Required only if `UNDERSTUDY_MODEL` is an OpenAI model |
