@@ -172,6 +172,49 @@ D1 was decided on 2026-08-29, recorded in a retrospective, and then contradicted
 a day later by a script whose default still cut film — because a narrative
 document is not where this project stores decisions. It is stored here now.
 
+## Correction — 2026-08-31: the Context figures were ~3x too high
+
+The Context section above was reconstructed by hand from `token_usage` before
+the table could price itself. It has now been measured directly, and the
+reconstruction was wrong in two compounding directions: it priced Sonnet 5 at
+the standard $3/$15 rather than the $2/$10 actually charged, and it applied no
+Batch API discount, though extraction — and only extraction — runs through the
+Batch API at half rate. `billing_mode` (2026-08-31) records that distinction,
+and every historical row has been backfilled and repriced.
+
+Same five-week window (2026-07-25..08-29), extraction:
+
+| | ADR as written | Measured |
+|---|---|---|
+| Film | $153.25 | **$53.53** |
+| Semiconductors | $79.42 | **$35.93** |
+| weapons_detection | $1.89 | **$0.26** |
+| Total | ~$234 | **$89.72** |
+| Film's share | 65% | **60%** |
+| Film per document | $0.1063 | **$0.0381** |
+| Semiconductors per document | $0.0849 | **$0.0421** |
+
+**What survives.** Film is still the largest spender by a wide margin, and
+**79% of film's extraction cost is still output tokens** — that figure is a
+ratio within one model's rates, so no pricing error touched it. D2's mechanism
+therefore stands unchanged: dropping the relation payload drops the bulk of the
+spend.
+
+**What reverses.** The claim that film carries a *per-document premium* does
+not survive. Film costs **$0.0381/doc against semiconductors' $0.0421** — it is
+about 10% **cheaper** per document, not 1.25x more expensive. Film is the
+biggest line item purely on **volume**, not on unit cost.
+
+**What that means for the decisions.** D1 is unaffected and arguably
+strengthened: the case for not cutting film's budget never rested on price, and
+the true cost of holding is smaller than recorded. D2 remains a real lever on
+its own merits (the output-token share is what it trades on), but it should no
+longer be argued as *correcting an anomaly in film* — there is no anomaly.
+Film is ordinary per document and simply reads more documents, which is what
+D1 says it must keep doing. D4's governance point is untouched, and this
+correction is itself an instance of it: a number nobody could verify sat in a
+decision record for a day.
+
 ## Addendum — 2026-08-30: the Sept 1 rate rise was cancelled
 
 Verified against the live pricing page

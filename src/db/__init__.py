@@ -594,12 +594,19 @@ _TOKEN_PRICES: dict[str, tuple[float, float]] = {
 }
 
 
-def _compute_cost(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
-    """Return USD cost for a call, or None if model pricing is unknown."""
+def _compute_cost(model: str, input_tokens: int, output_tokens: int,
+                  billing_mode: str = "sync") -> Optional[float]:
+    """Return USD actually charged for a call, or None if pricing is unknown."""
+    mult = _BILLING_MULTIPLIER.get(billing_mode)
+    if mult is None:
+        raise ValueError(
+            f"unknown billing_mode {billing_mode!r} -- expected one of "
+            f"{sorted(_BILLING_MULTIPLIER)}"
+        )
     # Match on prefix so alias and dated variants both resolve
     for key, (in_rate, out_rate) in _TOKEN_PRICES.items():
         if model.startswith(key) or key.startswith(model):
-            return (input_tokens * in_rate + output_tokens * out_rate) / 1_000_000
+            return (input_tokens * in_rate + output_tokens * out_rate) * mult / 1_000_000
     # An unpriced model blinds the cost ceiling below -- a NULL cost cannot
     # breach a budget. Say so once per model per process rather than returning
     # None quietly, which is how five weeks of Sonnet 5 spend went unmetered.
@@ -631,7 +638,22 @@ def ensure_token_usage_table(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_token_usage_stage ON token_usage(stage);
         CREATE INDEX IF NOT EXISTS idx_token_usage_model ON token_usage(model);
     """)
+    # Added 2026-08-31. Extraction goes through the Batch API, which bills at
+    # HALF the listed rate; every other stage is a plain messages.create. Without
+    # this column every extraction dollar was logged ~2x what was charged, which
+    # is the wrong direction to be wrong when the number reaches a human.
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(token_usage)")}
+    if "billing_mode" not in cols:
+        conn.execute(
+            "ALTER TABLE token_usage ADD COLUMN billing_mode TEXT NOT NULL DEFAULT 'sync'"
+        )
     conn.commit()
+
+
+# The Batch API bills input and output at 50% of the listed rate. Applied at
+# log time so cost_usd always means dollars actually charged -- a reader of this
+# table should never need to know which stage batches.
+_BILLING_MULTIPLIER = {"sync": 1.0, "batch": 0.5}
 
 
 def log_token_usage(
@@ -642,6 +664,7 @@ def log_token_usage(
     input_tokens: int,
     output_tokens: int,
     doc_id: Optional[str] = None,
+    billing_mode: str = "sync",
 ) -> None:
     """Record token usage for one LLM call.
 
@@ -653,17 +676,84 @@ def log_token_usage(
         input_tokens:  Tokens in the prompt.
         output_tokens: Tokens in the completion.
         doc_id:        Source document ID (extraction only; None for batch stages).
+        billing_mode:  'batch' for Batch API calls (billed at half rate), else
+                       'sync'. The caller knows which endpoint it used; nothing
+                       downstream can infer it.
     """
     ensure_token_usage_table(conn)
-    cost = _compute_cost(model, input_tokens, output_tokens)
+    cost = _compute_cost(model, input_tokens, output_tokens, billing_mode)
     conn.execute(
         """INSERT INTO token_usage
-               (run_date, stage, model, doc_id, input_tokens, output_tokens, cost_usd)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (run_date, stage, model, doc_id, input_tokens, output_tokens, cost),
+               (run_date, stage, model, doc_id, input_tokens, output_tokens,
+                cost_usd, billing_mode)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (run_date, stage, model, doc_id, input_tokens, output_tokens, cost,
+         billing_mode),
     )
     conn.commit()
     _enforce_cost_ceiling(conn, run_date)
+
+
+def _spend(conn: sqlite3.Connection, where: str, params: tuple) -> dict:
+    ensure_token_usage_table(conn)
+    row = conn.execute(
+        f"""SELECT COALESCE(SUM(cost_usd), 0), COUNT(*),
+                   SUM(CASE WHEN cost_usd IS NULL THEN 1 ELSE 0 END)
+              FROM token_usage WHERE {where}""",
+        params,
+    ).fetchone()
+    by_stage = conn.execute(
+        f"""SELECT stage, COALESCE(SUM(cost_usd), 0)
+              FROM token_usage WHERE {where}
+             GROUP BY stage ORDER BY 2 DESC""",
+        params,
+    ).fetchall()
+    return {
+        "total_usd": float(row[0] or 0),
+        "calls": int(row[1] or 0),
+        "unpriced_calls": int(row[2] or 0),
+        "by_stage": {s: float(c) for s, c in by_stage},
+    }
+
+
+def spend_for_run(conn: sqlite3.Connection, run_date: str) -> dict:
+    """What one run_date is charged, and how much of it is unpriced.
+
+    This is the ceiling's view (PREDICTOR_MAX_COST_USD sums the same rows), and
+    it is NOT what a given execution spent -- see spend_since. Extraction is
+    attributed to the run_date whose batch it belongs to, but that batch is
+    collected a day later, so a run_date's extraction cost arrives after the run
+    that owns it has finished.
+
+    `unpriced_calls` rides alongside the total on purpose: a model missing from
+    _TOKEN_PRICES logs NULL, and a total that quietly omits those rows is the
+    same silent instrument that hid five weeks of Sonnet 5 spend. A caller
+    showing this to a human should say when the number is incomplete.
+    """
+    out = _spend(conn, "run_date = ?", (run_date,))
+    out["run_date"] = run_date
+    return out
+
+
+def spend_since(conn: sqlite3.Connection, since_utc: str) -> dict:
+    """What was actually billed during one execution, by wall clock.
+
+    The number a human wants from a daily notice: money that moved while this
+    run was running, whichever run_date it is booked against.
+
+    These differ by design and the difference is not small. ADR-008's staggered
+    handoff means a run submits today's batch and collects YESTERDAY's, so
+    per-run_date spend omits extraction entirely on the day it is submitted --
+    and extraction is ~90% of the bill. A ping reporting only the run_date total
+    would have shown pennies every day while the real spend arrived silently on
+    a date already past.
+
+    Args:
+        since_utc: 'YYYY-MM-DD HH:MM:SS' UTC, compared against created_at.
+    """
+    out = _spend(conn, "created_at >= ?", (since_utc,))
+    out["since"] = since_utc
+    return out
 
 
 class CostCeilingExceeded(RuntimeError):

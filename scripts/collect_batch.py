@@ -97,11 +97,16 @@ def _sync_fallback(
     db_path: Path,
     domain: str,
     extractions_dir: Path,
+    run_date: str,
 ) -> int:
     """Synchronous fallback extraction for docs from a failed batch job.
 
     Calls the Anthropic API directly for each doc. Used when a batch job
     has status errored/canceled/expired.
+
+    Takes run_date so its token usage lands on the same run as the batch it is
+    standing in for -- these calls are billed at full sync rates and were not
+    recorded at all before 2026-08-31.
 
     Returns number of docs successfully extracted.
     """
@@ -116,7 +121,7 @@ def _sync_fallback(
         print("  ERROR: ANTHROPIC_API_KEY not set — cannot fallback")
         return 0
 
-    from db import init_db
+    from db import init_db, log_token_usage
     from extract import (
         build_extraction_prompt,
         parse_extraction_response,
@@ -185,6 +190,17 @@ def _sync_fallback(
                 },
             ) as stream:
                 response = stream.get_final_message()
+            # Log BEFORE parsing: these tokens are billed whether or not the
+            # response parses, and until 2026-08-31 this path logged nothing at
+            # all -- so every fallback call was invisible to both the cost
+            # record and PREDICTOR_MAX_COST_USD. Sync rates, not batch: this is
+            # a plain messages.stream call.
+            if getattr(response, "usage", None):
+                log_token_usage(
+                    conn, run_date, "extraction", model,
+                    response.usage.input_tokens, response.usage.output_tokens,
+                    doc_id=doc_id, billing_mode="sync",
+                )
             if response.stop_reason == "max_tokens":
                 # Truncated output parses as malformed JSON further down, which
                 # reads as a mysterious parse error. Name the real cause.
@@ -283,7 +299,7 @@ def collect(
                     log_token_usage(
                         conn, run_date, "extraction", get_model(),
                         msg.usage.input_tokens, msg.usage.output_tokens,
-                        doc_id=doc_id,
+                        doc_id=doc_id, billing_mode="batch",
                     )
                 try:
                     extraction = parse_extraction_response(response_text(msg), doc_id)
@@ -304,7 +320,7 @@ def collect(
         # Sync fallback for any per-doc failures within the batch
         if fallback_needed:
             print(f"\n  Running sync fallback for {len(fallback_needed)} failed docs...")
-            fb_ok = _sync_fallback(fallback_needed, db_path, domain, extractions_dir)
+            fb_ok = _sync_fallback(fallback_needed, db_path, domain, extractions_dir, run_date)
             collected += fb_ok
 
         # Download result JSONL to disk for audit trail

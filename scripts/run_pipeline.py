@@ -1357,6 +1357,37 @@ def main() -> int:
     # Write log file
     log_dir = project_root / args.log_dir
     log_dir.mkdir(parents=True, exist_ok=True)
+    # What the run actually cost, recorded before the log is written so the
+    # dashboard and the Director read the same number the ping quotes.
+    # Batch-aware since 2026-08-31: this is dollars CHARGED, not list price --
+    # extraction bills at half through the Batch API, so the list figure
+    # overstates a typical run by roughly 2x. `unpriced` rides along rather than
+    # being swallowed; a total that silently drops unpriced calls is the
+    # instrument that hid five weeks of Sonnet 5 spend.
+    try:
+        import sqlite3
+
+        from db import spend_for_run, spend_since
+
+        # created_at is 'YYYY-MM-DD HH:MM:SS' UTC; startedAt is ISO with T/Z.
+        since = run_log["startedAt"].replace("T", " ").rstrip("Z")
+        cost_conn = sqlite3.connect(project_root / db_path)
+        try:
+            billed = spend_since(cost_conn, since)
+            booked = spend_for_run(cost_conn, run_date)
+        finally:
+            cost_conn.close()
+        # Two different true numbers. `billed` is what this execution spent and
+        # is what the notice quotes; `booked` is what run_date carries and is
+        # what the ceiling enforces. They diverge because a run collects
+        # yesterday's batch and submits today's (ADR-008).
+        run_log["costUsd"] = round(billed["total_usd"], 4)
+        run_log["costUnpricedCalls"] = billed["unpriced_calls"]
+        run_log["costByStage"] = {k: round(v, 4) for k, v in billed["by_stage"].items()}
+        run_log["costBookedToRunDate"] = round(booked["total_usd"], 4)
+    except Exception as exc:  # cost is reporting; it never fails a run
+        print(f"  (cost unavailable: {exc})")
+
     log_path = log_dir / f"pipeline_{run_date}.json"
     with open(log_path, "w", encoding="utf-8") as f:
         json.dump(run_log, f, indent=2, ensure_ascii=False)
@@ -1386,10 +1417,16 @@ def main() -> int:
     status_icon = {"success": "OK", "partial": "PARTIAL", "failed": "FAILED"}.get(
         overall_status, overall_status
     )
+    cost_str = ""
+    if "costUsd" in run_log:
+        cost_str = f" | ${run_log['costUsd']:.2f}"
+        if run_log.get("costUnpricedCalls"):
+            cost_str += f" (+{run_log['costUnpricedCalls']} unpriced)"
+
     summary = (
         f"{status_icon} {run_date}: {new_docs} docs, "
         f"{entities} entities, {relations} relations | "
-        f"{feeds} feeds | {run_log['durationSec']}s"
+        f"{feeds} feeds | {run_log['durationSec']}s{cost_str}"
     )
     print(summary)
 
@@ -1429,6 +1466,30 @@ def main() -> int:
         msg = f"{args.domain} daily — {summary}"
         if overall_status != "success" and failed_stages:
             msg += f" | failed: {', '.join(failed_stages)}"
+        # The spend line, broken out by stage. `summary` carries the run total;
+        # this says where it went, which is what makes a bad day actionable from
+        # a phone -- a $9 run is a different problem depending on whether
+        # extraction or synthesis ate it.
+        by_stage = run_log.get("costByStage") or {}
+        if by_stage:
+            short = {"extraction": "extract", "synthesis": "synth",
+                     "disambiguation": "resolve", "narratives": "narr"}
+            parts = " ".join(
+                f"{short.get(s, s)} ${c:.2f}" for s, c in
+                sorted(by_stage.items(), key=lambda kv: -kv[1]) if c >= 0.005
+            )
+            if parts:
+                msg += f"\nspend: {parts}"
+        # The ceiling is enforced per run_date, so it is the BOOKED figure that
+        # can trip it -- warning on the billed figure would point at the wrong
+        # number on exactly the day it mattered.
+        booked = run_log.get("costBookedToRunDate")
+        try:
+            ceiling = float(os.environ.get("PREDICTOR_MAX_COST_USD", "15") or 0)
+        except ValueError:
+            ceiling = 0.0
+        if ceiling > 0 and booked is not None and booked > ceiling * 0.8:
+            msg += f"\n⚠ {run_date} booked ${booked:.2f} of ${ceiling:.0f} ceiling"
         try:
             subprocess.run(
                 ["/usr/local/sbin/notify-telegram", "PREDICTOR", msg],
