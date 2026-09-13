@@ -226,6 +226,120 @@ def compute_bridge_score(
     return math.sqrt((outgoing + 1) * (incoming + 1)) - 1
 
 
+# --------------------------------------------------------------------------
+# Set-based counterparts, used by TrendScorer.score_all.
+#
+# Each mirrors one of the per-entity functions above, answering the same
+# question for every entity in one pass. The per-entity versions stay as the
+# reference implementation and the single-entity API; these exist because
+# calling those in a loop is what froze film's trending for 38 days (TREND-0).
+# Any change to the semantics above must be mirrored here, and
+# tests/test_trend_set_based.py fails if the two ever disagree.
+# --------------------------------------------------------------------------
+
+
+def _mention_counts(
+    conn: sqlite3.Connection,
+    days: int,
+    as_of: date,
+) -> dict[str, int]:
+    """`count_mentions` for every entity at once, keyed by entity_id.
+
+    Entities with no mentions in the window are absent from the result — the
+    caller defaults them to 0. Same inclusive bounds and same NULL handling as
+    the per-entity version: a document with NULL published_at matches no window,
+    because SQL comparisons against NULL are never true.
+    """
+    start_date = (as_of - timedelta(days=days)).isoformat()
+    end_date = as_of.isoformat()
+
+    rows = conn.execute(
+        """
+        SELECT r.target_id, COUNT(*)
+        FROM relations r
+        JOIN documents d ON r.doc_id = d.doc_id
+        WHERE r.rel = ?
+        AND d.published_at >= ?
+        AND d.published_at <= ?
+        GROUP BY r.target_id
+        """,
+        (_BASE_RELATION, start_date, end_date),
+    ).fetchall()
+    return {row[0]: row[1] for row in rows}
+
+
+def _bridge_degrees(
+    conn: sqlite3.Connection,
+) -> tuple[dict[str, int], dict[str, int]]:
+    """(outgoing, incoming) distinct-neighbour counts for every entity.
+
+    `rel != ?` excludes rows where rel IS NULL, matching the per-entity version
+    — that is SQL's three-valued logic, not an oversight being copied.
+    """
+    outgoing = {
+        row[0]: row[1]
+        for row in conn.execute(
+            """
+            SELECT source_id, COUNT(DISTINCT target_id)
+            FROM relations
+            WHERE rel != ?
+            GROUP BY source_id
+            """,
+            (_BASE_RELATION,),
+        ).fetchall()
+    }
+    incoming = {
+        row[0]: row[1]
+        for row in conn.execute(
+            """
+            SELECT target_id, COUNT(DISTINCT source_id)
+            FROM relations
+            WHERE rel != ?
+            GROUP BY target_id
+            """,
+            (_BASE_RELATION,),
+        ).fetchall()
+    }
+    return outgoing, incoming
+
+
+def _novelty_from(
+    *,
+    first_seen: Optional[str],
+    total_mentions: int,
+    corpus_size: int,
+    as_of: date,
+    decay_lambda: float,
+    age_w: float,
+    rarity_w: float,
+) -> float:
+    """`compute_novelty`'s arithmetic, with its three reads already done.
+
+    Kept as a separate function rather than inlined so the two implementations
+    share one copy of the decay-and-rarity formula; only the data access differs.
+    """
+    if not first_seen:
+        return 0.5
+
+    try:
+        first_seen_date = date.fromisoformat(first_seen[:10])
+        age_days = (as_of - first_seen_date).days
+    except (ValueError, TypeError):
+        return 0.5
+
+    age_novelty = math.exp(-decay_lambda * max(0, age_days))
+
+    if corpus_size <= 1:
+        rarity = 1.0 if total_mentions == 0 else 0.5
+    else:
+        rarity = (
+            math.log(1 + corpus_size / (1 + total_mentions))
+            / math.log(1 + corpus_size)
+        )
+
+    return age_w * age_novelty + rarity_w * rarity
+
+
 class TrendScorer:
     """High-level trend scoring interface.
 
@@ -269,18 +383,113 @@ class TrendScorer:
             "bridge_score": compute_bridge_score(self.conn, entity_id),
         }
 
-    def score_all(self) -> dict[str, dict[str, Any]]:
+    def score_all(
+        self, as_of: Optional[date] = None
+    ) -> dict[str, dict[str, Any]]:
         """Score all entities in database.
+
+        Set-based: eight queries total, whatever the entity count. The previous
+        implementation looped `score_entity`, which costs nine queries per entity
+        — 34,043 film entities meant ~300,000 round trips, and film crossed the
+        600s `trending` stage timeout on 2026-08-06 as its graph grew, freezing
+        Movers output for 38 days while `run_movers.py` re-served the last good
+        snapshot and exited 0. Semiconductors crossed the same wall 2026-09-06.
+        The cost was never data volume (133k relations is nothing for SQLite) —
+        it was per-query overhead multiplied by the entity count. See TREND-0 in
+        docs/backlog.md.
+
+        `score_entity` is deliberately left as-is. It is the reference
+        implementation this is verified against: `tests/test_trend_set_based.py`
+        asserts the two produce identical output for every entity in a fixture.
+
+        Args:
+            as_of: Reference date (defaults to today). Pinned once here and
+                shared by every window, where the per-entity path re-read
+                `date.today()` on each of its ~300,000 calls — which could
+                straddle midnight mid-run and score different entities against
+                different days.
 
         Returns:
             Dict mapping entity_id to scores
         """
-        cursor = self.conn.execute("SELECT entity_id FROM entities")
-        entities = [row[0] for row in cursor.fetchall()]
+        if as_of is None:
+            as_of = date.today()
 
-        scores = {}
-        for entity_id in entities:
-            scores[entity_id] = self.score_entity(entity_id)
+        # Four distinct mention windows cover all four metrics that need them.
+        # Window 1 serves both mention_count_7d and velocity's "recent" term —
+        # they are the same call in score_entity, so they stay one query here.
+        # Note windows 1 and 3 both include the boundary date as_of-7, because
+        # count_mentions is inclusive at both ends. That is pre-existing
+        # behaviour, reproduced rather than corrected.
+        m7 = _mention_counts(self.conn, days=7, as_of=as_of)
+        m30 = _mention_counts(self.conn, days=30, as_of=as_of)
+        m_prev = _mention_counts(self.conn, days=7, as_of=as_of - timedelta(days=7))
+
+        max_age_days = int(_TREND_WEIGHTS.get("max_age_days", 365))
+        m_age = _mention_counts(self.conn, days=max_age_days, as_of=as_of)
+
+        out_deg, in_deg = _bridge_degrees(self.conn)
+
+        # first_seen comes off the same read that enumerates the entities, so
+        # novelty's per-entity lookup costs nothing extra. The corpus count was
+        # previously re-run once per entity — 34,043 identical full-table counts.
+        rows = self.conn.execute(
+            "SELECT entity_id, first_seen FROM entities"
+        ).fetchall()
+        corpus_size = len(rows)
+
+        min_vel_mentions = int(_TREND_WEIGHTS.get("min_mentions_for_velocity", 3))
+        velocity_cap = float(_TREND_WEIGHTS.get("velocity_cap", 5.0))
+        decay_lambda = float(_TREND_WEIGHTS.get("novelty_decay_lambda", 0.05))
+        age_w = _TREND_WEIGHTS.get("novelty_age_weight", 0.6)
+        rarity_w = _TREND_WEIGHTS.get("novelty_rarity_weight", 0.4)
+
+        scores: dict[str, dict[str, Any]] = {}
+        for entity_id, first_seen in rows:
+            # Entities absent from a GROUP BY result have no mentions in that
+            # window. They must default to 0, not be dropped — the per-entity
+            # path returned a row for every entity in `entities`.
+            recent = m7.get(entity_id, 0)
+
+            if min_vel_mentions > 0 and 0 < recent < min_vel_mentions:
+                velocity = 1.0
+                velocity_gated = 1
+            else:
+                velocity_gated = 0
+                previous = m_prev.get(entity_id, 0)
+                if previous == 0 and recent == 0:
+                    velocity = 0.0
+                elif previous == 0:
+                    velocity = min(float(recent), velocity_cap)
+                else:
+                    velocity = recent / previous
+
+            novelty = _novelty_from(
+                first_seen=first_seen,
+                total_mentions=m_age.get(entity_id, 0),
+                corpus_size=corpus_size,
+                as_of=as_of,
+                decay_lambda=decay_lambda,
+                age_w=age_w,
+                rarity_w=rarity_w,
+            )
+
+            outgoing = out_deg.get(entity_id, 0) or 0
+            incoming = in_deg.get(entity_id, 0) or 0
+            bridge = (
+                0.0 if (outgoing == 0 and incoming == 0)
+                else math.sqrt((outgoing + 1) * (incoming + 1)) - 1
+            )
+
+            scores[entity_id] = {
+                "entity_id": entity_id,
+                "mention_count_7d": recent,
+                "mention_count_30d": m30.get(entity_id, 0),
+                "velocity": velocity,
+                "velocity_gated": velocity_gated,
+                "novelty": novelty,
+                "bridge_score": bridge,
+            }
 
         return scores
 
