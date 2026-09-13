@@ -376,6 +376,8 @@ for the boundary definition and enforcement rules.
 | [docs/architecture/adr-008-batch-api-extraction.md](docs/architecture/adr-008-batch-api-extraction.md) | **ADR-008: Replace two-tier escalation with Anthropic Batch API (current extraction mode)** |
 | [docs/architecture/adr-009-unified-left-panel-slot.md](docs/architecture/adr-009-unified-left-panel-slot.md) | ADR-009: Unified left-panel slot (UI) |
 | [docs/architecture/adr-010-two-domain-restart.md](docs/architecture/adr-010-two-domain-restart.md) | **ADR-010: Two-domain restart (film + semiconductors) under the two-lens model — current restart plan, budgets, synthetic-data cleanup** |
+| [docs/architecture/adr-011-movers-only-film-and-cost-governance.md](docs/architecture/adr-011-movers-only-film-and-cost-governance.md) | **ADR-011: Movers-only film, per-domain models, cost governance by property** — measured per-doc costs, the film budget decision, and the governance test ("calls a paid API unattended"). Amends ADR-010 §D3/§D7/§D10. |
+| [docs/architecture/adr-012-stage-caps-and-failure-visibility.md](docs/architecture/adr-012-stage-caps-and-failure-visibility.md) | **ADR-012 (Proposed): Which stages get a wall-clock cap, and what firing one means** — written after TREND-0, since `trending`'s 600s cap guarded a stage that makes no network call and cost a 38-day film outage. Proposes capping only stages that can spend money or block externally, deleting the 600s default, and making a missing run unsubstitutable by old output. |
 
 #### Pipeline & Backend
 
