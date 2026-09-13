@@ -183,6 +183,48 @@ attempt, then post-filter if the prompt-only fix doesn't stick.
 
 **Observed:** 2026-08-29 | **Priority:** High (top engineering item) | **Ref:** ADR-011 D5 (prerequisite), D2, D6
 
+> **FIXED 2026-09-13** (`ec72e70`). `score_all` is now set-based: eight queries
+> regardless of entity count. Measured on the real databases — film 34,043
+> entities in **1.88s** (was ~2,654s extrapolated, against a 600s timeout),
+> semiconductors 17,186 in **1.35s** (was ~720s). `score_entity` was left
+> unchanged as the oracle; `tests/test_trend_set_based.py` asserts field-by-field
+> equality between the two, and real-data verification found 0 mismatches across
+> all 180 weapons_detection entities and 400-entity samples of film and semis.
+> Verified per this item's own acceptance test: `trending` ran in 3.8s and film
+> has 17,635 fresh `trend_history` rows at `run_date=2026-09-13`, its first since
+> 2026-08-06.
+>
+> **Three things this item got wrong, corrected here rather than silently:**
+> 1. **It was not film-only.** Semiconductors crossed the same 600s wall on
+>    2026-09-06 and had failed six consecutive days (09-08..09-13) by the time
+>    this was fixed. This item's own prediction — "raising the timeout just
+>    schedules the next freeze at a bigger graph" — came true without anyone
+>    raising the timeout. Graph growth alone did it.
+> 2. **Nine queries per entity, not one.** `score_entity` issues five function
+>    calls but ~nine queries: `count_mentions` twice for the windows, twice more
+>    inside `compute_velocity` and `compute_novelty`, two `COUNT(DISTINCT)` for
+>    bridge, the `first_seen` lookup, and a full `SELECT COUNT(*) FROM entities`
+>    **re-run once per entity** — 34,043 identical full-table counts.
+> 3. **Entity counts here are ~20% low.** Film 27,846 → 34,043, semis
+>    14,594 → 17,186 as of 2026-09-13.
+>
+> **Not closed by this fix, both separate items:** film's `resolve` stage times
+> out at 1800s (12 consecutive days since 2026-09-02, undocumented — the only
+> other 1800s reference in this file is the *extract* stage on bundled docs), so
+> film now scores a partially-resolved corpus. And `weapons_detection` has
+> ingested no documents since 2026-08-28 (25 total), so its fresh trend rows
+> score frozen input — it reads as the healthiest of the three domains while
+> being the most stalled.
+>
+> **Incidental:** `as_of` is now pinned once per `score_all` call. The per-entity
+> path re-read `date.today()` on each of ~300,000 calls, so a run straddling
+> midnight scored different entities against different days.
+>
+> **Observed, not fixed:** `velocity_cap` (5.0) only applies on the
+> `previous == 0` branch. A 0→20 jump caps at 5.0 while a 1→20 jump yields 20.0
+> uncapped. Verified identical in both implementations, so it is pre-existing
+> semantics — but it is inconsistent, and worth its own item.
+
 `score_all()` issues one query per entity — 27,846 for film, 14,594 for
 semiconductors — and film crossed the 600s stage timeout as its graph grew.
 `run_movers.py` reads `trend_history` with `run_date <= ?`, so it silently
