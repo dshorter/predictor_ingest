@@ -1,6 +1,18 @@
 # ADR-012: Which Stages Get a Wall-Clock Cap, and What Firing One Means
 
 **Status:** Proposed (decision requested; §D1–D3 are independent and can be taken separately)
+**Citing this ADR:** always qualified — **ADR-012 D3**, never a bare "D3". D1, D2
+and D3 are triple-booked across live ADRs and mean different things in each:
+
+| | ADR-010 | ADR-011 | ADR-012 |
+|---|---|---|---|
+| D1 | restart film + semis | film's budget does not move | cap only if overrun is harmful |
+| D2 | budget on ~$0.012/doc | Movers-only on Haiku | delete the 600s default |
+| D3 | per-domain doc budgets | per-domain models as config | missing run not substitutable |
+
+A bare `Dn` inside a document means that document's own decision and is fine.
+Crossing a document boundary without the `ADR-NNN` prefix is how a decision gets
+attributed to the wrong one.
 **Date:** 2026-09-13
 **Deciders:** dshorter, Claude
 **Amends:** none — this is the first statement of stage-cap policy; the current numbers were never decided, they accreted

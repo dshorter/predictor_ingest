@@ -361,6 +361,15 @@ for the boundary definition and enforcement rules.
 
 #### Methodology & Architecture
 
+> **Citing an ADR decision: qualify it.** Write **ADR-011 D4**, never a bare
+> "D4". Decision numbers restart at D1 in every ADR, so D1–D6 currently mean six
+> different things each across ADR-010 (which runs to D11), ADR-011 and ADR-012.
+> A bare `Dn` *within* a document means that document's own decision and is fine;
+> crossing a document boundary without the prefix is how a decision gets
+> attributed to the wrong ADR. Existing cross-document references already do this
+> correctly ("amends ADR-010 D3", "ADR-010 D10's proof-point") — this note exists
+> so it stays deliberate rather than incidental.
+
 | Document | Purpose |
 |----------|---------|
 | [docs/methodology/prediction-methodology.md](docs/methodology/prediction-methodology.md) | Signal distillation formulas, source requirements, validation framework, weight tuning protocol |
