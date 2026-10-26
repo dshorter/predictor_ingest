@@ -32,7 +32,7 @@ Schedule: film 06:00, semiconductors 06:45, weapons_detection 07:30
 visible before the next fires), staleness check every 6h.
 `Persistent=true` fires missed runs after a reboot. The staleness pager's
 active set is DEFAULT_DOMAINS in scripts/check_staleness.py (now
-semiconductors,weapons_detection; film left 2026-10-26).
+semiconductors only; film and weapons_detection left 2026-10-26).
 
 ## Turning a domain off or on
 
@@ -46,9 +46,12 @@ sudo deploy/systemd/domain-timer.sh off film
 sudo deploy/systemd/domain-timer.sh on film              # Persistent=true: fires one catch-up run at once
 ```
 
-It refuses to stop a domain while its run is in progress, so a submitted
-batch is never left uncollected. Film was turned off this way on 2026-10-26
-(operator shutdown of 2026-10-20). Turning a domain off or on also means
+It refuses to stop a domain while its run is in progress. A batch submitted
+by the domain's last run is still waiting at Anthropic once the timer is off:
+collect it with `make collect import DOMAIN=<slug>`, and note that collect
+re-extracts any failed items synchronously at full price, so it is not free.
+Film and weapons_detection were turned off this way on 2026-10-26: the
+operator made semiconductors the only active domain. Turning a domain off or on also means
 editing DEFAULT_DOMAINS in scripts/check_staleness.py to match.
 
 When fusion onboards (Sprint 20.18): copy predictor-daily-film.timer to

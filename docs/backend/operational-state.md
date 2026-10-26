@@ -5,7 +5,38 @@ run. Update this file whenever a domain's extraction mode, gate config, or model
 changes — even temporarily. This prevents forensic reconstruction across git logs
 and session notes.
 
-**Last updated:** 2026-07-20
+**Last updated:** 2026-10-26
+
+---
+
+## Active domains: semiconductors only (2026-10-26)
+
+**Semiconductors is the only domain the pipeline runs.** Operator decisions:
+film shut down "for now" on 2026-10-20, weapons_detection on 2026-10-26. Both
+daily timers are off (`deploy/systemd/domain-timer.sh off <slug>`); their
+databases, exports and live files are kept. AI and biosafety have been dormant
+since before ADR-010.
+
+| Domain | State | Last real data |
+|---|---|---|
+| semiconductors | active, timer 06:45 ET | daily |
+| film | off since 2026-10-26 (decided 2026-10-20) | last batch collected 2026-10-26 |
+| weapons_detection | off since 2026-10-26 | no new documents since 2026-10-12 |
+| ai, biosafety | dormant | 2026-05 |
+
+What follows from it:
+
+- The staleness pager watches semiconductors only (`DEFAULT_DOMAINS` in
+  `scripts/check_staleness.py`).
+- A bare `make daily` and `run_pipeline.py` default to semiconductors.
+- Film's decision record is the 2026-10-26 amendment to
+  [ADR-011](../architecture/adr-011-movers-only-film-and-cost-governance.md):
+  ADR-010 D10's Movers question is still unanswered.
+- Restarting either domain: `domain-timer.sh on <slug>` (fires one catch-up run
+  at once), add it back to `DEFAULT_DOMAINS`, and treat the first 14 days as a
+  fresh dampening window (ADR-010 D6).
+- Credits were exhausted 2026-10-13 11:01 UTC and back 2026-10-24 15:00 UTC (the
+  hourly `check-anthropic-credit` probe).
 
 ---
 
@@ -319,7 +350,8 @@ Batches typically complete within 1–21 hours (Anthropic SLA: 24h).
 
 **Scheduling:** LIVE since 2026-07-22 as **systemd timers**, not cron —
 `predictor-daily@{film,semiconductors,weapons_detection}` at 06:00 / 06:45 /
-07:30 ET, plus `predictor-staleness.timer`. The unit deliberately carries no
+07:30 ET, plus `predictor-staleness.timer`. Since 2026-10-26 only the
+semiconductors timer is enabled (see the top of this file). The unit deliberately carries no
 `OnFailure=`: `run_pipeline.py` pages `[PREDICTOR]` on every outcome with a
 richer summary, and the staleness pager backstops a hard crash. Units live in
 `/etc/systemd/system/`, outside this repo.

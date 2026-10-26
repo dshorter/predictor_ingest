@@ -1,6 +1,6 @@
 ---
 read: full
-status: pre-registered 2026-07-20, before first extraction batch
+status: pre-registered 2026-07-20, before first extraction batch; domain paused 2026-10-26 (operator), ungraded
 ---
 
 # Pre-registered hypothesis — Weapons Detection Systems (Indoor)
@@ -135,3 +135,17 @@ earlier than 2026-08-03.
   domain confirms its own tripwire disposition — a *successful*
   falsification of "this could be a ranking domain," which is exactly
   why Sprint 21's ledger view exists as an alternative shape.
+
+## Paused — 2026-10-26
+
+The operator made semiconductors the only active domain on 2026-10-26, and
+this domain's daily timer is off. Nothing above is withdrawn: the hypothesis
+is **ungraded, not failed**, and the grading this page waits on can still run
+against the data already collected, which is kept.
+
+Two facts to carry into any grading or restart. The domain delivered almost
+nothing in its last month: one document per extraction batch on 09-30, 10-08,
+10-09 and 10-12, and no new documents at all from 10-13 to 10-26, with 2 of
+its 9 feeds unreachable. Why the intake dried up was never diagnosed, so a
+restart should start there. A restart after this gap also begins a fresh
+14-day dampening window.

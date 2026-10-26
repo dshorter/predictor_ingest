@@ -1,6 +1,6 @@
 # ADR-011: Movers-Only Film, Per-Domain Models, and Cost Governance by Property
 
-**Status:** Accepted (decisions made 2026-08-26..30; §D5 and §D6 are blocked, not open)
+**Status:** Accepted (decisions made 2026-08-26..30; §D5 and §D6 are blocked, not open). Amended 2026-10-26: film shut down, D1 superseded, D2 shelved, D5 still blocked
 **Date:** 2026-08-30
 **Deciders:** dshorter, Claude
 **Amends:** [ADR-010](adr-010-two-domain-restart.md) §D3 (per-domain doc budgets), §D7 (validation priority), §D10 (film Movers proof-point)
@@ -244,3 +244,49 @@ What changes:
   the mechanism by which flat spend is reached, which lowers its urgency
   relative to `score_all` (D5's prerequisite).
 - **D3, D4, D5, D6 are unaffected.**
+
+## Amendment — 2026-10-26: film shut down; semiconductors is the only active domain
+
+**Decision (operator).** Film was shut down "for now" on 2026-10-20, and on
+2026-10-26 semiconductors became the only active domain: film's and
+weapons_detection's daily timers are off (`deploy/systemd/domain-timer.sh`),
+and their databases, exports and live files are kept. The staleness pager and
+the Makefile and `run_pipeline.py` defaults follow
+([operational-state.md](../backend/operational-state.md), top section).
+
+**Why now.** Film was 48% of recorded spend in the only funded stretch of the
+2026-10-20 audit ($10.23 of $21.23, 10-07 to 10-13), and its downloads and
+exports were filling a root disk that reached 98% on 10-26. Credits were
+exhausted from 2026-10-13 11:01 UTC to 2026-10-24 15:00 UTC; film ran twice
+after they returned (10-25 $0.09, 10-26 $1.90), failing at `resolve` both times,
+as it has every day since 09-02.
+
+**What it does to the decisions above.**
+
+- **D1 is superseded.** Its premise was that film keeps reading at full volume
+  while ADR-010 D10's proof-point is outstanding. Film now reads nothing.
+- **D2 is shelved, not rejected.** Mentions-only film on Haiku was accepted and
+  never built. It stays the cheapest way to restart film if cost is the reason
+  it stays off.
+- **D5 stays blocked, and the shutdown leaves D10 unanswered.** Film's trend
+  history restarted 09-13; after ADR-010 D6's 14-day window, 09-27 to 10-14
+  holds 18 days of trend rows and only 12 with new data (counted 2026-10-21).
+  The 10-26 run adds one more day with new data, after an 11-day gap. D5 needs
+  30. This is the outcome the Consequences above warned against: film is off
+  without the Movers question answered. It is recorded here so the question
+  is known to be open, not mistaken for settled.
+- **D3, D4 and D6 are unaffected.** D6 already proves the validation script on
+  semiconductors, now the only domain producing history.
+
+**Film's last data.** The 10-26 06:00 run imported 37 documents from the 10-25
+batch and is the last export; `web/data/graphs/live/film` holds it, and with the
+timer off nothing overwrites it. The batch that run submitted (40 documents)
+was collected and imported by hand that evening so its spend was not wasted;
+it is in `film.db` but in no export. The collect was not free: 5 of the 40
+failed validation and were re-extracted synchronously at full price ($0.34 on
+top of the batch's $1.51).
+
+**Restarting film.** `domain-timer.sh on film` (fires one catch-up run at once),
+add film back to `DEFAULT_DOMAINS`, and treat the first 14 days as a fresh
+dampening window. If D10 is still the question, D5's 30-day count starts over
+after that window; D2 first if spend is the objection.

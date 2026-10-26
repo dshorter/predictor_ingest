@@ -1,6 +1,6 @@
 ---
 read: full
-status: proposed 2026-10-20, revised 2026-10-20 (evening) with operator direction on items 1 and 3, corrected 2026-10-21 after a check of the session's lists — ranked, nothing started; operator owns the order and each decision
+status: proposed 2026-10-20, revised 2026-10-20 (evening) with operator direction on items 1 and 3, corrected 2026-10-21 after a check of the session's lists, amended 2026-10-26 (semiconductors the only active domain; item 1's shutdown done but for the operator's two timer commands) — ranked; operator owns the order and each decision
 ---
 
 # Predictor priorities — 2026-10-20
@@ -21,6 +21,14 @@ note said it did); the modal's date was the wrong fact; the raw archive must
 sweep film, whose daily run will be off; the "unreadable 10 GB" was accounted
 for on 10-20; the disk is at 96% (1.6 GB free), not 94%; item 5's backfill
 figures are dated and the 10-02 lapse is added back.
+
+Amendment 2026-10-26: the operator made semiconductors the only active domain,
+so item 1 shuts weapons_detection down alongside film. Credits came back on
+2026-10-24 15:00 UTC, before item 5's freshness alert, and film ran twice more;
+its last run with new data is now 10-26, not 10-14, and weapons_detection's is
+10-13. Film's live files are its 10-26 export; weapons_detection's were pinned
+to its 10-13 export on 10-26. Dates in the modal and card come from item 2's
+manifest, so the hard-coded dates below are examples as of 10-21.
 
 ## The rule the list serves
 
@@ -51,7 +59,7 @@ per-run logs, which record whether new extractions arrived.
 
 ## Top five
 
-### 1. Shut film down; let a config file drive the domain picker
+### 1. Shut film (and weapons_detection) down; let a config file drive the domain picker
 
 Why first: operator decision; film was 48% of recorded spend ($10.23 of $21.23
 in the only funded stretch, 10-07 to 10-13) and adds about 67 MB a day to a
@@ -69,6 +77,10 @@ Shutdown:
   make daily restarts film's spend.
 - Pin film's live files (web/data/graphs/live/film) to the 2026-10-14 export,
   its last run with new data. The 10-15 to 10-20 exports are pause re-runs.
+  (Amended 2026-10-26: no pin needed for film. Its 10-26 run imported 37 new
+  documents and is its last export, already in live. weapons_detection's live
+  files were pinned to its 10-13 export, its last run with new data; 10-14 on
+  are pause re-runs.)
 - Add a dated amendment to ADR-011: the shutdown supersedes D1's hold, and D2
   (mentions-only film on Haiku) is shelved, not rejected. D5 stays blocked.
   Film's trend history restarted 09-13 after a 37-day gap, and ADR-010 D6
@@ -79,6 +91,8 @@ Shutdown:
   ADR-011's Consequences warned about, and a restart after a multi-week gap
   opens a new 14-day window. Film's resolve stage has also timed out every day
   since 09-02, so the frozen snapshot's entity merges are incomplete.
+  (Written 2026-10-26 as ADR-011's amendment, which also records
+  weapons_detection's shutdown and the 10-26 run's extra day of data.)
   (Corrected 2026-10-21: this note first said film had 32 continuous days and
   cleared the bar. That counted trend rows, including pause days, and ignored
   the dampening window.)
@@ -97,7 +111,8 @@ Domain picker:
   direct link to an inactive domain gets the same modal.
 - Movers view: inactive domains load, with a pull-down status card that says
   whether the data is current or, if not, when collection stopped. Film
-  (10-14), AI (05-23) and biosafety (05-31) all have Movers data to show.
+  (10-14), AI (05-23) and biosafety (05-31) all have Movers data to show, and
+  so does weapons_detection (10-13), inactive since 2026-10-26.
 - The modal and card name the data-through date. Film's fetches keep running
   until its timer is off, so "collection stopped 10-14" would be false;
   10-14 is its last run with new data, and its data ends 10-13.
@@ -110,8 +125,8 @@ Domain picker:
 
 Done when: no film run at 06:00 and no film staleness messages; every page
 reads the one config file; a first visit with no domain in the link opens
-semiconductors; film, AI and biosafety get the modal on Graph and the card on
-Movers; semiconductors shows a card reading "data through 2026-10-12".
+semiconductors; film, weapons_detection, AI and biosafety get the modal on
+Graph and the card on Movers; semiconductors shows a card reading "data through 2026-10-12".
 
 ### 2. Build the snapshot manifest
 
@@ -141,7 +156,10 @@ exports waits on the operator deciding ADR-012 D3; that decision settles the
 rule for the pipeline too.
 
 Done when: the semiconductors manifest's latest real run is 2026-10-13 (data
-through 10-12) and film's is 2026-10-14 (data through 10-13).
+through 10-12) and film's is 2026-10-14 (data through 10-13). (Amended
+2026-10-26: those were 10-21's facts. As of 10-26 the latest real runs are
+semiconductors 10-26, film 10-26 and weapons_detection 10-13; the manifest
+should match the run logs, whatever the date.)
 
 ### 3. Archive the raw downloads
 
@@ -212,7 +230,9 @@ data-through date.
 ### 5. Close the audit and plan the credit restart
 
 Why fifth: credits stay off until the audit closes; with film off, this is
-what remains.
+what remains. (Amended 2026-10-26: credits came back on 2026-10-24 15:00 UTC,
+before the freshness alert below; the alert and the backfill decision are
+still open.)
 
 - Projected burn without film: about $1.90 a day, down from about $3.50
   (recorded: semiconductors about $1.05 a day, sysadmin about $0.57 a run,
@@ -232,8 +252,9 @@ extraction stop within a day.
 
 ## Run order
 
-1. Film shutdown: timer script, staleness list, Makefile default, pin the
-   live files, ADR-011 note.
+1. Film and weapons_detection shutdown: timer script, staleness list,
+   Makefile default, pin the live files, ADR-011 note. (2026-10-26: all done
+   except the operator running the timer script for each.)
 2. Manifest first cut and the date-range fix. Stopping pause-run exports
    waits on the ADR-012 D3 decision.
 3. Domain config file, modal, status card, semiconductors as the default.

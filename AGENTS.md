@@ -22,7 +22,7 @@ The end product is a growing knowledge graph that can reveal **emerging trends e
 - **Film** (`domains/film/`) — independent film production, screenwriting, festivals,
   and distribution. Entity types include `Production`, `Festival`, `Distributor`,
   `Agency`, `Fund`. **Shut down "for now" by the operator on 2026-10-20**; its
-  daily timer is off and its last new data is 2026-10-13.
+  daily timer is off. Its last extraction batch was collected 2026-10-26.
 - **Semiconductors** (`domains/semiconductors/`) — fab process, chip architecture,
   GPU/accelerator compute, supply chain, and policy. Entity types include `Fab`,
   `Chip`, `Architecture`, `ProcessNode`, `Packaging`, `Material`, `Policy`.
@@ -36,8 +36,13 @@ The end product is a growing knowledge graph that can reveal **emerging trends e
   `Vendor`, `Product`, `Buyer`, `Regulation`, `Report`. Tripwire/detection
   disposition (not a high-volume ranking domain) — pre-registered hypothesis:
   [docs/methodology/hypotheses/weapons-detection-indoor.md](docs/methodology/hypotheses/weapons-detection-indoor.md).
+  **Paused by the operator on 2026-10-26**; its daily timer is off. No new
+  documents since 2026-10-12; the data stays for the hypothesis grading.
 
-**Operational status:** film and semiconductors restarted under epoch 2 as of
+**Operational status:** since 2026-10-26 **semiconductors is the only active
+domain** (operator): film was shut down 2026-10-20 and weapons_detection
+2026-10-26, both "for now", with their timers off and their data kept. History:
+film and semiconductors restarted under epoch 2 as of
 2026-07-19 (Sprint 20; see [docs/project-plan.md](docs/project-plan.md)); AI
 and biosafety remain paused (ADR-010). Weapons Detection is a fresh domain in
 its first 14-day dampening window from 2026-07-20 — output is provisional.
