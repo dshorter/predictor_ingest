@@ -21,10 +21,12 @@ The end product is a growing knowledge graph that can reveal **emerging trends e
   `Facility`, `Regulation`.
 - **Film** (`domains/film/`) — independent film production, screenwriting, festivals,
   and distribution. Entity types include `Production`, `Festival`, `Distributor`,
-  `Agency`, `Fund`. **This is the current Makefile default (`DOMAIN ?= film`).**
+  `Agency`, `Fund`. **Shut down "for now" by the operator on 2026-10-20**; its
+  daily timer is off and its last new data is 2026-10-13.
 - **Semiconductors** (`domains/semiconductors/`) — fab process, chip architecture,
   GPU/accelerator compute, supply chain, and policy. Entity types include `Fab`,
   `Chip`, `Architecture`, `ProcessNode`, `Packaging`, `Material`, `Policy`.
+  **This is the Makefile default (`DOMAIN ?= semiconductors`) since 2026-10-26.**
 - **Weapons Detection** (`domains/weapons_detection/`) — added 2026-07-20, out of
   the pond-sizing queue order by operator directive (see
   [docs/methodology/domain-candidates.md](docs/methodology/domain-candidates.md)).
@@ -46,7 +48,7 @@ for per-domain state.
 - Each domain is a directory under `domains/` with `domain.yaml`, `feeds.yaml`,
   `views.yaml`, `inference_rules.yaml` (optional), and `prompts/`
 - `--domain <name>` CLI flag (or `PREDICTOR_DOMAIN` env var) selects the active domain
-- The Makefile uses `DOMAIN ?= film`; override with `make <target> DOMAIN=<slug>`
+- The Makefile uses `DOMAIN ?= semiconductors`; override with `make <target> DOMAIN=<slug>`
 - Databases are isolated: `data/db/{domain}.db`; exports land in
   `data/graphs/{domain}/{date}/` and publish to `web/data/graphs/live/{domain}/`
 - Web client accepts `?domain=<slug>` URL parameter; `web/js/domain-switcher.js`
@@ -265,12 +267,12 @@ Two clones of this repo live on the VPS:
 pip install -e .
 cp .env.example .env                                # Fill in ANTHROPIC_API_KEY
 
-# Default domain is `film` (see Makefile `DOMAIN ?= film`).
+# Default domain is `semiconductors` (see Makefile `DOMAIN ?= semiconductors`).
 # Override with DOMAIN=<slug> for any target:
-make daily                                          # Full pipeline (film)
+make daily                                          # Full pipeline (semiconductors)
 make daily DOMAIN=ai
 make daily DOMAIN=biosafety
-make daily DOMAIN=semiconductors
+make daily DOMAIN=film                              # film is shut down (2026-10-20)
 
 # Pipeline stages (per domain)
 make ingest                                         # RSS/social ingestion

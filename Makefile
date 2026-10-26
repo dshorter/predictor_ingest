@@ -1,7 +1,7 @@
 .PHONY: setup init-db ingest docpack submit collect health-report import resolve export trending copy-to-live dashboard-data export_ontology post-extract daily daily-check test test-network test-all migrate-batch backlog calibration-report calibration-report-log deploy-prod
 
 # Domain slug — all data paths derive from this
-DOMAIN ?= film
+DOMAIN ?= semiconductors
 DOMAIN_FLAG = --domain $(DOMAIN)
 
 # Configurable paths (override with: make export DATE=2026-01-15)

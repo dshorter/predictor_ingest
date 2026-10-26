@@ -1,6 +1,6 @@
 ---
 read: full
-status: proposed 2026-10-20, revised 2026-10-20 (evening) with operator direction on items 1 and 3 — ranked, nothing started; operator owns the order and each decision
+status: proposed 2026-10-20, revised 2026-10-20 (evening) with operator direction on items 1 and 3, corrected 2026-10-21 after a check of the session's lists — ranked, nothing started; operator owns the order and each decision
 ---
 
 # Predictor priorities — 2026-10-20
@@ -15,6 +15,12 @@ Revision 2026-10-20 (evening): item 1 gains the config-driven domain picker,
 the inactive-domain modal and the status card; item 3 now archives the raw
 downloads (upstream of the first LLM call), not the graph exports; export
 compression moves to item 4; a run order is added.
+
+Correction 2026-10-21: film does not clear ADR-011 D5's bar (item 1's ADR
+note said it did); the modal's date was the wrong fact; the raw archive must
+sweep film, whose daily run will be off; the "unreadable 10 GB" was accounted
+for on 10-20; the disk is at 96% (1.6 GB free), not 94%; item 5's backfill
+figures are dated and the 10-02 lapse is added back.
 
 ## The rule the list serves
 
@@ -48,8 +54,10 @@ per-run logs, which record whether new extractions arrived.
 ### 1. Shut film down; let a config file drive the domain picker
 
 Why first: operator decision; film was 48% of recorded spend ($10.23 of $21.23
-in the only funded stretch, 10-07 to 10-13) and adds about 49 MB of exports a
-day.
+in the only funded stretch, 10-07 to 10-13) and adds about 67 MB a day to a
+disk with 1.6 GB free (38 MB of exports, 29 MB of raw downloads; measured
+2026-10-21). Semiconductors adds about 41 MB a day, so the disk has about two
+weeks with film running and five to six without it.
 
 Shutdown:
 
@@ -62,11 +70,18 @@ Shutdown:
 - Pin film's live files (web/data/graphs/live/film) to the 2026-10-14 export,
   its last run with new data. The 10-15 to 10-20 exports are pause re-runs.
 - Add a dated amendment to ADR-011: the shutdown supersedes D1's hold, and D2
-  (mentions-only film on Haiku) is shelved, not rejected. Film has 32
-  continuous days of real post-fix trend history (09-13 to 10-14), which clears
-  ADR-011 D5's 30-day bar, so the ADR-010 D10 Movers question can still be
-  evaluated from the frozen data. Note that film's resolve stage has timed out
-  every day since 09-02, so the frozen snapshot's entity merges are incomplete.
+  (mentions-only film on Haiku) is shelved, not rejected. D5 stays blocked.
+  Film's trend history restarted 09-13 after a 37-day gap, and ADR-010 D6
+  treats the first 14 days after a restart as provisional. From 09-27 to 10-14
+  film has 18 days of trend rows, only 12 of them with new data (the 10-03 to
+  10-08 credit lapse sits inside); D5 needs 30. So the shutdown leaves the
+  ADR-010 D10 Movers question unanswered for film, which is the outcome
+  ADR-011's Consequences warned about, and a restart after a multi-week gap
+  opens a new 14-day window. Film's resolve stage has also timed out every day
+  since 09-02, so the frozen snapshot's entity merges are incomplete.
+  (Corrected 2026-10-21: this note first said film had 32 continuous days and
+  cleared the bar. That counted trend rows, including pause days, and ignored
+  the dampening window.)
 
 Domain picker:
 
@@ -77,12 +92,15 @@ Domain picker:
   domain (semiconductors), and whether each is active. Desktop and mobile
   (web/mobile/index.html) both read it.
 - Graph view: every domain stays in the menu. Choosing an inactive one opens a
-  modal ("Film isn't being collected. Collection stopped 2026-10-14.") with
+  modal ("Film isn't being collected. Its data ends 2026-10-13.") with
   "Open in Movers" and "Stay"; the menu closes and the current domain stays. A
   direct link to an inactive domain gets the same modal.
 - Movers view: inactive domains load, with a pull-down status card that says
   whether the data is current or, if not, when collection stopped. Film
   (10-14), AI (05-23) and biosafety (05-31) all have Movers data to show.
+- The modal and card name the data-through date. Film's fetches keep running
+  until its timer is off, so "collection stopped 10-14" would be false;
+  10-14 is its last run with new data, and its data ends 10-13.
 - The same card shows on both views for any domain whose data is not current.
   Semiconductors today is active but its data ends 10-12. The existing snapshot
   badge becomes the card's handle.
@@ -114,20 +132,23 @@ never by recomputing scores.
 - Dates come from run date and fetch date, never publish date.
 - Fix the exporters so dateRange ends at the newest included article; the
   existing snapshot badge then works on every view.
-- Pause runs stop writing dated exports. Each one is a near-copy (about 22 MB a
+- Pause runs stop writing dated exports. Each one is a near-copy (about 17 MB a
   day for semiconductors while credits are off).
 
 This is ADR-012 D3 (a missing run must not be substitutable by old output)
-applied to the explorer. Deciding D3 first settles the rule for the pipeline
-too.
+applied to the explorer. ADR-012 is still Proposed, so stopping pause-run
+exports waits on the operator deciding ADR-012 D3; that decision settles the
+rule for the pipeline too.
 
 Done when: the semiconductors manifest's latest real run is 2026-10-13 (data
 through 10-12) and film's is 2026-10-14 (data through 10-13).
 
 ### 3. Archive the raw downloads
 
-Why third: the disk is at 94% (2.3 GB free). Raw downloads (data/raw) are
-4.37 GB of HTML. The pipeline reads each file once, to make the cleaned text;
+Why third: the disk was at 94% (2.3 GB free) on 10-20 and is at 96% (1.6 GB
+free) on 10-21; about half of that day's loss is one extra backup set taken
+before the 10-20 reboot, which ages out 11-03. Raw downloads (data/raw) are
+4.37 GB of HTML, film 2.46 GB and semiconductors 1.80 GB. The pipeline reads each file once, to make the cleaned text;
 after that only scripts/repair_data.py reads them.
 
 - First, switch RSS ingest's "already have it" check from file existence to
@@ -136,8 +157,11 @@ after that only scripts/repair_data.py reads them.
   downloaded again and its row rewritten with INSERT OR REPLACE, which resets
   its status: a shelved article returns to the queue, and an extracted one is
   queued to be paid for again. No raw file moves before this change.
-- Then, a rolling rule run by the daily pipeline: raw files older than 14 days
-  go into one tar.zst per domain per month.
+- Then, a one-time sweep of every domain's raw files older than 14 days,
+  inactive domains included: film holds more than half the raw bytes and its
+  daily run will be off, so a rule inside the daily pipeline never reaches it.
+- After that, a rolling rule run by the daily pipeline for active domains:
+  raw files older than 14 days go into one tar.zst per domain per month.
 - Measured 2026-10-20 with zstd's long-range mode: all 4.37 GB of raw files
   compress to 81 MB (54×). The never-extracted files alone: film 1.30 GB to
   18 MB, semiconductors 0.59 GB to 9 MB.
@@ -151,11 +175,18 @@ after that only scripts/repair_data.py reads them.
   Sunday and has reclaimed 0 B each week the journal holds (08-30 on), because
   /etc/docker/daemon.json caps the build cache at 10 GB and logs at 3 × 50 MB.
   Docker's data lives on its own 70 GB volume (12% used), not this disk.
-- About 10 GB on this disk sits in root-only folders the claude user can't
-  read (35.9 GB used, 25.8 GB readable). One read-only sudo command finds it.
+- The root-only 10 GB was accounted for 2026-10-20 from the operator's sudo
+  du: /var/backups 7.4 GB (6.5 GB of it 14 days of predictor database
+  snapshots), the journal 1.9 GB (journald caps it at 2 GB, so it won't grow),
+  and /root 1.9 GB (root's old Claude Code install is 868 MB of it). Since
+  server-maintenance db399e3 the backup keeps one copy of an unchanged
+  database, so film's daily 272 MB snapshot stops repeating once its timer is
+  off and about 3.5 GB comes back over the following 14 days. Those host items
+  are tracked in /opt/server-maintenance/TODO.md.
 
-Done when: the disk is at about 83% or lower, the 14-day rule runs with the
-daily pipeline, and a month restored from its tarball matches the originals.
+Done when: about 4 GB is freed (the disk near 84% on 10-21 figures), film's
+raw files are swept, the 14-day rule runs with the daily pipeline, and a month
+restored from its tarball matches the originals.
 
 ### 4. Date picker wheel on the manifest
 
@@ -188,8 +219,11 @@ what remains.
   Director about $0.20 a day).
 - Check the 10-07 top-up against the $19.70 recorded for 10-07 to 10-13, to
   rule out spend from outside the box.
-- Decide the semiconductors backfill for the paused days: about $7.40 at the
-  normal 25 a day, about $26 for all 696 waiting documents.
+- Decide the semiconductors backfill for the paused days. As of 10-20: about
+  $7.40 at the normal 25 a day, about $26 for all 696 waiting documents; both
+  grow each day credits stay off. The docpack picker looks back only 7 days,
+  so documents fetched before that need an explicit override. That includes
+  the 402 left by the 10-02 to 10-07 lapse (about $5.50 at 25 a day).
 - Add extraction freshness to the staleness alert, so the next stop shows up
   there and not only in the morning PARTIAL message.
 
@@ -198,9 +232,10 @@ extraction stop within a day.
 
 ## Run order
 
-1. Film shutdown: timer script, staleness list, pin the live files, ADR-011
-   note.
-2. Manifest first cut and the date-range fix.
+1. Film shutdown: timer script, staleness list, Makefile default, pin the
+   live files, ADR-011 note.
+2. Manifest first cut and the date-range fix. Stopping pause-run exports
+   waits on the ADR-012 D3 decision.
 3. Domain config file, modal, status card, semiconductors as the default.
 4. RSS check fix, then the raw archive.
 5. Full manifest and the wheel, with export compression.

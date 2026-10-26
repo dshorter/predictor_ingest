@@ -305,7 +305,7 @@ make daily DOMAIN=semiconductors
 
 ## Default Pipeline Behavior (All Domains)
 
-**Default domain:** `film` (set in `Makefile` line 4, `scripts/run_pipeline.py`, and `src/domain/__init__.py`). Changed from `ai` on 2026-03-24.
+**Default domain:** `semiconductors` (set in `Makefile` line 4 and `scripts/run_pipeline.py`) since 2026-10-26, when film was shut down; it was `film` from 2026-03-24, and `ai` before that. The library fallback in `src/domain/__init__.py` is still `film`: a dozen `src/` modules load the active profile at import time, so moving it is its own change. It only applies when neither `--domain` nor `PREDICTOR_DOMAIN` is set.
 
 **Extraction architecture (ADR-008):** All domains use the Anthropic Batch API. The
 old two-tier escalation (`gpt-5-nano` → `claude-sonnet-4-6`) has been removed. The

@@ -35,8 +35,9 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-# Domains the pager watches. Fusion joins at 20.18.
-DEFAULT_DOMAINS = "film,semiconductors,weapons_detection"
+# Domains the pager watches. Fusion joins at 20.18. Film left 2026-10-26:
+# the operator shut it down "for now" on 2026-10-20 and its timer is off.
+DEFAULT_DOMAINS = "semiconductors,weapons_detection"
 
 # Domain-level: no new docs or no new trend_history row for this long.
 DEFAULT_MAX_AGE_HOURS = 48
