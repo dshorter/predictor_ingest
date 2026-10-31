@@ -1,6 +1,6 @@
 ---
 read: full
-status: proposed 2026-10-20, revised 2026-10-20 (evening) with operator direction on items 1 and 3, corrected 2026-10-21 after a check of the session's lists, amended 2026-10-26 (semiconductors the only active domain; item 1's shutdown done but for the operator's two timer commands) — ranked; operator owns the order and each decision
+status: proposed 2026-10-20, revised 2026-10-20 (evening) with operator direction on items 1 and 3, corrected 2026-10-21 after a check of the session's lists, amended 2026-10-26 (semiconductors the only active domain; item 1's shutdown done but for the operator's two timer commands), amended 2026-10-31 (the operator ran both timer commands; credits ran out again 10-29) — ranked; operator owns the order and each decision
 ---
 
 # Predictor priorities — 2026-10-20
@@ -232,7 +232,11 @@ data-through date.
 Why fifth: credits stay off until the audit closes; with film off, this is
 what remains. (Amended 2026-10-26: credits came back on 2026-10-24 15:00 UTC,
 before the freshness alert below; the alert and the backfill decision are
-still open.)
+still open.) (Amended 2026-10-31: credits ran out again on 2026-10-29 at
+12:01 UTC. The 10-24 top-up of $20 was checked the way the 10-07 one should
+be: the box recorded $18.84 of it, film $9.49, semiconductors $4.81, sysadmin
+$2.96 and Director $1.57, so $1.16 is unrecorded. Measured burn without film:
+about $1.87 a day, close to the projection below.)
 
 - Projected burn without film: about $1.90 a day, down from about $3.50
   (recorded: semiconductors about $1.05 a day, sysadmin about $0.57 a run,
@@ -254,7 +258,10 @@ extraction stop within a day.
 
 1. Film and weapons_detection shutdown: timer script, staleness list,
    Makefile default, pin the live files, ADR-011 note. (2026-10-26: all done
-   except the operator running the timer script for each.)
+   except the operator running the timer script for each.) (2026-10-31: done.
+   The operator ran `off film` and `off weapons_detection` at 18:27 EDT; both
+   timers are disabled and semiconductors is the only one left. Film billed
+   $5.65 from 10-27 to 10-30 while they waited.)
 2. Manifest first cut and the date-range fix. Stopping pause-run exports
    waits on the ADR-012 D3 decision.
 3. Domain config file, modal, status card, semiconductors as the default.
