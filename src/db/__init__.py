@@ -584,6 +584,11 @@ _TOKEN_PRICES: dict[str, tuple[float, float]] = {
     # scripts/sept1_cost_boundary.py now verifies this rate, never bumps it.
     "claude-sonnet-5":          (2.00, 10.00),
     "claude-sonnet-4-6":        (3.00, 15.00),
+    # Added 2026-11-14 for the extraction model comparison (pricing page,
+    # verified live that day). This is the rate for prompts up to 100,000
+    # tokens; over that, Haiku 5.5 charges (0.50, 2.50) for the whole request.
+    # Extraction prompts run ~10k tokens, so the lower tier is the one paid.
+    "claude-haiku-5-5":         (0.10,  0.50),
     # Corrected 2026-08-29: (0.25, 1.25) is Haiku 3.5's rate. Haiku 4.5 is $1/$5.
     "claude-haiku-4-5":         (1.00,  5.00),
     "claude-haiku-4-5-20251001":(1.00,  5.00),
