@@ -92,6 +92,21 @@ def response_text(message) -> str:
     raise ValueError(f"no text block in response (blocks: {kinds})")
 
 
+def _doc_provenance(conn, doc_id: str) -> dict | None:
+    """The document's url/published, for stamping evidence (extractor 2.1.0).
+
+    Same columns build_docpack.py put in the prompt at submit time. None when
+    the row is gone, which leaves evidence without a url and fails validation
+    -- the doc then goes to the sync fallback, which skips missing rows too.
+    """
+    row = conn.execute(
+        "SELECT url, published_at FROM documents WHERE doc_id = ?", (doc_id,)
+    ).fetchone()
+    if not row:
+        return None
+    return {"url": row["url"] or "", "published": row["published_at"] or ""}
+
+
 def _sync_fallback(
     doc_ids: list[str],
     db_path: Path,
@@ -164,7 +179,10 @@ def _sync_fallback(
             "title": row["title"] or "",
             "url": row["url"] or "",
             "source": row["source"] or "",
-            "publishedAt": row["published_at"] or "",
+            # "published", the docpack key the prompt template reads. This was
+            # "publishedAt" until 2026-11-14, so every fallback prompt said
+            # "Published: Unknown" and the model copied that into evidence.
+            "published": row["published_at"] or "",
             "text": text,
         }
 
@@ -207,7 +225,7 @@ def _sync_fallback(
                 raise ExtractionError(
                     f"hit max_tokens ({FALLBACK_MAX_TOKENS}) -- output truncated"
                 )
-            extraction = parse_extraction_response(response_text(response), doc_id)
+            extraction = parse_extraction_response(response_text(response), doc_id, doc)
             save_extraction(extraction, extractions_dir)
             n_e = len(extraction.get("entities", []))
             n_r = len(extraction.get("relations", []))
@@ -302,7 +320,9 @@ def collect(
                         doc_id=doc_id, billing_mode="batch",
                     )
                 try:
-                    extraction = parse_extraction_response(response_text(msg), doc_id)
+                    extraction = parse_extraction_response(
+                        response_text(msg), doc_id, _doc_provenance(conn, doc_id)
+                    )
                     save_extraction(extraction, extractions_dir)
                     n_e = len(extraction.get("entities", []))
                     n_r = len(extraction.get("relations", []))

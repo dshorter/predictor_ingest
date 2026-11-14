@@ -147,6 +147,108 @@ I extracted the entities above."""
             parse_extraction_response(response, doc_id="doc1")
 
 
+class TestEvidenceProvenance:
+    """Extractor 2.1.0: the model writes the snippet, code writes provenance."""
+
+    DOC = {"docId": "doc1", "url": "https://example.com/a", "published": "2026-11-05"}
+
+    @staticmethod
+    def _response(evidence):
+        return json.dumps({
+            "docId": "doc1",
+            "extractorVersion": "2.1.0",
+            "entities": [
+                {"name": "Acme", "type": "Org"},
+                {"name": "Globex", "type": "Org"},
+            ],
+            "relations": [{
+                "source": "Acme", "rel": "MENTIONS", "target": "Globex",
+                "kind": "asserted", "confidence": 0.9, "evidence": evidence,
+            }],
+            "techTerms": [],
+            "dates": [],
+        })
+
+    def test_stamps_provenance_onto_snippet_only_evidence(self):
+        result = parse_extraction_response(
+            self._response([{"snippet": "Acme and Globex"}]), "doc1", self.DOC
+        )
+        assert result["relations"][0]["evidence"] == [{
+            "docId": "doc1",
+            "url": "https://example.com/a",
+            "published": "2026-11-05",
+            "snippet": "Acme and Globex",
+        }]
+
+    def test_document_values_override_model_copies(self):
+        # 2.0.0 batches collected after the upgrade still carry model-copied
+        # values, which were wrong ("Unknown") often enough to matter.
+        evidence = [{"docId": "x", "url": "wrong", "published": "Unknown", "snippet": "s"}]
+        result = parse_extraction_response(self._response(evidence), "doc1", self.DOC)
+        ev = result["relations"][0]["evidence"][0]
+        assert (ev["docId"], ev["url"], ev["published"]) == (
+            "doc1", "https://example.com/a", "2026-11-05",
+        )
+
+    def test_without_doc_keeps_model_url_and_stamps_doc_id(self):
+        evidence = [{"docId": "x", "url": "https://m.example/a", "published": "2026-01-01", "snippet": "s"}]
+        result = parse_extraction_response(self._response(evidence), "doc1")
+        ev = result["relations"][0]["evidence"][0]
+        assert ev["docId"] == "doc1"
+        assert ev["url"] == "https://m.example/a"
+
+    def test_snippet_only_without_doc_fails_validation(self):
+        # A caller that forgets to pass the document must fail loudly, not
+        # store evidence with no url.
+        with pytest.raises(ExtractionError, match="url"):
+            parse_extraction_response(self._response([{"snippet": "s"}]), "doc1")
+
+    def test_missing_published_is_stored_as_null(self):
+        doc = {**self.DOC, "published": ""}
+        result = parse_extraction_response(self._response([{"snippet": "s"}]), "doc1", doc)
+        assert result["relations"][0]["evidence"][0]["published"] is None
+
+    def test_model_schemas_ask_only_for_the_snippet(self):
+        from extract import ANTHROPIC_EXTRACTION_SCHEMA, OPENAI_EXTRACTION_TOOL
+
+        params = OPENAI_EXTRACTION_TOOL["function"]["parameters"]
+        for schema in (params, ANTHROPIC_EXTRACTION_SCHEMA):
+            ev_items = schema["properties"]["relations"]["items"]["properties"]["evidence"]["items"]
+            assert ev_items["required"] == ["snippet"]
+            assert set(ev_items["properties"]) == {"snippet"}
+
+
+class TestDomainPromptTemplates:
+    """Every domain's extraction templates, whichever domain is active."""
+
+    PROMPT_FILES = sorted(
+        p
+        for p in (Path(__file__).resolve().parents[1] / "domains").glob("*/prompts/*.txt")
+        if p.name in {"single_message.txt", "system.txt", "user.txt"}
+    )
+
+    class _Vars(dict):
+        def __missing__(self, key):
+            # Real placeholders are identifiers; anything else is a JSON
+            # brace that should have been doubled.
+            if key.isidentifier():
+                return "X"
+            raise KeyError(key)
+
+    def test_templates_found(self):
+        assert len(self.PROMPT_FILES) >= 12
+
+    @pytest.mark.parametrize("path", PROMPT_FILES, ids=lambda p: f"{p.parent.parent.name}/{p.name}")
+    def test_template_renders(self, path):
+        path.read_text(encoding="utf-8").format_map(self._Vars())
+
+    @pytest.mark.parametrize("path", PROMPT_FILES, ids=lambda p: f"{p.parent.parent.name}/{p.name}")
+    def test_template_does_not_ask_model_to_copy_provenance(self, path):
+        text = path.read_text(encoding="utf-8")
+        for needle in ('- url: "{url}"', '- published: "{published}"', '"url": "..."', "include docId, url"):
+            assert needle not in text, f"{path}: still asks the model for {needle!r}"
+
+
 class TestSaveAndLoadExtraction:
     """Test saving and loading extractions."""
 

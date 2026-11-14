@@ -139,7 +139,7 @@ def run_extraction(
 
         try:
             response_text, duration_ms = extract_with_anthropic(doc, model=model)
-            extraction = parse_extraction_response(response_text, doc_id)
+            extraction = parse_extraction_response(response_text, doc_id, doc)
             save_extraction(extraction, output_dir)
 
             n_e = len(extraction.get("entities", []))

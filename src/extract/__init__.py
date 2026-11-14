@@ -36,7 +36,9 @@ from domain import get_active_profile
 # 1.0.0 — initial extraction prompts
 # 2.0.0 — quality gates, escalation mode, relation normalization,
 #          budget-based document selection, MENTIONS auto-generation
-EXTRACTOR_VERSION = "2.0.0"
+# 2.1.0 — evidence provenance (docId/url/published) stamped by code, not
+#          written by the model; the stored extraction format is unchanged
+EXTRACTOR_VERSION = "2.1.0"
 
 # --- Domain-derived constants (loaded from active domain profile) ---
 # Backward-compatible module-level names so existing code that does
@@ -179,15 +181,72 @@ def build_extraction_system_prompt(
     return _build_system(extractor_version or EXTRACTOR_VERSION)
 
 
+_PROVENANCE_KEYS = ("docId", "url", "published")
+
+
+def stamp_evidence_provenance(
+    data: dict[str, Any],
+    doc_id: str,
+    doc: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
+    """Write docId/url/published onto every evidence object from the document.
+
+    Since extractor 2.1.0 the model writes only the snippet; the provenance
+    fields are known before the call, so code supplies them. Values from the
+    document always win over anything the model wrote -- a batch submitted
+    under 2.0.0 and collected later still carries model-copied values, and
+    those were wrong often enough to matter ("Unknown" dates).
+
+    Without ``doc``, only docId is stamped and any url/published already
+    present is kept, so callers that have no document record still parse
+    2.0.0-shaped output. Validation then fails if url is missing, which is
+    the intended signal that a caller needs to pass the document.
+
+    Args:
+        data: Parsed extraction dict (modified in place)
+        doc_id: Document ID
+        doc: Document record with ``url`` and ``published`` (docpack shape)
+
+    Returns:
+        The same dict, for chaining
+    """
+    stamp: dict[str, Any] = {"docId": doc_id}
+    if doc is not None:
+        stamp["url"] = doc.get("url") or ""
+        stamp["published"] = doc.get("published") or None
+
+    for relation in data.get("relations") or []:
+        if not isinstance(relation, dict):
+            continue
+        evidence = relation.get("evidence")
+        if not isinstance(evidence, list):
+            continue
+        for i, ev in enumerate(evidence):
+            if not isinstance(ev, dict):
+                continue
+            merged = {k: ev[k] for k in _PROVENANCE_KEYS if k in ev}
+            merged.update(stamp)
+            # Provenance first, then everything else (snippet, charSpan, ...)
+            evidence[i] = {
+                **{k: merged[k] for k in _PROVENANCE_KEYS if k in merged},
+                **{k: v for k, v in ev.items() if k not in _PROVENANCE_KEYS},
+            }
+    return data
+
+
 def parse_extraction_response(
     response: str,
     doc_id: str,
+    doc: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Parse LLM response and validate against schema.
 
     Args:
         response: Raw LLM response (may contain markdown)
         doc_id: Document ID to inject if missing
+        doc: Document record (``url``, ``published``) used to stamp evidence
+            provenance -- required for 2.1.0 output, where the model no longer
+            writes those fields. See stamp_evidence_provenance.
 
     Returns:
         Validated extraction dict
@@ -212,6 +271,9 @@ def parse_extraction_response(
     # Inject docId if missing
     if "docId" not in data:
         data["docId"] = doc_id
+
+    # Evidence provenance comes from the document, not the model (2.1.0)
+    stamp_evidence_provenance(data, doc_id, doc)
 
     # Normalize LLM output variations before validation
     data = normalize_extraction(data)

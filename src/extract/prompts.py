@@ -257,19 +257,21 @@ OPENAI_EXTRACTION_TOOL = {
                                 "type": ["string", "null"],
                                 "description": "Original verb from text, or null",
                             },
+                            # The model writes only the quote. docId, url and
+                            # published are known before the call, so
+                            # parse_extraction_response stamps them from the
+                            # document record (extractor 2.1.0). Having the
+                            # model copy them out was ~26% of extraction output
+                            # tokens -- the URL alone repeats ~14x per doc --
+                            # and it still got "published" wrong on 67 of 1,740
+                            # evidence objects (2026-11-14 measurement).
                             "evidence": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "required": ["docId", "url", "published", "snippet"],
+                                    "required": ["snippet"],
                                     "additionalProperties": False,
                                     "properties": {
-                                        "docId": {"type": "string"},
-                                        "url": {"type": "string"},
-                                        "published": {
-                                            "type": ["string", "null"],
-                                            "description": "ISO date or null",
-                                        },
                                         "snippet": {
                                             "type": "string",
                                             "description": "Short quote ≤200 chars",

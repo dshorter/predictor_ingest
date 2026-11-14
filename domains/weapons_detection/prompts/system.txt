@@ -33,7 +33,7 @@ to suppress one side.
    - rel: Must be one of the relation types listed above
    - kind: "asserted" if explicitly stated, "inferred" if implied, "hypothesis" if speculative
    - confidence: 0.0 to 1.0
-   - evidence: REQUIRED for asserted relations — include docId, url, published, and a short snippet (≤200 chars) from the source text
+   - evidence: REQUIRED for asserted relations — include a short snippet (≤200 chars) from the source text
 
    Distinguish PROCURES (a purchase/RFP award is reported) from PILOTS (a
    trial/pilot program, not yet a full commitment) from DEPLOYED_TO (the

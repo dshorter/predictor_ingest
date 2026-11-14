@@ -74,6 +74,16 @@ Evidence object:
 - `snippet` (string; short quote/paraphrase)
 - `charSpan` (object optional) `{ "start": 1234, "end": 1302 }`
 
+Who writes what (extractor 2.1.0, 2026-11-14): the model writes only
+`snippet`. `docId`, `url` and `published` are stamped from the document record
+by `stamp_evidence_provenance` (`src/extract/__init__.py`) before validation,
+so the stored contract above is unchanged. Copying them out was about a quarter
+of extraction output tokens, and the model still wrote `"Unknown"` for
+`published` on 67 of 1,740 evidence objects. Any caller of
+`parse_extraction_response` must pass the document (`url`, `published`), or
+validation fails on the missing `url`. Mode B (manual) extractions still carry
+all four fields, as before.
+
 Date model:
 - Always keep raw: `text` (e.g., `"this fall"`)
 - Normalize when possible:

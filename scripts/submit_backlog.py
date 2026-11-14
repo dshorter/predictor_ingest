@@ -72,8 +72,11 @@ def fetch_backlog_docs(conn: sqlite3.Connection, chunk_size: int) -> list[dict]:
             "title": row["title"] or "",
             "text": row["text"] or "",
             "source": row["source"] or "",
-            "publishedAt": row["published_at"] or "",
-            "fetchedAt": row["fetched_at"] or "",
+            # "published"/"fetched", the docpack keys the prompt template reads
+            # (build_docpack.py). "publishedAt" until 2026-11-14 made every
+            # backlog prompt say "Published: Unknown".
+            "published": row["published_at"] or "",
+            "fetched": row["fetched_at"] or "",
         })
     return docs
 

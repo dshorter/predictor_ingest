@@ -137,7 +137,7 @@ def run_benchmark(
 
         # Step 2: Parse response
         try:
-            extraction = parse_extraction_response(response_text, doc_id)
+            extraction = parse_extraction_response(response_text, doc_id, doc)
         except ExtractionError as e:
             print(f"PARSE FAILED ({e})")
             parse_failed += 1

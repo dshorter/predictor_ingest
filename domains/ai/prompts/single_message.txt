@@ -26,9 +26,6 @@ Extract the following and return as JSON:
    - kind: "asserted" (explicitly stated), "inferred", or "hypothesis"
    - confidence: 0.0 to 1.0
    - evidence: For asserted relations, include at least one evidence object:
-     - docId: "{docId}"
-     - url: "{url}"
-     - published: "{published}"
      - snippet: Short quote from the text (≤200 chars)
 
 3. **techTerms**: List of technical terms, technologies, or concepts mentioned
