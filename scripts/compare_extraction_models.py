@@ -150,6 +150,49 @@ Extract every relation the text states between two of your entities, wherever it
 """,
 }
 
+# haiku_v2 = haiku_v1 plus what round 1 (2026-11-22-haiku-r1-seed1) showed.
+# Relations stayed at 26% kept against Sonnet's 51%. A third of the missed
+# relations had both entities found but no link, and Haiku spent its relations
+# on the document-level labels (MENTIONS, REPORTED_BY, ANNOUNCES) where Sonnet
+# used DESIGNS, DEPENDS_ON and SUPPLIES. The prompt names the labels but never
+# defines them; the definitions below are the comments on relation_taxonomy in
+# domains/semiconductors/domain.yaml. Footer publishers (Future US Inc,
+# AspenCore) were still being taken as entities.
+PROMPT_TUNINGS["haiku_v2"] = PROMPT_TUNINGS["haiku_v1"].replace(
+    """A headline or article title is never an entity.
+""",
+    """A headline or article title is never an entity. The site's own publisher, its parent company, and sister sites listed in the page footer (e.g. "Future US Inc", "AspenCore") are not entities unless the article is about them.
+""",
+).replace(
+    """## Relations
+Extract every relation the text states between two of your entities, wherever it appears in the document.
+""",
+    """## Relations
+Extract every relation the text states between two of your entities, wherever it appears in the document. When two of your entities are connected in the text, link them. Use the most specific label the text supports:
+- DESIGNS: company or person designs a chip or architecture
+- MANUFACTURES: fab or company makes a chip
+- FABRICATES: fab runs a process node in production
+- LICENSES: company licenses an architecture (Arm, RISC-V)
+- BUILT_ON: chip built on an architecture (H100 BUILT_ON Hopper)
+- USES_PROCESS: chip made on a process node (H100 USES_PROCESS TSMC N4)
+- USES_PACKAGING: chip or product uses a packaging technology (H100 USES_PACKAGING CoWoS)
+- USES_MATERIAL: process node or chip uses a material
+- INTEGRATES: chip or product integrates another chip or component (chiplets, HBM stacks)
+- POWERS: chip powers a product or application
+- SUPPLIES: company supplies another company (TSMC SUPPLIES NVIDIA)
+- DEPENDS_ON: company or chip depends on a company, material or technology
+- SOURCES_FROM: company procures from a company or location
+- ACQUIRES, INVESTS_IN, PARTNERS_WITH, SPINS_OUT; FOUNDED: person founds a company
+- WORKS_AT: person works at a company or organization (one for every named person whose employer the text gives)
+- LEADS: person leads a company, project or team
+- PRESENTS: person or company presents at an event; PRESENTED_AT: chip or research presented at an event
+- RESTRICTS, EXEMPTS, TARGETS: a policy restricts, exempts, or is aimed at a company, technology or location; GOVERNS: org or policy governs a topic or industry; COMPLIES_WITH: company complies with a policy
+- BENCHMARKS: comparative evaluation. COMPETES_WITH and OUTPERFORMS are hypothesis only.
+- MENTIONS, CITES, ANNOUNCES, REPORTED_BY are document-level: use them only when no specific label fits.
+""",
+)
+assert PROMPT_TUNINGS["haiku_v2"].count("DESIGNS:") == 1 and "Future US Inc" in PROMPT_TUNINGS["haiku_v2"]
+
 
 ARMS: dict[str, Arm] = {
     "sonnet5": Arm("claude-sonnet-5", "snippet", {"type": "disabled"},
@@ -177,6 +220,10 @@ ARMS: dict[str, Arm] = {
     "haiku55_tuned_high": Arm("claude-haiku-5-5", "snippet", {"type": "adaptive"},
                               "Haiku 5.5, tuned prompt haiku_v1, thinking on (effort high)",
                               tuning="haiku_v1", effort="high"),
+    # Round 2: thinking stays off (round 1: it lowered entity recall).
+    "haiku55_tuned2": Arm("claude-haiku-5-5", "snippet", {"type": "disabled"},
+                          "Haiku 5.5, tuned prompt haiku_v2, thinking off",
+                          tuning="haiku_v2"),
 }
 DEFAULT_ARMS = ["sonnet5", "haiku55", "sonnet5_sentences", "haiku55_sentences"]
 
