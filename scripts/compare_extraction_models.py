@@ -50,6 +50,28 @@ SRC = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(SRC))
 
 
+def _load_dotenv() -> None:
+    """Load the project .env without overriding the environment.
+
+    Same rules as scripts/collect_batch.py: the timers get the key this
+    way, not from the shell, so an interactive run needs it too.
+    """
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.replace("\r", "").strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip("\"'").strip()
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
+_load_dotenv()
+
+
 def _bootstrap_domain() -> None:
     """Set PREDICTOR_DOMAIN from --domain before any domain-aware import."""
     os.environ.setdefault("PREDICTOR_DOMAIN", "semiconductors")
