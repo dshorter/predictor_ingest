@@ -115,6 +115,40 @@ class Arm:
     evidence: str                    # "snippet" | "sentence"
     thinking: Optional[dict]         # None = omit the parameter
     note: str
+    tuning: Optional[str] = None     # key into PROMPT_TUNINGS, or None
+    effort: Optional[str] = None     # output_config.effort, or None to omit
+
+
+# Extra prompt text for the tuning arms, inserted just before "## Critical
+# Rules". Experiment-only: production prompts stay in domains/<slug>/prompts/.
+#
+# haiku_v1 targets what Haiku 5.5 missed on the 2026-11-22-n50-seed1 run
+# (production prompt, thinking off): 72% of the baseline's entities kept
+# against Sonnet's 87%. The misses were not positional (they sat in the second
+# half of the article no more often than kept entities did). They were
+# selectivity: 51 locations and 43 orgs (many government bodies) dropped
+# outright, and half of the missed Topics went into techTerms instead. A
+# quarter of a sample of Haiku's extra entities were page furniture (related
+# headlines, affiliate notices).
+PROMPT_TUNINGS: dict[str, str] = {
+    "haiku_v1": """## Coverage
+Extract EVERY specific named entity the document mentions, including ones that appear only once or in passing:
+- every company, organization, government body or agency (e.g. "Dutch government", "Commerce Department"), university, and person
+- every location named: countries, regions, states and cities (e.g. "China", "Netherlands", "Austin")
+- every named product, chip, memory or interface standard (e.g. "DDR5", "GDDR7"), software, framework, and model
+- named fields or subjects the article discusses (e.g. "quantum computing", "data sovereignty") as Topic entities
+
+## Entity vs techTerms
+If a term fits one of the entity types above, it is an entity, not a techTerm. techTerms[] is only for generic concepts that fit no entity type. A term may appear in both lists.
+
+## Not entities
+Ignore page furniture: headlines of other articles, navigation menus, newsletter and subscription prompts, ad and affiliate notices (e.g. "Amazon Services LLC Associates Program"). A headline or article title is never an entity.
+
+## Relations
+Extract every relation the text states between two of your entities, wherever it appears in the document.
+
+""",
+}
 
 
 ARMS: dict[str, Arm] = {
@@ -129,6 +163,20 @@ ARMS: dict[str, Arm] = {
     # Haiku 4.5 takes no thinking parameter to stay off (it is off by default).
     "haiku45": Arm("claude-haiku-4-5", "snippet", None,
                    "Claude Haiku 4.5 (previous generation), production prompt"),
+    # Haiku 5.5 tuning round 1 (2026-11-22). Its default is adaptive thinking
+    # at effort medium; the arms above turn thinking off.
+    "haiku55_think": Arm("claude-haiku-5-5", "snippet", {"type": "adaptive"},
+                         "Haiku 5.5, production prompt, thinking on (effort medium)",
+                         effort="medium"),
+    "haiku55_tuned": Arm("claude-haiku-5-5", "snippet", {"type": "disabled"},
+                         "Haiku 5.5, tuned prompt haiku_v1, thinking off",
+                         tuning="haiku_v1"),
+    "haiku55_tuned_think": Arm("claude-haiku-5-5", "snippet", {"type": "adaptive"},
+                               "Haiku 5.5, tuned prompt haiku_v1, thinking on (effort medium)",
+                               tuning="haiku_v1", effort="medium"),
+    "haiku55_tuned_high": Arm("claude-haiku-5-5", "snippet", {"type": "adaptive"},
+                              "Haiku 5.5, tuned prompt haiku_v1, thinking on (effort high)",
+                              tuning="haiku_v1", effort="high"),
 }
 DEFAULT_ARMS = ["sonnet5", "haiku55", "sonnet5_sentences", "haiku55_sentences"]
 
@@ -170,7 +218,12 @@ def _sub_once(text: str, pattern: str, replacement: str) -> str:
 def build_prompt(doc: dict[str, Any], arm: Arm) -> tuple[str, Optional[list[str]]]:
     """The user prompt for one arm, plus the numbered sentences if it cites them."""
     if arm.evidence == "snippet":
-        return build_extraction_prompt(doc, EXTRACTOR_VERSION), None
+        prompt = build_extraction_prompt(doc, EXTRACTOR_VERSION)
+        if arm.tuning:
+            prompt = _sub_once(prompt, r"^## Critical Rules$",
+                               PROMPT_TUNINGS[arm.tuning].replace("\\", r"\\")
+                               + "## Critical Rules")
+        return prompt, None
     numbered, sentences = number_sentences(doc.get("text") or "")
     prompt = build_extraction_prompt({**doc, "text": numbered}, EXTRACTOR_VERSION)
     prompt = _sub_once(
@@ -202,6 +255,8 @@ def request_params(doc: dict[str, Any], arm: Arm) -> dict[str, Any]:
     }
     if arm.thinking is not None:
         params["thinking"] = arm.thinking
+    if arm.effort is not None:
+        params["output_config"]["effort"] = arm.effort
     return params
 
 
@@ -277,6 +332,14 @@ def cmd_plan(args: argparse.Namespace) -> int:
         if r[4] == "batch" and r[5] == "claude-sonnet-5"
         and r[0] in packs and baseline_path(domain, r[0]).exists()
     )
+    # A confirmation run samples documents the tuning never saw.
+    excluded: set[str] = set()
+    for prior in args.exclude_run or []:
+        excluded |= {d["docId"] for d in load_manifest(Path(prior))["docs"]}
+    if excluded:
+        before = len(eligible)
+        eligible = [r for r in eligible if r[0] not in excluded]
+        print(f"excluded {before - len(eligible)} documents used by {len(args.exclude_run)} earlier run(s)")
     if len(eligible) < args.n:
         print(f"only {len(eligible)} eligible documents in the last {args.days} days")
         return 1
@@ -332,6 +395,8 @@ def cmd_plan(args: argparse.Namespace) -> int:
         print(f"  {a:<20} ${estimate[a]:.2f}   {ARMS[a].note}")
     print(f"  {'total':<20} ${sum(estimate.values()):.2f}")
     print("Haiku's own tokenizer may count differently; the estimate uses Sonnet 5's counts.")
+    if any(ARMS[a].thinking and ARMS[a].thinking.get("type") == "adaptive" for a in arms):
+        print("Thinking arms: the estimate leaves out thinking tokens, which bill as output.")
     print(f"Next: submit --run {run} --dry-run")
     return 0
 
@@ -743,6 +808,8 @@ def main() -> int:
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--arms", default=",".join(DEFAULT_ARMS))
     p.add_argument("--run-id", default=None)
+    p.add_argument("--exclude-run", action="append", default=None,
+                   help="earlier run dir whose documents to leave out (repeatable)")
 
     p = sub.add_parser("submit", help="submit the batch (spends money with --yes)")
     p.add_argument("--run", required=True)

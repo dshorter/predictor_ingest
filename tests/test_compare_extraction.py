@@ -109,6 +109,24 @@ class TestArmRequests:
         assert "thinking" not in cem.request_params(doc, cem.ARMS["haiku45"])
         assert cem.request_params(doc, cem.ARMS["haiku55"])["thinking"] == {"type": "disabled"}
 
+    def test_tuned_arm_inserts_tuning_once_before_critical_rules(self):
+        doc = {"docId": "d", "title": "t", "url": "u", "published": "p", "text": "One. Two."}
+        plain, _ = cem.build_prompt(doc, cem.ARMS["haiku55"])
+        tuned, _ = cem.build_prompt(doc, cem.ARMS["haiku55_tuned"])
+        tuning = cem.PROMPT_TUNINGS["haiku_v1"]
+        assert tuning not in plain
+        assert tuned.count(tuning) == 1
+        assert tuned.index(tuning) < tuned.index("## Critical Rules")
+        assert tuned.replace(tuning, "") == plain
+
+    def test_effort_goes_inside_output_config(self):
+        doc = {"docId": "d", "title": "t", "url": "u", "published": "p", "text": "One. Two."}
+        params = cem.request_params(doc, cem.ARMS["haiku55_tuned_high"])
+        assert params["thinking"] == {"type": "adaptive"}
+        assert params["output_config"]["effort"] == "high"
+        assert "format" in params["output_config"]
+        assert "effort" not in cem.request_params(doc, cem.ARMS["haiku55"])["output_config"]
+
     def test_every_arm_has_a_rate(self):
         from db import _compute_cost
         for name, arm in cem.ARMS.items():
