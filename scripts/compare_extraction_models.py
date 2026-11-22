@@ -387,11 +387,32 @@ def cmd_plan(args: argparse.Namespace) -> int:
         before = len(eligible)
         eligible = [r for r in eligible if r[0] not in excluded]
         print(f"excluded {before - len(eligible)} documents used by {len(args.exclude_run)} earlier run(s)")
-    if len(eligible) < args.n:
-        print(f"only {len(eligible)} eligible documents in the last {args.days} days")
-        return 1
-    sample = random.Random(args.seed).sample(eligible, args.n)
-    sample.sort()
+    if args.docs_file:
+        # An explicit document set (e.g. a whole trending window for a shadow
+        # graph) instead of a random sample. Baseline token counts are the
+        # documents' batch Sonnet rows, whenever they were extracted.
+        wanted = [l.strip() for l in open(args.docs_file, encoding="utf-8") if l.strip()]
+        usage = {r[0]: r for r in conn.execute(
+            """SELECT doc_id, SUM(input_tokens), SUM(output_tokens), SUM(cost_usd),
+                      GROUP_CONCAT(DISTINCT billing_mode), GROUP_CONCAT(DISTINCT model)
+               FROM token_usage
+               WHERE stage = 'extraction' AND billing_mode = 'batch'
+                 AND model = 'claude-sonnet-5'
+               GROUP BY doc_id""").fetchall()}
+        missing = [d for d in wanted
+                   if d not in usage or d not in packs or not baseline_path(domain, d).exists()]
+        if missing:
+            print(f"{len(missing)} of {len(wanted)} listed documents lack a batch Sonnet 5 "
+                  f"extraction, docpack text or extraction file: {missing[:5]}")
+            return 1
+        sample = sorted(usage[d] for d in wanted)
+        args.n, args.seed = len(sample), None
+    else:
+        if len(eligible) < args.n:
+            print(f"only {len(eligible)} eligible documents in the last {args.days} days")
+            return 1
+        sample = random.Random(args.seed).sample(eligible, args.n)
+        sample.sort()
 
     docs = []
     estimate = {a: 0.0 for a in arms}
@@ -857,6 +878,8 @@ def main() -> int:
     p.add_argument("--run-id", default=None)
     p.add_argument("--exclude-run", action="append", default=None,
                    help="earlier run dir whose documents to leave out (repeatable)")
+    p.add_argument("--docs-file", default=None,
+                   help="file of docIds, one per line: use exactly these instead of sampling")
 
     p = sub.add_parser("submit", help="submit the batch (spends money with --yes)")
     p.add_argument("--run", required=True)
